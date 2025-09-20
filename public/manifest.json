@@ -1,0 +1,44 @@
+{
+  "name": "Evocto - Gestão de Agências",
+  "short_name": "Evocto",
+  "description": "Sistema completo de gestão para agências digitais",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "https://base44.com/logo_v2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acessar dashboard principal",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Clientes",
+      "short_name": "Clientes",
+      "description": "Gerenciar clientes",
+      "url": "/clients"
+    },
+    {
+      "name": "Tarefas",
+      "short_name": "Tarefas",
+      "description": "Visualizar tarefas",
+      "url": "/tasks"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
+

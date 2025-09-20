@@ -1,0 +1,27 @@
+{
+  "name": "evocto-fix-scripts",
+  "version": "1.0.0",
+  "description": "Scripts para correção de problemas de alta prioridade",
+  "scripts": {
+    "fix:setup": "node scripts/setup-fix.js",
+    "fix:console": "node scripts/cleanup-console-logs.js",
+    "fix:security": "node scripts/security-audit.js",
+    "fix:all": "node scripts/master-fix.js",
+    "fix:dry-run": "node scripts/cleanup-console-logs.js --dry-run",
+    "fix:security-dry": "node scripts/security-audit.js --dry-run"
+  },
+  "devDependencies": {
+    "glob": "^10.3.10",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.6"
+  },
+  "keywords": [
+    "code-quality",
+    "security",
+    "refactoring",
+    "automation"
+  ],
+  "author": "Evocto Team",
+  "license": "MIT"
+}
+
