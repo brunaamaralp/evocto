@@ -156,14 +156,8 @@ export default function ClientActivation() {
       setStep('success');
       
       // Auto-login após 2 segundos
-      setTimeout(async () => {
-        try {
-          await User.login();
-          navigate('/client-portal');
-        } catch (loginError) {
-          console.error('Erro no auto-login:', loginError);
-          navigate('/client-login');
-        }
+      setTimeout(() => {
+        navigate('/client-login');
       }, 2000);
 
     } catch (error) {

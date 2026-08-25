@@ -85,8 +85,7 @@ export default function ClientLogin() {
     setError('');
 
     try {
-      // Fazer login
-      await User.login();
+      await User.login({ email: email.trim(), password });
       
       // Verificar se usuário é cliente
       const user = await User.me();

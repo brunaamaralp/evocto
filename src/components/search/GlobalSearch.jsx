@@ -18,7 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Client, Service, Brief, Insights, Scope } from '@/api/entities';
-import { navigateToCustomer } from '@/components/utils/navigation';
+import { navigateToCustomer } from '@/components/utils/navigation.jsx';
 import { useDebounce } from '../hooks/useDebounce';
 
 const entityConfig = {

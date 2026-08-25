@@ -96,17 +96,8 @@ export function SessionManager({ children, isPublicPage = false }) {
 
       // Para páginas protegidas, redirecionar após um delay
       setTimeout(() => {
-        if (mountedRef.current) {
-          try {
-            console.log('[SessionManager] Redirecionando para login...');
-            User.login();
-          } catch (loginError) {
-            console.error('[SessionManager] Login redirect failed:', loginError);
-            // Fallback - ir para welcome
-            if (typeof window !== 'undefined') {
-              window.location.href = '/';
-            }
-          }
+        if (mountedRef.current && typeof window !== 'undefined') {
+          window.location.href = '/login';
         }
       }, 1000);
     } else {
@@ -180,16 +171,22 @@ export function SessionManager({ children, isPublicPage = false }) {
   }, [isPublicPage, handleAuthFailure, clearAuthState]);
 
   // CORREÇÃO: Login mais robusto
-  const login = useCallback(async () => {
+  const login = useCallback(async (credentials) => {
     try {
       console.log('[SessionManager] Iniciando login...');
       setError(null);
       setLoading(true);
 
-      await User.login();
+      if (!credentials?.email || !credentials?.password) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return;
+      }
+
+      await User.login(credentials);
       console.log('[SessionManager] Login concluído.');
 
-      // Restart bootstrap após login
       initializationAttempted.current = false;
       await bootstrapAuth();
 
@@ -316,12 +313,9 @@ export function SessionManager({ children, isPublicPage = false }) {
           <button
             onClick={() => {
               clearAuthState();
-              User.login().catch(() => {
-                // Fallback to home if login fails again
-                if (typeof window !== 'undefined') {
-                  window.location.href = '/';
-                }
-              });
+              if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+              }
             }}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
           >

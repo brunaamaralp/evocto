@@ -40,13 +40,7 @@ export default function WelcomePage() {
   }, [checkExistingAuth]); // Add checkExistingAuth to dependency array
 
   const handleLogin = async () => {
-    setIsLoading(true);
-    try {
-      await User.login();
-    } catch (error) {
-      console.error('Erro no login:', error);
-      setIsLoading(false);
-    }
+    navigate('/login');
   };
 
   const features = [

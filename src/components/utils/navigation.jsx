@@ -2,6 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 
+// Utilitários para navegação de clientes
+export const customerPath = (id) => `/clients/${id}`;
+
+export const navigateToCustomer = (navigate, id) => {
+  if (!id) return;
+  navigate(customerPath(id));
+};
+
 // Utilitário para navegação segura e com feedback
 export const navigateToClientPanel = (clientId, options = {}) => {
   const { 

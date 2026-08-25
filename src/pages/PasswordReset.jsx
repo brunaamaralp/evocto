@@ -190,12 +190,7 @@ export default function PasswordReset() {
       toast.success('Senha alterada com sucesso! Você pode fazer login agora.');
       
       // Redirect to built-in login
-      try {
-        await User.login();
-      } catch (loginError) {
-        // Fallback - redirect to home/dashboard
-        navigate('/dashboard');
-      }
+      navigate('/login');
 
     } catch (error) {
       setError('Erro interno. Tente novamente ou entre em contato com o suporte.');
@@ -205,12 +200,7 @@ export default function PasswordReset() {
   };
 
   const handleBackToLogin = () => {
-    try {
-      User.login(); // Use built-in login
-    } catch (error) {
-      // Fallback - redirect to home
-      navigate('/dashboard');
-    }
+    navigate('/login');
   };
 
   if (step === 'success') {

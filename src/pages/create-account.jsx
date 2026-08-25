@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Building, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { User as UserEntity } from '@/api/entities';
 import { createAgency } from '@/api/functions';
 
 export default function CreateAccountPage() {
@@ -52,7 +51,6 @@ export default function CreateAccountPage() {
     setError('');
 
     try {
-      // Criar agência e usuário
       await createAgency({
         agencyName: formData.agencyName,
         ownerName: formData.fullName,
@@ -61,8 +59,7 @@ export default function CreateAccountPage() {
         password: formData.password
       });
 
-      // Redirecionar para login
-      await UserEntity.login();
+      window.location.href = '/dashboard';
       
     } catch (err) {
       console.error('Erro ao criar conta:', err);

@@ -74,6 +74,8 @@ import inviteaccept from "./invite-accept";
 
 import welcome from "./welcome";
 
+import login from "./login";
+
 import dashboard from "./dashboard";
 
 import servicedetail from "./service-detail";
@@ -289,6 +291,8 @@ const PAGES = {
     "invite-accept": inviteaccept,
     
     welcome: welcome,
+    
+    login: login,
     
     dashboard: dashboard,
     
@@ -528,6 +532,8 @@ function PagesContent() {
                 <Route path="/invite-accept" element={<invite-accept />} />
                 
                 <Route path="/welcome" element={<welcome />} />
+                
+                <Route path="/login" element={<login />} />
                 
                 <Route path="/dashboard" element={<dashboard />} />
                 

@@ -65,28 +65,51 @@ export function usePWA(): PWAState & PWAActions {
   // Registrar Service Worker
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('✅ Service Worker registrado:', registration);
+      if (import.meta.env.PROD) {
+        // Registrar apenas em produção
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('✅ Service Worker registrado:', registration);
 
-          // Verificar atualizações
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  setState(prev => ({ ...prev, isUpdateAvailable: true }));
-                }
+            // Verificar atualizações
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    setState(prev => ({ ...prev, isUpdateAvailable: true }));
+                  }
+                });
+              }
+            });
+
+            // Obter tamanho do cache
+            getCacheSize();
+          })
+          .catch(error => {
+            console.error('❌ Erro ao registrar Service Worker:', error);
+          });
+      } else {
+        // Em desenvolvimento: limpar registros e cache
+        console.log('🔧 Modo desenvolvimento - limpando Service Workers');
+        navigator.serviceWorker.getRegistrations()
+          .then(registrations => {
+            return Promise.all(registrations.map(registration => registration.unregister()));
+          })
+          .then(() => {
+            if (window.caches && window.caches.keys) {
+              return caches.keys().then(cacheNames => {
+                return Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
               });
             }
+          })
+          .then(() => {
+            console.log('✅ Service Workers e cache limpos em desenvolvimento');
+          })
+          .catch(error => {
+            console.warn('⚠️ Erro ao limpar Service Workers em desenvolvimento:', error);
           });
-
-          // Obter tamanho do cache
-          getCacheSize();
-        })
-        .catch(error => {
-          console.error('❌ Erro ao registrar Service Worker:', error);
-        });
+      }
     }
   }, []);
 

@@ -24,13 +24,15 @@ export class PWAManager extends EventEmitter {
    */
   async initializePWA() {
     // Verificar se está em ambiente de produção
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[PWA] PWA desabilitado em ambiente de desenvolvimento');
+    if (import.meta.env.PROD) {
+      // Registrar service worker apenas em produção
+      await this.registerServiceWorker();
+    } else {
+      // Em desenvolvimento: limpar registros e cache existentes
+      console.log('[PWA] Modo desenvolvimento - limpando Service Workers e cache');
+      await this.cleanupDevelopmentEnvironment();
       return;
     }
-
-    // Registrar service worker
-    await this.registerServiceWorker();
     
     // Configurar cache
     await this.setupCache();
@@ -51,6 +53,29 @@ export class PWAManager extends EventEmitter {
   }
 
   /**
+   * Limpa ambiente de desenvolvimento
+   */
+  async cleanupDevelopmentEnvironment() {
+    if ('serviceWorker' in navigator) {
+      try {
+        // Desregistrar todos os service workers
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration => registration.unregister()));
+        console.log('[PWA] Service Workers desregistrados:', registrations.length);
+        
+        // Limpar todos os caches
+        if (window.caches && window.caches.keys) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+          console.log('[PWA] Caches limpos:', cacheNames.length);
+        }
+      } catch (error) {
+        console.warn('[PWA] Erro ao limpar ambiente de desenvolvimento:', error);
+      }
+    }
+  }
+
+  /**
    * Registra service worker
    */
   async registerServiceWorker() {
@@ -59,27 +84,45 @@ export class PWAManager extends EventEmitter {
       return;
     }
 
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      this.serviceWorker = registration;
-      
-      console.log('[PWA] Service Worker registrado:', registration);
-      
-      // Verificar atualizações
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            this.updateAvailable = true;
-            this.emit('updateAvailable');
-          }
+    // Lógica condicional para produção vs desenvolvimento
+    if (import.meta.env.PROD) {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        this.serviceWorker = registration;
+        
+        console.log('[PWA] Service Worker registrado:', registration);
+        
+        // Verificar atualizações
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              this.updateAvailable = true;
+              this.emit('updateAvailable');
+            }
+          });
         });
-      });
-      
-      this.emit('serviceWorkerRegistered', { registration });
-    } catch (error) {
-      console.error('[PWA] Erro ao registrar Service Worker:', error);
-      this.emit('serviceWorkerError', { error });
+        
+        this.emit('serviceWorkerRegistered', { registration });
+      } catch (error) {
+        console.error('[PWA] Erro ao registrar Service Worker:', error);
+        this.emit('serviceWorkerError', { error });
+      }
+    } else {
+      // Em desenvolvimento: desregistrar e limpar
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration => registration.unregister()));
+        
+        if (window.caches && window.caches.keys) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+        }
+        
+        console.log('[PWA] Service Workers e cache limpos em desenvolvimento');
+      } catch (error) {
+        console.warn('[PWA] Erro ao limpar Service Workers em desenvolvimento:', error);
+      }
     }
   }
 

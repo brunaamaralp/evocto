@@ -16,8 +16,12 @@ import ServiceActionsFab from '@/components/services/ServiceActionsFab';
 const publicRoutes = [
   '/',
   '/welcome',
+  '/login',
+  '/create-account',
   '/create-agency',
+  '/client-login',
   '/password-reset',
+  '/PasswordReset',
   '/terms-of-service',
   '/privacy-policy',
   '/public-approval',

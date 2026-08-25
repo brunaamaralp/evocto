@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { navigateToCustomer } from '@/components/utils/navigation';
+import { customerPath } from '@/components/utils/navigation.jsx';
 
 const ContextContext = createContext({});
 
@@ -19,7 +19,7 @@ export function ContextProvider({ children }) {
       service: service ? { id: service.id, name: service.name } : null,
       cycle: cycle ? { id: cycle.id, label: cycle.cyclePeriod || 'N/A' } : null,
       links: {
-        customer: navigateToCustomer(customer.id),
+        customer: customerPath(customer.id),
         service: service ? `/services?id=${service.id}&customerId=${customer.id}` : null,
         cycle: service && cycle ? `/cycle-plan?id=${cycle.id}` : null,
       },
