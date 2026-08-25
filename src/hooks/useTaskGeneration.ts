@@ -181,6 +181,8 @@ export function useTaskGeneration() {
       console.warn('[TaskGeneration] Erro ao verificar duplicatas:', error);
       return { exists: false }; // Em caso de erro, permitir criação
     }
+  }, [user?.data?.agencyId, generateTaskHash]);
+
   // Validar se serviço pode ser ativado
   const validateServiceActivation = useCallback(async (serviceId: string): Promise<{ 
     canActivate: boolean; 
@@ -272,6 +274,64 @@ export function useTaskGeneration() {
       return { canActivate: false, errors, warnings };
     }
   }, [user?.data?.agencyId, canActivateService]);
+
+  // Validar serviço/template antes de gerar tarefas
+  const validateServiceTemplate = useCallback(async (serviceId: string): Promise<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    service?: any;
+  }> => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    try {
+      const service = await Service.get(serviceId);
+      if (!service) {
+        errors.push('Serviço não encontrado');
+        return { isValid: false, errors, warnings };
+      }
+
+      if (service.is_template) {
+        errors.push('Não é possível gerar tarefas a partir de um template — use uma instância de serviço');
+        return { isValid: false, errors, warnings };
+      }
+
+      if (!user?.data?.agencyId) {
+        errors.push('Usuário não tem agência associada');
+        return { isValid: false, errors, warnings };
+      }
+
+      if (service.agencyId !== user.data.agencyId) {
+        errors.push('Serviço não pertence à sua agência');
+        return { isValid: false, errors, warnings };
+      }
+
+      if (!service.deliverables || service.deliverables.length === 0) {
+        errors.push('Serviço não possui deliverables para gerar tarefas');
+        return { isValid: false, errors, warnings };
+      }
+
+      const deliverablesWithTasks = service.deliverables.filter(
+        (d: Deliverable) => d.task_templates && d.task_templates.length > 0
+      );
+
+      if (deliverablesWithTasks.length === 0) {
+        errors.push('Nenhum deliverable possui templates de tarefa');
+        return { isValid: false, errors, warnings };
+      }
+
+      if (!service.start_date) {
+        warnings.push('Data de início não foi definida — use a data informada na geração');
+      }
+
+      return { isValid: errors.length === 0, errors, warnings, service };
+    } catch (error) {
+      console.error('[TaskGeneration] Erro na validação do serviço:', error);
+      errors.push('Erro ao validar serviço para geração de tarefas');
+      return { isValid: false, errors, warnings };
+    }
+  }, [user?.data?.agencyId]);
 
   // Processar checklist de tarefa
   const processTaskChecklist = useCallback((checklist: TaskChecklistItem[], startDate: string): any[] => {
@@ -450,7 +510,7 @@ export function useTaskGeneration() {
         warnings: []
       };
     }
-  }, [user, validateServiceTemplate, processTaskChecklist]);
+  }, [user, validateServiceTemplate, processTaskChecklist, checkTaskExists, generateTaskHash, sanitizeTaskData, validateSanitizedData]);
 
   // Ativar serviço e gerar tarefas com validação completa
   const activateServiceAndGenerateTasks = useCallback(async (serviceId: string, options: {
@@ -562,6 +622,9 @@ export function useTaskGeneration() {
       };
     }
   }, [validateServiceActivation, generateTasksFromServiceInstance, registerEvent]);
+
+  // Gerar tarefas com feedback via toast
+  const generateTasksWithFeedback = useCallback(async (options: TaskGenerationOptions): Promise<TaskGenerationResult> => {
     const result = await generateTasksFromServiceInstance(options);
 
     if (result.success) {
