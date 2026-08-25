@@ -212,6 +212,7 @@ import briefingdemo from "./briefing-demo";
 
 import serviceTemplatesViewer from "./service-templates-viewer";
 
+import { createElement } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -302,11 +303,11 @@ const PAGES = {
     
     "client-detail": clientdetail,
     
-    "client-dashboard": client-dashboard,
+    "client-dashboard": clientdashboard,
     
     "ai-central": aicentral,
     
-    "ai-configuration": ai-configuration,
+    "ai-configuration": aiconfiguration,
     
     "cycle-report": cyclereport,
     
@@ -422,9 +423,9 @@ const PAGES = {
     "service-templates": servicetemplates,
     
     "qa-dashboard": qadashboard,
-    'connectivity-dashboard': connectivity-dashboard,
+    'connectivity-dashboard': connectivitydashboard,
     
-    'briefing-demo': briefing-demo,
+    'briefing-demo': briefingdemo,
     
     'service-templates-viewer': serviceTemplatesViewer,
     
@@ -441,6 +442,10 @@ function _getCurrentPage(url) {
         urlLastPart = urlLastPart.split('?')[0];
     }
 
+    if (!urlLastPart) {
+        return 'welcome';
+    }
+
     const pageName = Object.keys(PAGES).find(page => page.toLowerCase() === urlLastPart.toLowerCase());
     return pageName || Object.keys(PAGES)[0];
 }
@@ -454,10 +459,11 @@ function PagesContent() {
         <Layout currentPageName={currentPage}>
             <Routes>            
                 
-                    <Route path="/" element={<PasswordReset />} />
+                    <Route path="/" element={createElement(welcome)} />
                 
                 
                 <Route path="/PasswordReset" element={<PasswordReset />} />
+                <Route path="/password-reset" element={<PasswordReset />} />
                 
                 <Route path="/ClientArea" element={<ClientArea />} />
                 
@@ -465,56 +471,56 @@ function PagesContent() {
                 
                 <Route path="/EvolutionPanel" element={<EvolutionPanel />} />
                 
-                <Route path="/briefings" element={<briefings />} />
+                <Route path="/briefings" element={createElement(briefings)} />
                 
-                <Route path="/insights" element={<insights />} />
+                <Route path="/insights" element={createElement(insights)} />
                 
-                <Route path="/scope-generator" element={<scopeGenerator />} />
+                <Route path="/scope-generator" element={createElement(scopeGenerator)} />
                 
-                <Route path="/my-agency" element={<myAgency />} />
+                <Route path="/my-agency" element={createElement(myAgency)} />
                 
-                <Route path="/briefing-editor" element={<briefingEditor />} />
+                <Route path="/briefing-editor" element={createElement(briefingEditor)} />
                 
-                <Route path="/insights-editor" element={<insights-editor />} />
+                <Route path="/insights-editor" element={createElement(insightsEditor)} />
                 
-                <Route path="/scope-editor" element={<scope-editor />} />
+                <Route path="/scope-editor" element={createElement(scopeEditor)} />
                 
-                <Route path="/public-approval" element={<public-approval />} />
+                <Route path="/public-approval" element={createElement(publicApproval)} />
                 
-                <Route path="/settings" element={<settings />} />
+                <Route path="/settings" element={createElement(settings)} />
                 
-                <Route path="/onboarding" element={<onboarding />} />
+                <Route path="/onboarding" element={createElement(onboarding)} />
                 
-                <Route path="/my-account" element={<my-account />} />
+                <Route path="/my-account" element={createElement(myAccount)} />
                 
                 
-                <Route path="/terms-of-service" element={<terms-of-service />} />
+                <Route path="/terms-of-service" element={createElement(termsOfService)} />
                 
-                <Route path="/privacy-policy" element={<privacy-policy />} />
+                <Route path="/privacy-policy" element={createElement(privacyPolicy)} />
                 
-                <Route path="/services" element={<services />} />
+                <Route path="/services" element={createElement(services)} />
                 
-                <Route path="/service-editor" element={<service-editor />} />
+                <Route path="/service-editor" element={createElement(serviceEditor)} />
                 
-                <Route path="/clients" element={<clients />} />
+                <Route path="/clients" element={createElement(clients)} />
                 
-                <Route path="/client" element={<client />} />
+                <Route path="/client" element={createElement(client)} />
                 
-                <Route path="/library" element={<library />} />
+                <Route path="/library" element={createElement(library)} />
                 
-                <Route path="/today" element={<today />} />
+                <Route path="/today" element={createElement(today)} />
                 
-                <Route path="/services-overview" element={<services-overview />} />
+                <Route path="/services-overview" element={createElement(servicesOverview)} />
                 
-                <Route path="/cycle-approval" element={<cycle-approval />} />
+                <Route path="/cycle-approval" element={createElement(cycleapproval)} />
                 
                 <Route path="/WorkOrders" element={<WorkOrders />} />
                 
-                <Route path="/service-policies" element={<service-policies />} />
+                <Route path="/service-policies" element={createElement(servicepolicies)} />
                 
-                <Route path="/cycle-closing" element={<cycle-closing />} />
+                <Route path="/cycle-closing" element={createElement(cycleclosing)} />
                 
-                <Route path="/notification-preferences" element={<notification-preferences />} />
+                <Route path="/notification-preferences" element={createElement(notificationpreferences)} />
                 
                 <Route path="/ClientPortal" element={<ClientPortal />} />
                 
@@ -525,149 +531,149 @@ function PagesContent() {
                 
                 <Route path="/ClientDemo" element={<ClientDemo />} />
                 
-                <Route path="/cycle-plan" element={<cycle-plan />} />
+                <Route path="/cycle-plan" element={createElement(cycleplan)} />
                 
-                <Route path="/jobs-monitor" element={<jobs-monitor />} />
+                <Route path="/jobs-monitor" element={createElement(jobsmonitor)} />
                 
-                <Route path="/invite-accept" element={<invite-accept />} />
+                <Route path="/invite-accept" element={createElement(inviteaccept)} />
                 
-                <Route path="/welcome" element={<welcome />} />
+                <Route path="/welcome" element={createElement(welcome)} />
                 
-                <Route path="/login" element={<login />} />
+                <Route path="/login" element={createElement(login)} />
                 
-                <Route path="/dashboard" element={<dashboard />} />
+                <Route path="/dashboard" element={createElement(dashboard)} />
                 
-                <Route path="/service-detail" element={<service-detail />} />
+                <Route path="/service-detail" element={createElement(servicedetail)} />
                 
-                <Route path="/agents-dashboard" element={<agents-dashboard />} />
+                <Route path="/agents-dashboard" element={createElement(agentsdashboard)} />
                 
-                <Route path="/client-detail" element={<client-detail />} />
+                <Route path="/client-detail" element={createElement(clientdetail)} />
                 
-                <Route path="/cliente/:clienteId/servicos/:servicoId/dashboard" element={<client-dashboard />} />
+                <Route path="/cliente/:clienteId/servicos/:servicoId/dashboard" element={createElement(clientdashboard)} />
                 
-                <Route path="/ai-central" element={<ai-central />} />
+                <Route path="/ai-central" element={createElement(aicentral)} />
                 
-                <Route path="/ai-configuration" element={<ai-configuration />} />
+                <Route path="/ai-configuration" element={createElement(aiconfiguration)} />
                 
-                <Route path="/cycle-report" element={<cycle-report />} />
+                <Route path="/cycle-report" element={createElement(cyclereport)} />
                 
-                <Route path="/aprendizados" element={<aprendizados />} />
+                <Route path="/aprendizados" element={createElement(aprendizados)} />
                 
-                <Route path="/public-briefing" element={<public-briefing />} />
+                <Route path="/public-briefing" element={createElement(publicbriefing)} />
                 
-                <Route path="/create-account" element={<create-account />} />
+                <Route path="/create-account" element={createElement(createaccount)} />
                 
-                <Route path="/client-planning" element={<client-planning />} />
+                <Route path="/client-planning" element={createElement(clientplanning)} />
                 
-                <Route path="/approval-dashboard" element={<approval-dashboard />} />
+                <Route path="/approval-dashboard" element={createElement(approvaldashboard)} />
                 
-                <Route path="/tasks-manager" element={<tasks-manager />} />
+                <Route path="/tasks-manager" element={createElement(tasksmanager)} />
                 
-                <Route path="/client-portal" element={<client-portal />} />
+                <Route path="/client-portal" element={createElement(clientportal)} />
                 
-                <Route path="/client-activation" element={<client-activation />} />
+                <Route path="/client-activation" element={createElement(clientactivation)} />
                 
-                <Route path="/client-login" element={<client-login />} />
+                <Route path="/client-login" element={createElement(clientlogin)} />
                 
-                <Route path="/team-management" element={<team-management />} />
+                <Route path="/team-management" element={createElement(teammanagement)} />
                 
-                <Route path="/invites" element={<invites />} />
+                <Route path="/invites" element={createElement(invites)} />
                 
-                <Route path="/team-members" element={<team-members />} />
+                <Route path="/team-members" element={createElement(teammembers)} />
                 
-                <Route path="/service-deliverables" element={<service-deliverables />} />
+                <Route path="/service-deliverables" element={createElement(servicedeliverables)} />
                 
-                <Route path="/cycle-approval-manager" element={<cycle-approval-manager />} />
+                <Route path="/cycle-approval-manager" element={createElement(cycleApprovalManager)} />
                 
-                <Route path="/tasks-board" element={<tasks-board />} />
+                <Route path="/tasks-board" element={createElement(tasksboard)} />
                 
-                <Route path="/learnings-manager" element={<learnings-manager />} />
+                <Route path="/learnings-manager" element={createElement(learningsmanager)} />
                 
-                <Route path="/client-portal-overview" element={<client-portal-overview />} />
+                <Route path="/client-portal-overview" element={createElement(clientPortalOverview)} />
                 
-                <Route path="/tasks" element={<tasks />} />
+                <Route path="/tasks" element={createElement(tasks)} />
                 
-                <Route path="/financial-diagnosis" element={<financial-diagnosis />} />
+                <Route path="/financial-diagnosis" element={createElement(financialdiagnosis)} />
                 
-                <Route path="/automation-dashboard" element={<automation-dashboard />} />
+                <Route path="/automation-dashboard" element={createElement(automationdashboard)} />
                 
-                <Route path="/financial-kpis" element={<financial-kpis />} />
+                <Route path="/financial-kpis" element={createElement(financialkpis)} />
                 
-                <Route path="/support-library" element={<support-library />} />
+                <Route path="/support-library" element={createElement(supportlibrary)} />
                 
-                <Route path="/client-diagnostic" element={<client-diagnostic />} />
+                <Route path="/client-diagnostic" element={createElement(clientdiagnostic)} />
                 
-                <Route path="/client-tasks" element={<client-tasks />} />
+                <Route path="/client-tasks" element={createElement(clienttasks)} />
                 
-                <Route path="/client-settings" element={<clientsettings />} />
+                <Route path="/client-settings" element={createElement(clientsettings)} />
                 
-                <Route path="/document" element={<document />} />
+                <Route path="/document" element={createElement(document)} />
                 
-                <Route path="/public-deliverable-approval" element={<publicDeliverableApproval />} />
+                <Route path="/public-deliverable-approval" element={createElement(publicDeliverableApproval)} />
                 
-                <Route path="/custom-reports" element={<customreports />} />
+                <Route path="/custom-reports" element={createElement(customreports)} />
                 
-                <Route path="/service-template-editor" element={<serviceTemplateEditor />} />
+                <Route path="/service-template-editor" element={createElement(serviceTemplateEditor)} />
                 
-                <Route path="/service-instance-editor" element={<serviceInstanceEditor />} />
+                <Route path="/service-instance-editor" element={createElement(serviceInstanceEditor)} />
                 
-                <Route path="/client-portal-service-overview" element={<clientPortalServiceOverview />} />
+                <Route path="/client-portal-service-overview" element={createElement(clientPortalServiceOverview)} />
                 
-                <Route path="/client-portal-service-documents" element={<clientPortalServiceDocuments />} />
+                <Route path="/client-portal-service-documents" element={createElement(clientPortalServiceDocuments)} />
                 
-                <Route path="/settings-profile" element={<settings-profile />} />
+                <Route path="/settings-profile" element={createElement(settingsprofile)} />
                 
-                <Route path="/settings-notifications" element={<settings-notifications />} />
+                <Route path="/settings-notifications" element={createElement(settingsnotifications)} />
                 
                 
-                <Route path="/settings-agency-features" element={<settingsAgencyFeatures />} />
+                <Route path="/settings-agency-features" element={createElement(settingsAgencyFeatures)} />
                 
-                <Route path="/data-review" element={<data-review />} />
+                <Route path="/data-review" element={createElement(datareview)} />
                 
-                <Route path="/client-evolution" element={<client-evolution />} />
+                <Route path="/client-evolution" element={createElement(clientevolution)} />
                 
-                <Route path="/client-learnings" element={<client-learnings />} />
+                <Route path="/client-learnings" element={createElement(clientlearnings)} />
                 
-                <Route path="/agency-management" element={<agency-management />} />
+                <Route path="/agency-management" element={createElement(agencymanagement)} />
                 
-                <Route path="/client-documents" element={<client-documents />} />
+                <Route path="/client-documents" element={createElement(clientdocuments)} />
                 
-                <Route path="/system-health" element={<system-health />} />
+                <Route path="/system-health" element={createElement(systemhealth)} />
                 
-                <Route path="/client-context" element={<client-context />} />
+                <Route path="/client-context" element={createElement(clientcontext)} />
                 
-                <Route path="/audit-report" element={<audit-report />} />
+                <Route path="/audit-report" element={createElement(auditreport)} />
                 
-                <Route path="/upload-center" element={<upload-center />} />
+                <Route path="/upload-center" element={createElement(uploadcenter)} />
                 
-                <Route path="/mapping-wizard" element={<mapping-wizard />} />
+                <Route path="/mapping-wizard" element={createElement(mappingwizard)} />
                 
-                <Route path="/e2e-test" element={<e2e-test />} />
+                <Route path="/e2e-test" element={createElement(e2etest)} />
                 
-                <Route path="/briefing-templates" element={<briefing-templates />} />
+                <Route path="/briefing-templates" element={createElement(briefingtemplates)} />
                 
-                <Route path="/briefing-tokens" element={<briefing-tokens />} />
+                <Route path="/briefing-tokens" element={createElement(briefingtokens)} />
                 
-                <Route path="/client-set-password" element={<clientSetPassword />} />
+                <Route path="/client-set-password" element={createElement(clientSetPassword)} />
                 
-                <Route path="/test-briefing-access" element={<testBriefingAccess />} />
+                <Route path="/test-briefing-access" element={createElement(testBriefingAccess)} />
                 
-                <Route path="/spa-test-dashboard" element={<spaTestDashboard />} />
+                <Route path="/spa-test-dashboard" element={createElement(spaTestDashboard)} />
                 
-                <Route path="/client-briefing" element={<client-briefing />} />
+                <Route path="/client-briefing" element={createElement(clientbriefing)} />
                 
-                <Route path="/client-services" element={<client-services />} />
+                <Route path="/client-services" element={createElement(clientservices)} />
                 
-                <Route path="/e2e-golden-path" element={<e2eGoldenPath />} />
+                <Route path="/e2e-golden-path" element={createElement(e2eGoldenPath)} />
                 
-                <Route path="/service-templates" element={<service-templates />} />
+                <Route path="/service-templates" element={createElement(servicetemplates)} />
                 
-                <Route path="/qa-dashboard" element={<qa-dashboard />} />
-                <Route path="/connectivity-dashboard" element={<connectivity-dashboard />} />
-                <Route path="/briefing-demo" element={<briefing-demo />} />
-                <Route path="/service-templates-viewer" element={<serviceTemplatesViewer />} />
+                <Route path="/qa-dashboard" element={createElement(qadashboard)} />
+                <Route path="/connectivity-dashboard" element={createElement(connectivitydashboard)} />
+                <Route path="/briefing-demo" element={createElement(briefingdemo)} />
+                <Route path="/service-templates-viewer" element={createElement(serviceTemplatesViewer)} />
                 
-                <Route path="/settings-agency-categories" element={<settingsAgencyCategories />} />
+                <Route path="/settings-agency-categories" element={createElement(settingsAgencyCategories)} />
                 
             </Routes>
         </Layout>
