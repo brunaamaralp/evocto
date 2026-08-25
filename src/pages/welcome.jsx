@@ -46,47 +46,47 @@ export default function WelcomePage() {
   const features = [
     {
       icon: <BarChart3 className="w-6 h-6" />,
-      title: "Diagnósticos Inteligentes",
-      description: "IA analisa a situação financeira e sugere melhorias personalizadas"
+      title: "Briefings com IA",
+      description: "Organize briefings, escopos e aprendizados com apoio de IA para o time"
     },
     {
       icon: <Users className="w-6 h-6" />,
       title: "Portal do Cliente",
-      description: "Seus clientes acompanham o progresso em tempo real"
+      description: "Clientes acompanham entregas, aprovações e status em tempo real"
     },
     {
       icon: <Zap className="w-6 h-6" />,
-      title: "Automação Completa",
-      description: "Relatórios, aprovações e comunicação automatizados"
+      title: "Operação automatizada",
+      description: "Ciclos, tarefas e aprovações fluem sem perder o time no operacional"
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "Segurança Total",
-      description: "Dados protegidos com criptografia de nível bancário"
+      title: "Governança do time",
+      description: "Histórico, políticas e contexto do cliente centralizados e seguros"
     }
   ];
 
   const testimonials = [
     {
       name: "Maria Silva",
-      role: "Consultora Financeira",
-      comment: "Reduziu 80% do tempo em relatórios e meus clientes adoraram o portal!",
+      role: "Head de Marketing",
+      comment: "Saímos do caos de planilhas. Briefings, aprovações e entregas no mesmo lugar.",
       rating: 5
     },
     {
       name: "João Santos",
-      role: "Contador Sênior", 
-      comment: "A IA realmente entende os negócios. Surpreendente!",
+      role: "Diretor de Agência",
+      comment: "O portal do cliente cortou idas e vindas. O time foca em criar, não em cobrar status.",
       rating: 5
     }
   ];
 
   const benefits = [
-    "✨ Configure sua consultoria em menos de 5 minutos",
-    "🚀 IA gera relatórios profissionais automaticamente", 
-    "📊 Clientes aprovam projetos pelo celular",
-    "⚡ Reduza 70% do tempo administrativo",
-    "🎯 Foque no que realmente importa: seus clientes"
+    "✨ Configure sua operação de marketing em minutos",
+    "🚀 Briefings, escopos e relatórios com apoio de IA",
+    "📊 Clientes aprovam entregas pelo celular",
+    "⚡ Menos tempo em follow-up, mais tempo em criação",
+    "🎯 Um hub para time, clientes e aprendizados"
   ];
 
   return (
@@ -105,7 +105,7 @@ export default function WelcomePage() {
                   <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Evocto
                   </div>
-                  <div className="text-xs text-gray-500 -mt-1">Consultoria Inteligente</div>
+                  <div className="text-xs text-gray-500 -mt-1">Marketing Operacional</div>
                 </div>
               </div>
             </div>
@@ -130,22 +130,22 @@ export default function WelcomePage() {
                 <div className="space-y-4">
                   <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 px-4 py-1">
                     <Sparkles className="w-4 h-4 mr-2" />
-                    IA + Consultoria Financeira
+                    Para times e agências de marketing
                   </Badge>
                   
                   <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                    <span className="text-gray-900">Transforme sua</span>
+                    <span className="text-gray-900">Orquestre seu</span>
                     <br />
                     <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      Consultoria
+                      time de marketing
                     </span>
                     <br />
                     <span className="text-gray-900">com IA</span>
                   </h1>
                   
                   <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-                    A plataforma que <strong>automatiza diagnósticos</strong>, gera relatórios profissionais 
-                    e oferece uma <strong>experiência incrível</strong> para seus clientes.
+                    A plataforma que <strong>organiza briefings e entregas</strong>, acelera aprovações
+                    e dá aos clientes uma <strong>visão clara</strong> do que o time está produzindo.
                   </p>
                 </div>
 
@@ -188,7 +188,7 @@ export default function WelcomePage() {
                         <div key={i} className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white"></div>
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600">+500 consultores</span>
+                    <span className="text-sm text-gray-600">+500 profissionais de marketing</span>
                   </div>
                   
                   <div className="flex items-center gap-1">
@@ -212,7 +212,7 @@ export default function WelcomePage() {
                       expression="excited" 
                       size="large"
                       showSpeechBubble={true}
-                      speechText="Vamos revolucionar sua consultoria! 🚀"
+                      speechText="Vamos organizar seu marketing! 🚀"
                     />
                   </div>
                   
@@ -224,7 +224,7 @@ export default function WelcomePage() {
                   <div className="absolute -bottom-4 -left-4 bg-white shadow-lg rounded-lg p-2 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-gray-700">Analisando dados...</span>
+                      <span className="text-gray-700">Sincronizando entregas...</span>
                     </div>
                   </div>
                 </div>
@@ -238,10 +238,10 @@ export default function WelcomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                Por que consultores escolhem a Evocto?
+                Por que times de marketing escolhem a Evocto?
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Mais que uma ferramenta: um parceiro inteligente para transformar sua consultoria
+                Do briefing à aprovação: um sistema para agências e times in-house operarem com clareza
               </p>
             </div>
 
@@ -270,7 +270,7 @@ export default function WelcomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                O que dizem nossos consultores
+                O que dizem líderes de marketing
               </h2>
             </div>
 
@@ -301,10 +301,10 @@ export default function WelcomePage() {
         <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-              Pronto para transformar sua consultoria?
+              Pronto para alinhar time, clientes e entregas?
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Junte-se a centenas de consultores que já revolucionaram seus negócios com IA
+              Junte-se a times de marketing que já saíram do operacional caótico com a Evocto
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -346,7 +346,7 @@ export default function WelcomePage() {
             <span className="text-xl font-bold">Evocto</span>
           </div>
           <p className="text-gray-400 mb-4">
-            Transformando consultores em líderes de mercado com IA
+            Operação de marketing mais clara para times, agências e clientes
           </p>
           <div className="flex justify-center gap-8 text-sm text-gray-400">
             <Link to="/terms-of-service" className="hover:text-white transition-colors">
