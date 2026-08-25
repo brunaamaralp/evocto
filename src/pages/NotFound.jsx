@@ -12,7 +12,7 @@ export default function NotFoundPage() {
   const suggestedPages = [
     {
       title: 'Dashboard',
-      description: 'Visão geral da sua consultoria',
+      description: 'Visão geral da sua agência',
       href: createPageUrl('dashboard'),
       icon: Home
     },

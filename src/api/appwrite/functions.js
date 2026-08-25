@@ -16,7 +16,7 @@ export async function createAgency({
   password,
 } = {}) {
   if (!agencyName || !ownerEmail || !password) {
-    throw new Error('Nome da consultoria, email e senha são obrigatórios');
+    throw new Error('Nome da agência, email e senha são obrigatórios');
   }
 
   const account = getAccount();

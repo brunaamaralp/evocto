@@ -390,7 +390,7 @@ function ServicesOverviewPage() {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Serviços</h1>
             <p className="text-slate-600 mt-1">
-              Gerencie serviços e templates da sua consultoria
+              Gerencie serviços e templates da sua agência
             </p>
           </div>
         </div>

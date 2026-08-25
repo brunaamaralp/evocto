@@ -41,7 +41,7 @@ loadEnv();
 const ENDPOINT = process.env.VITE_APPWRITE_ENDPOINT;
 const PROJECT_ID = process.env.VITE_APPWRITE_PROJECT_ID;
 const API_KEY = process.env.APPWRITE_API_KEY;
-const DATABASE_ID = process.env.VITE_APPWRITE_DATABASE_ID || 'evocto';
+let DATABASE_ID = process.env.VITE_APPWRITE_DATABASE_ID || 'evocto';
 const BUCKET_ID = process.env.VITE_APPWRITE_BUCKET_ID || 'files';
 
 if (!ENDPOINT || !PROJECT_ID || !API_KEY) {
@@ -272,16 +272,52 @@ async function createIndex(tableId, column) {
   }
 }
 
-async function main() {
-  console.log(`Provisionando Appwrite em ${ENDPOINT} / projeto ${PROJECT_ID}`);
+async function resolveDatabaseId() {
+  try {
+    await tables.get({ databaseId: DATABASE_ID });
+    console.log(`Database ${DATABASE_ID} já existe`);
+    return DATABASE_ID;
+  } catch (error) {
+    if (error?.code !== 404) {
+      // continue — try create / fallback
+    }
+  }
 
   try {
     await tables.create({ databaseId: DATABASE_ID, name: 'Evocto' });
     console.log(`Database ${DATABASE_ID} criada`);
+    return DATABASE_ID;
   } catch (error) {
-    if (!isConflict(error)) throw error;
-    console.log(`Database ${DATABASE_ID} já existe`);
+    if (isConflict(error)) {
+      console.log(`Database ${DATABASE_ID} já existe`);
+      return DATABASE_ID;
+    }
+
+    // Free plan: only 1 database — reuse the existing one
+    if (
+      error?.type === 'additional_resource_not_allowed' ||
+      String(error?.message || '').toLowerCase().includes('maximum number of databases')
+    ) {
+      const list = await tables.list();
+      const existing = (list.databases || [])[0];
+      if (!existing) throw error;
+      console.warn(
+        `Limite de databases do plano atingido. Reusando database existente id=${existing.$id} name=${existing.name}`
+      );
+      console.warn(
+        `Atualize VITE_APPWRITE_DATABASE_ID=${existing.$id} no .env.local`
+      );
+      return existing.$id;
+    }
+
+    throw error;
   }
+}
+
+async function main() {
+  console.log(`Provisionando Appwrite em ${ENDPOINT} / projeto ${PROJECT_ID}`);
+
+  DATABASE_ID = await resolveDatabaseId();
 
   for (const table of TABLES) {
     try {
@@ -324,7 +360,8 @@ async function main() {
     console.log(`Bucket ${BUCKET_ID} já existe`);
   }
 
-  console.log('\nSetup concluído. Adicione uma plataforma Web no console Appwrite (localhost).');
+  console.log(`\nSetup concluído. Database ID em uso: ${DATABASE_ID}`);
+  console.log('Confirme VITE_APPWRITE_DATABASE_ID no .env.local e adicione plataforma Web (localhost) no console.');
 }
 
 main().catch((error) => {

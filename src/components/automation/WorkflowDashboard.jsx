@@ -266,7 +266,7 @@ export default function WorkflowDashboard() {
                 Dashboard de Automação
               </h1>
               <p className="text-gray-600">
-                Monitore e controle todos os processos automatizados da consultoria
+                Monitore e controle todos os processos automatizados da agência
               </p>
             </div>
             <Button onClick={() => toast.info('Configurações em desenvolvimento')}>

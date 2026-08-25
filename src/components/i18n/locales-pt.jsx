@@ -210,7 +210,7 @@ export const ptTranslations = {
   },
   "library": {
     "title": "Biblioteca de Conhecimento",
-    "description": "Insights e aprendizados da sua consultoria.",
+    "description": "Insights e aprendizados da sua agência.",
     "newLearning": "Novo Aprendizado",
     "searchPlaceholder": "Buscar por título, tag ou nicho...",
     "filterBy": "Filtrar por",
@@ -491,8 +491,8 @@ export const ptTranslations = {
     "login": "Login",
     "logout": "Sair",
     "createMyAccountNow": "Criar minha conta agora",
-    "agency": "Consultoria",
-    "createAgency": "Criar sua Consultoria",
+    "agency": "Agência",
+    "createAgency": "Criar sua Agência",
     "loading": "Carregando...",
     "error": "Ocorreu um erro",
     "success": "Sucesso",
@@ -616,50 +616,50 @@ export const ptTranslations = {
   },
   "welcome": {
     "hero": {
-      "title": "Escale sua consultoria com<br />inteligência contínua",
-      "subtitle": "Transforme cada entrega em aprendizado, criando uma base de conhecimento que alimenta o planejamento, dá clareza à equipe e comprova a evolução estratégica e dos resultados para o cliente.",
-      "tagline": "Evocto é seu novo braço estratégico."
+      "title": "Orquestre seu time de marketing<br />com inteligência contínua",
+      "subtitle": "Transforme cada entrega em aprendizado, alinhando briefing, aprovação e evolução estratégica com o cliente.",
+      "tagline": "Evocto é o hub operacional do seu marketing."
     },
     "problems": {
-      "title": "3 pilares para transformar sua consultoria",
+      "title": "3 pilares para organizar sua operação de marketing",
       "withEvoctoPrefix": "Com Evocto:",
       "planning": {
         "heading": "Planejamento Descentralizado",
-        "problem": "Cada consultor tem seu método. Planos são feitos em planilhas isoladas, dificultando a visão global e o reaproveitamento de estratégias de sucesso.",
-        "solution": "Centralize a criação de planos de ação. Use a IA para sugerir estratégias baseadas em dados históricos e aprendizados, garantindo consistência e eficiência."
+        "problem": "Cada pessoa do time tem seu método. Planos ficam em planilhas isoladas, dificultando a visão global e o reaproveitamento do que funcionou.",
+        "solution": "Centralize planos de ação. Use a IA para sugerir estratégias com base no histórico e nos aprendizados, com mais consistência e menos retrabalho."
       },
       "insights": {
         "heading": "Conhecimento Perdido",
-        "problem": "Insights valiosos de um projeto (o que funcionou, o que não funcionou) ficam na cabeça do consultor ou em relatórios esquecidos. A consultoria não aprende de forma estruturada.",
-        "solution": "Capture cada insight em uma biblioteca de conhecimento central. A IA ajuda a extrair e categorizar aprendizados, que são usados para otimizar futuros projetos."
+        "problem": "Insights valiosos de uma campanha ou projeto ficam na cabeça de alguém ou em relatórios esquecidos. O time não aprende de forma estruturada.",
+        "solution": "Capture cada insight na biblioteca de conhecimento. A IA ajuda a extrair e categorizar aprendizados para otimizar os próximos ciclos."
       },
       "approval": {
         "heading": "Aprovações Lentas por E-mail",
-        "problem": "Aprovação de relatórios e planos de ação se arrasta por trocas de e-mail, com versões conflitantes e sem um registro formal do que foi acordado.",
-        "solution": "Formalize o fluxo de aprovação com um link seguro e auditável. O cliente aprova com um clique, e um registro imutável (PDF com hash) é gerado, garantindo segurança jurídica."
+        "problem": "Aprovação de entregas e planos se arrasta por e-mail, com versões conflitantes e sem registro claro do que foi acordado.",
+        "solution": "Formalize o fluxo de aprovação com link seguro e auditável. O cliente aprova com um clique e fica o rastro do que foi combinado."
       }
     },
     "benefits": {
-      "title": "O que sua consultoria ganha com o Evocto",
+      "title": "O que sua agência ganha com o Evocto",
       "dashboard": {
         "title": "Visão 360° do Cliente",
-        "description": "Tenha um dashboard central com todos os clientes, projetos, status, e saúde financeira de cada contrato em um só lugar."
+        "description": "Dashboard central com clientes, serviços, status e saúde da operação em um só lugar."
       },
       "customerProfile": {
         "title": "Serviços Padronizados",
-        "description": "Crie modelos de serviço (ex: Diagnóstico, Reestruturação) com entregáveis e tarefas pré-definidos, garantindo consistência e qualidade na entrega."
+        "description": "Crie modelos de serviço com entregáveis e tarefas pré-definidos, garantindo consistência na entrega do time."
       },
       "smartPlanning": {
         "title": "Planejamento Inteligente",
-        "description": "Nossa IA analisa o histórico e a base de conhecimento para sugerir planos de ação mais eficazes, economizando tempo e melhorando os resultados do cliente."
+        "description": "A IA analisa histórico e base de conhecimento para sugerir planos mais eficazes e acelerar o ciclo do time."
       }
     },
     "octopus": {
       "title": "Inteligência que se adapta e evolui",
-      "description": "Como um polvo, nossa IA atua com múltiplos tentáculos: um analisa os diagnósticos, outro monitora resultados, outro sugere estratégias. Tudo conectado, tudo aprendendo."
+      "description": "Como um polvo, nossa IA atua em várias frentes: briefings, resultados, aprendizados e sugestões. Tudo conectado, tudo aprendendo."
     },
     "cta": {
-      "title": "Sua consultoria para de apagar incêndios",
+      "title": "Seu time para de apagar incêndios",
       "subtitle": "E começa a entregar estratégia, clareza e evolução contínua de resultados.",
       "check1": "Configure em menos de 5 minutos",
       "check2": "Comece gratuitamente hoje"

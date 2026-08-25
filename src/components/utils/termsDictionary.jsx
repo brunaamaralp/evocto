@@ -8,7 +8,7 @@ export const TERMS = {
   ENTITIES: {
     CLIENT: 'Cliente',
     CLIENTS: 'Clientes',
-    AGENCY: 'Consultoria', // Consistente em toda app
+    AGENCY: 'Agência', // Consistente em toda app
     SERVICE: 'Serviço',
     SERVICES: 'Serviços',
     TASK: 'Tarefa',

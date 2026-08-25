@@ -34,7 +34,7 @@ export default function CreateAccountPage() {
     if (!formData.password) return 'Senha é obrigatória';
     if (formData.password.length < 8) return 'Senha deve ter pelo menos 8 caracteres';
     if (formData.password !== formData.confirmPassword) return 'Senhas não coincidem';
-    if (!formData.agencyName.trim()) return 'Nome da consultoria é obrigatório';
+    if (!formData.agencyName.trim()) return 'Nome da agência é obrigatório';
     return null;
   };
 
@@ -93,7 +93,7 @@ export default function CreateAccountPage() {
               </div>
               <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
               <p className="text-gray-600 mt-2">
-                Configure sua consultoria financeira em minutos
+                Configure sua agência de marketing em minutos
               </p>
             </CardHeader>
             
@@ -203,10 +203,10 @@ export default function CreateAccountPage() {
                   </div>
                 </div>
 
-                {/* Nome da Consultoria */}
+                {/* Nome da Agência */}
                 <div className="space-y-2">
                   <Label htmlFor="agencyName" className="text-sm font-medium">
-                    Nome da Consultoria *
+                    Nome da Agência *
                   </Label>
                   <div className="relative">
                     <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -215,7 +215,7 @@ export default function CreateAccountPage() {
                       type="text"
                       value={formData.agencyName}
                       onChange={(e) => handleInputChange('agencyName', e.target.value)}
-                      placeholder="Nome da sua consultoria"
+                      placeholder="Nome da sua agência ou time de marketing"
                       className="pl-10"
                       disabled={loading}
                       required

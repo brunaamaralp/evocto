@@ -146,7 +146,7 @@ export default function AgencyManagementPage() {
                     id="agencyName"
                     value={agencyData.agencyName}
                     onChange={(e) => setAgencyData(prev => ({ ...prev, agencyName: e.target.value }))}
-                    placeholder="Nome da sua consultoria"
+                    placeholder="Nome da sua agência"
                   />
                 </div>
 

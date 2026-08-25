@@ -61,7 +61,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Entrar</CardTitle>
-          <p className="text-sm text-slate-600">Acesse sua consultoria no Evocto</p>
+          <p className="text-sm text-slate-600">Acesse sua agência no Evocto</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

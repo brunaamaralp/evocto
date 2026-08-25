@@ -1,6 +1,6 @@
 # Evocto
 
-Plataforma para agências de consultoria (clientes, serviços, ciclos, tarefas e portal).
+Plataforma para times e agências de marketing (clientes, serviços, ciclos, tarefas e portal).
 
 A Fase 1 usa **Appwrite Cloud** como backend (auth, TablesDB e Storage), com a mesma API de entidades do app (`create/get/update/delete/filter`).
 
