@@ -23,7 +23,7 @@ import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, getUrlSearchParam } from '@/utils';
 
 export default function ClientDetailPage() {
   const { user, agencyId, isAuthenticated } = useSession();
@@ -35,7 +35,7 @@ export default function ClientDetailPage() {
   // CORREÇÃO: Leitura correta do parâmetro clientId da URL
   const getClientIdFromUrl = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const clientId = urlParams.get('clientId') || urlParams.get('id');
+    const clientId = getUrlSearchParam(urlParams, 'clientId', 'id');
     console.log('🔍 Debug URL params:', {
       fullUrl: window.location.href,
       search: window.location.search,
