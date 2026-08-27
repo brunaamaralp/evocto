@@ -10,14 +10,27 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  PERFORMANCE_KPI_CATEGORIES,
+  resolveKPICategory,
+  DEFAULT_KPI_CATEGORY,
+} from '@/constants/performanceKPIs';
 
-const KPI_CATEGORIES = {
-  liquidez: { label: 'Liquidez', color: 'bg-blue-100 text-blue-700', icon: DollarSign },
-  rentabilidade: { label: 'Rentabilidade', color: 'bg-green-100 text-green-700', icon: TrendingUp },
-  endividamento: { label: 'Endividamento', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle },
-  atividade: { label: 'Atividade', color: 'bg-purple-100 text-purple-700', icon: BarChart3 },
-  crescimento: { label: 'Crescimento', color: 'bg-indigo-100 text-indigo-700', icon: Target }
+const CATEGORY_ICONS = {
+  performance: TrendingUp,
+  demanda: Target,
+  marca: BarChart3,
+  operacao: AlertTriangle,
+  engajamento: Percent,
+  crescimento: DollarSign,
 };
+
+const KPI_CATEGORIES = Object.fromEntries(
+  PERFORMANCE_KPI_CATEGORIES.map((c) => [
+    c.id,
+    { label: c.label, color: c.color, icon: CATEGORY_ICONS[c.id] || BarChart3 },
+  ])
+);
 
 const UNIT_LABELS = {
   percentage: { label: '%', icon: Percent },
@@ -48,7 +61,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
       setKPIs(kpiData || []);
     } catch (error) {
       console.error('Erro ao carregar KPIs:', error);
-      toast.error('Erro ao carregar KPIs financeiros');
+      toast.error('Erro ao carregar KPIs de performance');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -146,7 +159,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
 
   const groupKPIsByCategory = () => {
     return kpis.reduce((groups, kpi) => {
-      const category = kpi.category || 'liquidez';
+      const category = resolveKPICategory(kpi.category) || DEFAULT_KPI_CATEGORY;
       if (!groups[category]) {
         groups[category] = [];
       }
@@ -159,7 +172,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">KPIs Financeiros</h2>
+          <h2 className="text-2xl font-bold text-gray-900">KPIs de Performance</h2>
           <div className="h-10 w-24 bg-gray-200 animate-pulse rounded"></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -187,7 +200,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
             <BarChart3 className="w-12 h-12 mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum KPI configurado</h3>
             <p className="text-gray-600">
-              Os KPIs financeiros aparecerão aqui quando forem configurados pela consultoria
+              Os KPIs aparecerão aqui quando forem configurados pela sua agência
             </p>
           </div>
         </CardContent>
@@ -202,8 +215,8 @@ export default function FinancialDashboard({ clientId, serviceId }) {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">KPIs Financeiros</h2>
-          <p className="text-gray-600">Acompanhe seus indicadores financeiros</p>
+          <h2 className="text-2xl font-bold text-gray-900">KPIs de Performance</h2>
+          <p className="text-gray-600">Acompanhe seus indicadores de marketing</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -217,7 +230,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
 
       {/* KPIs por Categoria */}
       {Object.entries(groupedKPIs).map(([categoryKey, categoryKPIs]) => {
-        const categoryConfig = KPI_CATEGORIES[categoryKey] || KPI_CATEGORIES.liquidez;
+        const categoryConfig = KPI_CATEGORIES[categoryKey] || KPI_CATEGORIES[DEFAULT_KPI_CATEGORY];
         const CategoryIcon = categoryConfig.icon;
 
         return (

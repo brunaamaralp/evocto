@@ -88,6 +88,9 @@ export function ExecutiveDashboard() {
       },
       kpis: {
         financial: {
+          roas: 3.2,
+          cac: 85,
+          ctr: 2.4,
           revenue: 1250000,
           profit: 312500,
           margin: 25.0,
@@ -327,24 +330,24 @@ export function ExecutiveDashboard() {
 
   const KPIsTab = () => (
     <div className="space-y-6">
-      {/* KPIs Financeiros */}
+      {/* KPIs de Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>KPIs Financeiros</CardTitle>
+          <CardTitle>KPIs de Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{formatCurrency(kpis.financial?.revenue || 0)}</div>
-              <div className="text-sm text-gray-600">Receita Total</div>
+              <div className="text-3xl font-bold text-green-600">{(kpis.financial?.roas || 0).toFixed(1)}x</div>
+              <div className="text-sm text-gray-600">ROAS</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">{formatPercentage(kpis.financial?.margin || 0)}</div>
-              <div className="text-sm text-gray-600">Margem de Lucro</div>
+              <div className="text-3xl font-bold text-blue-600">{formatCurrency(kpis.financial?.cac || 0)}</div>
+              <div className="text-sm text-gray-600">CAC</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">{formatPercentage(kpis.financial?.roi || 0)}</div>
-              <div className="text-sm text-gray-600">ROI</div>
+              <div className="text-3xl font-bold text-purple-600">{formatPercentage(kpis.financial?.ctr || 0)}</div>
+              <div className="text-sm text-gray-600">CTR</div>
             </div>
           </div>
         </CardContent>
@@ -381,9 +384,9 @@ export function ExecutiveDashboard() {
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={[
-              { name: 'Receita', value: kpis.financial?.revenue || 0, target: 1200000 },
-              { name: 'Margem', value: kpis.financial?.margin || 0, target: 30 },
-              { name: 'ROI', value: kpis.financial?.roi || 0, target: 20 },
+              { name: 'ROAS', value: kpis.financial?.roas || 0, target: 3 },
+              { name: 'CAC', value: kpis.financial?.cac || 0, target: 100 },
+              { name: 'CTR', value: kpis.financial?.ctr || 0, target: 2.5 },
               { name: 'Conclusão', value: kpis.operational?.projectCompletion || 0, target: 90 },
               { name: 'Satisfação', value: (kpis.operational?.clientSatisfaction || 0) * 20, target: 80 },
               { name: 'Utilização', value: kpis.operational?.teamUtilization || 0, target: 85 }

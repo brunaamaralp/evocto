@@ -121,10 +121,10 @@ export default function ExecutiveDashboard({ clientId, serviceId }) {
         >
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Seus Resultados Financeiros
+              Seus Resultados de Marketing
             </h2>
             <p className="text-gray-600">
-              Indicadores que mostram o progresso do seu negócio
+              Indicadores que mostram o progresso da sua comunicação e performance
             </p>
           </div>
 
@@ -227,15 +227,15 @@ export default function ExecutiveDashboard({ clientId, serviceId }) {
   function getNextSteps() {
     return [
       {
-        title: "Revisar Relatório Mensal",
-        description: "Analisar os resultados do mês passado",
+        title: "Revisar Relatório de Performance",
+        description: "Analisar engajamento e leads do mês passado",
         dueDate: "Em 5 dias",
         priority: "alta",
         icon: FileText
       },
       {
-        title: "Implementar Sugestões de Margem",
-        description: "Aplicar as recomendações para aumentar margem",
+        title: "Implementar Sugestões de Conteúdo",
+        description: "Aplicar recomendações para aumentar engajamento",
         dueDate: "Em 10 dias",
         priority: "média",
         icon: TrendingUp
@@ -272,6 +272,12 @@ function KPICard({ kpi, index, isExpanded, onToggle }) {
         return `${Math.round(value)} dias`;
       case 'vezes':
         return `${value.toFixed(1)}x`;
+      case 'ratio':
+        return `${value.toFixed(2)}x`;
+      case 'score':
+        return `${value.toFixed(1)}/10`;
+      case 'número':
+        return value.toLocaleString('pt-BR');
       default:
         return value.toLocaleString('pt-BR');
     }
@@ -298,25 +304,27 @@ function KPICard({ kpi, index, isExpanded, onToggle }) {
   };
 
   const getKPIIcon = (kpiKey) => {
-    if (kpiKey.includes('receita')) return DollarSign;
-    if (kpiKey.includes('margem')) return Percent;
-    if (kpiKey.includes('fluxo')) return TrendingUp;
-    if (kpiKey.includes('inadimplencia')) return AlertCircle;
+    if (kpiKey.includes('roas') || kpiKey.includes('trafego')) return TrendingUp;
+    if (kpiKey.includes('engajamento') || kpiKey.includes('share')) return Percent;
+    if (kpiKey.includes('leads') || kpiKey.includes('clareza')) return Target;
+    if (kpiKey.includes('cac') || kpiKey.includes('taxa_aprovacao')) return AlertCircle;
     return BarChart3;
   };
 
   const getKPIDescription = (kpiKey) => {
     const descriptions = {
-      'receita_mensal': 'Total de vendas realizadas no mês',
-      'margem_percent': 'Percentual de lucro sobre as vendas',
-      'fluxo_saldo': 'Dinheiro disponível em caixa',
-      'inadimplencia_percent': 'Percentual de clientes que não pagam',
-      'custos_variaveis': 'Gastos que variam com as vendas',
-      'endividamento_total': 'Total de dívidas da empresa',
-      'ciclo_caixa_dias': 'Tempo para receber o dinheiro das vendas',
-      'giro_estoque': 'Quantas vezes o estoque é renovado por ano'
+      clareza_posicionamento: 'Score de clareza da proposta de valor percebida pelo público',
+      consistencia_canais: 'Percentual de alinhamento de mensagem entre canais ativos',
+      engajamento_medio: 'Interações ÷ alcance × 100 no período',
+      share_of_voice: 'Menções da marca ÷ menções da categoria',
+      taxa_publicacao: 'Publicações no prazo ÷ publicações planejadas',
+      leads_qualificados: 'Volume de leads que atendem critérios de qualificação',
+      trafego_organico: 'Sessões de canais orgânicos prioritários',
+      roas: 'Receita atribuída ÷ investimento em mídia',
+      cac: 'Investimento de marketing ÷ novos clientes adquiridos',
+      taxa_aprovacao_ciclo: 'Peças aprovadas em até 2 rodadas ÷ total de peças'
     };
-    return descriptions[kpiKey] || 'Indicador de performance do negócio';
+    return descriptions[kpiKey] || 'Indicador de performance de marketing';
   };
 
   const IconComponent = getKPIIcon(kpi.key);

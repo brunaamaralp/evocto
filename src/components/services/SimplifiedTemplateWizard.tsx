@@ -25,6 +25,7 @@ import {
 import { useServiceTemplateValidation } from '@/hooks/useServiceTemplateValidation';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
 // Tipos simplificados
 interface TemplateData {
@@ -64,15 +65,7 @@ interface ChecklistItemData {
   relativeDueDays?: number;
 }
 
-const CATEGORIES = [
-  { value: 'marketing_digital', label: 'Marketing Digital' },
-  { value: 'branding', label: 'Branding' },
-  { value: 'desenvolvimento', label: 'Desenvolvimento' },
-  { value: 'consultoria', label: 'Consultoria' },
-  { value: 'gestao_financeira', label: 'Gestão Financeira' },
-  { value: 'midia_paga', label: 'Mídia Paga' },
-  { value: 'organico', label: 'Orgânico' }
-];
+const CATEGORIES = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
 const CYCLE_FREQUENCIES = [
   { value: 'monthly', label: 'Mensal' },
@@ -112,7 +105,7 @@ export default function SimplifiedTemplateWizard({
   const [templateData, setTemplateData] = useState<TemplateData>({
     name: editingTemplate?.name || '',
     description: editingTemplate?.description || '',
-    category: editingTemplate?.category || 'marketing_digital',
+    category: editingTemplate?.category || DEFAULT_SERVICE_CATEGORY,
     cycle_frequency: editingTemplate?.cycle_frequency || 'monthly',
     deliverables: editingTemplate?.deliverables || [],
     version: editingTemplate?.version || '1.0'
@@ -340,7 +333,7 @@ export default function SimplifiedTemplateWizard({
                   id="name"
                   value={templateData.name}
                   onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: Consultoria Financeira Completa"
+                  placeholder="Ex: Marketing Digital Completo"
                 />
               </div>
               <div>

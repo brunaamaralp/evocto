@@ -87,7 +87,22 @@ const VALIDATION_RULES = {
   },
   category: {
     required: true,
-    enum: ['gestao_financeira', 'consultoria_tributaria', 'valuation', 'planejamento_financeiro', 'fusao_aquisicao', 'reestruturacao'],
+    enum: [
+      'marketing_digital',
+      'branding',
+      'comunicacao',
+      'midia_paga',
+      'organico',
+      'conteudo',
+      'copywriting',
+      'design',
+      'email_marketing',
+      'analytics',
+      'automacao',
+      'produto',
+      'desenvolvimento',
+      'consultoria_estrategica',
+    ],
     message: 'Categoria é obrigatória'
   },
   version: {

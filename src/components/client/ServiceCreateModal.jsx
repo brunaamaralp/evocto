@@ -34,6 +34,9 @@ import {
 import { toast } from 'sonner';
 import ServiceSLAValidator from '@/components/services/ServiceSLAValidator';
 import { generateTasksFromService } from '@/api/functions';
+import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
+
+const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
 const WIZARD_STEPS = {
   SELECT_TEMPLATE: 1,
@@ -46,15 +49,6 @@ const STEP_TITLES = {
   [WIZARD_STEPS.CONFIGURE_SERVICE]: 'Configurar Serviço',
   [WIZARD_STEPS.PREVIEW_PHASES]: 'Preview e Confirmação'
 };
-
-const CATEGORY_OPTIONS = [
-  { value: 'gestao_financeira', label: 'Gestão Financeira' },
-  { value: 'consultoria_tributaria', label: 'Consultoria Tributária' },
-  { value: 'valuation', label: 'Valuation' },
-  { value: 'planejamento_financeiro', label: 'Planejamento Financeiro' },
-  { value: 'fusao_aquisicao', label: 'Fusão & Aquisição' },
-  { value: 'reestruturacao', label: 'Reestruturação' }
-];
 
 const SERVICE_STATUS_OPTIONS = [
   { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
@@ -415,7 +409,7 @@ export default function ServiceCreateModal({
                   </div>
                   
                   <Badge className="bg-blue-100 text-blue-800">
-                    {CATEGORY_OPTIONS.find(c => c.value === template.category)?.label || template.category}
+                    {getCategoryLabel(template.category)}
                   </Badge>
                 </div>
               </CardContent>

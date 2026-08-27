@@ -10,15 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { X, Plus, Clock, Target, DollarSign, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
 
-const categoryOptions = [
-  { value: 'gestao_financeira', label: 'Gestão Financeira' },
-  { value: 'consultoria_tributaria', label: 'Consultoria Tributária' },
-  { value: 'valuation', label: 'Valuation' },
-  { value: 'planejamento_financeiro', label: 'Planejamento Financeiro' },
-  { value: 'fusao_aquisicao', label: 'Fusão & Aquisição' },
-  { value: 'reestruturacao', label: 'Reestruturação' }
-];
+const categoryOptions = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
 const commonChannels = [
   'Email Marketing', 'Google Ads', 'Facebook Ads', 'LinkedIn', 
@@ -127,7 +121,7 @@ export default function ServiceOverview({ service, onUpdate, readOnly = false })
                   id="name"
                   value={currentService.name || ''}
                   onChange={(e) => updateField('name', e.target.value)}
-                  placeholder="Ex: Gestão Financeira Mensal"
+                  placeholder="Ex: Marketing Operacional Mensal"
                 />
               ) : (
                 <p className="text-sm text-gray-900 py-2">{currentService.name}</p>
@@ -154,7 +148,7 @@ export default function ServiceOverview({ service, onUpdate, readOnly = false })
                 </Select>
               ) : (
                 <Badge className="bg-blue-100 text-blue-700">
-                  {categoryOptions.find(c => c.value === currentService.category)?.label || currentService.category}
+                  {getCategoryLabel(currentService.category)}
                 </Badge>
               )}
             </div>

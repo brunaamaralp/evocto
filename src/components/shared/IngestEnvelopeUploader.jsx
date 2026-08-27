@@ -232,7 +232,7 @@ export default function IngestEnvelopeUploader({
                 <SelectContent>
                   <SelectItem value={null}>Auto-detectar</SelectItem>
                   <SelectItem value="Client">Clientes</SelectItem>
-                  <SelectItem value="FinancialKPI">KPIs Financeiros</SelectItem>
+                  <SelectItem value="FinancialKPI">KPIs de Performance</SelectItem>
                   <SelectItem value="Task">Tarefas</SelectItem>
                   <SelectItem value="ClientDocument">Documentos</SelectItem>
                 </SelectContent>

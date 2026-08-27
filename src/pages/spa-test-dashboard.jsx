@@ -65,7 +65,7 @@ const API_TEST_EXAMPLES = [
   },
   {
     endpoint: 'calculateKPIs',
-    title: 'Calcular KPIs Financeiros',
+    title: 'Calcular KPIs de Performance',
     examples: [
       {
         name: 'Cálculo por clientId',

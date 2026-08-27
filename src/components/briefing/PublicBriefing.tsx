@@ -75,7 +75,7 @@ const BRIEFING_QUESTIONS = [
   {
     id: 'main_objectives',
     title: 'Objetivos Principais',
-    description: 'Quais são os principais objetivos desta consultoria?',
+    description: 'Quais são os principais objetivos deste projeto?',
     placeholder: 'Descreva os objetivos específicos que você espera alcançar...',
     required: true,
     icon: Target
@@ -310,7 +310,7 @@ export default function PublicBriefing({ serviceId, clientId, onComplete }: Publ
           Briefing Estratégico
         </h1>
         <p className="text-gray-600">
-          Ajude-nos a entender melhor seu negócio para oferecer a melhor consultoria
+          Ajude-nos a entender melhor seu negócio para oferecer a melhor estratégia de marketing
         </p>
       </div>
 

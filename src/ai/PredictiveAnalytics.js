@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Sistema de Análise Preditiva de KPIs
- * Implementa modelos preditivos para KPIs financeiros e de negócio
+ * Implementa modelos preditivos para KPIs de performance de marketing e negócio
  */
 export class PredictiveAnalytics extends EventEmitter {
   constructor(options = {}) {
@@ -25,9 +25,9 @@ export class PredictiveAnalytics extends EventEmitter {
    * Inicializa modelos preditivos
    */
   initializeModels() {
-    // Modelo para KPIs Financeiros
+    // Modelo para KPIs de Performance
     this.models.set('financial_kpis', {
-      name: 'KPIs Financeiros',
+      name: 'KPIs de Performance',
       type: 'regression',
       features: [
         'revenue', 'expenses', 'profit_margin', 'cash_flow',

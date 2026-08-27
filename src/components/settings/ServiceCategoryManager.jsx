@@ -245,7 +245,7 @@ export default function ServiceCategoryManager() {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Consultoria Financeira"
+                placeholder="Ex: Marketing Digital"
                 required
               />
             </div>

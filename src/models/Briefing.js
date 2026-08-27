@@ -1,19 +1,22 @@
 /**
  * 🧾 Modelo de Briefing por Instância de Serviço
- * 
- * Briefing híbrido preenchido pelo consultor durante kickoff
- * Personaliza execução sem quebrar lógica de templates
+ *
+ * Briefing híbrido preenchido pelo time da agência durante kickoff.
+ * Personaliza execução sem quebrar lógica de templates.
  */
 
 import { randomUUID } from '@/components/debug/CryptoShim';
+import { resolveOfferingType } from '@/constants/serviceCategories';
 
 export class Briefing {
   constructor(data = {}) {
     this.id = data.id || randomUUID();
     this.servico_instancia_id = data.servico_instancia_id;
     this.cliente_id = data.cliente_id;
-    this.servico_tipo = data.servico_tipo; // 'diagnostico_avulso' | 'mentoria_margem' | 'gestao_360'
-    this.itens = data.itens || {}; // Schema específico por tipo de serviço
+    // Canônicos: diagnostico_comunicacao | estrategia_conteudo | marketing_360
+    // Legados ainda aceitos via resolveOfferingType
+    this.servico_tipo = data.servico_tipo;
+    this.itens = data.itens || {};
     this.preenchido_por_user_id = data.preenchido_por_user_id;
     this.preenchido_em = data.preenchido_em || new Date().toISOString();
     this.versao = data.versao || 1;
@@ -22,7 +25,6 @@ export class Briefing {
     this.updated_at = data.updated_at || new Date().toISOString();
   }
 
-  // Validação do schema baseado no tipo de serviço
   validate() {
     const errors = [];
 
@@ -42,7 +44,6 @@ export class Briefing {
       errors.push('ID do usuário que preencheu é obrigatório');
     }
 
-    // Validar schema específico por tipo de serviço
     const schemaValidation = this.validateSchema();
     if (!schemaValidation.isValid) {
       errors.push(...schemaValidation.errors);
@@ -50,147 +51,154 @@ export class Briefing {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
-  // Validação do schema específico por tipo de serviço
   validateSchema() {
     const schemas = {
-      diagnostico_avulso: {
+      diagnostico_comunicacao: {
         empresa_setor: { type: 'string', required: true },
-        principal_dor: { 
-          type: 'enum', 
-          values: ['fluxo_caixa', 'margem_baixa', 'endividamento', 'controles', 'precificacao', 'outro'],
-          required: true 
+        principal_dor: {
+          type: 'enum',
+          values: [
+            'posicionamento_fraco',
+            'mensagem_inconsistente',
+            'baixa_autoridade',
+            'canais_desalinhados',
+            'crise_reputacao',
+            'outro',
+          ],
+          required: true,
         },
-        faturamento_mensal_medio: { type: 'number', required: true, min: 0 },
-        ticket_medio: { type: 'number', required: true, min: 0 },
-        mix_receita: { type: 'array', required: false },
-        endividamento_total: { type: 'number', required: true, min: 0 },
-        atrasos_frequentes: { type: 'boolean', required: true },
-        controles_existentes: { 
-          type: 'array', 
-          values: ['planilha_basica', 'erp', 'nenhum', 'contabilidade_terceiros'],
-          required: true 
+        publico_prioritario: { type: 'string', required: true },
+        canais_ativos: {
+          type: 'array',
+          values: ['instagram', 'linkedin', 'site', 'email', 'midia_paga', 'pr', 'youtube', 'outro'],
+          required: true,
         },
-        disponibilidade_dados: { 
-          type: 'enum', 
+        tom_desejado: {
+          type: 'enum',
+          values: ['institucional', 'proximo', 'tecnico', 'irreverente', 'inspiracional'],
+          required: true,
+        },
+        materiais_existentes: {
+          type: 'array',
+          values: ['manual_marca', 'site', 'pecas_recentes', 'guia_tom', 'nenhum'],
+          required: true,
+        },
+        disponibilidade_acessos: {
+          type: 'enum',
           values: ['completa', 'parcial', 'baixa'],
-          required: true 
+          required: true,
         },
         prioridades_do_cliente: { type: 'array', required: false },
-        restricoes_tempo: { 
-          type: 'enum', 
+        restricoes_tempo: {
+          type: 'enum',
           values: ['urgente_7d', 'curto_30d', 'normal'],
-          required: true 
+          required: true,
         },
-        observacoes: { type: 'string', required: false }
+        observacoes: { type: 'string', required: false },
       },
-      mentoria_margem: {
-        produto_foco: { type: 'string', required: true },
-        margem_atual_percent: { type: 'number', required: true, min: 0, max: 100 },
-        volume_mensal: { type: 'number', required: true, min: 0 },
-        elasticidade_preco_percebida: { 
-          type: 'enum', 
-          values: ['baixa', 'media', 'alta'],
-          required: true 
+
+      estrategia_conteudo: {
+        objetivo_conteudo: {
+          type: 'enum',
+          values: ['autoridade', 'demanda', 'retencao', 'recrutamento', 'misto'],
+          required: true,
         },
-        custos_variaveis_chave: { type: 'array', required: false },
-        capacidade_negociacao_fornecedores: { 
-          type: 'enum', 
-          values: ['alta', 'media', 'baixa'],
-          required: true 
+        produto_ou_oferta_foco: { type: 'string', required: true },
+        personas_prioritarias: { type: 'array', required: true },
+        canais_prioritarios: {
+          type: 'array',
+          values: ['blog', 'linkedin', 'instagram', 'youtube', 'email', 'podcast', 'outro'],
+          required: true,
         },
-        concorrentes_principais: { type: 'array', required: false },
-        diferenciadores_produto: { type: 'array', required: false },
-        risco_perda_clientes_com_reajuste: { 
-          type: 'enum', 
-          values: ['baixo', 'medio', 'alto'],
-          required: true 
+        capacidade_producao_semanal: { type: 'number', required: true, min: 0 },
+        tom_de_voz: {
+          type: 'enum',
+          values: ['formal', 'conversacional', 'tecnico', 'inspiracional'],
+          required: true,
         },
-        canal_venda_predominante: { 
-          type: 'enum', 
-          values: ['loja_fisica', 'online', 'distribuicao', 'misto'],
-          required: true 
+        restricoes_compliance: { type: 'string', required: false },
+        diferenciais_prova: { type: 'array', required: false },
+        concorrentes_referencia: { type: 'array', required: false },
+        metrica_sucesso: {
+          type: 'enum',
+          values: ['engajamento', 'leads', 'trafego', 'share_of_voice', 'conversao'],
+          required: true,
         },
-        politica_descontos_atual: { 
-          type: 'enum', 
-          values: ['agressiva', 'moderada', 'controlada', 'inexistente'],
-          required: true 
-        },
-        metrica_sucesso: { 
-          type: 'enum', 
-          values: ['margem_percent', 'lucro_bruto', 'EBITDA', 'mix_margem'],
-          required: true 
-        },
-        meta_margem_percent: { type: 'number', required: true, min: 0, max: 100 },
-        observacoes: { type: 'string', required: false }
+        observacoes: { type: 'string', required: false },
       },
-      gestao_360: {
-        estrutura_operacional: { 
-          type: 'array', 
-          values: ['vendas', 'operacao', 'estoque', 'servicos_campo', 'ecommerce'],
-          required: true 
+
+      marketing_360: {
+        objetivos_negocio: { type: 'array', required: true },
+        canais_no_escopo: {
+          type: 'array',
+          values: [
+            'organico',
+            'midia_paga',
+            'conteudo',
+            'email',
+            'seo',
+            'pr',
+            'influenciadores',
+            'design',
+          ],
+          required: true,
         },
-        rotina_financeira_atual: { 
-          type: 'array', 
-          values: ['conciliacao_bancaria', 'contas_a_pagar', 'contas_a_receber', 'fluxo_caixa', 'centro_custos'],
-          required: true 
+        budget_midia_mensal: { type: 'number', required: true, min: 0 },
+        responsavel_aprovacao: { type: 'string', required: true },
+        sla_aprovacao_dias: { type: 'number', required: true, min: 1 },
+        ferramentas_atuais: { type: 'array', required: false },
+        kpis_prioritarios: {
+          type: 'array',
+          values: ['ROAS', 'CAC', 'leads', 'engajamento', 'brand_lift', 'conversao'],
+          required: true,
         },
-        responsavel_financeiro: { type: 'string', required: true },
-        ERP_ou_ferramentas: { type: 'array', required: false },
-        ciclo_caixa_dias: { type: 'number', required: true, min: 0 },
-        estoque_valor: { type: 'number', required: true, min: 0 },
-        ruptura_estoque_frequente: { type: 'boolean', required: true },
-        inadimplencia_percent: { type: 'number', required: true, min: 0, max: 100 },
-        politica_credito: { 
-          type: 'enum', 
-          values: ['rigida', 'moderada', 'flexivel', 'inexistente'],
-          required: true 
-        },
-        relatorios_necessarios: { 
-          type: 'array', 
-          values: ['DRE_mensal', 'fluxo_caixa_semanal', 'projecoes', 'custos_setor', 'estoque'],
-          required: true 
-        },
-        metas_anuais: { type: 'array', required: false },
-        maturidade_processos: { 
-          type: 'enum', 
+        maturidade_processos: {
+          type: 'enum',
           values: ['baixa', 'media', 'alta'],
-          required: true 
+          required: true,
         },
-        observacoes: { type: 'string', required: false }
-      }
+        restricoes_marca: { type: 'string', required: false },
+        observacoes: { type: 'string', required: false },
+      },
     };
 
-    const schema = schemas[this.servico_tipo];
+    // Aliases legados apontam para o schema canônico
+    schemas.diagnostico_avulso = schemas.diagnostico_comunicacao;
+    schemas.diagnostico_financeiro = schemas.diagnostico_comunicacao;
+    schemas.mentoria_margem = schemas.estrategia_conteudo;
+    schemas.mentoria_precificacao = schemas.estrategia_conteudo;
+    schemas.gestao_360 = schemas.marketing_360;
+    schemas.gestao_financeira_360 = schemas.marketing_360;
+
+    const tipo = resolveOfferingType(this.servico_tipo) || this.servico_tipo;
+    const schema = schemas[tipo] || schemas[this.servico_tipo];
+
     if (!schema) {
       return {
         isValid: false,
-        errors: [`Tipo de serviço '${this.servico_tipo}' não suportado`]
+        errors: [`Tipo de serviço '${this.servico_tipo}' não suportado`],
       };
     }
 
     const errors = [];
     const itens = this.itens || {};
 
-    // Validar cada campo do schema
     for (const [field, rules] of Object.entries(schema)) {
       const value = itens[field];
 
-      // Campo obrigatório
       if (rules.required && (value === undefined || value === null || value === '')) {
         errors.push(`Campo '${field}' é obrigatório`);
         continue;
       }
 
-      // Se campo não obrigatório e vazio, pular validação
       if (!rules.required && (value === undefined || value === null || value === '')) {
         continue;
       }
 
-      // Validar tipo
       if (rules.type === 'string' && typeof value !== 'string') {
         errors.push(`Campo '${field}' deve ser uma string`);
       } else if (rules.type === 'number' && typeof value !== 'number') {
@@ -199,63 +207,54 @@ export class Briefing {
         errors.push(`Campo '${field}' deve ser um boolean`);
       } else if (rules.type === 'array' && !Array.isArray(value)) {
         errors.push(`Campo '${field}' deve ser um array`);
+      } else if (rules.type === 'enum' && rules.values && !rules.values.includes(value)) {
+        errors.push(`Campo '${field}' deve ser um de: ${rules.values.join(', ')}`);
       }
 
-      // Validar valores específicos para enum
-      if (rules.type === 'enum' && rules.values && !rules.values.includes(value)) {
-        errors.push(`Campo '${field}' deve ser um dos valores: ${rules.values.join(', ')}`);
-      }
-
-      // Validar valores específicos para array
-      if (rules.type === 'array' && rules.values && Array.isArray(value)) {
-        const invalidValues = value.filter(v => !rules.values.includes(v));
-        if (invalidValues.length > 0) {
-          errors.push(`Campo '${field}' contém valores inválidos: ${invalidValues.join(', ')}`);
-        }
-      }
-
-      // Validar limites numéricos
       if (rules.type === 'number') {
         if (rules.min !== undefined && value < rules.min) {
-          errors.push(`Campo '${field}' deve ser maior ou igual a ${rules.min}`);
+          errors.push(`Campo '${field}' deve ser >= ${rules.min}`);
         }
         if (rules.max !== undefined && value > rules.max) {
-          errors.push(`Campo '${field}' deve ser menor ou igual a ${rules.max}`);
+          errors.push(`Campo '${field}' deve ser <= ${rules.max}`);
+        }
+      }
+
+      if (rules.type === 'array' && rules.values && Array.isArray(value)) {
+        const invalid = value.filter((v) => !rules.values.includes(v));
+        if (invalid.length) {
+          errors.push(`Campo '${field}' contém valores inválidos: ${invalid.join(', ')}`);
         }
       }
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
-  // Marcar como ativo e supersedar versões anteriores
   activate() {
     this.status = 'ativo';
     this.updated_at = new Date().toISOString();
   }
 
-  // Marcar como supersedido
   supersede() {
     this.status = 'superseded';
     this.updated_at = new Date().toISOString();
   }
 
-  // Criar nova versão
   createNewVersion() {
     return new Briefing({
-      ...this,
+      ...this.toJSON(),
       id: randomUUID(),
       versao: this.versao + 1,
       status: 'rascunho',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
   }
 
-  // Serializar para JSON
   toJSON() {
     return {
       id: this.id,
@@ -268,59 +267,50 @@ export class Briefing {
       versao: this.versao,
       status: this.status,
       created_at: this.created_at,
-      updated_at: this.updated_at
+      updated_at: this.updated_at,
     };
   }
 
-  // Criar a partir de JSON
   static fromJSON(data) {
     return new Briefing(data);
   }
 
-  // Métodos estáticos para operações CRUD (simulando API)
   static async create(data) {
     const briefing = new Briefing(data);
     const validation = briefing.validate();
-    
+
     if (!validation.isValid) {
       throw new Error(`Briefing inválido: ${validation.errors.join(', ')}`);
     }
 
-    // Simular persistência
     console.log('[Briefing] Criando briefing:', briefing.toJSON());
     return briefing;
   }
 
   static async get(id) {
-    // Simular busca
     console.log('[Briefing] Buscando briefing:', id);
-    return null; // Implementar busca real
+    return null;
   }
 
   static async update(id, data) {
-    // Simular atualização
     console.log('[Briefing] Atualizando briefing:', id, data);
-    return null; // Implementar atualização real
+    return null;
   }
 
   static async delete(id) {
-    // Simular exclusão
     console.log('[Briefing] Excluindo briefing:', id);
-    return true; // Implementar exclusão real
+    return true;
   }
 
   static async findByService(servico_instancia_id) {
-    // Simular busca por serviço
     console.log('[Briefing] Buscando briefings do serviço:', servico_instancia_id);
-    return []; // Implementar busca real
+    return [];
   }
 
   static async getLatestActive(servico_instancia_id) {
-    // Simular busca da versão ativa mais recente
     console.log('[Briefing] Buscando briefing ativo mais recente:', servico_instancia_id);
-    return null; // Implementar busca real
+    return null;
   }
 }
 
 export default Briefing;
-

@@ -17,17 +17,24 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { FinancialKPI } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
+import { resolveKPICategory } from '@/constants/performanceKPIs';
 
 const KPI_CATEGORIES = {
-  liquidez: { name: 'Liquidez', color: 'bg-blue-500', icon: '💧' },
-  rentabilidade: { name: 'Rentabilidade', color: 'bg-green-500', icon: '💰' },
-  endividamento: { name: 'Endividamento', color: 'bg-yellow-500', icon: '⚖️' },
-  atividade: { name: 'Atividade', color: 'bg-purple-500', icon: '⚡' },
-  crescimento: { name: 'Crescimento', color: 'bg-red-500', icon: '📈' }
+  performance: { name: 'Performance', color: 'bg-blue-500', icon: '🎯' },
+  demanda: { name: 'Demanda', color: 'bg-green-500', icon: '📊' },
+  marca: { name: 'Marca', color: 'bg-purple-500', icon: '🏷️' },
+  operacao: { name: 'Operação', color: 'bg-amber-500', icon: '⚙️' },
+  engajamento: { name: 'Engajamento', color: 'bg-pink-500', icon: '💬' },
+  crescimento: { name: 'Crescimento', color: 'bg-indigo-500', icon: '📈' },
+  // aliases legados
+  liquidez: { name: 'Performance', color: 'bg-blue-500', icon: '🎯' },
+  rentabilidade: { name: 'Demanda', color: 'bg-green-500', icon: '📊' },
+  endividamento: { name: 'Operação', color: 'bg-amber-500', icon: '⚙️' },
+  atividade: { name: 'Engajamento', color: 'bg-pink-500', icon: '💬' }
 };
 
 function KPICard({ kpi, onEdit }) {
-  const category = KPI_CATEGORIES[kpi.category] || KPI_CATEGORIES.rentabilidade;
+  const category = KPI_CATEGORIES[resolveKPICategory(kpi.category)] || KPI_CATEGORIES.performance;
   const currentValue = kpi.current_value || 0;
   const targetValue = kpi.target_value || 0;
   const variance = targetValue ? ((currentValue - targetValue) / targetValue) * 100 : 0;
@@ -92,7 +99,7 @@ function KPICard({ kpi, onEdit }) {
 }
 
 function KPIChart({ kpis, category }) {
-  const categoryKPIs = kpis.filter(kpi => kpi.category === category);
+  const categoryKPIs = kpis.filter(kpi => resolveKPICategory(kpi.category) === category);
   
   if (categoryKPIs.length === 0) {
     return (
@@ -187,7 +194,7 @@ export default function KPIDashboard({ clientId, serviceId }) {
   };
 
   const kpisByCategory = kpis.reduce((acc, kpi) => {
-    const category = kpi.category || 'rentabilidade';
+    const category = resolveKPICategory(kpi.category);
     if (!acc[category]) acc[category] = [];
     acc[category].push(kpi);
     return acc;
@@ -268,12 +275,13 @@ export default function KPIDashboard({ clientId, serviceId }) {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="liquidez">💧 Liquidez</TabsTrigger>
-          <TabsTrigger value="rentabilidade">💰 Rentabilidade</TabsTrigger>
-          <TabsTrigger value="endividamento">⚖️ Endividamento</TabsTrigger>
-          <TabsTrigger value="atividade">⚡ Atividade</TabsTrigger>
+          <TabsTrigger value="performance">🎯 Performance</TabsTrigger>
+          <TabsTrigger value="demanda">📊 Demanda</TabsTrigger>
+          <TabsTrigger value="marca">🏷️ Marca</TabsTrigger>
+          <TabsTrigger value="operacao">⚙️ Operação</TabsTrigger>
+          <TabsTrigger value="engajamento">💬 Engajamento</TabsTrigger>
           <TabsTrigger value="crescimento">📈 Crescimento</TabsTrigger>
         </TabsList>
 
@@ -301,7 +309,7 @@ export default function KPIDashboard({ clientId, serviceId }) {
           )}
         </TabsContent>
 
-        {Object.keys(KPI_CATEGORIES).map(category => (
+        {['performance', 'demanda', 'marca', 'operacao', 'engajamento', 'crescimento'].map(category => (
           <TabsContent key={category} value={category}>
             <KPIChart kpis={kpis} category={category} />
           </TabsContent>

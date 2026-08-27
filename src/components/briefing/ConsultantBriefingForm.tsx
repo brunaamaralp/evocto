@@ -1,7 +1,7 @@
 /**
- * 🎯 Interface Unificada para Consultores - Briefing Híbrido
- * 
- * Componente centralizado para consultores preencherem briefings
+ * 🎯 Interface Unificada — Briefing Híbrido (Time da Agência)
+ *
+ * Formulário para o time preencher briefings no kickoff,
  * com preview de ajustes e validação em tempo real
  */
 
@@ -47,6 +47,19 @@ interface ConsultantBriefingFormProps {
   existingBriefing?: any;
 }
 
+const SERVICE_TYPE_ALIASES: Record<string, string> = {
+  diagnostico_avulso: 'diagnostico_comunicacao',
+  diagnostico_financeiro: 'diagnostico_comunicacao',
+  mentoria_margem: 'estrategia_conteudo',
+  mentoria_precificacao: 'estrategia_conteudo',
+  gestao_360: 'marketing_360',
+  gestao_financeira_360: 'marketing_360',
+};
+
+function resolveServiceType(type: string): string {
+  return SERVICE_TYPE_ALIASES[type] || type;
+}
+
 export function ConsultantBriefingForm({
   serviceId,
   clientId,
@@ -83,14 +96,15 @@ export function ConsultantBriefingForm({
     if (existingBriefing && existingBriefing.itens) {
       setFormData(existingBriefing.itens);
     } else {
-      setFormData(getDefaultFormData(serviceType));
+      setFormData(getDefaultFormData(resolveServiceType(serviceType)));
     }
   }, [existingBriefing, serviceType]);
 
   // Obter dados padrão do formulário por tipo de serviço
-  const getDefaultFormData = (serviceType: string) => {
+  const getDefaultFormData = (type: string) => {
+    const resolved = resolveServiceType(type);
     const defaultData = {
-      diagnostico_avulso: {
+      diagnostico_comunicacao: {
         disponibilidade_dados: '',
         principal_dor: '',
         faturamento_mensal_medio: '',
@@ -99,7 +113,7 @@ export function ConsultantBriefingForm({
         nivel_urgencia: '',
         expectativas_cliente: ''
       },
-      mentoria_margem: {
+      estrategia_conteudo: {
         elasticidade_preco_percebida: '',
         capacidade_negociacao_fornecedores: '',
         politica_descontos_atual: '',
@@ -108,7 +122,7 @@ export function ConsultantBriefingForm({
         margem_atual: '',
         margem_desejada: ''
       },
-      gestao_360: {
+      marketing_360: {
         maturidade_processos: '',
         nivel_automatizacao: '',
         capacidade_equipe: '',
@@ -119,13 +133,13 @@ export function ConsultantBriefingForm({
       }
     };
 
-    return defaultData[serviceType] || {};
+    return defaultData[resolved] || {};
   };
 
   // Validar dados em tempo real
   const validateFormData = useCallback((data: any) => {
     const errors: any = {};
-    const requiredFields = getRequiredFields(serviceType);
+    const requiredFields = getRequiredFields(resolveServiceType(serviceType));
 
     requiredFields.forEach(field => {
       const value = data[field];
@@ -135,7 +149,7 @@ export function ConsultantBriefingForm({
     });
 
     // Validações específicas por tipo
-    if (serviceType === 'diagnostico_avulso') {
+    if (resolveServiceType(serviceType) === 'diagnostico_comunicacao') {
       if (data.faturamento_mensal_medio && isNaN(parseFloat(data.faturamento_mensal_medio))) {
         errors.faturamento_mensal_medio = 'Faturamento deve ser um número válido';
       }
@@ -151,14 +165,15 @@ export function ConsultantBriefingForm({
   }, [serviceType]);
 
   // Obter campos obrigatórios por tipo de serviço
-  const getRequiredFields = (serviceType: string) => {
+  const getRequiredFields = (type: string) => {
+    const resolved = resolveServiceType(type);
     const requiredFields = {
-      diagnostico_avulso: ['disponibilidade_dados', 'principal_dor', 'faturamento_mensal_medio'],
-      mentoria_margem: ['elasticidade_preco_percebida', 'capacidade_negociacao_fornecedores', 'politica_descontos_atual'],
-      gestao_360: ['maturidade_processos', 'nivel_automatizacao', 'capacidade_equipe']
+      diagnostico_comunicacao: ['disponibilidade_dados', 'principal_dor', 'faturamento_mensal_medio'],
+      estrategia_conteudo: ['elasticidade_preco_percebida', 'capacidade_negociacao_fornecedores', 'politica_descontos_atual'],
+      marketing_360: ['maturidade_processos', 'nivel_automatizacao', 'capacidade_equipe']
     };
 
-    return requiredFields[serviceType] || [];
+    return requiredFields[resolved] || [];
   };
 
   // Obter label do campo
@@ -406,10 +421,14 @@ export function ConsultantBriefingForm({
         { value: 'alta', label: 'Alta' }
       ],
       principal_dor: [
-        { value: 'fluxo_caixa', label: 'Fluxo de Caixa' },
-        { value: 'endividamento', label: 'Endividamento' },
-        { value: 'lucratividade', label: 'Lucratividade' },
-        { value: 'crescimento', label: 'Crescimento' }
+        { value: 'posicionamento_fraco', label: 'Posicionamento Fraco' },
+        { value: 'mensagem_inconsistente', label: 'Mensagem Inconsistente' },
+        { value: 'baixa_autoridade', label: 'Baixa Autoridade' },
+        { value: 'canais_desalinhados', label: 'Canais Desalinhados' },
+        { value: 'crise_reputacao', label: 'Crise de Reputação' },
+        { value: 'outro', label: 'Outro' },
+        // legado
+        { value: 'endividamento', label: 'Endividamento (legado)' }
       ],
       elasticidade_preco_percebida: [
         { value: 'baixa', label: 'Baixa' },
@@ -453,7 +472,7 @@ export function ConsultantBriefingForm({
 
   // Renderizar formulário por tipo de serviço
   const renderServiceForm = () => {
-    const fields = getServiceFields(serviceType);
+    const fields = getServiceFields(resolveServiceType(serviceType));
     
     return (
       <div className="space-y-6">
@@ -467,9 +486,10 @@ export function ConsultantBriefingForm({
   };
 
   // Obter campos por tipo de serviço
-  const getServiceFields = (serviceType: string) => {
+  const getServiceFields = (type: string) => {
+    const resolved = resolveServiceType(type);
     const fields = {
-      diagnostico_avulso: [
+      diagnostico_comunicacao: [
         { name: 'disponibilidade_dados', type: 'select' },
         { name: 'principal_dor', type: 'select' },
         { name: 'faturamento_mensal_medio', type: 'number' },
@@ -478,7 +498,7 @@ export function ConsultantBriefingForm({
         { name: 'nivel_urgencia', type: 'select' },
         { name: 'expectativas_cliente', type: 'textarea' }
       ],
-      mentoria_margem: [
+      estrategia_conteudo: [
         { name: 'elasticidade_preco_percebida', type: 'select' },
         { name: 'capacidade_negociacao_fornecedores', type: 'select' },
         { name: 'politica_descontos_atual', type: 'select' },
@@ -487,7 +507,7 @@ export function ConsultantBriefingForm({
         { name: 'margem_atual', type: 'number' },
         { name: 'margem_desejada', type: 'number' }
       ],
-      gestao_360: [
+      marketing_360: [
         { name: 'maturidade_processos', type: 'select' },
         { name: 'nivel_automatizacao', type: 'select' },
         { name: 'capacidade_equipe', type: 'select' },
@@ -498,7 +518,7 @@ export function ConsultantBriefingForm({
       ]
     };
 
-    return fields[serviceType] || [];
+    return fields[resolved] || [];
   };
 
   if (currentStep === 'submitted') {

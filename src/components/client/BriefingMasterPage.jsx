@@ -94,14 +94,14 @@ const BRIEFING_SECTIONS = {
   },
   financial: {
     id: 'financial',
-    title: 'Dados Financeiros',
-    shortTitle: 'Financeiro',
+    title: 'Dados de Marketing / Performance',
+    shortTitle: 'Performance',
     icon: DollarSign,
     gradient: 'from-green-500 to-emerald-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     textColor: 'text-green-700',
-    description: 'Indicadores financeiros e performance'
+    description: 'Indicadores de marketing, campanhas e performance'
   },
   competition: {
     id: 'competition',

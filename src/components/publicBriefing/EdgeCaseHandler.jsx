@@ -134,7 +134,7 @@ export default function EdgeCaseHandler({
           title: 'Link expirado',
           description: 'Este link de briefing não é mais válido.',
           solutions: [
-            'Entre em contato com sua consultoria para solicitar um novo link',
+            'Entre em contato com sua agência para solicitar um novo link',
             'Verifique se o link foi copiado corretamente'
           ],
           canRecover: false

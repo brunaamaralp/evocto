@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
 const WIZARD_STEPS = [
   { id: 'basic', title: 'Informações Básicas', icon: FileText },
@@ -31,21 +32,13 @@ const WIZARD_STEPS = [
   { id: 'settings', title: 'Configurações', icon: Settings },
 ];
 
-const SERVICE_CATEGORIES = {
-  gestao_financeira: 'Gestão Financeira',
-  consultoria_tributaria: 'Consultoria Tributária',
-  valuation: 'Valuation',
-  planejamento_financeiro: 'Planejamento Financeiro',
-  fusao_aquisicao: 'Fusão e Aquisição',
-  reestruturacao: 'Reestruturação'
-};
-
 const KPI_CATEGORIES = {
-  liquidez: 'Liquidez',
-  rentabilidade: 'Rentabilidade', 
-  endividamento: 'Endividamento',
-  atividade: 'Atividade',
-  crescimento: 'Crescimento'
+  performance: 'Performance',
+  demanda: 'Demanda',
+  marca: 'Marca',
+  operacao: 'Operação',
+  engajamento: 'Engajamento',
+  crescimento: 'Crescimento',
 };
 
 const TASK_TYPES = {
@@ -53,7 +46,7 @@ const TASK_TYPES = {
   coleta_dados: 'Coleta de Dados',
   analise_dados: 'Análise de Dados',
   analise_financeira: 'Análise Financeira',
-  relatorio_financeiro: 'Relatório Financeiro',
+  relatorio_financeiro: 'Relatório de Performance',
   reuniao_alinhamento: 'Reunião de Alinhamento',
   planejamento_estrategico: 'Planejamento Estratégico',
   implementacao: 'Implementação',
@@ -74,7 +67,7 @@ export default function ServiceTemplateWizard({ isOpen, onClose, onTemplateCreat
     // Básico
     name: editingTemplate?.name || '',
     description: editingTemplate?.description || '',
-    category: editingTemplate?.category || 'gestao_financeira',
+    category: editingTemplate?.category || DEFAULT_SERVICE_CATEGORY,
     
     // Pricing
     pricing: editingTemplate?.pricing || {
@@ -282,7 +275,7 @@ function BasicInfoStep({ data, onChange }) {
             id="name"
             value={data.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            placeholder="Ex: Diagnóstico Financeiro Completo"
+            placeholder="Ex: Diagnóstico de Comunicação e Marca"
           />
         </div>
 
@@ -587,7 +580,7 @@ function KPIsStep({ data, onChange }) {
     const newKPI = {
       name: '',
       formula_id: '',
-      category: 'liquidez',
+      category: 'performance',
       target_value: 0,
       frequency: 'monthly',
       priority: 'medium',
@@ -648,7 +641,7 @@ function KPIsStep({ data, onChange }) {
                   <Input
                     value={kpi.name}
                     onChange={(e) => updateKPI(index, { name: e.target.value })}
-                    placeholder="Ex: Liquidez Corrente"
+                    placeholder="Ex: ROAS"
                   />
                 </div>
                 

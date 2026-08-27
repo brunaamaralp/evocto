@@ -83,7 +83,7 @@ function EducationalKPISection({ expandedItems, onToggle, activeTooltip, setActi
       howToImprove: 'Para aumentar a receita: melhore a qualidade dos produtos, invista em marketing, expanda para novos mercados ou aumente os preços.',
       examples: [
         'Loja que vendeu R$ 50.000 em produtos no mês',
-        'Consultoria que faturou R$ 30.000 em serviços',
+        'Agência que faturou R$ 30.000 em serviços',
         'Restaurante com R$ 80.000 em vendas mensais'
       ],
       target: 'Crescer 10-15% ao mês é um bom objetivo',
@@ -394,7 +394,7 @@ function EducationalPhasesSection({ expandedItems, onToggle }) {
             Fases do Seu Projeto
           </h2>
           <p className="text-gray-600">
-            Entenda cada etapa do processo de consultoria
+            Entenda cada etapa do processo com a agência
           </p>
         </div>
 

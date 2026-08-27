@@ -31,7 +31,7 @@ import LoadingSkeleton from './LoadingSkeleton';
 import DataSourceManager from './DataSourceManager';
 
 /**
- * Dashboard financeiro principal para clientes
+ * Dashboard de performance principal para clientes
  */
 export default function ClientFinancialDashboard({ clientId, serviceId }) {
   const {
@@ -275,9 +275,9 @@ export default function ClientFinancialDashboard({ clientId, serviceId }) {
         >
           <div className="text-center text-sm text-gray-500">
             <p>
-              Dashboard financeiro gerado automaticamente • 
+              Dashboard de performance gerado automaticamente • 
               Dados atualizados conforme disponibilidade • 
-              Para dúvidas, entre em contato com sua consultoria
+              Para dúvidas, entre em contato com sua agência
             </p>
           </div>
         </motion.div>
@@ -291,14 +291,14 @@ export default function ClientFinancialDashboard({ clientId, serviceId }) {
               Gerenciar Fontes de Dados
             </DialogTitle>
             <DialogDescription>
-              Escolha como inserir os dados financeiros no dashboard
+              Escolha como inserir os dados de marketing e performance no dashboard
             </DialogDescription>
           </DialogHeader>
           
           <DataSourceManager
             clientId={clientId}
             serviceId={serviceId}
-            serviceType={dashboardData?.servico?.tipo || 'mentoria_margem'}
+            serviceType={dashboardData?.servico?.tipo || 'estrategia_conteudo'}
             onDataUpdated={handleDataUpdated}
           />
         </DialogContent>

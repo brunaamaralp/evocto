@@ -13,6 +13,16 @@ import { toast } from 'sonner';
 import { Service } from '@/api/entities';
 import { Agency } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
+import { DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
+
+const KPI_CATEGORIES = {
+  performance: 'Performance',
+  demanda: 'Demanda',
+  marca: 'Marca',
+  operacao: 'Operação',
+  engajamento: 'Engajamento',
+  crescimento: 'Crescimento',
+};
 
 export default function ServiceTemplateForm({ 
   isOpen, 
@@ -66,7 +76,7 @@ export default function ServiceTemplateForm({
         setFormData({
           name: template.name || '',
           description: template.description || '',
-          category: template.category || (agencyCategories[0]?.id || 'gestao_financeira'),
+          category: template.category || (agencyCategories[0]?.id || DEFAULT_SERVICE_CATEGORY),
           deliverables: template.deliverables || [],
           default_kpis: template.default_kpis || [],
           is_active: template.is_active !== undefined ? template.is_active : true
@@ -75,7 +85,7 @@ export default function ServiceTemplateForm({
         setFormData({
           name: '',
           description: '',
-          category: agencyCategories[0]?.id || 'gestao_financeira',
+          category: agencyCategories[0]?.id || DEFAULT_SERVICE_CATEGORY,
           deliverables: [],
           default_kpis: [],
           is_active: true
@@ -286,7 +296,7 @@ export default function ServiceTemplateForm({
     const newKPI = {
       name: 'Novo KPI',
       formula_id: `kpi_${Date.now()}`,
-      category: 'rentabilidade',
+      category: 'performance',
       target_value: null,
       frequency: 'monthly',
       unit: 'percentage',
@@ -383,7 +393,7 @@ export default function ServiceTemplateForm({
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Ex: Diagnóstico Financeiro Completo"
+                    placeholder="Ex: Diagnóstico de Comunicação e Marca"
                     required
                   />
                 </div>
@@ -621,11 +631,9 @@ export default function ServiceTemplateForm({
                                 onChange={(e) => updateKPI(index, 'category', e.target.value)}
                                 className="w-full p-2 border rounded-md"
                               >
-                                <option value="liquidez">Liquidez</option>
-                                <option value="rentabilidade">Rentabilidade</option>
-                                <option value="endividamento">Endividamento</option>
-                                <option value="atividade">Atividade</option>
-                                <option value="crescimento">Crescimento</option>
+                                {Object.entries(KPI_CATEGORIES).map(([key, label]) => (
+                                  <option key={key} value={key}>{label}</option>
+                                ))}
                               </select>
                             </div>
                             <div>

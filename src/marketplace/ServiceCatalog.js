@@ -27,28 +27,28 @@ export class ServiceCatalog extends EventEmitter {
    * Inicializa serviços padrão
    */
   initializeDefaultServices() {
-    // Serviços de Consultoria Financeira
-    this.services.set('financial_diagnosis', {
-      id: 'financial_diagnosis',
-      name: 'Diagnóstico Financeiro Completo',
-      description: 'Análise completa da saúde financeira da empresa',
-      category: 'financial',
-      provider: 'evocto_consulting',
+    // Serviços de Comunicação e Marketing
+    this.services.set('brand_diagnosis', {
+      id: 'brand_diagnosis',
+      name: 'Diagnóstico de Comunicação e Marca',
+      description: 'Análise completa da presença de marca, mensagem e percepção no mercado',
+      category: 'comunicacao',
+      provider: 'evocto_agency',
       basePrice: 5000,
       currency: 'BRL',
       duration: '2-3 semanas',
       deliverables: [
-        'Relatório de diagnóstico financeiro',
-        'Análise de fluxo de caixa',
-        'Recomendações de melhoria',
+        'Relatório de diagnóstico de marca e comunicação',
+        'Análise de posicionamento e concorrência',
+        'Mapa de oportunidades de mensagem',
         'Plano de ação personalizado'
       ],
       requirements: [
-        'Demonstrativos financeiros dos últimos 12 meses',
-        'Planejamento orçamentário',
-        'Informações sobre dívidas e obrigações'
+        'Materiais de marca existentes (site, redes, apresentações)',
+        'Briefing sobre público-alvo e mercado',
+        'Histórico de campanhas e resultados (se disponível)'
       ],
-      tags: ['financeiro', 'diagnóstico', 'análise', 'consultoria'],
+      tags: ['comunicação', 'marca', 'diagnóstico', 'posicionamento'],
       status: 'active',
       rating: 4.8,
       reviewCount: 45,
@@ -57,27 +57,27 @@ export class ServiceCatalog extends EventEmitter {
       updatedAt: Date.now()
     });
 
-    this.services.set('pricing_mentoring', {
-      id: 'pricing_mentoring',
-      name: 'Mentoria em Precificação e Margem',
-      description: 'Orientação especializada para otimização de preços e margens',
-      category: 'pricing',
-      provider: 'evocto_consulting',
+    this.services.set('content_strategy', {
+      id: 'content_strategy',
+      name: 'Estratégia de Conteúdo e Posicionamento',
+      description: 'Desenvolvimento de estratégia editorial e posicionamento de marca',
+      category: 'conteudo',
+      provider: 'evocto_agency',
       basePrice: 3500,
       currency: 'BRL',
       duration: '4-6 semanas',
       deliverables: [
-        'Análise de precificação atual',
-        'Estratégias de otimização de margem',
-        'Ferramentas de cálculo de preços',
-        'Treinamento da equipe'
+        'Análise de conteúdo e presença digital atual',
+        'Estratégia editorial e calendário de conteúdo',
+        'Diretrizes de tom de voz e mensagem',
+        'Workshop de alinhamento com a equipe'
       ],
       requirements: [
-        'Histórico de preços e vendas',
-        'Estrutura de custos',
-        'Análise da concorrência'
+        'Acesso a canais digitais e materiais existentes',
+        'Definição de personas e objetivos de negócio',
+        'Referências de concorrentes e benchmarks'
       ],
-      tags: ['precificação', 'margem', 'mentoria', 'estratégia'],
+      tags: ['conteúdo', 'posicionamento', 'estratégia', 'editorial'],
       status: 'active',
       rating: 4.9,
       reviewCount: 32,
@@ -86,27 +86,27 @@ export class ServiceCatalog extends EventEmitter {
       updatedAt: Date.now()
     });
 
-    this.services.set('financial_360', {
-      id: 'financial_360',
-      name: 'Gestão Financeira 360°',
-      description: 'Implementação completa de gestão financeira empresarial',
-      category: 'management',
-      provider: 'evocto_consulting',
+    this.services.set('marketing_360', {
+      id: 'marketing_360',
+      name: 'Marketing Operacional 360',
+      description: 'Operação completa de marketing: estratégia, conteúdo, mídia e performance',
+      category: 'marketing',
+      provider: 'evocto_agency',
       basePrice: 15000,
       currency: 'BRL',
       duration: '8-12 semanas',
       deliverables: [
-        'Sistema de gestão financeira',
-        'Processos e procedimentos',
-        'Treinamento completo da equipe',
+        'Plano de marketing integrado',
+        'Operação de conteúdo e mídia',
+        'Dashboard de performance e relatórios',
         'Acompanhamento por 3 meses'
       ],
       requirements: [
-        'Acesso completo aos sistemas financeiros',
-        'Equipe dedicada para implementação',
-        'Compromisso com mudanças organizacionais'
+        'Acesso a plataformas de marketing e analytics',
+        'Equipe interna para colaboração',
+        'Orçamento de mídia definido ou em definição'
       ],
-      tags: ['gestão', 'financeiro', '360', 'implementação'],
+      tags: ['marketing', '360', 'mídia', 'performance'],
       status: 'active',
       rating: 4.7,
       reviewCount: 28,
@@ -115,62 +115,32 @@ export class ServiceCatalog extends EventEmitter {
       updatedAt: Date.now()
     });
 
-    // Serviços de Tecnologia
+    // Serviço complementar de tecnologia
     this.services.set('digital_transformation', {
       id: 'digital_transformation',
       name: 'Transformação Digital',
-      description: 'Modernização de processos e implementação de tecnologias',
-      category: 'technology',
-      provider: 'tech_partner',
+      description: 'Modernização de processos de marketing e implementação de tecnologias',
+      category: 'midia',
+      provider: 'evocto_agency',
       basePrice: 25000,
       currency: 'BRL',
       duration: '12-16 semanas',
       deliverables: [
-        'Auditoria de processos atuais',
+        'Auditoria de stack e processos digitais',
         'Plano de transformação digital',
-        'Implementação de soluções',
+        'Implementação de ferramentas de marketing',
         'Treinamento e suporte'
       ],
       requirements: [
-        'Mapeamento de processos atuais',
-        'Orçamento para investimentos',
-        'Equipe de mudança'
+        'Mapeamento de ferramentas e processos atuais',
+        'Orçamento para investimentos em tecnologia',
+        'Equipe dedicada para implementação'
       ],
-      tags: ['digital', 'transformação', 'tecnologia', 'processos'],
+      tags: ['digital', 'transformação', 'automação', 'martech'],
       status: 'active',
       rating: 4.6,
       reviewCount: 18,
       orderCount: 42,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    });
-
-    // Serviços de Marketing
-    this.services.set('marketing_strategy', {
-      id: 'marketing_strategy',
-      name: 'Estratégia de Marketing Digital',
-      description: 'Desenvolvimento de estratégia completa de marketing digital',
-      category: 'marketing',
-      provider: 'marketing_partner',
-      basePrice: 8000,
-      currency: 'BRL',
-      duration: '6-8 semanas',
-      deliverables: [
-        'Análise de mercado e concorrência',
-        'Estratégia de marketing digital',
-        'Plano de conteúdo',
-        'Cronograma de implementação'
-      ],
-      requirements: [
-        'Informações sobre público-alvo',
-        'Orçamento de marketing',
-        'Equipe de marketing'
-      ],
-      tags: ['marketing', 'digital', 'estratégia', 'conteúdo'],
-      status: 'active',
-      rating: 4.5,
-      reviewCount: 25,
-      orderCount: 58,
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
@@ -180,49 +150,49 @@ export class ServiceCatalog extends EventEmitter {
    * Inicializa categorias
    */
   initializeCategories() {
-    this.categories.set('financial', {
-      id: 'financial',
-      name: 'Consultoria Financeira',
-      description: 'Serviços especializados em gestão financeira',
-      icon: 'dollar-sign',
+    this.categories.set('comunicacao', {
+      id: 'comunicacao',
+      name: 'Comunicação',
+      description: 'Diagnóstico e estratégia de comunicação de marca',
+      icon: 'message-circle',
       color: '#10b981',
-      services: ['financial_diagnosis', 'pricing_mentoring', 'financial_360']
-    });
-
-    this.categories.set('technology', {
-      id: 'technology',
-      name: 'Tecnologia',
-      description: 'Serviços de tecnologia e transformação digital',
-      icon: 'cpu',
-      color: '#3b82f6',
-      services: ['digital_transformation']
+      services: ['brand_diagnosis']
     });
 
     this.categories.set('marketing', {
       id: 'marketing',
       name: 'Marketing',
-      description: 'Serviços de marketing e estratégia digital',
+      description: 'Operação e estratégia de marketing integrada',
       icon: 'trending-up',
       color: '#f59e0b',
-      services: ['marketing_strategy']
+      services: ['marketing_360']
     });
 
-    this.categories.set('pricing', {
-      id: 'pricing',
-      name: 'Precificação',
-      description: 'Serviços especializados em precificação e margem',
-      icon: 'calculator',
+    this.categories.set('conteudo', {
+      id: 'conteudo',
+      name: 'Conteúdo',
+      description: 'Estratégia editorial e produção de conteúdo',
+      icon: 'file-text',
+      color: '#3b82f6',
+      services: ['content_strategy']
+    });
+
+    this.categories.set('midia', {
+      id: 'midia',
+      name: 'Mídia',
+      description: 'Mídia paga, performance e transformação digital',
+      icon: 'monitor',
       color: '#8b5cf6',
-      services: ['pricing_mentoring']
+      services: ['digital_transformation']
     });
 
-    this.categories.set('management', {
-      id: 'management',
-      name: 'Gestão',
-      description: 'Serviços de gestão empresarial',
-      icon: 'users',
+    this.categories.set('branding', {
+      id: 'branding',
+      name: 'Branding',
+      description: 'Posicionamento, identidade e percepção de marca',
+      icon: 'award',
       color: '#ef4444',
-      services: ['financial_360']
+      services: []
     });
   }
 

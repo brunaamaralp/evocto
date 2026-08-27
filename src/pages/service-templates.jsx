@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import ServiceTemplateForm from '@/components/services/ServiceTemplateForm';
 import ImportTemplateModal from '@/components/services/ImportTemplateModal';
 import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
+import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
   const { user, agencyId, loading: sessionLoading } = useSession();
@@ -212,12 +213,9 @@ export default function ServiceTemplatesPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Categorias</SelectItem>
-            <SelectItem value="gestao_financeira">Gestão Financeira</SelectItem>
-            <SelectItem value="consultoria_tributaria">Consultoria Tributária</SelectItem>
-            <SelectItem value="valuation">Valuation</SelectItem>
-            <SelectItem value="planejamento_financeiro">Planejamento Financeiro</SelectItem>
-            <SelectItem value="fusao_aquisicao">Fusão & Aquisição</SelectItem>
-            <SelectItem value="reestruturacao">Reestruturação</SelectItem>
+            {Object.entries(SERVICE_CATEGORIES).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

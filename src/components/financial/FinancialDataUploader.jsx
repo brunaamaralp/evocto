@@ -29,7 +29,7 @@ const SUPPORTED_FORMATS = [
     type: 'xlsx',
     name: 'Excel (.xlsx, .xls)',
     icon: FileSpreadsheet,
-    description: 'Planilhas de DRE, Balanço, Fluxo de Caixa',
+    description: 'Planilhas de campanhas, métricas de mídia e analytics',
     maxSize: '10MB'
   },
   {
@@ -43,14 +43,14 @@ const SUPPORTED_FORMATS = [
     type: 'pdf',
     name: 'PDF',
     icon: FileText,
-    description: 'Relatórios financeiros, DREs, Balanços',
+    description: 'Relatórios de performance, dashboards de mídia e analytics',
     maxSize: '15MB'
   },
   {
     type: 'image',
     name: 'Imagens (JPG, PNG)',
     icon: Image,
-    description: 'Fotos de relatórios, extratos bancários',
+    description: 'Capturas de relatórios de plataformas de ads e analytics',
     maxSize: '8MB'
   }
 ];
@@ -330,7 +330,7 @@ export default function FinancialDataUploader({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            Upload de Dados Financeiros
+            Upload de Dados de Performance
           </CardTitle>
         </CardHeader>
         <CardContent>

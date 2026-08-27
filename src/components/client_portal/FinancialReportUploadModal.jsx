@@ -34,7 +34,7 @@ import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
 /**
- * Modal para upload de relatórios financeiros
+ * Modal para upload de relatórios de performance
  */
 export default function FinancialReportUploadModal({ 
   isOpen, 
@@ -265,10 +265,10 @@ export default function FinancialReportUploadModal({
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Upload className="w-5 h-5 text-blue-600" />
-            Upload de Relatórios Financeiros
+            Upload de Relatórios de Performance
           </DialogTitle>
           <DialogDescription>
-            Faça upload de relatórios financeiros para extrair KPIs automaticamente com IA
+            Faça upload de relatórios de marketing para extrair KPIs automaticamente com IA
           </DialogDescription>
         </DialogHeader>
 
@@ -336,7 +336,7 @@ export default function FinancialReportUploadModal({
                     <div className="flex-1">
                       <h4 className="font-medium text-blue-900">Inteligência Artificial</h4>
                       <p className="text-sm text-blue-700">
-                        Nossa IA irá analisar os relatórios e extrair automaticamente os KPIs financeiros
+                        Nossa IA irá analisar os relatórios e extrair automaticamente os KPIs de performance
                       </p>
                     </div>
                   </div>

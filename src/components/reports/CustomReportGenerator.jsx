@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateCustomReports } from '@/api/functions';
+import { resolveServiceCategory } from '@/constants/serviceCategories';
 
 const REPORT_TYPES = {
   service_status: {
@@ -37,29 +38,29 @@ const REPORT_TYPES = {
   diagnostic_final: {
     name: 'Diagnóstico Final',
     icon: Target,
-    description: 'Relatório consolidado do diagnóstico financeiro',
+    description: 'Relatório consolidado do diagnóstico de comunicação e marca',
     category: 'Diagnóstico',
     formats: ['pdf']
   },
-  margin_implementation: {
-    name: 'Implementação de Margem',
+  content_strategy_report: {
+    name: 'Estratégia de Conteúdo',
     icon: TrendingUp,
-    description: 'Resultados antes/depois da otimização de margem',
-    category: 'Aumento de Margem',
+    description: 'Pilares, narrativa e calendário editorial definidos',
+    category: 'Conteúdo',
     formats: ['pdf']
   },
-  gf360_monthly: {
-    name: 'GF360 Mensal',
+  marketing_360_monthly: {
+    name: 'Marketing 360 Mensal',
     icon: FileText,
-    description: 'Relatório mensal da Gestão Financeira 360',
-    category: 'GF360',
+    description: 'Relatório mensal do retainer de marketing operacional',
+    category: 'Marketing 360',
     formats: ['pdf']
   },
-  gf360_final: {
-    name: 'GF360 Final',
+  marketing_360_final: {
+    name: 'Marketing 360 — Encerramento',
     icon: FileSpreadsheet,
-    description: 'Relatório de encerramento (10 meses)',
-    category: 'GF360',
+    description: 'Relatório de encerramento do ciclo / contrato',
+    category: 'Marketing 360',
     formats: ['pdf']
   }
 };
@@ -80,16 +81,25 @@ export default function CustomReportGenerator({
 
   // Filtrar relatórios baseado na categoria do serviço
   const getAvailableReports = () => {
+    const resolvedCategory = resolveServiceCategory(serviceCategory);
     const categoryReports = {
-      'gestao_financeira': ['service_status', 'tasks_schedule', 'diagnostic_final', 'gf360_monthly', 'gf360_final'],
-      'consultoria_tributaria': ['service_status', 'tasks_schedule'],
-      'valuation': ['service_status', 'tasks_schedule'],
-      'planejamento_financeiro': ['service_status', 'tasks_schedule', 'diagnostic_final'],
-      'fusao_aquisicao': ['service_status', 'tasks_schedule'],
-      'reestruturacao': ['service_status', 'tasks_schedule', 'margin_implementation']
+      marketing_digital: ['service_status', 'tasks_schedule', 'diagnostic_final', 'gf360_monthly', 'gf360_final'],
+      branding: ['service_status', 'tasks_schedule'],
+      comunicacao: ['service_status', 'tasks_schedule', 'diagnostic_final'],
+      midia_paga: ['service_status', 'tasks_schedule'],
+      organico: ['service_status', 'tasks_schedule'],
+      conteudo: ['service_status', 'tasks_schedule', 'diagnostic_final'],
+      copywriting: ['service_status', 'tasks_schedule'],
+      design: ['service_status', 'tasks_schedule'],
+      email_marketing: ['service_status', 'tasks_schedule'],
+      analytics: ['service_status', 'tasks_schedule', 'diagnostic_final'],
+      automacao: ['service_status', 'tasks_schedule'],
+      produto: ['service_status', 'tasks_schedule'],
+      desenvolvimento: ['service_status', 'tasks_schedule'],
+      consultoria_estrategica: ['service_status', 'tasks_schedule', 'margin_implementation'],
     };
 
-    const availableTypes = categoryReports[serviceCategory] || ['service_status', 'tasks_schedule'];
+    const availableTypes = categoryReports[resolvedCategory] || ['service_status', 'tasks_schedule'];
     
     return Object.entries(REPORT_TYPES).filter(([key]) => 
       availableTypes.includes(key)

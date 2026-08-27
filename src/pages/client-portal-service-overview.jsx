@@ -248,7 +248,7 @@ export default function ClientPortalServiceOverviewPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
-                Sua consultoria está sendo executada por nossa equipe especializada.
+                Sua agência está executando este projeto com nossa equipe especializada.
               </p>
               <div className="mt-2">
                 <span className="inline-flex items-center text-xs bg-blue-100 text-blue-800 rounded-full px-2 py-1">

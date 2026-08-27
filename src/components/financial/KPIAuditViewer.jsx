@@ -137,13 +137,13 @@ export default function KPIAuditViewer({
           actor_id: 'admin@empresa.com',
           created_date: new Date(Date.now() - 86400000).toISOString(),
           after_data: {
-            name: 'Margem Bruta',
-            category: 'rentabilidade',
-            target_value: 40
+            name: 'ROAS',
+            category: 'performance',
+            target_value: 3.5
           },
           meta_json: {
             created_from_template: true,
-            template_id: 'gestao_financeira_360'
+            template_id: 'marketing_360'
           },
           severity: 'low',
           category: 'business'
@@ -256,7 +256,7 @@ export default function KPIAuditViewer({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <FileText className="w-5 h-5 text-blue-600" />
-              <CardTitle>Log de Auditoria - KPIs Financeiros</CardTitle>
+              <CardTitle>Log de Auditoria - KPIs de Performance</CardTitle>
             </div>
             <Button
               onClick={exportAuditLogs}

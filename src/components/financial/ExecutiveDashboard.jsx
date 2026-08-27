@@ -28,37 +28,71 @@ import KPIChart from './KPIChart';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 const SERVICE_DASHBOARD_CONFIGS = {
-  'Diagnóstico Financeiro Avulso': {
-    title: 'Diagnóstico Financeiro',
-    subtitle: 'Visão de Clareza - 1 Mês',
+  'Diagnóstico de Comunicação e Marca': {
+    title: 'Diagnóstico de Comunicação',
+    subtitle: 'Visão de Clareza — 1 Mês',
     color: 'blue',
-    keyMetrics: ['faturamento', 'lucro_liquido', 'margem_contribuicao', 'fluxo_caixa_liquido'],
+    keyMetrics: ['clareza_posicionamento', 'consistencia_canais', 'engajamento_medio', 'share_of_voice'],
     insights: [
-      'Situação atual da empresa em números',
-      'Pontos críticos que precisam de atenção imediata',
-      'Oportunidades de melhoria identificadas'
+      'Situação atual da marca e da mensagem',
+      'Gaps de comunicação que pedem atenção',
+      'Oportunidades priorizadas de posicionamento'
+    ]
+  },
+  'Estratégia de Conteúdo e Posicionamento': {
+    title: 'Estratégia de Conteúdo',
+    subtitle: 'Narrativa, pilares e calendário',
+    color: 'green',
+    keyMetrics: ['taxa_publicacao', 'engajamento_medio', 'leads_qualificados', 'trafego_organico'],
+    insights: [
+      'Evolução dos pilares editoriais',
+      'Impacto do conteúdo em demanda e autoridade',
+      'Ajustes de tom e formato que performaram'
+    ]
+  },
+  'Marketing Operacional 360': {
+    title: 'Marketing Operacional 360',
+    subtitle: 'Retainer completo — operação mensal',
+    color: 'purple',
+    keyMetrics: ['roas', 'cac', 'leads_qualificados', 'taxa_aprovacao_ciclo'],
+    insights: [
+      'Performance do ciclo mês a mês',
+      'Eficiência de mídia e aquisição',
+      'Saúde operacional de aprovações e entregas'
+    ]
+  },
+  // legado (dados antigos)
+  'Diagnóstico Financeiro Avulso': {
+    title: 'Diagnóstico de Comunicação',
+    subtitle: 'Visão de Clareza — 1 Mês',
+    color: 'blue',
+    keyMetrics: ['clareza_posicionamento', 'consistencia_canais', 'engajamento_medio', 'share_of_voice'],
+    insights: [
+      'Situação atual da marca e da mensagem',
+      'Gaps de comunicação que pedem atenção',
+      'Oportunidades priorizadas de posicionamento'
     ]
   },
   'Mentoria em Aumento de Margem': {
-    title: 'Alavanca de Lucro',
-    subtitle: 'Precificação e Aumento de Margem',
+    title: 'Estratégia de Conteúdo',
+    subtitle: 'Narrativa, pilares e calendário',
     color: 'green',
-    keyMetrics: ['margem_bruta', 'margem_liquida', 'ticket_medio', 'lucro_incremental'],
+    keyMetrics: ['taxa_publicacao', 'engajamento_medio', 'leads_qualificados', 'trafego_organico'],
     insights: [
-      'Evolução da margem durante a mentoria',
-      'Impacto da nova precificação no faturamento',
-      'Lucro adicional gerado pelas correções'
+      'Evolução dos pilares editoriais',
+      'Impacto do conteúdo em demanda e autoridade',
+      'Ajustes de tom e formato que performaram'
     ]
   },
   'Gestão Financeira 360': {
-    title: 'Gestão Financeira 360',
-    subtitle: 'Estrutura Completa - 10 Meses',
+    title: 'Marketing Operacional 360',
+    subtitle: 'Retainer completo — operação mensal',
     color: 'purple',
-    keyMetrics: ['faturamento', 'lucro_liquido', 'fluxo_caixa_projetado', 'indice_liquidez'],
+    keyMetrics: ['roas', 'cac', 'leads_qualificados', 'taxa_aprovacao_ciclo'],
     insights: [
-      'Controle financeiro completo mês a mês',
-      'Previsibilidade de caixa para os próximos meses',
-      'Evolução da saúde financeira no longo prazo'
+      'Performance do ciclo mês a mês',
+      'Eficiência de mídia e aquisição',
+      'Saúde operacional de aprovações e entregas'
     ]
   }
 };
@@ -119,8 +153,8 @@ export default function ExecutiveDashboard({
   const processDashboardData = (kpiData, serviceData) => {
     // Configuração baseada no tipo de serviço
     const serviceConfig = serviceData 
-      ? SERVICE_DASHBOARD_CONFIGS[serviceData.name] || SERVICE_DASHBOARD_CONFIGS['Gestão Financeira 360']
-      : SERVICE_DASHBOARD_CONFIGS['Gestão Financeira 360'];
+      ? SERVICE_DASHBOARD_CONFIGS[serviceData.name] || SERVICE_DASHBOARD_CONFIGS['Marketing Operacional 360']
+      : SERVICE_DASHBOARD_CONFIGS['Marketing Operacional 360'];
 
     // Métricas principais
     const keyKPIs = kpiData.filter(kpi => 

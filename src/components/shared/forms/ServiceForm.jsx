@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { validators, validateFields } from '@/components/utils/validation';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
 /**
  * Formulário unificado para criação e edição de serviços
@@ -26,7 +27,7 @@ export default function ServiceForm({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'gestao_financeira',
+    category: DEFAULT_SERVICE_CATEGORY,
     version: '1.0',
     is_template: isTemplate,
     is_active: true,
@@ -75,14 +76,7 @@ export default function ServiceForm({
     });
   };
 
-  const categoryLabels = {
-    'gestao_financeira': 'Gestão Financeira',
-    'consultoria_tributaria': 'Consultoria Tributária',
-    'valuation': 'Valuation',
-    'planejamento_financeiro': 'Planejamento Financeiro',
-    'fusao_aquisicao': 'Fusão & Aquisição',
-    'reestruturacao': 'Reestruturação'
-  };
+  const categoryLabels = SERVICE_CATEGORIES;
 
   const pricingTypeLabels = {
     'fixed': 'Preço Fixo',
@@ -109,7 +103,7 @@ export default function ServiceForm({
           id="name"
           value={formData.name}
           onChange={(e) => handleInputChange('name', e.target.value)}
-          placeholder="Ex: Diagnóstico Financeiro Completo"
+          placeholder="Ex: Diagnóstico de Comunicação e Marca"
           disabled={disabled}
           className={errors.name ? 'border-red-500' : ''}
         />

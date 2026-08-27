@@ -20,15 +20,30 @@ import {
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
-const CATEGORIES = [
-  { value: 'gestao_financeira', label: 'Gestão Financeira', icon: '💰' },
-  { value: 'consultoria_tributaria', label: 'Consultoria Tributária', icon: '📋' },
-  { value: 'valuation', label: 'Valuation', icon: '📊' },
-  { value: 'planejamento_financeiro', label: 'Planejamento Financeiro', icon: '📈' },
-  { value: 'fusao_aquisicao', label: 'Fusão & Aquisição', icon: '🤝' },
-  { value: 'reestruturacao', label: 'Reestruturação', icon: '⚡' }
-];
+const CATEGORY_ICONS = {
+  marketing_digital: '📣',
+  branding: '✨',
+  comunicacao: '💬',
+  midia_paga: '📢',
+  organico: '🌱',
+  conteudo: '📝',
+  copywriting: '✍️',
+  design: '🎨',
+  email_marketing: '📧',
+  analytics: '📊',
+  automacao: '⚙️',
+  produto: '📦',
+  desenvolvimento: '💻',
+  consultoria_estrategica: '🎯',
+};
+
+const CATEGORIES = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({
+  value,
+  label,
+  icon: CATEGORY_ICONS[value] || '📁',
+}));
 
 const TEMPLATE_CATEGORIES = [
   { value: 'standard', label: 'Padrão' },
@@ -850,7 +865,7 @@ export default function ServiceTemplateEditor() {
   const [templateData, setTemplateData] = useState({
     name: '',
     description: '',
-    category: 'gestao_financeira',
+    category: DEFAULT_SERVICE_CATEGORY,
     template_category: 'standard',
     is_active: true,
     deliverables: []
@@ -883,7 +898,7 @@ export default function ServiceTemplateEditor() {
       setTemplateData({
         name: t.name || '',
         description: t.description || '',
-        category: t.category || 'gestao_financeira',
+        category: t.category || DEFAULT_SERVICE_CATEGORY,
         template_category: t.template_category || 'standard',
         is_active: t.is_active ?? true,
         deliverables: t.deliverables || []
@@ -1121,7 +1136,7 @@ export default function ServiceTemplateEditor() {
                     id="template-name"
                     value={templateData.name}
                     onChange={(e) => updateTemplateData({ name: e.target.value })}
-                    placeholder="Ex: Diagnóstico Financeiro Completo"
+                    placeholder="Ex: Diagnóstico de Comunicação e Marca"
                   />
                 </div>
                 

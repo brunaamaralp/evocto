@@ -125,16 +125,22 @@ export default function BriefingForm({
         },
         {
           id: 'principal_dor',
-          label: 'Principal Dor Financeira',
+          label: 'Principal Dor de Comunicação',
           type: 'select',
           required: true,
           options: [
-            { value: 'fluxo_caixa', label: 'Fluxo de Caixa' },
-            { value: 'margem_baixa', label: 'Margem Baixa' },
-            { value: 'endividamento', label: 'Endividamento' },
-            { value: 'controles', label: 'Controles' },
-            { value: 'precificacao', label: 'Precificação' },
-            { value: 'outro', label: 'Outro' }
+            { value: 'posicionamento_fraco', label: 'Posicionamento Fraco' },
+            { value: 'mensagem_inconsistente', label: 'Mensagem Inconsistente' },
+            { value: 'baixa_autoridade', label: 'Baixa Autoridade' },
+            { value: 'canais_desalinhados', label: 'Canais Desalinhados' },
+            { value: 'crise_reputacao', label: 'Crise de Reputação' },
+            { value: 'outro', label: 'Outro' },
+            // legado
+            { value: 'fluxo_caixa', label: 'Fluxo de Caixa (legado)' },
+            { value: 'margem_baixa', label: 'Margem Baixa (legado)' },
+            { value: 'endividamento', label: 'Endividamento (legado)' },
+            { value: 'controles', label: 'Controles (legado)' },
+            { value: 'precificacao', label: 'Precificação (legado)' }
           ]
         },
         {
@@ -178,7 +184,7 @@ export default function BriefingForm({
         },
         {
           id: 'disponibilidade_dados',
-          label: 'Disponibilidade de Dados',
+          label: 'Disponibilidade de Dados e Acessos',
           type: 'select',
           required: true,
           options: [
@@ -713,9 +719,12 @@ function renderField(field, value, onChange) {
 // Obter label do tipo de serviço
 function getServiceTypeLabel(tipo) {
   const labels = {
-    diagnostico_avulso: 'Diagnóstico Financeiro',
-    mentoria_margem: 'Mentoria em Precificação',
-    gestao_360: 'Gestão Financeira 360'
+    diagnostico_avulso: 'Diagnóstico de Comunicação e Marca',
+    diagnostico_comunicacao: 'Diagnóstico de Comunicação e Marca',
+    mentoria_margem: 'Estratégia de Conteúdo e Posicionamento',
+    estrategia_conteudo: 'Estratégia de Conteúdo e Posicionamento',
+    gestao_360: 'Marketing Operacional 360',
+    marketing_360: 'Marketing Operacional 360'
   };
   return labels[tipo] || tipo;
 }

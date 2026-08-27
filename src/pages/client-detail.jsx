@@ -240,7 +240,7 @@ export default function ClientDetailPage() {
       description: 'Defina indicadores de performance para acompanhar',
       completed: false, // TODO: verificar se tem KPIs
       action: 'Configurar KPIs',
-      href: createPageUrl(`financial-kpis?clientId=${clientId}`)
+      href: createPageUrl(`performance-kpis?clientId=${clientId}`)
     }
   ];
 
@@ -397,7 +397,7 @@ export default function ClientDetailPage() {
             </Button>
 
             <Button asChild variant="outline" className="h-auto p-4 justify-start">
-              <Link to={createPageUrl(`financial-kpis?clientId=${clientId}`)}>
+              <Link to={createPageUrl(`performance-kpis?clientId=${clientId}`)}>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Database className="w-5 h-5 text-purple-600" />

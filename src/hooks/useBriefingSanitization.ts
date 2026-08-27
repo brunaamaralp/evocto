@@ -147,7 +147,10 @@ export function useBriefingSanitization(options: BriefingSanitizationOptions = {
     }
 
     if (sanitized.servico_tipo) {
-      const validServiceTypes = ['diagnostico_avulso', 'mentoria_margem', 'gestao_360'];
+      const validServiceTypes = [
+        'diagnostico_comunicacao', 'estrategia_conteudo', 'marketing_360',
+        'diagnostico_avulso', 'mentoria_margem', 'gestao_360'
+      ];
       sanitized.servico_tipo = sanitizeSelectValue(sanitized.servico_tipo, validServiceTypes);
     }
 
@@ -258,25 +261,33 @@ export function useBriefingSanitization(options: BriefingSanitizationOptions = {
 
   // Obter campos obrigatórios por tipo de serviço
   const getRequiredFieldsForServiceType = useCallback((serviceType: string): string[] => {
+    const aliases: Record<string, string> = {
+      diagnostico_avulso: 'diagnostico_comunicacao',
+      diagnostico_financeiro: 'diagnostico_comunicacao',
+      mentoria_margem: 'estrategia_conteudo',
+      gestao_360: 'marketing_360',
+      gestao_financeira_360: 'marketing_360',
+    };
+    const resolved = aliases[serviceType] || serviceType;
     const requiredFields = {
-      diagnostico_avulso: [
+      diagnostico_comunicacao: [
         'disponibilidade_dados',
         'principal_dor',
         'faturamento_mensal_medio'
       ],
-      mentoria_margem: [
+      estrategia_conteudo: [
         'elasticidade_preco_percebida',
         'capacidade_negociacao_fornecedores',
         'politica_descontos_atual'
       ],
-      gestao_360: [
+      marketing_360: [
         'maturidade_processos',
         'nivel_automatizacao',
         'capacidade_equipe'
       ]
     };
 
-    return requiredFields[serviceType] || [];
+    return requiredFields[resolved] || [];
   }, []);
 
   // Obter label do campo

@@ -11,7 +11,7 @@ import {
   Plus, Search, Filter, Briefcase, Calendar, Users, 
   Settings, Eye, MoreVertical, Activity, RefreshCw,
   TrendingUp, Clock, CheckCircle, AlertCircle, LayoutTemplate,
-  Target, DollarSign, Copy, X
+  Target, DollarSign, Copy, X, FileText
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import { getCategoryLabel } from '@/constants/serviceCategories';
 
 // Componente para card de serviço
 const ServiceCard = ({ service, client, cycles, onServiceClick }) => {
@@ -40,12 +41,20 @@ const ServiceCard = ({ service, client, cycles, onServiceClick }) => {
   
   const getServiceIcon = (category) => {
     const icons = {
-      gestao_financeira: Activity,
-      consultoria_tributaria: TrendingUp,
-      valuation: Settings,
-      planejamento_financeiro: Users,
-      fusao_aquisicao: RefreshCw,
-      reestruturacao: Briefcase
+      marketing_digital: Activity,
+      branding: Briefcase,
+      comunicacao: Users,
+      midia_paga: TrendingUp,
+      organico: RefreshCw,
+      conteudo: FileText,
+      copywriting: FileText,
+      design: Settings,
+      email_marketing: Calendar,
+      analytics: Settings,
+      automacao: RefreshCw,
+      produto: Target,
+      desenvolvimento: Settings,
+      consultoria_estrategica: Briefcase,
     };
     return icons[category] || Briefcase;
   };
@@ -93,7 +102,7 @@ const ServiceCard = ({ service, client, cycles, onServiceClick }) => {
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-600">Categoria</span>
             <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-              {service.category?.replace('_', ' ') || 'Não definida'}
+              {getCategoryLabel(service.category) || 'Não definida'}
             </Badge>
           </div>
 
@@ -133,18 +142,6 @@ const TemplateCard = ({ template, onEdit, onDuplicate, onUse }) => {
     return template.deliverables?.reduce((total, deliverable) => 
       total + (deliverable.estimated_hours || 0), 0
     ) || 0;
-  };
-
-  const getCategoryLabel = (category) => {
-    const labels = {
-      'gestao_financeira': 'Gestão Financeira',
-      'consultoria_tributaria': 'Consultoria Tributária',
-      'valuation': 'Valuation',
-      'planejamento_financeiro': 'Planejamento Financeiro',
-      'fusao_aquisicao': 'Fusão & Aquisição',
-      'reestruturacao': 'Reestruturação'
-    };
-    return labels[category] || category;
   };
 
   return (

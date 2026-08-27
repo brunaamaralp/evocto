@@ -96,7 +96,7 @@ export default function ProgressFeedbackSystem({ clientId, serviceId }) {
                 Progresso do Projeto
               </h2>
               <p className="text-gray-600">
-                Acompanhe o andamento do seu serviço de consultoria
+                Acompanhe o andamento do seu projeto com a agência
               </p>
             </div>
 

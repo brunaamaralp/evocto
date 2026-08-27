@@ -116,11 +116,17 @@ const KPICustomizationPanel = ({
 
   const getCategoryIcon = (category) => {
     const icons = {
-      liquidez: '💧',
-      rentabilidade: '📈',
-      endividamento: '⚖️',
-      atividade: '⚡',
-      crescimento: '🚀'
+      performance: '🎯',
+      demanda: '📊',
+      marca: '🏷️',
+      operacao: '⚙️',
+      engajamento: '💬',
+      crescimento: '📈',
+      // aliases legados
+      liquidez: '🎯',
+      rentabilidade: '📊',
+      endividamento: '⚙️',
+      atividade: '💬'
     };
     return icons[category] || '📊';
   };

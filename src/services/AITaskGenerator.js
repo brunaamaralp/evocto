@@ -87,7 +87,7 @@ export class AITaskGenerator {
     const serviceType = briefingData.servico_tipo;
     const briefingItems = briefingData.itens;
     
-    return `Você é um especialista em consultoria empresarial. Analise o briefing abaixo e gere tarefas personalizadas para o serviço "${serviceType}".
+    return `Você é um especialista em marketing e comunicação. Analise o briefing abaixo e gere tarefas personalizadas para o serviço "${serviceType}".
 
 BRIEFING:
 ${JSON.stringify(briefingItems, null, 2)}
@@ -237,30 +237,30 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
     
     // Tarefas padrão baseadas no tipo de serviço
     const fallbackTemplates = {
-      'diagnostico_financeiro': [
+      'diagnostico_comunicacao': [
         {
-          title: 'Análise de Demonstrativos Financeiros',
-          description: 'Revisar DRE, Balanço Patrimonial e Fluxo de Caixa dos últimos 12 meses',
+          title: 'Auditoria de Marca e Comunicação',
+          description: 'Mapear presença de marca, mensagem e canais de comunicação atuais',
           priority: 'high',
-          phase: 'Análise',
+          phase: 'Diagnóstico',
           estimatedHours: 8,
           kpiImpact: 'high',
           learningPotential: true
         },
         {
-          title: 'Identificação de Oportunidades de Melhoria',
-          description: 'Identificar pontos de melhoria na gestão financeira',
+          title: 'Análise de Posicionamento e Concorrência',
+          description: 'Identificar oportunidades de diferenciação e gaps de mensagem',
           priority: 'medium',
-          phase: 'Diagnóstico',
+          phase: 'Análise',
           estimatedHours: 6,
           kpiImpact: 'medium',
           learningPotential: true
         }
       ],
-      'mentoria_margem': [
+      'estrategia_conteudo': [
         {
-          title: 'Análise de Margem Atual',
-          description: 'Calcular margem atual e identificar fatores que a impactam',
+          title: 'Diagnóstico de Conteúdo Atual',
+          description: 'Avaliar conteúdo existente, performance e alinhamento com marca',
           priority: 'high',
           phase: 'Análise',
           estimatedHours: 4,
@@ -268,8 +268,8 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
           learningPotential: false
         },
         {
-          title: 'Estratégias de Aumento de Margem',
-          description: 'Desenvolver estratégias específicas para aumentar a margem',
+          title: 'Plano Editorial e Calendário',
+          description: 'Desenvolver estratégia editorial e calendário de conteúdo',
           priority: 'high',
           phase: 'Planejamento',
           estimatedHours: 6,
@@ -277,10 +277,10 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
           learningPotential: true
         }
       ],
-      'gestao_financeira_360': [
+      'marketing_360': [
         {
-          title: 'Diagnóstico Completo da Gestão Financeira',
-          description: 'Avaliar todos os aspectos da gestão financeira atual',
+          title: 'Diagnóstico Completo de Marketing',
+          description: 'Avaliar todos os aspectos da operação de marketing atual',
           priority: 'high',
           phase: 'Diagnóstico',
           estimatedHours: 12,
@@ -288,18 +288,52 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
           learningPotential: true
         },
         {
-          title: 'Implementação de Controles Financeiros',
-          description: 'Estabelecer controles e processos financeiros',
+          title: 'Implementação de Operação de Marketing',
+          description: 'Estabelecer processos, calendários e rotinas de marketing',
           priority: 'medium',
           phase: 'Implementação',
           estimatedHours: 8,
           kpiImpact: 'medium',
           learningPotential: true
         }
+      ],
+      // legacy aliases
+      'diagnostico_financeiro': [
+        {
+          title: 'Auditoria de Marca e Comunicação',
+          description: 'Mapear presença de marca, mensagem e canais de comunicação atuais',
+          priority: 'high',
+          phase: 'Diagnóstico',
+          estimatedHours: 8,
+          kpiImpact: 'high',
+          learningPotential: true
+        }
+      ],
+      'mentoria_margem': [
+        {
+          title: 'Diagnóstico de Conteúdo Atual',
+          description: 'Avaliar conteúdo existente, performance e alinhamento com marca',
+          priority: 'high',
+          phase: 'Análise',
+          estimatedHours: 4,
+          kpiImpact: 'high',
+          learningPotential: false
+        }
+      ],
+      'gestao_financeira_360': [
+        {
+          title: 'Diagnóstico Completo de Marketing',
+          description: 'Avaliar todos os aspectos da operação de marketing atual',
+          priority: 'high',
+          phase: 'Diagnóstico',
+          estimatedHours: 12,
+          kpiImpact: 'high',
+          learningPotential: true
+        }
       ]
     };
 
-    const templates = fallbackTemplates[serviceType] || fallbackTemplates['diagnostico_financeiro'];
+    const templates = fallbackTemplates[serviceType] || fallbackTemplates['diagnostico_comunicacao'];
     
     return templates.map((template, index) => ({
       ...template,

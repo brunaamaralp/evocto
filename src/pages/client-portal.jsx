@@ -69,13 +69,13 @@ export default function ClientPortalPage() {
         }
 
         if (!user.clientId) {
-          setError('ID do cliente não encontrado. Entre em contato com sua consultoria.');
+          setError('ID do cliente não encontrado. Entre em contato com sua agência.');
           setLoading(false);
           return;
         }
 
         if (!agencyId && !user.agencyId) {
-          setError('ID da agência não encontrado. Entre em contato com sua consultoria.');
+          setError('ID da agência não encontrado. Entre em contato com sua agência.');
           setLoading(false);
           return;
         }
@@ -118,13 +118,13 @@ export default function ClientPortalPage() {
     }
 
     if (!user.clientId) {
-      setError('ID do cliente não encontrado. Entre em contato com sua consultoria.');
+      setError('ID do cliente não encontrado. Entre em contato com sua agência.');
       setRefreshing(false);
       return;
     }
 
     if (!agencyId && !user.agencyId) {
-      setError('ID da agência não encontrado. Entre em contato com sua consultoria.');
+      setError('ID da agência não encontrado. Entre em contato com sua agência.');
       setRefreshing(false);
       return;
     }

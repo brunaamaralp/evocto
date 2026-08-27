@@ -348,10 +348,14 @@ const PAGES = {
     tasks: tasks,
     
     "financial-diagnosis": financialdiagnosis,
+
+    "communication-diagnosis": financialdiagnosis,
     
     "automation-dashboard": automationdashboard,
     
     "financial-kpis": financialkpis,
+
+    "performance-kpis": financialkpis,
     
     "support-library": supportlibrary,
     
@@ -594,10 +598,14 @@ function PagesContent() {
                 <Route path="/tasks" element={createElement(tasks)} />
                 
                 <Route path="/financial-diagnosis" element={createElement(financialdiagnosis)} />
+
+                <Route path="/communication-diagnosis" element={createElement(financialdiagnosis)} />
                 
                 <Route path="/automation-dashboard" element={createElement(automationdashboard)} />
                 
                 <Route path="/financial-kpis" element={createElement(financialkpis)} />
+
+                <Route path="/performance-kpis" element={createElement(financialkpis)} />
                 
                 <Route path="/support-library" element={createElement(supportlibrary)} />
                 

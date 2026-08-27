@@ -336,7 +336,7 @@ export default function PublicDeliverableApprovalPage() {
             <Alert>
               <Calendar className="w-4 h-4" />
               <AlertDescription>
-                <strong>Importante:</strong> Sua decisão notificará automaticamente a equipe de consultoria. 
+                <strong>Importante:</strong> Sua decisão notificará automaticamente a equipe da agência. 
                 Em caso de rejeição, as tarefas relacionadas serão reabertas para ajustes.
               </AlertDescription>
             </Alert>

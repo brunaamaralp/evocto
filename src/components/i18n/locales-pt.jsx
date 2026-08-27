@@ -200,12 +200,20 @@ export const ptTranslations = {
     "newService": "Novo Modelo de Serviço",
     "searchPlaceholder": "Buscar por nome do serviço...",
     "categories": {
-      "gestao_financeira": "Gestão Financeira",
-      "consultoria_tributaria": "Consultoria Tributária",
-      "valuation": "Valuation",
-      "planejamento_financeiro": "Planejamento Financeiro",
-      "fusao_aquisicao": "Fusão e Aquisição",
-      "reestruturacao": "Reestruturação"
+      "marketing_digital": "Marketing Digital",
+      "branding": "Branding",
+      "comunicacao": "Comunicação",
+      "midia_paga": "Mídia Paga",
+      "organico": "Orgânico / Social",
+      "conteudo": "Conteúdo",
+      "copywriting": "Copywriting",
+      "design": "Design",
+      "email_marketing": "E-mail Marketing",
+      "analytics": "Analytics",
+      "automacao": "Automação",
+      "produto": "Produto",
+      "desenvolvimento": "Desenvolvimento",
+      "consultoria_estrategica": "Estratégia & Posicionamento"
     }
   },
   "library": {
@@ -668,7 +676,10 @@ export const ptTranslations = {
   "tasks": {
     "types": {
       "analise_documentos": "Análise de Documentos",
-      "relatorio_financeiro": "Relatório Financeiro",
+      "relatorio_financeiro": "Relatório de Performance",
+      "campanha_midia": "Campanha de Mídia",
+      "conteudo_social": "Conteúdo & Social",
+      "analise_marca": "Análise de Marca",
       "reuniao_alinhamento": "Reunião de Alinhamento",
       "planejamento_estrategico": "Planejamento Estratégico",
       "implementacao": "Implementação",

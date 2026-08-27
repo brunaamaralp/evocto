@@ -23,14 +23,11 @@ import KPICard from "./KPICard";
 import KPIChart from "./KPIChart";
 import EmptyKPIState from "./EmptyKPIState";
 import { KPIDashboardSkeleton } from "@/components/shared/LoadingSkeletons";
+import { PERFORMANCE_KPI_CATEGORIES, resolveKPICategory } from "@/constants/performanceKPIs";
 
 const KPI_CATEGORIES = [
   { id: 'all', name: 'Todos os KPIs', color: 'bg-gray-100' },
-  { id: 'liquidez', name: 'Liquidez', color: 'bg-blue-100 text-blue-800' },
-  { id: 'rentabilidade', name: 'Rentabilidade', color: 'bg-green-100 text-green-800' },
-  { id: 'endividamento', name: 'Endividamento', color: 'bg-red-100 text-red-800' },
-  { id: 'atividade', name: 'Atividade', color: 'bg-purple-100 text-purple-800' },
-  { id: 'crescimento', name: 'Crescimento', color: 'bg-amber-100 text-amber-800' }
+  ...PERFORMANCE_KPI_CATEGORIES.map((c) => ({ id: c.id, name: c.label, color: c.color })),
 ];
 
 const TIME_PERIODS = [
@@ -92,7 +89,7 @@ export default function KPIDashboard({
       setKpis(enrichedKPIs);
     } catch (err) {
       console.error('[KPIDashboard] Erro ao carregar KPIs:', err);
-      setError('Erro ao carregar indicadores financeiros');
+      setError('Erro ao carregar indicadores de performance');
     } finally {
       clearLoading();
     }
@@ -109,7 +106,7 @@ export default function KPIDashboard({
 
     // Filtro por categoria
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(kpi => kpi.category === selectedCategory);
+      filtered = filtered.filter(kpi => resolveKPICategory(kpi.category) === selectedCategory);
     }
 
     // Filtro por busca

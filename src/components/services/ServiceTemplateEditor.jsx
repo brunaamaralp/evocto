@@ -33,15 +33,9 @@ import { useServiceTemplateValidation } from '@/hooks/useServiceTemplateValidati
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
 import { useExitConfirmation } from '@/hooks/useExitConfirmation';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
-const CATEGORY_OPTIONS = [
-  { value: 'gestao_financeira', label: 'Gestão Financeira' },
-  { value: 'consultoria_tributaria', label: 'Consultoria Tributária' },
-  { value: 'valuation', label: 'Valuation' },
-  { value: 'planejamento_financeiro', label: 'Planejamento Financeiro' },
-  { value: 'fusao_aquisicao', label: 'Fusão & Aquisição' },
-  { value: 'reestruturacao', label: 'Reestruturação' }
-];
+const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
 const PRICING_TYPES = [
   { value: 'fixed', label: 'Preço Fixo' },
@@ -72,7 +66,7 @@ export default function ServiceTemplateEditor({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: '',
+    category: DEFAULT_SERVICE_CATEGORY,
     version: '1.0',
     pricing: {
       type: 'fixed',
@@ -98,7 +92,7 @@ export default function ServiceTemplateEditor({
       setFormData({
         name: template.name || '',
         description: template.description || '',
-        category: template.category || '',
+        category: template.category || DEFAULT_SERVICE_CATEGORY,
         version: template.version || '1.0',
         pricing: template.pricing || {
           type: 'fixed',
@@ -123,7 +117,7 @@ export default function ServiceTemplateEditor({
       setFormData({
         name: '',
         description: '',
-        category: '',
+        category: DEFAULT_SERVICE_CATEGORY,
         version: '1.0',
         pricing: {
           type: 'fixed',
@@ -278,7 +272,7 @@ export default function ServiceTemplateEditor({
                     id="template-name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ex: Gestão Financeira Completa"
+                    placeholder="Ex: Marketing Operacional 360"
                   />
                 </div>
 

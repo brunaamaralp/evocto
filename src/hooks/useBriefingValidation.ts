@@ -30,20 +30,28 @@ export function useBriefingValidation(options: BriefingValidationOptions) {
 
   // Obter campos obrigatórios por tipo de serviço
   const getRequiredFields = useCallback((serviceType: string): string[] => {
+    const aliases: Record<string, string> = {
+      diagnostico_avulso: 'diagnostico_comunicacao',
+      diagnostico_financeiro: 'diagnostico_comunicacao',
+      mentoria_margem: 'estrategia_conteudo',
+      gestao_360: 'marketing_360',
+      gestao_financeira_360: 'marketing_360',
+    };
+    const resolved = aliases[serviceType] || serviceType;
     const requiredFields = {
-      diagnostico_avulso: [
+      diagnostico_comunicacao: [
         'disponibilidade_dados',
         'principal_dor',
         'faturamento_mensal_medio',
         'endividamento_total'
       ],
-      mentoria_margem: [
+      estrategia_conteudo: [
         'elasticidade_preco_percebida',
         'capacidade_negociacao_fornecedores',
         'politica_descontos_atual',
         'risco_perda_clientes_com_reajuste'
       ],
-      gestao_360: [
+      marketing_360: [
         'maturidade_processos',
         'nivel_automatizacao',
         'capacidade_equipe',
@@ -51,7 +59,7 @@ export function useBriefingValidation(options: BriefingValidationOptions) {
       ]
     };
 
-    return requiredFields[serviceType] || [];
+    return requiredFields[resolved] || [];
   }, []);
 
   // Obter valores válidos para campos select

@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import { getCategoryLabel } from '@/constants/serviceCategories';
 
 export default function ServiceDetailPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -55,18 +56,6 @@ export default function ServiceDetailPage() {
       return 'Template de Serviço';
     }
     return 'Serviço Ativo';
-  };
-
-  const getCategoryLabel = (category) => {
-    const labels = {
-      gestao_financeira: 'Gestão Financeira',
-      consultoria_tributaria: 'Consultoria Tributária', 
-      valuation: 'Valuation',
-      planejamento_financeiro: 'Planejamento Financeiro',
-      fusao_aquisicao: 'Fusão & Aquisição',
-      reestruturacao: 'Reestruturação'
-    };
-    return labels[category] || category;
   };
 
   const handleEditService = () => {

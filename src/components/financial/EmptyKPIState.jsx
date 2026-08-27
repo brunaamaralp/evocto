@@ -8,33 +8,18 @@ import {
   BookOpen, 
   Target, 
   Lightbulb,
-  ArrowRight,
   BarChart3,
   Calculator,
-  Zap
+  Zap,
+  Megaphone,
+  Users,
+  Settings
 } from "lucide-react";
-
-const SUGGESTED_KPIS = {
-  liquidez: [
-    { name: "Liquidez Corrente", description: "Ativo Circulante ÷ Passivo Circulante", target: 1.5 },
-    { name: "Liquidez Seca", description: "Sem considerar estoques", target: 1.0 },
-    { name: "Liquidez Imediata", description: "Disponibilidades ÷ Passivo Circulante", target: 0.3 }
-  ],
-  rentabilidade: [
-    { name: "Margem Líquida", description: "Lucro Líquido ÷ Receita", target: 0.1 },
-    { name: "ROE", description: "Retorno sobre Patrimônio Líquido", target: 0.15 },
-    { name: "ROA", description: "Retorno sobre Ativo Total", target: 0.08 }
-  ],
-  endividamento: [
-    { name: "Endividamento Geral", description: "Passivo Total ÷ Ativo Total", target: 0.6 },
-    { name: "Composição do Endividamento", description: "PC ÷ Passivo Total", target: 0.4 }
-  ],
-  atividade: [
-    { name: "Giro do Ativo", description: "Receita ÷ Ativo Médio", target: 1.2 },
-    { name: "Prazo Médio de Recebimento", description: "Dias para receber vendas", target: 30 },
-    { name: "Giro de Estoque", description: "CMV ÷ Estoque Médio", target: 6 }
-  ]
-};
+import {
+  SUGGESTED_PERFORMANCE_KPIS,
+  PERFORMANCE_KPI_CATEGORIES,
+  getKPICategoryLabel,
+} from "@/constants/performanceKPIs";
 
 export default function EmptyKPIState({ 
   clientId, 
@@ -49,10 +34,7 @@ export default function EmptyKPIState({
   const handleCreateSuggestedKPIs = async (category) => {
     setCreatingKPIs(true);
     try {
-      // Simular criação de KPIs sugeridos
-      // Em implementação real, chamaria função backend
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       onKPICreated?.();
     } catch (error) {
       console.error('Erro ao criar KPIs:', error);
@@ -81,7 +63,6 @@ export default function EmptyKPIState({
 
   return (
     <div className="space-y-6">
-      {/* Estado vazio principal */}
       <Card className="border-dashed border-2 border-gray-200">
         <CardContent className="p-12 text-center">
           <div className="max-w-md mx-auto">
@@ -90,10 +71,10 @@ export default function EmptyKPIState({
                 <TrendingUp className="w-10 h-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Configure seus KPIs Financeiros
+                Configure seus KPIs de Performance
               </h3>
               <p className="text-gray-500">
-                Monitore a saúde financeira do seu negócio com indicadores personalizados
+                Monitore resultados de marketing e campanhas com indicadores personalizados
               </p>
             </div>
 
@@ -112,9 +93,16 @@ export default function EmptyKPIState({
         </CardContent>
       </Card>
 
-      {/* KPIs Sugeridos por Categoria */}
+      <div className="flex flex-wrap gap-2 justify-center">
+        {PERFORMANCE_KPI_CATEGORIES.map((cat) => (
+          <Badge key={cat.id} variant="secondary" className={cat.color}>
+            {cat.label}
+          </Badge>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(SUGGESTED_KPIS).map(([category, kpis]) => (
+        {Object.entries(SUGGESTED_PERFORMANCE_KPIS).map(([category, kpis]) => (
           <Card 
             key={category}
             className={`cursor-pointer transition-all hover:shadow-md ${
@@ -126,7 +114,7 @@ export default function EmptyKPIState({
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {getCategoryIcon(category)}
-                  <span className="capitalize">{category}</span>
+                  <span>{getKPICategoryLabel(category)}</span>
                 </div>
                 <Badge variant="secondary">{kpis.length} KPIs</Badge>
               </CardTitle>
@@ -141,7 +129,7 @@ export default function EmptyKPIState({
                       <div className="font-medium text-sm">{kpi.name}</div>
                       <div className="text-xs text-gray-500">{kpi.description}</div>
                       <div className="text-xs text-blue-600 mt-1">
-                        Meta sugerida: {formatTargetValue(kpi.target)}
+                        Meta sugerida: {formatTargetValue(kpi)}
                       </div>
                     </div>
                   </div>
@@ -178,7 +166,6 @@ export default function EmptyKPIState({
         ))}
       </div>
 
-      {/* Recursos educativos */}
       <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
@@ -187,10 +174,10 @@ export default function EmptyKPIState({
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-gray-900 mb-2">
-                Precisa de ajuda com KPIs financeiros?
+                Precisa de ajuda com KPIs de performance?
               </h4>
               <p className="text-sm text-gray-600 mb-4">
-                Acesse nossa biblioteca com explicações detalhadas sobre cada indicador, 
+                Acesse nossa biblioteca com explicações detalhadas sobre cada indicador de marketing, 
                 como calcular e como interpretar os resultados.
               </p>
               <div className="flex gap-2">
@@ -217,20 +204,28 @@ export default function EmptyKPIState({
 
 function getCategoryIcon(category) {
   const icons = {
-    liquidez: <BarChart3 className="w-5 h-5 text-blue-600" />,
-    rentabilidade: <TrendingUp className="w-5 h-5 text-green-600" />,
-    endividamento: <Target className="w-5 h-5 text-red-600" />,
-    atividade: <Zap className="w-5 h-5 text-purple-600" />
+    performance: <TrendingUp className="w-5 h-5 text-blue-600" />,
+    demanda: <Target className="w-5 h-5 text-green-600" />,
+    marca: <Megaphone className="w-5 h-5 text-purple-600" />,
+    operacao: <Settings className="w-5 h-5 text-amber-600" />,
+    engajamento: <Users className="w-5 h-5 text-pink-600" />,
+    crescimento: <BarChart3 className="w-5 h-5 text-indigo-600" />,
   };
   return icons[category] || <Calculator className="w-5 h-5 text-gray-600" />;
 }
 
-function formatTargetValue(value) {
-  if (value >= 1) {
-    return value.toFixed(1);
-  } else if (value >= 0.01) {
-    return `${(value * 100).toFixed(0)}%`;
-  } else {
-    return value.toFixed(3);
+function formatTargetValue(kpi) {
+  const { target, unit } = kpi;
+  switch (unit) {
+    case 'percentage':
+      return `${target}%`;
+    case 'currency':
+      return target > 0 ? `R$ ${target.toLocaleString('pt-BR')}` : 'A definir';
+    case 'ratio':
+      return `${target}x`;
+    case 'days':
+      return `${target} dias`;
+    default:
+      return target >= 1000 ? target.toLocaleString('pt-BR') : String(target);
   }
 }

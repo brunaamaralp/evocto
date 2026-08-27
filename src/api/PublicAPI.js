@@ -612,14 +612,34 @@ export class PublicAPI extends EventEmitter {
     // Simular busca de serviços
     return [
       {
-        id: 'financial_diagnosis',
-        name: 'Diagnóstico Financeiro Completo',
-        description: 'Análise completa da saúde financeira da empresa',
-        category: 'financial',
+        id: 'brand_diagnosis',
+        name: 'Diagnóstico de Comunicação e Marca',
+        description: 'Análise completa da presença de marca, mensagem e percepção no mercado',
+        category: 'comunicacao',
         basePrice: 5000,
         currency: 'BRL',
         rating: 4.8,
         reviewCount: 45
+      },
+      {
+        id: 'content_strategy',
+        name: 'Estratégia de Conteúdo e Posicionamento',
+        description: 'Desenvolvimento de estratégia editorial e posicionamento de marca',
+        category: 'conteudo',
+        basePrice: 3500,
+        currency: 'BRL',
+        rating: 4.9,
+        reviewCount: 32
+      },
+      {
+        id: 'marketing_360',
+        name: 'Marketing Operacional 360',
+        description: 'Operação completa de marketing: estratégia, conteúdo, mídia e performance',
+        category: 'marketing',
+        basePrice: 15000,
+        currency: 'BRL',
+        rating: 4.7,
+        reviewCount: 28
       }
     ];
   }
@@ -630,11 +650,11 @@ export class PublicAPI extends EventEmitter {
       id,
       name: 'Serviço Exemplo',
       description: 'Descrição do serviço',
-      category: 'financial',
+      category: 'comunicacao',
       basePrice: 5000,
       currency: 'BRL',
       duration: '2-3 semanas',
-      deliverables: ['Relatório', 'Análise'],
+      deliverables: ['Relatório de Marca', 'Análise de Posicionamento'],
       requirements: ['Documentos'],
       rating: 4.8,
       reviewCount: 45,
@@ -669,7 +689,7 @@ export class PublicAPI extends EventEmitter {
     // Simular obtenção de pedido
     return {
       id,
-      serviceId: 'financial_diagnosis',
+      serviceId: 'brand_diagnosis',
       status: 'pending',
       totalAmount: 5000,
       currency: 'BRL',
@@ -704,12 +724,28 @@ export class PublicAPI extends EventEmitter {
     // Simular obtenção de categorias
     return [
       {
-        id: 'financial',
-        name: 'Consultoria Financeira',
-        description: 'Serviços especializados em gestão financeira',
-        icon: 'dollar-sign',
+        id: 'comunicacao',
+        name: 'Comunicação',
+        description: 'Diagnóstico e estratégia de comunicação de marca',
+        icon: 'message-circle',
         color: '#10b981',
-        serviceCount: 3
+        serviceCount: 1
+      },
+      {
+        id: 'marketing',
+        name: 'Marketing',
+        description: 'Operação e estratégia de marketing integrada',
+        icon: 'trending-up',
+        color: '#f59e0b',
+        serviceCount: 1
+      },
+      {
+        id: 'conteudo',
+        name: 'Conteúdo',
+        description: 'Estratégia editorial e produção de conteúdo',
+        icon: 'file-text',
+        color: '#3b82f6',
+        serviceCount: 1
       }
     ];
   }

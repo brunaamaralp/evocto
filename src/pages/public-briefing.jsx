@@ -193,7 +193,7 @@ export default function PublicBriefingPage() {
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
               <strong>Importante:</strong> Este briefing é obrigatório para o início do projeto. 
-              Suas respostas nos ajudarão a personalizar a consultoria para suas necessidades específicas.
+              Suas respostas nos ajudarão a personalizar o projeto para suas necessidades específicas.
             </AlertDescription>
           </Alert>
         </div>

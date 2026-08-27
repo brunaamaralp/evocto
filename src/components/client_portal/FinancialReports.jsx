@@ -16,27 +16,27 @@ const mockReports = {
   diagnosticos: [
     {
       id: "diag_001",
-      title: "Diagnóstico Financeiro 360 - Janeiro 2024",
+      title: "Diagnóstico de Comunicação e Marca - Janeiro 2024",
       type: "diagnostico_completo",
       status: "approved",
       createdAt: "2024-01-15T10:00:00Z",
       approvedAt: "2024-01-18T14:30:00Z",
       phase: "Concluído",
-      summary: "Análise completa da situação financeira revelou oportunidades de otimização no capital de giro e necessidade de reestruturação do processo de cobrança.",
+      summary: "Análise da presença de marca e mensagem revelou inconsistência entre canais e oportunidade clara de reforço de posicionamento.",
       keyFindings: [
-        "Prazo médio de recebimento 40% acima do setor",
-        "Margem bruta com potencial de melhoria de 8-12%",
-        "Capital de giro otimizável em R$ 450.000"
+        "Tom de voz desalinhado entre site e redes sociais",
+        "Proposta de valor pouco clara no primeiro contato",
+        "Concorrentes ocupando narrativas que a marca poderia reivindicar"
       ],
       recommendations: 3,
       pdfUrl: "#",
-      nextSteps: "Iniciar Fase 2: Organização da Gestão"
+      nextSteps: "Iniciar Fase 2: Estratégia de Conteúdo e Posicionamento"
     }
   ],
   relatoriosMensais: [
     {
       id: "rel_001",
-      title: "Relatório de Acompanhamento - Dezembro 2024",
+      title: "Relatório de Performance - Dezembro 2024",
       type: "acompanhamento_mensal",
       status: "pending_approval",
       createdAt: "2024-01-05T09:00:00Z",
@@ -232,8 +232,8 @@ export default function FinancialReports({ clientId }) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Relatórios Financeiros</h2>
-        <p className="text-gray-600">Acompanhe todos os relatórios, diagnósticos e planos de ação</p>
+        <h2 className="text-2xl font-bold text-gray-900">Relatórios de Performance</h2>
+        <p className="text-gray-600">Acompanhe relatórios de campanhas, diagnósticos e planos de ação</p>
       </div>
 
       {/* Tabs para diferentes tipos de relatórios */}
@@ -255,7 +255,7 @@ export default function FinancialReports({ clientId }) {
 
         <TabsContent value="diagnosticos" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Diagnósticos Financeiros</h3>
+            <h3 className="text-lg font-semibold">Diagnósticos de Comunicação</h3>
             <Badge variant="outline">{reports.diagnosticos.length} relatório(s)</Badge>
           </div>
           <div className="grid gap-4">

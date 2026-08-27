@@ -58,10 +58,10 @@ export default function ClientDiagnosticPage() {
           existingResponses
         ] = await Promise.all([
           Client.get(clientId),
-          // Buscar template específico para diagnóstico financeiro
+          // Buscar template específico para diagnóstico de comunicação
           BriefingTemplate.filter({ 
             agencyId, 
-            serviceType: 'consultoria', 
+            serviceType: 'comunicacao', 
             isActive: true 
           }),
           // Buscar respostas existentes para este cliente
@@ -110,11 +110,11 @@ export default function ClientDiagnosticPage() {
     }
   }, [clientId, agencyId]);
 
-  // Template padrão para diagnóstico financeiro
+  // Template padrão para diagnóstico de comunicação e marca
   const createDefaultDiagnosticTemplate = () => ({
     id: 'default_diagnostic',
-    name: 'Diagnóstico Financeiro Empresarial',
-    serviceType: 'consultoria',
+    name: 'Diagnóstico de Comunicação e Marca',
+    serviceType: 'comunicacao',
     language: 'pt',
     categories: [
       {
@@ -147,35 +147,35 @@ export default function ClientDiagnosticPage() {
         ]
       },
       {
-        id: 'saude_financeira',
-        name: 'Saúde Financeira Atual',
-        description: 'Situação financeira e operacional',
+        id: 'presenca_marca',
+        name: 'Presença de Marca e Comunicação',
+        description: 'Situação atual de comunicação e marketing',
         order: 2,
         questions: [
           {
-            id: 'faturamento_medio',
-            text: 'Qual o faturamento médio mensal da empresa?',
-            type: 'number',
+            id: 'canais_ativos',
+            text: 'Quais canais de comunicação e marketing a empresa utiliza?',
+            type: 'long_text',
             required: true,
             order: 1
           },
           {
-            id: 'principais_custos',
-            text: 'Quais são os principais custos e despesas da empresa?',
+            id: 'mensagem_marca',
+            text: 'Como a empresa se posiciona hoje? Qual a mensagem principal da marca?',
             type: 'long_text',
             required: true,
             order: 2
           },
           {
-            id: 'fluxo_caixa_atual',
-            text: 'Como está o fluxo de caixa atual? Há necessidade de capital de giro?',
+            id: 'performance_atual',
+            text: 'Como está a performance dos canais de marketing? (alcance, engajamento, conversões)',
             type: 'long_text',
             required: true,
             order: 3
           },
           {
-            id: 'endividamento',
-            text: 'A empresa possui dívidas? Se sim, descreva os principais compromissos.',
+            id: 'concorrencia',
+            text: 'Quem são os principais concorrentes e como se comunicam?',
             type: 'long_text',
             required: false,
             order: 4
@@ -183,30 +183,30 @@ export default function ClientDiagnosticPage() {
         ]
       },
       {
-        id: 'processos_controles',
-        name: 'Processos e Controles',
-        description: 'Organização financeira e operacional',
+        id: 'processos_conteudo',
+        name: 'Processos e Conteúdo',
+        description: 'Organização de marketing e produção de conteúdo',
         order: 3,
         questions: [
           {
             id: 'sistemas_utilizados',
-            text: 'Quais sistemas/softwares a empresa utiliza para gestão financeira?',
+            text: 'Quais ferramentas/plataformas a empresa utiliza para marketing e conteúdo?',
             type: 'short_text',
             required: true,
             order: 1
           },
           {
             id: 'controles_existentes',
-            text: 'Que controles financeiros a empresa já possui? (DRE, DFC, conciliações, etc.)',
+            text: 'Que processos de marketing e comunicação já existem? (calendário editorial, aprovações, etc.)',
             type: 'long_text',
             required: true,
             order: 2
           },
           {
             id: 'periodicidade_analises',
-            text: 'Com que frequência são feitas análises financeiras?',
+            text: 'Com que frequência são feitas análises de performance de marketing?',
             type: 'multiple_choice',
-            options: ['Diária', 'Semanal', 'Mensal', 'Trimestral', 'Não há periodicidade definida'],
+            options: ['Semanal', 'Quinzenal', 'Mensal', 'Trimestral', 'Não há periodicidade definida'],
             required: true,
             order: 3
           }
@@ -215,19 +215,19 @@ export default function ClientDiagnosticPage() {
       {
         id: 'objetivos_expectativas',
         name: 'Objetivos e Expectativas',
-        description: 'Metas e necessidades da consultoria',
+        description: 'Metas e necessidades do projeto',
         order: 4,
         questions: [
           {
             id: 'principais_dificuldades',
-            text: 'Quais são as principais dificuldades financeiras da empresa hoje?',
+            text: 'Quais são as principais dificuldades de comunicação e marketing da empresa hoje?',
             type: 'long_text',
             required: true,
             order: 1
           },
           {
-            id: 'objetivos_consultoria',
-            text: 'O que espera alcançar com a consultoria financeira?',
+            id: 'objetivos_projeto',
+            text: 'O que espera alcançar com os serviços de comunicação e marketing?',
             type: 'long_text',
             required: true,
             order: 2
@@ -311,10 +311,10 @@ export default function ClientDiagnosticPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
-              Diagnóstico Financeiro
+              Diagnóstico de Comunicação e Marca
             </h1>
             <p className="text-gray-600 mt-1">
-              {client?.name} • Avaliação completa da situação financeira
+              {client?.name} • Avaliação completa da presença de marca e comunicação
             </p>
           </div>
           <Button 
@@ -354,7 +354,7 @@ export default function ClientDiagnosticPage() {
                     ) : diagnosticStatus === 'in_progress' ? (
                       `${progress}% concluído • ${Object.keys(existingResponse?.responses || {}).length} respostas`
                     ) : (
-                      'Inicie o preenchimento do diagnóstico financeiro'
+                      'Inicie o preenchimento do diagnóstico de comunicação e marca'
                     )}
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export default function ClientDiagnosticPage() {
             existingResponses={existingResponse?.responses}
             onComplete={handleDiagnosticComplete}
             onClose={() => setShowWizard(false)}
-            title={`Diagnóstico Financeiro - ${client?.name}`}
+            title={`Diagnóstico de Comunicação e Marca - ${client?.name}`}
           />
         )}
       </div>

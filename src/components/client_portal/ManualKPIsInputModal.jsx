@@ -27,13 +27,14 @@ import {
   History,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  Loader2
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
 /**
- * Modal para inserção manual de KPIs financeiros
+ * Modal para inserção manual de KPIs de performance
  */
 export default function ManualKPIsInputModal({ 
   isOpen, 
@@ -50,29 +51,38 @@ export default function ManualKPIsInputModal({
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // KPIs por tipo de serviço
+  const diagnosticoKPIs = [
+    { key: 'clareza_posicionamento', label: 'Clareza de Posicionamento', unit: 'score', required: true },
+    { key: 'consistencia_canais', label: 'Consistência entre Canais', unit: '%', required: true },
+    { key: 'engajamento_medio', label: 'Engajamento Médio', unit: '%', required: true },
+    { key: 'share_of_voice', label: 'Share of Voice', unit: '%', required: false }
+  ];
+
+  const conteudoKPIs = [
+    { key: 'taxa_publicacao', label: 'Taxa de Publicação no Prazo', unit: '%', required: true },
+    { key: 'engajamento_medio', label: 'Engajamento Médio', unit: '%', required: true },
+    { key: 'leads_qualificados', label: 'Leads Qualificados', unit: 'número', required: true },
+    { key: 'trafego_organico', label: 'Tráfego Orgânico', unit: 'número', required: true }
+  ];
+
+  const marketing360KPIs = [
+    { key: 'roas', label: 'ROAS', unit: 'ratio', required: true },
+    { key: 'cac', label: 'CAC', unit: 'BRL', required: true },
+    { key: 'leads_qualificados', label: 'Leads Qualificados', unit: 'número', required: true },
+    { key: 'taxa_aprovacao_ciclo', label: 'Taxa de Aprovação no Ciclo', unit: '%', required: true }
+  ];
+
+  // KPIs por tipo de serviço (novos + legados)
   const serviceKPIs = {
-    'diagnostico_avulso': [
-      { key: 'receita_mensal', label: 'Receita mensal', unit: 'BRL', required: true },
-      { key: 'margem_percent', label: 'Margem (%)', unit: '%', required: true },
-      { key: 'fluxo_saldo', label: 'Fluxo de caixa (saldo)', unit: 'BRL', required: true },
-      { key: 'endividamento_total', label: 'Endividamento total', unit: 'BRL', required: false }
-    ],
-    'mentoria_margem': [
-      { key: 'margem_percent', label: 'Margem (%)', unit: '%', required: true },
-      { key: 'receita_mensal', label: 'Receita mensal', unit: 'BRL', required: true },
-      { key: 'custos_variaveis', label: 'Custos variáveis', unit: 'BRL', required: true },
-      { key: 'inadimplencia_percent', label: 'Inadimplência (%)', unit: '%', required: true }
-    ],
-    'gestao_360': [
-      { key: 'fluxo_saldo', label: 'Fluxo de caixa (saldo)', unit: 'BRL', required: true },
-      { key: 'inadimplencia_percent', label: 'Inadimplência (%)', unit: '%', required: true },
-      { key: 'ciclo_caixa_dias', label: 'Ciclo de caixa (dias)', unit: 'dias', required: true },
-      { key: 'giro_estoque', label: 'Giro de estoque', unit: 'vezes', required: true }
-    ]
+    diagnostico_comunicacao: diagnosticoKPIs,
+    diagnostico_avulso: diagnosticoKPIs,
+    estrategia_conteudo: conteudoKPIs,
+    mentoria_margem: conteudoKPIs,
+    marketing_360: marketing360KPIs,
+    gestao_360: marketing360KPIs
   };
 
-  const currentKPIs = serviceKPIs[serviceType] || serviceKPIs['diagnostico_avulso'];
+  const currentKPIs = serviceKPIs[serviceType] || serviceKPIs['diagnostico_comunicacao'];
 
   useEffect(() => {
     if (isOpen) {
@@ -116,9 +126,8 @@ export default function ManualKPIsInputModal({
         errors[kpi.key] = `${kpi.label} deve ser um número válido`;
       }
       
-      // Validar valores positivos para alguns KPIs
-      if (kpiData[kpi.key] && parseFloat(kpiData[kpi.key]) < 0 && 
-          !['margem_percent', 'inadimplencia_percent'].includes(kpi.key)) {
+      // Validar valores positivos para a maioria dos KPIs
+      if (kpiData[kpi.key] && parseFloat(kpiData[kpi.key]) < 0) {
         errors[kpi.key] = `${kpi.label} deve ser um valor positivo`;
       }
     });
@@ -152,6 +161,18 @@ export default function ManualKPIsInputModal({
     
     if (unit === 'vezes') {
       return `${numValue.toFixed(1)}x`;
+    }
+
+    if (unit === 'ratio') {
+      return `${numValue.toFixed(2)}x`;
+    }
+
+    if (unit === 'score') {
+      return `${numValue.toFixed(1)}/10`;
+    }
+
+    if (unit === 'número') {
+      return new Intl.NumberFormat('pt-BR').format(numValue);
     }
     
     return new Intl.NumberFormat('pt-BR').format(numValue);
@@ -230,10 +251,10 @@ export default function ManualKPIsInputModal({
     const value = parseFloat(kpiData[kpi.key]);
     if (!value) return null;
     
-    if (kpi.key.includes('margem') || kpi.key.includes('receita')) {
+    if (['roas', 'engajamento', 'clareza', 'share_of_voice', 'leads', 'trafego', 'taxa_publicacao'].some(k => kpi.key.includes(k))) {
       return <TrendingUp className="w-4 h-4 text-green-600" />;
     }
-    if (kpi.key.includes('inadimplencia') || kpi.key.includes('endividamento')) {
+    if (['cac'].some(k => kpi.key.includes(k))) {
       return <TrendingDown className="w-4 h-4 text-red-600" />;
     }
     return <Minus className="w-4 h-4 text-gray-600" />;
@@ -248,7 +269,7 @@ export default function ManualKPIsInputModal({
             Inserção Manual de KPIs
           </DialogTitle>
           <DialogDescription>
-            Insira manualmente os indicadores financeiros para o período selecionado
+            Insira manualmente os indicadores de marketing e performance para o período selecionado
           </DialogDescription>
         </DialogHeader>
 
@@ -278,7 +299,7 @@ export default function ManualKPIsInputModal({
           {/* KPIs */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Indicadores Financeiros</CardTitle>
+              <CardTitle className="text-lg">Indicadores de Performance</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

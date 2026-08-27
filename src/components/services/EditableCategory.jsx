@@ -4,21 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SERVICE_CATEGORY_KEYS, getCategoryLabel } from '@/constants/serviceCategories';
 
-const defaultCategories = [
-  'marketing_digital',
-  'branding', 
-  'desenvolvimento',
-  'consultoria',
-  'midia_paga',
-  'organico',
-  'produto',
-  'design',
-  'copywriting',
-  'analytics',
-  'automacao',
-  'email_marketing'
-];
+const defaultCategories = SERVICE_CATEGORY_KEYS;
 
 export default function EditableCategory({ value, onChange, placeholder = "Digite uma categoria..." }) {
   const [inputValue, setInputValue] = useState('');
@@ -70,7 +58,7 @@ export default function EditableCategory({ value, onChange, placeholder = "Digit
   };
 
   const formatCategoryDisplay = (category) => {
-    return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return getCategoryLabel(category);
   };
 
   useEffect(() => {

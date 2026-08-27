@@ -77,7 +77,7 @@ class OpenAILLM {
   async generateTasksFromBriefing(briefingData) {
     try {
       const prompt = `
-        Baseado no briefing a seguir, gere uma lista de tarefas estruturadas para um serviço de consultoria financeira.
+        Baseado no briefing a seguir, gere uma lista de tarefas estruturadas para um serviço de comunicação e marketing.
         
         Briefing:
         ${JSON.stringify(briefingData, null, 2)}

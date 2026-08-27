@@ -118,13 +118,18 @@ export default function SupportLibrary({ agencyId, targetAudience = ['client'] }
 
   const getCategoryLabel = (category) => {
     const labels = {
-      financial_basics: 'Fundamentos Financeiros',
-      kpi_management: 'Gestão de KPIs',
-      cash_flow: 'Fluxo de Caixa',
+      communication_basics: 'Fundamentos de Comunicação',
+      content_social: 'Conteúdo & Social',
+      media_performance: 'Mídia & Performance',
+      brand_positioning: 'Marca & Posicionamento',
       reporting: 'Relatórios',
-      tax_compliance: 'Conformidade Fiscal',
-      software_training: 'Treinamento de Software',
-      client_communication: 'Comunicação com Cliente'
+      software_training: 'Treinamento de Ferramentas',
+      client_communication: 'Comunicação com Cliente',
+      // legacy keys
+      financial_basics: 'Fundamentos de Comunicação',
+      kpi_management: 'Métricas & Performance',
+      cash_flow: 'Mídia & Performance',
+      tax_compliance: 'Marca & Posicionamento'
     };
     return labels[category] || category;
   };
@@ -153,7 +158,7 @@ export default function SupportLibrary({ agencyId, targetAudience = ['client'] }
               Biblioteca de Apoio
             </h3>
             <p className="text-sm text-gray-600">
-              Materiais de treinamento e apoio para consultoria financeira
+              Materiais de treinamento e apoio para serviços de comunicação e marketing
             </p>
           </div>
           <div className="text-sm text-gray-500">
@@ -181,11 +186,11 @@ export default function SupportLibrary({ agencyId, targetAudience = ['client'] }
             className="px-3 py-2 border border-gray-300 rounded-md text-sm"
           >
             <option value="all">Todas as categorias</option>
-            <option value="financial_basics">Fundamentos Financeiros</option>
-            <option value="kpi_management">Gestão de KPIs</option>
-            <option value="cash_flow">Fluxo de Caixa</option>
+            <option value="communication_basics">Fundamentos de Comunicação</option>
+            <option value="content_social">Conteúdo & Social</option>
+            <option value="media_performance">Mídia & Performance</option>
+            <option value="brand_positioning">Marca & Posicionamento</option>
             <option value="reporting">Relatórios</option>
-            <option value="tax_compliance">Conformidade Fiscal</option>
             <option value="software_training">Treinamento</option>
             <option value="client_communication">Comunicação</option>
           </select>

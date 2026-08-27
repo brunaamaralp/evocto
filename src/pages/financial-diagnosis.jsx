@@ -50,11 +50,11 @@ const DiagnosticTokenCard = ({ token, client, onRevoke }) => {
   };
 
   const sendByEmail = () => {
-    const subject = encodeURIComponent('Diagnóstico Financeiro - Sua Participação é Necessária');
+    const subject = encodeURIComponent('Diagnóstico de Comunicação — Sua Participação é Necessária');
     const body = encodeURIComponent(`
 Olá,
 
-Preparamos um diagnóstico financeiro personalizado para sua empresa. 
+Preparamos um diagnóstico de comunicação e marca personalizado para sua empresa. 
 Por favor, acesse o link abaixo para preencher as informações:
 
 ${window.location.origin}/public-briefing?token=${token.token}
@@ -62,7 +62,7 @@ ${window.location.origin}/public-briefing?token=${token.token}
 Este link expira em ${format(new Date(token.expiresAt), 'dd/MM/yyyy', { locale: ptBR })}.
 
 Atenciosamente,
-Equipe de Consultoria
+Equipe da Agência
     `);
     
     window.open(`mailto:${client.email}?subject=${subject}&body=${body}`);
@@ -305,7 +305,7 @@ export default function FinancialDiagnosisPage() {
       // Buscar template de diagnóstico
       const templates = await BriefingTemplate.filter({
         agencyId: user.agencyId,
-        serviceType: 'gestao_financeira'
+        serviceType: 'comunicacao'
       });
       
       // Carregar tokens
@@ -412,10 +412,10 @@ export default function FinancialDiagnosisPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Diagnóstico Financeiro 360°
+                Diagnóstico de Comunicação 360°
               </h1>
               <p className="text-gray-600">
-                Gerencie o processo de diagnóstico financeiro para seus clientes
+                Gerencie o processo de diagnóstico de comunicação e marca para seus clientes
               </p>
             </div>
             <Button onClick={() => setShowCreateModal(true)}>

@@ -133,7 +133,7 @@ export default function ClientSetupWizard({ clientId, serviceId, onComplete }) {
           
         case 'kpi_setup':
           // Navegar para configuração de KPIs
-          window.location.href = `/financial-kpis?clientId=${clientId}&serviceId=${serviceId}`;
+          window.location.href = `/performance-kpis?clientId=${clientId}&serviceId=${serviceId}`;
           break;
           
         case 'service_activation':

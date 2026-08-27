@@ -72,7 +72,7 @@ export default function FinancialKPIsPage() {
     if (clientId) params.set('clientId', clientId);
     if (serviceId) params.set('serviceId', serviceId);
     
-    navigate(`/financial-kpis?${params.toString()}`);
+    navigate(`/performance-kpis?${params.toString()}`);
   };
 
   const renderContent = () => {
@@ -100,19 +100,19 @@ export default function FinancialKPIsPage() {
   };
 
   if (loading) {
-    return <LoadingState message="Carregando dados financeiros..." />;
+    return <LoadingState message="Carregando KPIs de performance..." />;
   }
 
   return (
     <div className="container-page py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          KPIs Financeiros
+          KPIs de Performance
           {selectedClient && <span className="text-lg text-gray-600 ml-2">- {selectedClient.name}</span>}
           {selectedService && <span className="text-lg text-gray-600 ml-2">({selectedService.name})</span>}
         </h1>
         <p className="text-gray-600 mt-2">
-          Sistema completo de gestão e monitoramento de indicadores financeiros
+          Sistema completo de gestão e monitoramento de indicadores de marketing e performance
         </p>
       </div>
 

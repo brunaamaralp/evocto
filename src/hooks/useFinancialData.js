@@ -243,37 +243,37 @@ export function useFinancialData() {
  * Gerar dados mock para demonstração
  */
 function generateMockFinancialData(clientId, serviceId, period) {
+  const diagnosticoKPIs = [
+    { key: 'clareza_posicionamento', label: 'Clareza de Posicionamento', unit: 'score', value: 7.2, target: 8.0, visible: true },
+    { key: 'consistencia_canais', label: 'Consistência entre Canais', unit: '%', value: 68, target: 80, visible: true },
+    { key: 'engajamento_medio', label: 'Engajamento Médio', unit: '%', value: 3.4, target: 4.0, visible: true },
+    { key: 'share_of_voice', label: 'Share of Voice', unit: '%', value: 14, target: 20, visible: true }
+  ];
+
+  const conteudoKPIs = [
+    { key: 'taxa_publicacao', label: 'Taxa de Publicação no Prazo', unit: '%', value: 82, target: 90, visible: true },
+    { key: 'engajamento_medio', label: 'Engajamento Médio', unit: '%', value: 3.8, target: 4.5, visible: true },
+    { key: 'leads_qualificados', label: 'Leads Qualificados', unit: 'número', value: 42, target: 50, visible: true },
+    { key: 'trafego_organico', label: 'Tráfego Orgânico', unit: 'número', value: 4800, target: 6000, visible: true }
+  ];
+
+  const marketing360KPIs = [
+    { key: 'roas', label: 'ROAS', unit: 'ratio', value: 2.8, target: 3.5, visible: true },
+    { key: 'cac', label: 'CAC', unit: 'BRL', value: 320, target: 250, visible: true },
+    { key: 'leads_qualificados', label: 'Leads Qualificados', unit: 'número', value: 58, target: 70, visible: true },
+    { key: 'taxa_aprovacao_ciclo', label: 'Taxa de Aprovação no Ciclo', unit: '%', value: 78, target: 85, visible: true }
+  ];
+
   const serviceTypes = {
-    'diagnostico_avulso': {
-      name: 'Diagnóstico Financeiro Avulso',
-      kpis: [
-        { key: 'receita_mensal', label: 'Receita mensal', unit: 'BRL', value: 128000, target: null, visible: true },
-        { key: 'margem_percent', label: 'Margem (%)', unit: '%', value: 15.2, target: 18.0, visible: true },
-        { key: 'fluxo_saldo', label: 'Fluxo de caixa (saldo)', unit: 'BRL', value: 24500, target: null, visible: true },
-        { key: 'endividamento_total', label: 'Endividamento total', unit: 'BRL', value: 85000, target: 100000, visible: true }
-      ]
-    },
-    'mentoria_margem': {
-      name: 'Mentoria em Aumento de Margem',
-      kpis: [
-        { key: 'margem_percent', label: 'Margem (%)', unit: '%', value: 15.2, target: 18.0, visible: true },
-        { key: 'receita_mensal', label: 'Receita mensal', unit: 'BRL', value: 128000, target: null, visible: true },
-        { key: 'custos_variaveis', label: 'Custos variáveis', unit: 'BRL', value: 45000, target: 40000, visible: true },
-        { key: 'inadimplencia_percent', label: 'Inadimplência (%)', unit: '%', value: 11.0, target: 8.0, visible: true }
-      ]
-    },
-    'gestao_360': {
-      name: 'Gestão Financeira 360',
-      kpis: [
-        { key: 'fluxo_saldo', label: 'Fluxo de caixa (saldo)', unit: 'BRL', value: 24500, target: null, visible: true },
-        { key: 'inadimplencia_percent', label: 'Inadimplência (%)', unit: '%', value: 11.0, target: 8.0, visible: true },
-        { key: 'ciclo_caixa_dias', label: 'Ciclo de caixa (dias)', unit: 'dias', value: 45, target: 30, visible: true },
-        { key: 'giro_estoque', label: 'Giro de estoque', unit: 'vezes', value: 6.2, target: 8.0, visible: true }
-      ]
-    }
+    diagnostico_comunicacao: { name: 'Diagnóstico de Comunicação e Marca', kpis: diagnosticoKPIs },
+    diagnostico_avulso: { name: 'Diagnóstico de Comunicação e Marca', kpis: diagnosticoKPIs },
+    estrategia_conteudo: { name: 'Estratégia de Conteúdo e Posicionamento', kpis: conteudoKPIs },
+    mentoria_margem: { name: 'Estratégia de Conteúdo e Posicionamento', kpis: conteudoKPIs },
+    marketing_360: { name: 'Marketing Operacional 360', kpis: marketing360KPIs },
+    gestao_360: { name: 'Marketing Operacional 360', kpis: marketing360KPIs }
   };
 
-  const serviceType = serviceTypes['mentoria_margem']; // Default
+  const serviceType = serviceTypes['estrategia_conteudo'] || serviceTypes['mentoria_margem'];
   
   return {
     cliente: { 
@@ -282,48 +282,48 @@ function generateMockFinancialData(clientId, serviceId, period) {
     },
     servico: {
       id: serviceId,
-      tipo: 'mentoria_margem',
+      tipo: 'estrategia_conteudo',
       nome: serviceType.name,
       template_version: 2
     },
     kpis: serviceType.kpis,
     series: {
-      margem_percent: [
-        { period: '2025-05', value: 12.1 },
-        { period: '2025-06', value: 13.4 },
-        { period: '2025-07', value: 14.6 },
-        { period: '2025-08', value: 14.9 },
-        { period: '2025-09', value: 15.2 }
+      engajamento_medio: [
+        { period: '2025-05', value: 2.8 },
+        { period: '2025-06', value: 3.1 },
+        { period: '2025-07', value: 3.4 },
+        { period: '2025-08', value: 3.6 },
+        { period: '2025-09', value: 3.8 }
       ],
-      receita_mensal: [
-        { period: '2025-05', value: 98000 },
-        { period: '2025-06', value: 110000 },
-        { period: '2025-07', value: 120500 },
-        { period: '2025-08', value: 123000 },
-        { period: '2025-09', value: 128000 }
+      leads_qualificados: [
+        { period: '2025-05', value: 28 },
+        { period: '2025-06', value: 32 },
+        { period: '2025-07', value: 36 },
+        { period: '2025-08', value: 39 },
+        { period: '2025-09', value: 42 }
       ]
     },
     insights: [
-      'Sua margem subiu +0,3 pp no mês e está 2,8 pp abaixo da meta (18%).',
-      'Inadimplência acima do alvo: priorize cobrança e revisão de crédito.',
-      'Receita cresceu 4,1% no período - mantenha o foco na qualidade.'
+      'Engajamento médio subiu +0,4 pp no mês e está 0,7 pp abaixo da meta (4,5%).',
+      'Leads qualificados abaixo do alvo: priorize CTAs e conteúdo de conversão.',
+      'Tráfego orgânico cresceu 6,2% no período — mantenha a cadência de publicação.'
     ],
     metas: [
       { 
-        key: 'margem_percent', 
-        label: 'Margem alvo', 
-        target: 18.0, 
-        current: 15.2, 
+        key: 'engajamento_medio', 
+        label: 'Engajamento alvo', 
+        target: 4.5, 
+        current: 3.8, 
         unit: '%', 
         progress: 0.84 
       },
       { 
-        key: 'inadimplencia_percent', 
-        label: 'Inadimplência alvo', 
-        target: 8.0, 
-        current: 11.0, 
-        unit: '%', 
-        progress: 0.73 
+        key: 'leads_qualificados', 
+        label: 'Leads qualificados alvo', 
+        target: 50, 
+        current: 42, 
+        unit: 'número', 
+        progress: 0.84 
       }
     ],
     lastUpdated: new Date().toISOString(),

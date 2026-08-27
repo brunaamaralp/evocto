@@ -99,9 +99,9 @@ export default function UnifiedBriefingForm({
       ]
     },
     {
-      id: 'financial_situation',
-      title: 'Situação Financeira',
-      description: 'Panorama financeiro atual da empresa',
+      id: 'communication_situation',
+      title: 'Presença de Marca e Comunicação',
+      description: 'Panorama atual da comunicação e marketing da empresa',
       questions: [
         {
           id: 'annual_revenue',
@@ -117,39 +117,39 @@ export default function UnifiedBriefingForm({
           ]
         },
         {
-          id: 'financial_controls',
-          text: 'Como são feitos os controles financeiros atualmente?',
+          id: 'marketing_channels',
+          text: 'Quais canais de marketing e comunicação a empresa utiliza hoje?',
           type: 'long_text',
           required: true,
-          placeholder: 'Planilhas Excel, sistema ERP, controle manual...'
+          placeholder: 'Redes sociais, site, e-mail, mídia paga, eventos...'
         },
         {
-          id: 'main_financial_challenges',
-          text: 'Quais os principais desafios financeiros?',
+          id: 'main_communication_challenges',
+          text: 'Quais os principais desafios de comunicação e marketing?',
           type: 'long_text',
           required: true,
-          placeholder: 'Ex: fluxo de caixa, controle de custos, planejamento...'
+          placeholder: 'Ex: baixo engajamento, mensagem inconsistente, falta de conteúdo...'
         }
       ]
     },
     {
       id: 'objectives_expectations',
       title: 'Objetivos e Expectativas',
-      description: 'O que esperam alcançar com a consultoria',
+      description: 'O que esperam alcançar com a agência',
       questions: [
         {
           id: 'main_objectives',
-          text: 'Quais são os principais objetivos com nossa consultoria?',
+          text: 'Quais são os principais objetivos com nossa agência?',
           type: 'long_text',
           required: true,
-          placeholder: 'Ex: melhorar fluxo de caixa, reduzir custos, crescer com saúde financeira...'
+          placeholder: 'Ex: aumentar reconhecimento de marca, gerar leads, melhorar presença digital...'
         },
         {
           id: 'success_metrics',
           text: 'Como vocês medirão o sucesso dos nossos trabalhos?',
           type: 'long_text',
           required: true,
-          placeholder: 'Ex: aumento de margem, redução de custos em X%, melhor fluxo...'
+          placeholder: 'Ex: crescimento de seguidores, taxa de conversão, alcance, ROI de mídia...'
         },
         {
           id: 'project_timeline',

@@ -67,8 +67,8 @@ export default function ClientOnboardingSystem({ isOpen, onClose, clientId, serv
     },
     {
       id: 'kpis',
-      title: 'Indicadores Financeiros',
-      description: 'Aprenda sobre os KPIs que acompanhamos',
+      title: 'Indicadores de Performance',
+      description: 'Aprenda sobre os KPIs de marketing que acompanhamos',
       icon: Target,
       content: KPIsStep,
       duration: 60000, // 1 minuto
@@ -94,7 +94,7 @@ export default function ClientOnboardingSystem({ isOpen, onClose, clientId, serv
     },
     {
       id: 'team',
-      title: 'Sua Equipe de Consultoria',
+      title: 'Sua Equipe da Agência',
       description: 'Conheça quem está trabalhando no seu projeto',
       icon: Users,
       content: TeamStep,
@@ -375,7 +375,7 @@ function WelcomeStep({ onComplete }) {
           🎉 Bem-vindo ao seu Portal!
         </h2>
         <p className="text-lg text-gray-600 mb-6">
-          Este é o seu espaço pessoal para acompanhar o progresso do seu projeto de consultoria.
+          Este é o seu espaço pessoal para acompanhar o progresso do seu projeto com a agência.
         </p>
       </div>
 
@@ -383,7 +383,7 @@ function WelcomeStep({ onComplete }) {
         <div className="p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">📊 Dashboard Executivo</h3>
           <p className="text-blue-800 text-sm">
-            Veja seus resultados financeiros e o progresso do projeto em tempo real.
+            Veja seus resultados de marketing e o progresso do projeto em tempo real.
           </p>
         </div>
         
@@ -397,7 +397,7 @@ function WelcomeStep({ onComplete }) {
         <div className="p-4 bg-purple-50 rounded-lg">
           <h3 className="font-semibold text-purple-900 mb-2">💬 Comunicação</h3>
           <p className="text-purple-800 text-sm">
-            Mantenha-se conectado com sua equipe de consultoria.
+            Mantenha-se conectado com sua equipe da agência.
           </p>
         </div>
       </div>
@@ -456,7 +456,7 @@ function DashboardStep({ onComplete }) {
         <Card className="p-4">
           <h3 className="font-semibold text-gray-900 mb-2">🎯 KPIs Principais</h3>
           <p className="text-sm text-gray-600 mb-3">
-            Indicadores financeiros mais importantes para seu negócio.
+            Indicadores de performance mais importantes para suas campanhas.
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
@@ -502,7 +502,7 @@ function KPIsStep({ onComplete }) {
           <Target className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Indicadores Financeiros (KPIs)
+          Indicadores de Performance (KPIs)
         </h2>
         <p className="text-gray-600">
           Entenda o que cada número significa para seu negócio
@@ -698,7 +698,7 @@ function DocumentsStep({ onComplete }) {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <BarChart3 className="w-4 h-4 text-purple-600" />
-              <span>Dashboard Financeiro</span>
+              <span>Dashboard de Performance</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <TrendingUp className="w-4 h-4 text-orange-600" />
@@ -737,7 +737,7 @@ function TeamStep({ onComplete }) {
           <Users className="w-8 h-8 text-indigo-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Sua Equipe de Consultoria
+          Sua Equipe da Agência
         </h2>
         <p className="text-gray-600">
           Conheça quem está trabalhando no seu projeto
@@ -766,12 +766,12 @@ function TeamStep({ onComplete }) {
               <BarChart3 className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Analista Financeiro</h3>
+              <h3 className="font-semibold text-gray-900">Analista de Performance</h3>
               <p className="text-sm text-gray-600">Maria Santos</p>
             </div>
           </div>
           <p className="text-sm text-gray-700">
-            Especialista em análise de dados e indicadores financeiros.
+            Especialista em análise de dados de marketing e indicadores de performance.
           </p>
         </Card>
       </div>

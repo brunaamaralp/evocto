@@ -101,7 +101,7 @@ export default function SubmissionConfirmation({
               <div className="font-medium">{clientName}</div>
             </div>
             <div>
-              <span className="text-gray-600">Consultoria:</span>
+              <span className="text-gray-600">Agência:</span>
               <div className="font-medium">{agencyName}</div>
             </div>
           </div>

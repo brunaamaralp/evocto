@@ -292,22 +292,33 @@ export default function KPICard({
 // Funções auxiliares
 function getCategoryColor(category) {
   const colors = {
+    performance: 'text-blue-700 bg-blue-50',
+    demanda: 'text-green-700 bg-green-50',
+    marca: 'text-purple-700 bg-purple-50',
+    operacao: 'text-amber-700 bg-amber-50',
+    engajamento: 'text-pink-700 bg-pink-50',
+    crescimento: 'text-indigo-700 bg-indigo-50',
+    // legado
     liquidez: 'text-blue-700 bg-blue-50',
     rentabilidade: 'text-green-700 bg-green-50',
-    endividamento: 'text-red-700 bg-red-50',
-    atividade: 'text-purple-700 bg-purple-50',
-    crescimento: 'text-amber-700 bg-amber-50'
+    endividamento: 'text-amber-700 bg-amber-50',
+    atividade: 'text-pink-700 bg-pink-50',
   };
   return colors[category] || 'text-gray-700 bg-gray-50';
 }
 
 function getCategoryName(category) {
   const names = {
-    liquidez: 'Liquidez',
-    rentabilidade: 'Rentabilidade', 
-    endividamento: 'Endividamento',
-    atividade: 'Atividade',
-    crescimento: 'Crescimento'
+    performance: 'Performance',
+    demanda: 'Demanda',
+    marca: 'Marca',
+    operacao: 'Operação',
+    engajamento: 'Engajamento',
+    crescimento: 'Crescimento',
+    liquidez: 'Performance',
+    rentabilidade: 'Demanda',
+    endividamento: 'Operação',
+    atividade: 'Engajamento',
   };
   return names[category] || category;
 }

@@ -375,12 +375,18 @@ export default function KPIChart({
 
 function getCategoryDisplayName(category) {
   const names = {
-    liquidez: 'Liquidez',
-    rentabilidade: 'Rentabilidade',
-    endividamento: 'Endividamento', 
-    atividade: 'Atividade',
+    performance: 'Performance',
+    demanda: 'Demanda',
+    marca: 'Marca',
+    operacao: 'Operação',
+    engajamento: 'Engajamento',
     crescimento: 'Crescimento',
-    outros: 'Outros'
+    outros: 'Outros',
+    // aliases legados
+    liquidez: 'Performance',
+    rentabilidade: 'Demanda',
+    endividamento: 'Operação',
+    atividade: 'Engajamento'
   };
   return names[category] || category;
 }

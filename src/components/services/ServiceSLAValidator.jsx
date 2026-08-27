@@ -7,17 +7,17 @@ import {
   AlertTriangle, CheckCircle, Clock, Calendar, 
   TrendingUp, TrendingDown, AlertCircle
 } from 'lucide-react';
+import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
-const SLA_LIMITS = {
-  'gestao_financeira': { max_days: 365, recommended_days: 300 },
-  'consultoria_tributaria': { max_days: 180, recommended_days: 150 },
-  'valuation': { max_days: 90, recommended_days: 60 },
-  'planejamento_financeiro': { max_days: 120, recommended_days: 90 },
-  'fusao_aquisicao': { max_days: 180, recommended_days: 150 },
-  'reestruturacao': { max_days: 365, recommended_days: 300 }
-};
+const SLA_LIMITS = Object.fromEntries(
+  Object.keys(SERVICE_CATEGORIES).map((key) => [key, { max_days: 365, recommended_days: 120 }])
+);
 
 const PREDEFINED_SERVICE_DURATIONS = {
+  'Diagnóstico de Comunicação e Marca': 30,
+  'Estratégia de Conteúdo e Posicionamento': 45,
+  'Marketing Operacional 360': 300,
+  // legado
   'Diagnóstico Financeiro Avulso': 30,
   'Mentoria em Aumento de Margem': 120,
   'Gestão Financeira 360': 300

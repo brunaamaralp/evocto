@@ -111,75 +111,56 @@ export class DocumentAnalysisService {
   generateMockDocumentText(fileName) {
     const mockTexts = {
       'dre.pdf': `
-        DEMONSTRAÇÃO DO RESULTADO DO EXERCÍCIO
+        RELATÓRIO DE PERFORMANCE DE MÍDIA
         Período: Janeiro a Dezembro de 2024
         
-        RECEITA BRUTA: R$ 1.200.000,00
-        (-) Impostos sobre Vendas: R$ 180.000,00
-        RECEITA LÍQUIDA: R$ 1.020.000,00
+        Investimento em mídia: R$ 48.000,00
+        Receita atribuída: R$ 156.000,00
+        ROAS: 3,25
         
-        (-) Custo dos Produtos Vendidos: R$ 720.000,00
-        LUCRO BRUTO: R$ 300.000,00
-        
-        (-) Despesas Operacionais: R$ 180.000,00
-        LUCRO OPERACIONAL: R$ 120.000,00
-        
-        Margem Bruta: 29,4%
-        Margem Operacional: 11,8%
+        Impressões: 2.400.000
+        Cliques: 72.000
+        CTR: 3,0%
+        CPA médio: R$ 42,00
       `,
       'balanco.xlsx': `
-        BALANÇO PATRIMONIAL
+        DASHBOARD DE MARCA E CANAIS
         Em 31 de Dezembro de 2024
         
-        ATIVO CIRCULANTE: R$ 450.000,00
-        - Caixa: R$ 50.000,00
-        - Contas a Receber: R$ 200.000,00
-        - Estoque: R$ 200.000,00
+        Share of Voice: 18%
+        Clareza de Posicionamento (score): 7/10
+        Consistência entre Canais: 72%
         
-        ATIVO NÃO CIRCULANTE: R$ 800.000,00
-        - Imobilizado: R$ 800.000,00
-        
-        TOTAL DO ATIVO: R$ 1.250.000,00
-        
-        PASSIVO CIRCULANTE: R$ 300.000,00
-        - Fornecedores: R$ 150.000,00
-        - Empréstimos: R$ 150.000,00
-        
-        PATRIMÔNIO LÍQUIDO: R$ 950.000,00
-        
-        Liquidez Corrente: 1,5
-        Endividamento: 31,6%
+        Canais ativos:
+        - Instagram: 24.500 seguidores
+        - LinkedIn: 8.200 seguidores
+        - Site: 12.000 sessões/mês
+        - E-mail: taxa de abertura 27%
       `,
       'fluxo_caixa.csv': `
-        FLUXO DE CAIXA
+        FUNIL E DEMANDA
         Período: Janeiro a Dezembro de 2024
         
-        Saldo Inicial: R$ 30.000,00
+        Visitantes: 145.000
+        Leads: 3.200
+        Leads qualificados: 980
+        Taxa de conversão: 2,2%
         
-        Entradas:
-        - Vendas: R$ 1.020.000,00
-        - Outras Receitas: R$ 50.000,00
-        
-        Saídas:
-        - Compras: R$ 720.000,00
-        - Despesas Operacionais: R$ 180.000,00
-        - Investimentos: R$ 100.000,00
-        
-        Saldo Final: R$ 100.000,00
-        
-        Ciclo de Caixa: 45 dias
+        CAC: R$ 185,00
+        Pipeline influenciado: R$ 420.000,00
+        Taxa de aprovação de peças no ciclo: 88%
       `
     };
 
     return mockTexts[fileName] || `
-      DOCUMENTO FINANCEIRO
+      RELATÓRIO DE MARKETING
       ${fileName}
       
-      Este é um documento de exemplo contendo informações financeiras.
-      Receita: R$ 1.000.000,00
-      Custos: R$ 700.000,00
-      Margem: 30%
-      Lucro: R$ 300.000,00
+      Documento de exemplo com indicadores de performance.
+      ROAS: 3,1
+      Engajamento médio: 2,8%
+      Leads qualificados: 120
+      Taxa de conversão: 2,5%
     `;
   }
 
@@ -198,7 +179,7 @@ export class DocumentAnalysisService {
    * Constrói prompt para análise de documento
    */
   buildAnalysisPrompt(extractedText, serviceType) {
-    return `Você é um especialista em análise financeira. Analise o documento abaixo e extraia informações relevantes para o serviço "${serviceType}".
+    return `Você é um especialista em marketing e comunicação. Analise o documento abaixo e extraia informações relevantes para o serviço "${serviceType}".
 
 DOCUMENTO:
 ${extractedText}
@@ -206,8 +187,8 @@ ${extractedText}
 TIPO DE SERVIÇO: ${serviceType}
 
 Extraia e analise:
-1. KPIs financeiros principais (receita, margem, lucro, etc.)
-2. Indicadores de performance
+1. KPIs de marketing e performance (alcance, engajamento, conversão, ROI, etc.)
+2. Indicadores de presença de marca e comunicação
 3. Tendências e padrões
 4. Oportunidades de melhoria
 5. Riscos identificados
@@ -335,27 +316,36 @@ Retorne uma análise estruturada em JSON seguindo o schema fornecido.`;
    */
   getKPIMapping(serviceType) {
     const mappings = {
+      'diagnostico_comunicacao': {
+        'alcance': { key: 'alcance_total', label: 'Alcance Total', description: 'Alcance total nos canais digitais' },
+        'engajamento': { key: 'taxa_engajamento', label: 'Taxa de Engajamento', description: 'Percentual de engajamento' },
+        'conversao': { key: 'taxa_conversao', label: 'Taxa de Conversão', description: 'Taxa de conversão de leads' },
+        'roi': { key: 'roi_midia', label: 'ROI de Mídia', description: 'Retorno sobre investimento em mídia' }
+      },
+      'estrategia_conteudo': {
+        'engajamento': { key: 'taxa_engajamento', label: 'Taxa de Engajamento', description: 'Engajamento médio do conteúdo' },
+        'alcance': { key: 'alcance_conteudo', label: 'Alcance de Conteúdo', description: 'Alcance médio das publicações' },
+        'leads': { key: 'leads_gerados', label: 'Leads Gerados', description: 'Leads gerados por conteúdo' }
+      },
+      'marketing_360': {
+        'roi': { key: 'roi_midia', label: 'ROI de Mídia', description: 'Retorno sobre investimento' },
+        'cac': { key: 'cac', label: 'CAC', description: 'Custo de aquisição de cliente' },
+        'conversao': { key: 'taxa_conversao', label: 'Taxa de Conversão', description: 'Taxa de conversão geral' }
+      },
+      // legacy aliases
       'diagnostico_financeiro': {
-        'receita': { key: 'receita_mensal', label: 'Receita Mensal', description: 'Receita mensal da empresa' },
-        'margem': { key: 'margem_percent', label: 'Margem de Lucro', description: 'Percentual de margem sobre a receita' },
-        'lucro': { key: 'lucro_operacional', label: 'Lucro Operacional', description: 'Lucro operacional mensal' },
-        'fluxo': { key: 'fluxo_saldo', label: 'Fluxo de Caixa', description: 'Saldo do fluxo de caixa' }
+        'alcance': { key: 'alcance_total', label: 'Alcance Total', description: 'Alcance total nos canais digitais' },
+        'engajamento': { key: 'taxa_engajamento', label: 'Taxa de Engajamento', description: 'Percentual de engajamento' }
       },
       'mentoria_margem': {
-        'margem': { key: 'margem_percent', label: 'Margem de Lucro', description: 'Margem atual da empresa' },
-        'receita': { key: 'receita_mensal', label: 'Receita Mensal', description: 'Receita mensal' },
-        'custos': { key: 'custos_variaveis', label: 'Custos Variáveis', description: 'Custos variáveis mensais' },
-        'inadimplencia': { key: 'inadimplencia_percent', label: 'Inadimplência', description: 'Percentual de inadimplência' }
+        'engajamento': { key: 'taxa_engajamento', label: 'Taxa de Engajamento', description: 'Engajamento médio do conteúdo' }
       },
       'gestao_financeira_360': {
-        'fluxo': { key: 'fluxo_saldo', label: 'Fluxo de Caixa', description: 'Saldo do fluxo de caixa' },
-        'inadimplencia': { key: 'inadimplencia_percent', label: 'Inadimplência', description: 'Percentual de inadimplência' },
-        'ciclo': { key: 'ciclo_caixa_dias', label: 'Ciclo de Caixa', description: 'Ciclo de caixa em dias' },
-        'estoque': { key: 'estoque_valor', label: 'Valor do Estoque', description: 'Valor atual do estoque' }
+        'roi': { key: 'roi_midia', label: 'ROI de Mídia', description: 'Retorno sobre investimento' }
       }
     };
 
-    return mappings[serviceType] || mappings['diagnostico_financeiro'];
+    return mappings[serviceType] || mappings['diagnostico_comunicacao'];
   }
 
   /**

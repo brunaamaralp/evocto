@@ -29,9 +29,9 @@ export class RecommendationEngine extends EventEmitter {
    * Inicializa regras de recomendação
    */
   initializeRules() {
-    // Regras para KPIs Financeiros
+    // Regras para KPIs de Performance
     this.rules.set('financial_improvement', {
-      name: 'Melhoria Financeira',
+      name: 'Melhoria de Performance de Marketing',
       category: 'financial',
       conditions: [
         { field: 'profit_margin', operator: '<', value: 15 },
@@ -41,28 +41,28 @@ export class RecommendationEngine extends EventEmitter {
       recommendations: [
         {
           type: 'action',
-          title: 'Otimizar Margem de Lucro',
-          description: 'Implementar estratégias para aumentar a margem de lucro',
+          title: 'Otimizar ROAS e CAC',
+          description: 'Implementar estratégias para melhorar retorno de mídia e reduzir custo de aquisição',
           priority: 'high',
           impact: 'high',
           effort: 'medium',
           actions: [
-            'Revisar precificação de produtos/serviços',
-            'Identificar e reduzir custos desnecessários',
-            'Implementar controle de estoque mais eficiente'
+            'Revisar segmentação e criativos das campanhas',
+            'Identificar canais com melhor ROAS',
+            'Ajustar investimento entre canais de mídia'
           ]
         },
         {
           type: 'kpi',
-          title: 'Monitorar Fluxo de Caixa',
-          description: 'Acompanhar fluxo de caixa semanalmente',
+          title: 'Monitorar KPIs de Campanha',
+          description: 'Acompanhar ROAS, CAC e CTR semanalmente',
           priority: 'critical',
           impact: 'high',
           effort: 'low',
           actions: [
-            'Configurar alertas de fluxo de caixa',
-            'Implementar projeções de caixa',
-            'Estabelecer reserva de emergência'
+            'Configurar alertas de ROAS e CAC',
+            'Implementar dashboards de performance',
+            'Estabelecer metas por canal de mídia'
           ]
         }
       ]
@@ -224,6 +224,7 @@ export class RecommendationEngine extends EventEmitter {
     // Perfis de itens (serviços, processos, etc.)
     this.itemProfiles.set('financial_consulting', {
       type: 'service',
+      name: 'Consultoria de Performance de Marketing',
       category: 'financial',
       tags: ['profit', 'cash_flow', 'budget', 'investment'],
       complexity: 'high',

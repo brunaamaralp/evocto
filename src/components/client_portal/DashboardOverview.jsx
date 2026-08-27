@@ -326,7 +326,7 @@ export default function DashboardOverview({ clientId }) {
               Nenhum projeto ativo
             </h3>
             <p className="text-gray-600 mb-4">
-              Não há projetos ativos no momento. Entre em contato com sua equipe de consultoria para mais informações.
+              Não há projetos ativos no momento. Entre em contato com sua agência para mais informações.
             </p>
             <Button variant="outline">
               <Settings className="w-4 h-4 mr-2" />

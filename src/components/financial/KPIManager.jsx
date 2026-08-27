@@ -36,14 +36,16 @@ import { updateKPIWithHistory } from '@/api/functions';
 import { validateKPIFormula } from '@/api/functions';
 import KPIChart from './KPIChart';
 import EmptyKPIState from './EmptyKPIState';
+import { PERFORMANCE_KPI_CATEGORIES, DEFAULT_KPI_CATEGORY, resolveKPICategory } from '@/constants/performanceKPIs';
 
-const KPI_CATEGORIES = [
-  { value: 'liquidez', label: 'Liquidez', color: 'bg-blue-100 text-blue-800' },
-  { value: 'rentabilidade', label: 'Rentabilidade', color: 'bg-green-100 text-green-800' },
-  { value: 'endividamento', label: 'Endividamento', color: 'bg-red-100 text-red-800' },
-  { value: 'atividade', label: 'Atividade', color: 'bg-purple-100 text-purple-800' },
-  { value: 'crescimento', label: 'Crescimento', color: 'bg-amber-100 text-amber-800' }
-];
+const KPI_CATEGORIES = PERFORMANCE_KPI_CATEGORIES.map((c) => ({
+  value: c.value,
+  label: c.label,
+  color: c.color,
+}));
+
+const getCategoryConfig = (categoryKey) =>
+  KPI_CATEGORIES.find((c) => c.value === resolveKPICategory(categoryKey));
 
 const KPI_PRIORITIES = [
   { value: 'low', label: 'Baixa', color: 'bg-gray-100 text-gray-700' },
@@ -123,7 +125,7 @@ export default function KPIManager({
     setEditForm({
       name: kpi.name || '',
       description: kpi.description || '',
-      category: kpi.category || 'liquidez',
+      category: resolveKPICategory(kpi.category) || DEFAULT_KPI_CATEGORY,
       priority: kpi.priority || 'medium',
       unit: kpi.unit || 'number',
       target_value: kpi.target_value || '',
@@ -322,7 +324,7 @@ export default function KPIManager({
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">KPIs Financeiros</CardTitle>
+                <CardTitle className="text-lg">KPIs de Performance</CardTitle>
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -354,9 +356,9 @@ export default function KPIManager({
                     <div className="flex items-center space-x-2">
                       <Badge 
                         variant="secondary" 
-                        className={KPI_CATEGORIES.find(c => c.value === kpi.category)?.color}
+                        className={getCategoryConfig(kpi.category)?.color}
                       >
-                        {KPI_CATEGORIES.find(c => c.value === kpi.category)?.label}
+                        {getCategoryConfig(kpi.category)?.label}
                       </Badge>
                       {kpi.current_value && kpi.target_value && (
                         <div className={getStatusColor(kpi.current_value, kpi.target_value)}>
@@ -455,9 +457,9 @@ export default function KPIManager({
                         <span className="font-medium">Categoria:</span>
                         <Badge 
                           variant="secondary" 
-                          className={`ml-2 ${KPI_CATEGORIES.find(c => c.value === selectedKPI.category)?.color}`}
+                          className={`ml-2 ${getCategoryConfig(selectedKPI.category)?.color}`}
                         >
-                          {KPI_CATEGORIES.find(c => c.value === selectedKPI.category)?.label}
+                          {getCategoryConfig(selectedKPI.category)?.label}
                         </Badge>
                       </div>
                       <div>

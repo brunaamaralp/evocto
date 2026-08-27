@@ -307,7 +307,7 @@ export default function BriefingForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Disponibilidade de Dados Financeiros</Label>
+            <Label>Disponibilidade de Dados e Acessos</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
               <div className="flex items-center space-x-2">
                 <input

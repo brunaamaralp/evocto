@@ -16,45 +16,35 @@ import {
 import { BriefingTemplate } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import BriefingTemplateEditor from '@/components/briefing/BriefingTemplateEditor';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
-const SERVICE_CATEGORIES = {
-  gestao_financeira: {
-    name: 'Gestão Financeira',
-    description: 'Templates para serviços de consultoria financeira e controles',
-    color: 'bg-blue-100 text-blue-800'
-  },
-  consultoria_tributaria: {
-    name: 'Consultoria Tributária', 
-    description: 'Templates para otimização fiscal e compliance tributário',
-    color: 'bg-green-100 text-green-800'
-  },
-  valuation: {
-    name: 'Valuation',
-    description: 'Templates para avaliação de empresas',
-    color: 'bg-purple-100 text-purple-800'
-  },
-  planejamento_financeiro: {
-    name: 'Planejamento Financeiro',
-    description: 'Templates para planejamento estratégico financeiro',
-    color: 'bg-amber-100 text-amber-800'
-  },
-  fusao_aquisicao: {
-    name: 'Fusão e Aquisição',
-    description: 'Templates para processos de M&A',
-    color: 'bg-red-100 text-red-800'
-  },
-  reestruturacao: {
-    name: 'Reestruturação',
-    description: 'Templates para reestruturação empresarial',
-    color: 'bg-indigo-100 text-indigo-800'
-  }
-};
+const CATEGORY_COLORS = [
+  'bg-blue-100 text-blue-800',
+  'bg-green-100 text-green-800',
+  'bg-purple-100 text-purple-800',
+  'bg-amber-100 text-amber-800',
+  'bg-red-100 text-red-800',
+  'bg-indigo-100 text-indigo-800',
+  'bg-pink-100 text-pink-800',
+  'bg-teal-100 text-teal-800',
+];
+
+const BRIEFING_SERVICE_CATEGORIES = Object.fromEntries(
+  Object.entries(SERVICE_CATEGORIES).map(([key, name], index) => [
+    key,
+    {
+      name,
+      description: `Templates de briefing para serviços de ${name.toLowerCase()}`,
+      color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+    },
+  ])
+);
 
 export default function BriefingTemplatesPage() {
   const { user, agencyId } = useSession();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('gestao_financeira');
+  const [activeCategory, setActiveCategory] = useState(DEFAULT_SERVICE_CATEGORY);
   const [showEditor, setShowEditor] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
 
@@ -121,7 +111,7 @@ export default function BriefingTemplatesPage() {
   };
 
   const templatesByCategory = templates.reduce((acc, template) => {
-    const category = template.serviceType || 'gestao_financeira';
+    const category = template.serviceType || DEFAULT_SERVICE_CATEGORY;
     if (!acc[category]) acc[category] = [];
     acc[category].push(template);
     return acc;
@@ -153,15 +143,15 @@ export default function BriefingTemplatesPage() {
         </div>
 
         <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-          <TabsList className="grid grid-cols-6 w-full">
-            {Object.entries(SERVICE_CATEGORIES).map(([key, category]) => (
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full">
+            {Object.entries(BRIEFING_SERVICE_CATEGORIES).map(([key, category]) => (
               <TabsTrigger key={key} value={key} className="text-xs">
                 {category.name}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {Object.entries(SERVICE_CATEGORIES).map(([categoryKey, category]) => (
+          {Object.entries(BRIEFING_SERVICE_CATEGORIES).map(([categoryKey, category]) => (
             <TabsContent key={categoryKey} value={categoryKey} className="space-y-4">
               <Card>
                 <CardHeader>

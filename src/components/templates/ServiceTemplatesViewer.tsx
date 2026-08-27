@@ -28,9 +28,14 @@ import {
 } from 'lucide-react';
 import { DEFAULT_SERVICE_TEMPLATES } from '@/templates/defaultServiceTemplates';
 import { toast } from 'sonner';
+import {
+  getCategoryLabel as getServiceCategoryLabel,
+  getOfferingLabel,
+  SERVICE_OFFERING_TYPES,
+} from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesViewer() {
-  const [selectedTemplate, setSelectedTemplate] = useState('diagnostico_financeiro');
+  const [selectedTemplate, setSelectedTemplate] = useState('diagnostico_comunicacao');
   const [activeTab, setActiveTab] = useState('overview');
 
   const template = DEFAULT_SERVICE_TEMPLATES[selectedTemplate];
@@ -56,20 +61,22 @@ export default function ServiceTemplatesViewer() {
 
   const getCategoryColor = (category) => {
     const colors = {
-      'diagnostico_financeiro': 'bg-blue-100 text-blue-800',
-      'mentoria_precificacao': 'bg-green-100 text-green-800',
-      'gestao_financeira_360': 'bg-purple-100 text-purple-800'
+      diagnostico_comunicacao: 'bg-blue-100 text-blue-800',
+      estrategia_conteudo: 'bg-green-100 text-green-800',
+      marketing_360: 'bg-purple-100 text-purple-800',
+      comunicacao: 'bg-blue-100 text-blue-800',
+      conteudo: 'bg-green-100 text-green-800',
+      marketing_digital: 'bg-purple-100 text-purple-800',
+      // legado
+      diagnostico_financeiro: 'bg-blue-100 text-blue-800',
+      mentoria_precificacao: 'bg-green-100 text-green-800',
+      gestao_financeira_360: 'bg-purple-100 text-purple-800',
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
   const getCategoryLabel = (category) => {
-    const labels = {
-      'diagnostico_financeiro': 'Diagnóstico Financeiro',
-      'mentoria_precificacao': 'Mentoria em Precificação',
-      'gestao_financeira_360': 'Gestão Financeira 360'
-    };
-    return labels[category] || category;
+    return getOfferingLabel(category) || getServiceCategoryLabel(category);
   };
 
   const getPriorityColor = (priority) => {
@@ -126,7 +133,7 @@ export default function ServiceTemplatesViewer() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Templates Padrão de Serviços</h1>
           <p className="text-gray-600 mt-2">
-            Os 3 serviços principais de consultoria financeira com fases, tarefas e KPIs detalhados
+            Os 3 serviços principais de comunicação e marketing com fases, tarefas e KPIs detalhados
           </p>
         </div>
         
@@ -144,7 +151,10 @@ export default function ServiceTemplatesViewer() {
 
       {/* Template Selector */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(DEFAULT_SERVICE_TEMPLATES).map(([key, template]) => (
+        {Object.entries(SERVICE_OFFERING_TYPES).map(([key, offering]) => {
+          const offeringTemplate = DEFAULT_SERVICE_TEMPLATES[key];
+          if (!offeringTemplate) return null;
+          return (
           <Card 
             key={key}
             className={`cursor-pointer transition-all ${
@@ -156,36 +166,37 @@ export default function ServiceTemplatesViewer() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between">
-                <span className="text-lg">{template.name}</span>
-                <Badge className={getCategoryColor(template.category)}>
-                  {getCategoryLabel(template.category)}
+                <span className="text-lg">{offeringTemplate.name}</span>
+                <Badge className={getCategoryColor(key)}>
+                  {offering.label}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+              <p className="text-sm text-gray-600 mb-3">{offeringTemplate.description}</p>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4 text-gray-500" />
-                  <span>{template.pricing.estimated_hours}h</span>
+                  <span>{offeringTemplate.pricing.estimated_hours}h</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <span>{getDurationLabel(template)}</span>
+                  <span>{getDurationLabel(offeringTemplate)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <DollarSign className="w-4 h-4 text-gray-500" />
-                  <span>R$ {template.pricing.base_price.toLocaleString()}</span>
+                  <span>R$ {offeringTemplate.pricing.base_price.toLocaleString()}</span>
                 </div>
               </div>
               <div className="mt-2">
                 <Badge variant="outline" className="text-xs">
-                  {getBillingLabel(template.pricing.billing_cycle)}
+                  {getBillingLabel(offeringTemplate.pricing.billing_cycle)}
                 </Badge>
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Template Details */}

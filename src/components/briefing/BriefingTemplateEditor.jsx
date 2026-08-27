@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { BriefingTemplate } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
+import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
 const QUESTION_TYPES = {
   long_text: 'Texto Longo',
@@ -42,7 +43,7 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    serviceType: 'gestao_financeira',
+    serviceType: DEFAULT_SERVICE_CATEGORY,
     language: 'pt',
     version: '1.0',
     categories: [],
@@ -58,7 +59,7 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
       setFormData({
         name: template.name || '',
         description: template.description || '',
-        serviceType: template.serviceType || 'gestao_financeira',
+        serviceType: template.serviceType || DEFAULT_SERVICE_CATEGORY,
         language: template.language || 'pt',
         version: template.version || '1.0',
         categories: template.categories || [],
@@ -209,7 +210,7 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Ex: Diagnóstico Financeiro Completo"
+                      placeholder="Ex: Diagnóstico de Comunicação e Marca"
                     />
                   </div>
                   <div>
@@ -222,12 +223,9 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gestao_financeira">Gestão Financeira</SelectItem>
-                        <SelectItem value="consultoria_tributaria">Consultoria Tributária</SelectItem>
-                        <SelectItem value="valuation">Valuation</SelectItem>
-                        <SelectItem value="planejamento_financeiro">Planejamento Financeiro</SelectItem>
-                        <SelectItem value="fusao_aquisicao">Fusão e Aquisição</SelectItem>
-                        <SelectItem value="reestruturacao">Reestruturação</SelectItem>
+                        {Object.entries(SERVICE_CATEGORIES).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

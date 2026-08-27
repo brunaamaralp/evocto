@@ -8,15 +8,7 @@ import { Service } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import ServiceCreationWizard from './ServiceCreationWizard';
-
-const SERVICE_CATEGORIES = {
-  gestao_financeira: 'Gestão Financeira',
-  consultoria_tributaria: 'Consultoria Tributária',
-  valuation: 'Valuation',
-  planejamento_financeiro: 'Planejamento Financeiro',
-  fusao_aquisicao: 'Fusão e Aquisição',
-  reestruturacao: 'Reestruturação'
-};
+import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceModal({
   isOpen,

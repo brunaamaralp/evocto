@@ -41,6 +41,9 @@ import { useServiceFormValidation } from '@/hooks/useServiceFormValidation';
 import { useExitConfirmation, ExitConfirmationModal } from '@/hooks/useExitConfirmation';
 import { ServiceCreationProgress, ServiceCreationSummary } from '@/components/services/ServiceCreationFeedback';
 import BriefingValidation from '@/components/briefing/BriefingValidation';
+import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
+
+const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
 const WIZARD_STEPS = {
   SELECT_TEMPLATE: 1,
@@ -55,15 +58,6 @@ const STEP_TITLES = {
   [WIZARD_STEPS.PREVIEW_PHASES]: 'Preview e Confirmação',
   [WIZARD_STEPS.BRIEFING_REQUIREMENT]: 'Briefing Obrigatório'
 };
-
-const CATEGORY_OPTIONS = [
-  { value: 'gestao_financeira', label: 'Gestão Financeira' },
-  { value: 'consultoria_tributaria', label: 'Consultoria Tributária' },
-  { value: 'valuation', label: 'Valuation' },
-  { value: 'planejamento_financeiro', label: 'Planejamento Financeiro' },
-  { value: 'fusao_aquisicao', label: 'Fusão & Aquisição' },
-  { value: 'reestruturacao', label: 'Reestruturação' }
-];
 
 const SERVICE_STATUS_OPTIONS = [
   { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
@@ -315,7 +309,7 @@ export default function RefactoredServiceCreateModal({
                 )}
               </div>
               <Badge variant="outline">
-                {CATEGORY_OPTIONS.find(c => c.value === template.category)?.label || template.category}
+                {getCategoryLabel(template.category)}
               </Badge>
             </CardHeader>
             <CardContent>
@@ -355,7 +349,7 @@ export default function RefactoredServiceCreateModal({
             id="service_name"
             value={serviceConfig.name}
             onChange={(e) => setServiceConfig(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Ex: Consultoria Financeira Q1 2024"
+            placeholder="Ex: Marketing Digital Q1 2024"
           />
         </div>
         <div>
@@ -533,7 +527,7 @@ export default function RefactoredServiceCreateModal({
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-500">Categoria</Label>
-              <p>{CATEGORY_OPTIONS.find(c => c.value === selectedTemplate?.category)?.label}</p>
+              <p>{getCategoryLabel(selectedTemplate?.category)}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-500">Entregáveis</Label>

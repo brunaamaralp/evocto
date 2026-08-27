@@ -25,6 +25,7 @@ import {
   FileText, Calendar, DollarSign, LayoutTemplate
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
 
 export default function ServiceEditModal({ 
   isOpen, 
@@ -174,18 +175,6 @@ export default function ServiceEditModal({
     }));
   };
 
-  const getCategoryLabel = (category) => {
-    const labels = {
-      'gestao_financeira': 'Gestão Financeira',
-      'consultoria_tributaria': 'Consultoria Tributária',
-      'valuation': 'Valuation',
-      'planejamento_financeiro': 'Planejamento Financeiro',
-      'fusao_aquisicao': 'Fusão & Aquisição',
-      'reestruturacao': 'Reestruturação'
-    };
-    return labels[category] || category;
-  };
-
   const getTaskTypeLabel = (type) => {
     const labels = {
       'analise_documentos': 'Análise de Documentos',
@@ -288,12 +277,9 @@ export default function ServiceEditModal({
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gestao_financeira">Gestão Financeira</SelectItem>
-                      <SelectItem value="consultoria_tributaria">Consultoria Tributária</SelectItem>
-                      <SelectItem value="valuation">Valuation</SelectItem>
-                      <SelectItem value="planejamento_financeiro">Planejamento Financeiro</SelectItem>
-                      <SelectItem value="fusao_aquisicao">Fusão & Aquisição</SelectItem>
-                      <SelectItem value="reestruturacao">Reestruturação</SelectItem>
+                      {Object.entries(SERVICE_CATEGORIES).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

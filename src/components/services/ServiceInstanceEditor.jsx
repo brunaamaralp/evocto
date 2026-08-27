@@ -26,6 +26,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 const SERVICE_STATUS_OPTIONS = [
   { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
@@ -364,7 +365,7 @@ export default function ServiceInstanceEditor({
                     id="service-name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ex: Gestão Financeira - Cliente ABC"
+                    placeholder="Ex: Marketing Operacional 360 - Cliente ABC"
                   />
                 </div>
 
@@ -401,12 +402,9 @@ export default function ServiceInstanceEditor({
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gestao_financeira">Gestão Financeira</SelectItem>
-                      <SelectItem value="consultoria_tributaria">Consultoria Tributária</SelectItem>
-                      <SelectItem value="valuation">Valuation</SelectItem>
-                      <SelectItem value="planejamento_financeiro">Planejamento Financeiro</SelectItem>
-                      <SelectItem value="fusao_aquisicao">Fusão & Aquisição</SelectItem>
-                      <SelectItem value="reestruturacao">Reestruturação</SelectItem>
+                      {Object.entries(SERVICE_CATEGORIES).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

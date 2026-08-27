@@ -44,28 +44,28 @@ const REPORT_TYPES = [
   {
     id: 'diagnostic_final',
     name: 'Diagnóstico Final',
-    description: 'Relatório consolidado de diagnóstico financeiro',
+    description: 'Relatório consolidado de diagnóstico de comunicação e marca',
     icon: TrendingUp,
     formats: ['pdf']
   },
   {
-    id: 'margin_implementation',
-    name: 'Implementação - Aumento de Margem',
-    description: 'Resultados da implementação de aumento de margem',
+    id: 'content_strategy_report',
+    name: 'Estratégia de Conteúdo',
+    description: 'Pilares, narrativa e calendário editorial definidos',
     icon: PieChart,
     formats: ['pdf']
   },
   {
-    id: 'gf360_monthly',
-    name: 'GF360 Mensal',
-    description: 'Relatório mensal da Gestão Financeira 360',
+    id: 'marketing_360_monthly',
+    name: 'Marketing 360 Mensal',
+    description: 'Relatório mensal do retainer de marketing operacional',
     icon: FileText,
     formats: ['pdf']
   },
   {
-    id: 'gf360_final',
-    name: 'GF360 Final',
-    description: 'Relatório final de encerramento GF360 (10 meses)',
+    id: 'marketing_360_final',
+    name: 'Marketing 360 — Encerramento',
+    description: 'Relatório final de encerramento do ciclo / contrato',
     icon: Settings,
     formats: ['pdf']
   }

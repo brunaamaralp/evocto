@@ -96,6 +96,9 @@ export function MobileDashboard() {
     },
     kpis: {
       financial: {
+        roas: 3.2,
+        cac: 85,
+        ctr: 2.4,
         revenue: 1250000,
         profit: 312500,
         margin: 25.0,
@@ -364,28 +367,28 @@ export function MobileDashboard() {
 
   const KPIsTab = () => (
     <div className="space-y-4 p-4">
-      {/* KPIs Financeiros */}
+      {/* KPIs de Performance */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">KPIs Financeiros</CardTitle>
+          <CardTitle className="text-base">KPIs de Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(mockData.kpis.financial.revenue)}</div>
-              <div className="text-xs text-gray-600">Receita Total</div>
+              <div className="text-2xl font-bold text-green-600">{mockData.kpis.financial.roas.toFixed(1)}x</div>
+              <div className="text-xs text-gray-600">ROAS</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{formatPercentage(mockData.kpis.financial.margin)}</div>
-              <div className="text-xs text-gray-600">Margem de Lucro</div>
+              <div className="text-2xl font-bold text-blue-600">{formatCurrency(mockData.kpis.financial.cac)}</div>
+              <div className="text-xs text-gray-600">CAC</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{formatPercentage(mockData.kpis.financial.roi)}</div>
-              <div className="text-xs text-gray-600">ROI</div>
+              <div className="text-2xl font-bold text-purple-600">{formatPercentage(mockData.kpis.financial.ctr)}</div>
+              <div className="text-xs text-gray-600">CTR</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(mockData.kpis.financial.cashFlow)}</div>
-              <div className="text-xs text-gray-600">Fluxo de Caixa</div>
+              <div className="text-2xl font-bold text-orange-600">{formatPercentage(mockData.kpis.financial.margin)}</div>
+              <div className="text-xs text-gray-600">Taxa de Conversão</div>
             </div>
           </div>
         </CardContent>
@@ -426,10 +429,10 @@ export function MobileDashboard() {
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={[
-              { name: 'Receita', value: mockData.kpis.financial.revenue / 1000, target: 1200 },
-              { name: 'Margem', value: mockData.kpis.financial.margin, target: 30 },
-              { name: 'ROI', value: mockData.kpis.financial.roi, target: 20 },
-              { name: 'Conclusão', value: mockData.kpis.operational.projectCompletion, target: 90 },
+              { name: 'ROAS', value: mockData.kpis.financial.roas, target: 3 },
+              { name: 'CAC', value: mockData.kpis.financial.cac, target: 100 },
+              { name: 'CTR', value: mockData.kpis.financial.ctr, target: 2.5 },
+              { name: 'Conclusão', value: mockData.kpis.financial.margin, target: 30 },
               { name: 'Satisfação', value: mockData.kpis.operational.clientSatisfaction * 20, target: 80 },
               { name: 'Utilização', value: mockData.kpis.operational.teamUtilization, target: 85 }
             ]}>

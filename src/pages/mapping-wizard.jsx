@@ -294,7 +294,7 @@ export default function MappingWizard() {
                     <SelectItem value="FinancialKPI">
                       <div className="flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" />
-                        KPIs Financeiros
+                        KPIs de Performance
                       </div>
                     </SelectItem>
                   </SelectContent>

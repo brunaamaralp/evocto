@@ -27,7 +27,7 @@ import { toast } from 'sonner';
 
 export default function BriefingDemoPage() {
   const [activeTab, setActiveTab] = useState('briefing');
-  const [selectedService, setSelectedService] = useState('diagnostico_avulso');
+  const [selectedService, setSelectedService] = useState('diagnostico_comunicacao');
   const [demoServiceId] = useState('demo-service-123');
   const [demoClientId] = useState('demo-client-456');
 
@@ -80,9 +80,9 @@ export default function BriefingDemoPage() {
   ];
 
   const serviceTypes = [
-    { value: 'diagnostico_avulso', label: 'Diagnóstico Financeiro Avulso' },
-    { value: 'mentoria_margem', label: 'Mentoria em Precificação' },
-    { value: 'gestao_360', label: 'Gestão Financeira 360' }
+    { value: 'diagnostico_comunicacao', label: 'Diagnóstico de Comunicação e Marca' },
+    { value: 'estrategia_conteudo', label: 'Estratégia de Conteúdo e Posicionamento' },
+    { value: 'marketing_360', label: 'Marketing Operacional 360' }
   ];
 
   const handleBriefingSubmitted = (result) => {
@@ -144,8 +144,8 @@ export default function BriefingDemoPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-orange-600">
-              {selectedService === 'diagnostico_avulso' ? '1' : 
-               selectedService === 'mentoria_margem' ? '4' : '12'}
+              {selectedService === 'diagnostico_comunicacao' ? '1' : 
+               selectedService === 'estrategia_conteudo' ? '4' : '12'}
             </div>
             <div className="text-sm text-gray-600">Meses de Duração</div>
           </CardContent>
@@ -175,9 +175,9 @@ export default function BriefingDemoPage() {
                 <CardContent className="p-4">
                   <h3 className="font-medium">{service.label}</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {service.value === 'diagnostico_avulso' && 'Análise financeira rápida e parecer'}
-                    {service.value === 'mentoria_margem' && 'Correção de precificação e aumento de margem'}
-                    {service.value === 'gestao_360' && 'Gestão financeira completa e contínua'}
+                    {service.value === 'diagnostico_comunicacao' && 'Diagnóstico de marca, mensagem e presença digital'}
+                    {service.value === 'estrategia_conteudo' && 'Estratégia editorial e posicionamento de marca'}
+                    {service.value === 'marketing_360' && 'Operação completa de marketing e performance'}
                   </p>
                 </CardContent>
               </Card>
