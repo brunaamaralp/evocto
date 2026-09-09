@@ -46,7 +46,7 @@ function GlossaryCard({ item }) {
         <div className="p-4 border rounded-lg bg-white">
             <h3 className="font-semibold text-base text-slate-900">{item.title}</h3>
             <p className="text-sm text-slate-600 mt-1">{item.short}</p>
-            <p className="text-xs text-slate-500 mt-2 italic">"{item.whenToUse}"</p>
+            <p className="text-xs text-slate-500 mt-2 italic">“{item.whenToUse}“</p>
             
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">

@@ -64,7 +64,7 @@ export default function GapAnalysis({ gaps = [], score = 0, isAnalyzing, onAddQu
                             )}
                         </div>
                         <p className="text-sm text-slate-800 font-medium">{gap.description}</p>
-                        <p className="text-xs text-slate-500 italic mt-1">"{gap.followUpQuestion}"</p>
+                        <p className="text-xs text-slate-500 italic mt-1">“{gap.followUpQuestion}“</p>
                         <div className="flex gap-2 mt-3">
                            <Button size="sm" variant="outline" onClick={() => onAddQuestion(gap.id, gap.followUpQuestion)}>
                              <Plus className="w-3 h-3 mr-1.5"/> Adicionar Pergunta

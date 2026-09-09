@@ -544,7 +544,7 @@ export default function CycleClosing() {
       <Alert>
         <AlertDescription className="flex items-center justify-between">
           <span>
-            Complete as informações principais e clique em "Finalizar Ciclo" para gerar o relatório final.
+            Complete as informações principais e clique em “Finalizar Ciclo“ para gerar o relatório final.
           </span>
           <Button 
             variant="outline" 

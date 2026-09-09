@@ -300,7 +300,7 @@ export default function CycleReport() {
             {closingData.client_feedback && (
               <div>
                 <h4 className="font-semibold text-slate-900 mb-2 text-sm">Feedback</h4>
-                <p className="text-sm text-slate-600 italic">"{closingData.client_feedback}"</p>
+                <p className="text-sm text-slate-600 italic">“{closingData.client_feedback}“</p>
               </div>
             )}
           </CardContent>

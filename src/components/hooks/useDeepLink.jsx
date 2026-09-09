@@ -86,16 +86,18 @@ export function useDeepLink(entityType, entityId, options = {}) {
           case 'client':
             entityData = await loadClientWithContext(entityId, prefetchRelations);
             break;
-          case 'service':
+          case 'service': {
             const serviceResult = await loadServiceWithContext(entityId, prefetchRelations);
             entityData = serviceResult.entity;
             contextData = serviceResult.context;
             break;
-          case 'project':
+          }
+          case 'project': {
             const projectResult = await loadProjectWithContext(entityId, prefetchRelations);
             entityData = projectResult.entity;
             contextData = projectResult.context;
             break;
+          }
           default:
             throw new Error(`Unsupported entity type: ${entityType}`);
         }

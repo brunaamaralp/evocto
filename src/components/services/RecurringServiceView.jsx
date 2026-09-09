@@ -277,7 +277,7 @@ const ProximoCicloCard = ({ ciclo }) => (
                     <Sparkles className="w-5 h-5 text-orange-500" />
                     <h4 className="font-bold text-slate-900">Sugestão da IA</h4>
                 </div>
-                <p className="text-sm text-slate-700 italic">"{ciclo.planoProposto.justificativaIA}"</p>
+                <p className="text-sm text-slate-700 italic">“{ciclo.planoProposto.justificativaIA}“</p>
                 <p className="text-xs text-slate-500 mt-2">
                     <strong>Fontes:</strong> {ciclo.planoProposto.fontesInsumo.join(', ')}
                 </p>

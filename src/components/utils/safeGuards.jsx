@@ -80,7 +80,7 @@ export const hasFeature = (user, agency, featureName) => {
     
     // Verificar se a agência tem configuração específica
     const agencyFeatures = safeGet(agency, 'feature_flags', {});
-    if (agencyFeatures.hasOwnProperty(featureName)) {
+    if (Object.hasOwn(agencyFeatures, featureName)) {
       return agencyFeatures[featureName];
     }
     

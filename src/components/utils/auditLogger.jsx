@@ -55,7 +55,7 @@ class AuditLogger {
         field,
         old_value: isSensitive ? '[MASKED]' : oldValue,
         new_value: isSensitive ? '[MASKED]' : newValue,
-        field_type: typeof newValue || typeof oldValue,
+        field_type: typeof (newValue ?? oldValue),
         is_sensitive: isSensitive
       });
     });

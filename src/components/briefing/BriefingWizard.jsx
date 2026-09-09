@@ -413,7 +413,7 @@ function QuestionInput({ question, value, onChange, _language }) {
         </div>
       );
 
-    case 'multiple_choice_multiple':
+    case 'multiple_choice_multiple': {
       const selectedOptions = Array.isArray(value) ? value : [];
       
       return (
@@ -437,6 +437,7 @@ function QuestionInput({ question, value, onChange, _language }) {
           ))}
         </div>
       );
+    }
 
     default:
       return <Input {...inputProps} />;

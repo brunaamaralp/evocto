@@ -303,7 +303,7 @@ function FinalConfirmationStep({ _approval, action, comment, onConfirm, onBack, 
           <CardContent className="p-4">
             <Label className="text-sm font-medium text-gray-700">Seus comentários:</Label>
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-900 italic">"{comment}"</p>
+              <p className="text-sm text-gray-900 italic">“{comment}“</p>
             </div>
           </CardContent>
         </Card>

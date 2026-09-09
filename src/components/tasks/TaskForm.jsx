@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import TaskNotificationService from '@/components/notifications/TaskNotificationService';
 import { InvokeLLM } from "@/api/integrations";
+import { buildTaskScopeFields } from '@/lib/taskScope';
 
 // Status das tarefas
 const TASK_STATUSES = [
@@ -266,6 +267,7 @@ export const TaskForm = ({
   onSave, 
   clientId, 
   cycleId,
+  briefingId = null,
   serviceId,
   defaultStatus = 'todo' 
 }) => {
@@ -335,10 +337,11 @@ export const TaskForm = ({
         clientId,
         cycleId,
         serviceId,
-        agencyId: user?.agencyId
+        agencyId: user?.agencyId,
+        ...buildTaskScopeFields({ cycleId, briefingId }),
       });
     }
-  }, [isOpen, task, defaultStatus, clientId, cycleId, serviceId, user?.agencyId]);
+  }, [isOpen, task, defaultStatus, clientId, cycleId, briefingId, serviceId, user?.agencyId]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -432,6 +435,10 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
         clientId: clientId || formData.clientId,
         cycleId: cycleId || formData.cycleId,
         serviceId: serviceId || formData.serviceId,
+        ...buildTaskScopeFields({
+          cycleId: cycleId || formData.cycleId || formData.cyclePlanId,
+          briefingId: briefingId || formData.briefingId || formData.briefId,
+        }),
         estimatedHours: formData.estimatedHours ? parseFloat(formData.estimatedHours) : null,
         assignedTo: formData.assignedTo === "" ? null : formData.assignedTo,
         assigneeId: formData.assignedTo === "" ? null : formData.assignedTo,

@@ -44,7 +44,7 @@ export function SessionManager({ children, isPublicPage = false }) {
     try {
       // Verificar se a organização tem configuração específica
       const agencyFeatures = agency?.feature_flags || {};
-      if (agencyFeatures.hasOwnProperty(featureName)) {
+      if (Object.hasOwn(agencyFeatures, featureName)) {
         return agencyFeatures[featureName];
       }
 

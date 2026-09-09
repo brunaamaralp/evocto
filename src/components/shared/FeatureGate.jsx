@@ -91,7 +91,7 @@ export function useFeatures() {
     
     // Verificar se a agência tem configuração específica
     const agencyFeatures = agency?.feature_flags || {};
-    if (agencyFeatures.hasOwnProperty(featureName)) {
+    if (Object.hasOwn(agencyFeatures, featureName)) {
       return agencyFeatures[featureName];
     }
     

@@ -227,7 +227,7 @@ export default function ClientProgressStepper({ service, _currentPhase, _onPhase
               
               <div className="flex-1">
                 <h3 className="font-semibold mb-2">
-                  Após "{currentPhaseData.name}": {nextPhase.name}
+                  Após “{currentPhaseData.name}“: {nextPhase.name}
                 </h3>
                 <p className="text-gray-600 mb-3">
                   {PHASE_DESCRIPTIONS[nextPhase.category]?.description || nextPhase.description}

@@ -258,7 +258,7 @@ export default function ClientValidationChecklist() {
       ];
 
       const hasEditableFields = editableFields.some(field => 
-        briefing.hasOwnProperty(field)
+        Object.hasOwn(briefing, field)
       );
 
       // Simular teste de edição (sem modificar dados)

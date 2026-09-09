@@ -174,7 +174,7 @@ export default function BriefingEvolutionProposals({ clientId, briefId, proposal
               </div>
               <div className="bg-blue-50 text-blue-900 p-3 rounded-md text-sm border border-blue-200">
                 <p className="font-semibold text-xs mb-1">Justificativa da IA:</p>
-                <p className="italic">"{proposal.justificativa}"</p>
+                <p className="italic">“{proposal.justificativa}“</p>
               </div>
                {proposal.impacto === 'Alto' && (
                 <Alert variant="destructive" className="bg-red-50 border-red-200">

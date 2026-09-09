@@ -259,7 +259,7 @@ function TourStepDemo({ step }) {
             </CardContent>
           </Card>
           <p className="text-sm text-gray-600">
-            👆 Clique em "Revisar" para ver o conteúdo completo e tomar sua decisão.
+            👆 Clique em “Revisar“ para ver o conteúdo completo e tomar sua decisão.
           </p>
         </div>
       );

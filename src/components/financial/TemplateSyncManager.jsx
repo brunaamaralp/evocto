@@ -357,7 +357,7 @@ export default function TemplateSyncManager({
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       {syncResults.summary.instancesWithErrors} instância(s) tiveram erros durante a sincronização.
-                      Verifique a aba "Detalhes" para mais informações.
+                      Verifique a aba “Detalhes“ para mais informações.
                     </AlertDescription>
                   </Alert>
                 )}

@@ -130,7 +130,7 @@ function DragPlaceholder({ column, isDraggingOver, draggedItem }) {
       <div className="flex items-center gap-2 text-blue-600">
         <div className="w-4 h-4 bg-blue-300 rounded animate-bounce" />
         <span className="text-sm font-medium">
-          Solte aqui em "{column.title}"
+          Solte aqui em “{column.title}“
         </span>
       </div>
       {draggedItem && (

@@ -225,13 +225,9 @@ export class AdvancedCacheSystem extends EventEmitter {
     }
 
     // Se não há cache, buscar normalmente
-    try {
-      const freshValue = await fetchFunction();
-      this.set(key, freshValue, options);
-      return freshValue;
-    } catch (error) {
-      throw error;
-    }
+    const freshValue = await fetchFunction();
+    this.set(key, freshValue, options);
+    return freshValue;
   }
 
   /**
@@ -249,13 +245,9 @@ export class AdvancedCacheSystem extends EventEmitter {
    * Estratégia Network Only
    */
   async networkOnlyStrategy(key, fetchFunction, options) {
-    try {
-      const freshValue = await fetchFunction();
-      this.set(key, freshValue, options);
-      return freshValue;
-    } catch (error) {
-      throw error;
-    }
+    const freshValue = await fetchFunction();
+    this.set(key, freshValue, options);
+    return freshValue;
   }
 
   /**

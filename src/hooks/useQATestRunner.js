@@ -196,7 +196,7 @@ async function executeTestSuite(testType, testContext) {
 // Implementações específicas de cada tipo de teste
 async function executeKanbanClientStep(stepIndex, stepName, testContext) {
   switch (stepIndex) {
-    case 0: // Carregar quadro do cliente
+    case 0: { // Carregar quadro do cliente
       let clientId = testContext.clientId;
       if (!clientId) {
         const clients = await Client.filter({
@@ -223,6 +223,7 @@ async function executeKanbanClientStep(stepIndex, stepName, testContext) {
         details: `Quadro carregado em ${Math.round(loadTime)}ms com ${clientTasks.length} tarefas`,
         contextData: { clientId: clientId, serviceId: testContext.serviceId }
       };
+    }
 
     default:
       return { details: `Step ${stepIndex} executado`, contextData: testContext };
@@ -231,7 +232,7 @@ async function executeKanbanClientStep(stepIndex, stepName, testContext) {
 
 async function executeKanbanGlobalStep(stepIndex, stepName, testContext) {
   switch (stepIndex) {
-    case 0: // Carregar quadro global
+    case 0: { // Carregar quadro global
       const startTime = performance.now();
       const allTasks = await Task.filter({
         agencyId: testContext.agencyId
@@ -246,6 +247,7 @@ async function executeKanbanGlobalStep(stepIndex, stepName, testContext) {
         details: `Quadro global carregado em ${Math.round(loadTime)}ms com ${allTasks.length} tarefas`,
         contextData: { ...testContext }
       };
+    }
 
     default:
       return { details: `Step ${stepIndex} executado`, contextData: testContext };
@@ -254,7 +256,7 @@ async function executeKanbanGlobalStep(stepIndex, stepName, testContext) {
 
 async function executePerformanceStep(stepIndex, stepName, testContext) {
   switch (stepIndex) {
-    case 0: // Medir tempo de carregamento
+    case 0: { // Medir tempo de carregamento
       const loadStart = performance.now();
       const largeTasks = await Task.filter({
         agencyId: testContext.agencyId
@@ -269,6 +271,7 @@ async function executePerformanceStep(stepIndex, stepName, testContext) {
         details: `${largeTasks.length} tarefas carregadas em ${Math.round(loadDuration)}ms`,
         contextData: { ...testContext }
       };
+    }
 
     default:
       return { details: `Step ${stepIndex} executado`, contextData: testContext };
@@ -277,7 +280,7 @@ async function executePerformanceStep(stepIndex, stepName, testContext) {
 
 async function executeStressStep(stepIndex, stepName, testContext) {
   switch (stepIndex) {
-    case 0: // Medir tempo com dados grandes
+    case 0: { // Medir tempo com dados grandes
       const loadStart = performance.now();
       const largeTasks = await Task.filter({
         agencyId: testContext.agencyId
@@ -292,6 +295,7 @@ async function executeStressStep(stepIndex, stepName, testContext) {
         details: `${largeTasks.length} tarefas carregadas em ${Math.round(loadDuration)}ms`,
         contextData: { ...testContext }
       };
+    }
 
     default:
       return { details: `Step ${stepIndex} executado`, contextData: testContext };
@@ -300,7 +304,7 @@ async function executeStressStep(stepIndex, stepName, testContext) {
 
 async function executeConsistencyStep(stepIndex, stepName, testContext) {
   switch (stepIndex) {
-    case 0: // Verificar integridade de dados
+    case 0: { // Verificar integridade de dados
       const tasks = await Task.filter({
         agencyId: testContext.agencyId
       }, '-updated_date', 10);
@@ -320,6 +324,7 @@ async function executeConsistencyStep(stepIndex, stepName, testContext) {
         details: `${tasksWithValidClient}/${tasks.length} tarefas têm cliente válido`,
         contextData: { ...testContext }
       };
+    }
 
     default:
       return { details: `Step ${stepIndex} executado`, contextData: testContext };

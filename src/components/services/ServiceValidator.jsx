@@ -265,21 +265,23 @@ export default function ServiceValidator({ onValidate }) {
 
   const getRuleDetails = (rule, systemResults) => {
     switch (rule.id) {
-      case 'template_no_client':
+      case 'template_no_client': {
         const templateClientIssues = systemResults.issues?.filter(i => 
           i.type === 'template' && i.issues?.some(issue => issue.rule === 'template_no_client')
         );
         return templateClientIssues?.length ? 
           `${templateClientIssues.length} template(s) com clientId indevido` : 
           'Todos os templates estão corretos';
+      }
           
-      case 'instance_requires_client':
+      case 'instance_requires_client': {
         const instanceClientIssues = systemResults.issues?.filter(i => 
           i.type === 'instance' && i.issues?.some(issue => issue.rule === 'instance_requires_client')
         );
         return instanceClientIssues?.length ? 
           `${instanceClientIssues.length} instância(s) sem clientId` : 
           'Todas as instâncias têm clientId';
+      }
           
       case 'instance_has_base_service':
         return systemResults.orphaned_instances?.length ? 

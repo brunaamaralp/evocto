@@ -126,7 +126,7 @@ const PendingValidationCard = ({ validation }) => (
           <Badge className="bg-amber-100 text-amber-800">{validation.type}</Badge>
           <span className="text-xs text-slate-500">Proposto por: {validation.proposer}</span>
         </div>
-        <p className="font-semibold text-slate-900 mb-2">"{validation.proposedChange}"</p>
+        <p className="font-semibold text-slate-900 mb-2">“{validation.proposedChange}“</p>
         <p className="text-sm text-slate-700">
           <strong>Justificativa:</strong> {validation.reason}
         </p>

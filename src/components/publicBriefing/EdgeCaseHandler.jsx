@@ -33,7 +33,7 @@ export default function EdgeCaseHandler({
       // Calcular uso de storage
       let totalSize = 0;
       for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
+        if (Object.hasOwn(localStorage, key)) {
           totalSize += localStorage[key].length + key.length;
         }
       }

@@ -140,7 +140,9 @@ export default function TaskDrawer() {
       setTimeout(() => {
         try {
           if (firstFieldRef.current) firstFieldRef.current.focus();
-        } catch {}
+        } catch (_err) {
+          // ignore focus failures
+        }
       }, 100);
       
     } catch (e) {

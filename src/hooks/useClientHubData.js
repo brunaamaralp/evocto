@@ -10,11 +10,161 @@ import { LearningEntry } from '@/api/entities';
 import { EvolutionEvent } from '@/api/entities';
 import { FinancialKPI } from '@/api/entities';
 import { createPageUrl } from '@/utils';
+import {
+  buildClientTasksHref,
+  getTaskBriefIds,
+  getTaskCycleIds,
+} from '@/lib/taskScope';
 
-const DONE_TASK_STATUSES = new Set(['completed', 'done', 'cancelled', 'canceled']);
+const DONE_TASK_STATUSES = new Set(['completed', 'done']);
+const CANCELLED_TASK_STATUSES = new Set(['cancelled', 'canceled']);
+const CLOSED_TASK_STATUSES = new Set([...DONE_TASK_STATUSES, ...CANCELLED_TASK_STATUSES]);
 const ACTIVE_CYCLE_STATUSES = new Set(['approved', 'in_execution']);
 const INCOMPLETE_BRIEF_STATUSES = new Set(['DRAFT', 'IN_REVIEW', 'draft', 'in_review']);
+const ACTIVE_CAMPAIGN_BRIEF_STATUSES = new Set([
+  'READY',
+  'APPROVED',
+  'IN_REVIEW',
+  'in_review',
+  'ready',
+  'approved',
+]);
 const URGENT_PRIORITIES = new Set(['high', 'urgent', 'critical', 'alta', 'urgente']);
+const PENDING_TASK_STATUSES = new Set(['todo', 'in_progress', 'pending', 'in_review', 'blocked']);
+
+function briefCycleId(brief) {
+  return brief?.ciclo_id || brief?.cycleId || brief?.cyclePlanId || null;
+}
+
+function isCampaignBrief(brief) {
+  if (!brief) return false;
+  if (brief.brief_kind === 'campanha_anual') return false;
+  if (brief.brief_kind === 'campanha_mensal') return true;
+  return Boolean(brief.nome_campanha);
+}
+
+export function summarizeTasks(tasks = [], now = new Date()) {
+  const actionable = tasks.filter(
+    (t) => t?.id && !CANCELLED_TASK_STATUSES.has(String(t.status || ''))
+  );
+  const completed = actionable.filter((t) => DONE_TASK_STATUSES.has(String(t.status || '')));
+  const pending = actionable.filter((t) => !DONE_TASK_STATUSES.has(String(t.status || '')));
+  const inProgress = pending.filter((t) => String(t.status || '') === 'in_progress');
+  const overdue = pending.filter((t) => t.dueDate && new Date(t.dueDate) < now);
+  const total = actionable.length;
+  const percentComplete = total > 0 ? Math.round((completed.length / total) * 100) : 0;
+
+  return {
+    total,
+    completed: completed.length,
+    pending: pending.length,
+    inProgress: inProgress.length,
+    overdue: overdue.length,
+    percentComplete,
+  };
+}
+
+/**
+ * Campanhas em andamento (várias por ciclo). Progresso por briefing quando as
+ * tarefas têm briefingId; senão, progresso compartilhado do ciclo.
+ */
+export function deriveActiveCampaigns({
+  briefs = [],
+  cycles = [],
+  tasks = [],
+  services = [],
+  clientId,
+  now = new Date(),
+}) {
+  const activeCycles = cycles.filter((c) => ACTIVE_CYCLE_STATUSES.has(c?.status));
+  const activeCycleById = new Map(activeCycles.map((c) => [String(c.id), c]));
+  const serviceById = new Map(services.map((s) => [String(s.id), s]));
+
+  const tasksByCycle = new Map();
+  for (const task of tasks) {
+    for (const cycleId of getTaskCycleIds(task)) {
+      if (!tasksByCycle.has(cycleId)) tasksByCycle.set(cycleId, []);
+      tasksByCycle.get(cycleId).push(task);
+    }
+  }
+
+  const campaignBriefs = briefs.filter((brief) => {
+    if (!isCampaignBrief(brief)) return false;
+    if (INCOMPLETE_BRIEF_STATUSES.has(brief?.status) && brief.brief_kind !== 'campanha_mensal') {
+      return false;
+    }
+    const cicloId = briefCycleId(brief);
+    if (cicloId) return activeCycleById.has(String(cicloId));
+    return ACTIVE_CAMPAIGN_BRIEF_STATUSES.has(brief?.status);
+  });
+
+  return campaignBriefs
+    .map((brief) => {
+      const cicloId = briefCycleId(brief);
+      const cycle = cicloId ? activeCycleById.get(String(cicloId)) : null;
+      const cycleTasks = cicloId ? tasksByCycle.get(String(cicloId)) || [] : [];
+      const campaignTasks = tasks.filter((task) =>
+        getTaskBriefIds(task).includes(String(brief.id))
+      );
+      const hasCampaignScopedTasks = campaignTasks.length > 0;
+      const scopedTasks = hasCampaignScopedTasks
+        ? campaignTasks
+        : cycleTasks.length > 0
+          ? cycleTasks
+          : brief.serviceId
+            ? tasks.filter((t) => String(t.serviceId || '') === String(brief.serviceId))
+            : [];
+      const progress = summarizeTasks(scopedTasks, now);
+      const service =
+        (cycle?.serviceId && serviceById.get(String(cycle.serviceId))) ||
+        (brief.serviceId && serviceById.get(String(brief.serviceId))) ||
+        null;
+      const resolvedCycleId = cycle?.id || cicloId || null;
+      const resolvedServiceId = service?.id || cycle?.serviceId || brief.serviceId || null;
+
+      return {
+        id: brief.id,
+        name: brief.nome_campanha || brief.title || 'Campanha',
+        status: brief.status || brief.status_campanha || null,
+        briefKind: brief.brief_kind || 'campanha_mensal',
+        cycleId: resolvedCycleId,
+        cycleTitle: cycle?.title || cycle?.cyclePeriod || null,
+        cycleStatus: cycle?.status || null,
+        cyclePeriod: cycle?.cyclePeriod || null,
+        serviceId: resolvedServiceId,
+        serviceName: service?.name || null,
+        progress,
+        progressScope: hasCampaignScopedTasks
+          ? 'campaign'
+          : cycleTasks.length > 0
+            ? 'cycle'
+            : brief.serviceId
+              ? 'service'
+              : 'none',
+        href: createPageUrl(
+          `client-briefing?clientId=${clientId}&briefingId=${brief.id}`
+        ),
+        tasksHref: createPageUrl(
+          buildClientTasksHref({
+            clientId,
+            cycleId: resolvedCycleId,
+            briefingId: brief.id,
+            serviceId: resolvedServiceId,
+          })
+        ),
+        cycleHref: createPageUrl(
+          cycle?.serviceId
+            ? `delivery-workspace?serviceId=${cycle.serviceId}&section=tasks`
+            : `client-services?clientId=${clientId}`
+        ),
+      };
+    })
+    .sort((a, b) => {
+      const cycleCmp = String(a.cycleTitle || '').localeCompare(String(b.cycleTitle || ''));
+      if (cycleCmp !== 0) return cycleCmp;
+      return String(a.name).localeCompare(String(b.name));
+    });
+}
 
 async function safeFilter(entity, filters, order) {
   try {
@@ -47,7 +197,7 @@ export function buildAttentionItems({
   const now = new Date();
 
   for (const task of tasks) {
-    if (!task?.id || DONE_TASK_STATUSES.has(task.status)) continue;
+    if (!task?.id || CLOSED_TASK_STATUSES.has(String(task.status || ''))) continue;
     const overdue = task.dueDate && new Date(task.dueDate) < now;
     const urgent = URGENT_PRIORITIES.has(String(task.priority || '').toLowerCase());
 
@@ -60,7 +210,7 @@ export function buildAttentionItems({
         href: createPageUrl(`client-tasks?clientId=${clientId}`),
         priority: 1,
       });
-    } else if (urgent && ['todo', 'in_progress', 'pending'].includes(task.status)) {
+    } else if (urgent && PENDING_TASK_STATUSES.has(String(task.status || ''))) {
       items.push({
         id: `task-urgent-${task.id}`,
         type: 'task_urgent',
@@ -137,17 +287,33 @@ export function deriveHubMetrics({
     briefs,
     clientId,
   });
+  const taskStats = summarizeTasks(tasks);
+  const activeCampaigns = deriveActiveCampaigns({
+    briefs,
+    cycles,
+    tasks,
+    services,
+    clientId,
+  });
 
   return {
     activeServices,
     activeCycles,
+    activeCampaigns,
     pendingApprovals,
     attentionItems,
+    taskStats,
     counts: {
       services: activeServices.length,
       cyclesActive: activeCycles.length,
+      campaignsActive: activeCampaigns.length,
       approvalsPending: pendingApprovals.length,
       attention: attentionItems.length,
+      tasksPending: taskStats.pending,
+      tasksOverdue: taskStats.overdue,
+      tasksInProgress: taskStats.inProgress,
+      tasksCompleted: taskStats.completed,
+      percentComplete: taskStats.percentComplete,
       briefs: briefs.length,
       documents: documents.length,
       learnings: learnings.length,

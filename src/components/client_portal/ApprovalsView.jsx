@@ -76,15 +76,17 @@ export default function ApprovalsView({ clientId, dashboardData }) {
       let content = null;
       
       switch (approval.contentType) {
-        case 'briefing':
+        case 'briefing': {
           const { BriefingVersion } = await import('@/api/entities');
           content = await BriefingVersion.get(approval.contentId);
           break;
+        }
           
-        case 'cycle_plan':
+        case 'cycle_plan': {
           const { CyclePlan } = await import('@/api/entities');
           content = await CyclePlan.get(approval.contentId);
           break;
+        }
           
         default:
           content = { message: 'Preview não disponível para este tipo de conteúdo.' };

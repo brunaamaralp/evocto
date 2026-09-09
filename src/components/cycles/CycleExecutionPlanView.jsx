@@ -107,7 +107,7 @@ const ExecutionPlanCard = ({ plan, status, onEdit, onSend, onApprove }) => {
                 <div className="text-center text-slate-500">
                     <Sparkles className="w-12 h-12 mx-auto text-slate-400 mb-2"/>
                     <p className="font-medium">O Plano de Execução aparecerá aqui.</p>
-                    <p className="text-sm">Clique em "Gerar Plano com IA" para começar.</p>
+                    <p className="text-sm">Clique em “Gerar Plano com IA“ para começar.</p>
                 </div>
             </Card>
         );

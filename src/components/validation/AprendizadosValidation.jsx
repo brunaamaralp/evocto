@@ -484,7 +484,7 @@ export default function AprendizadosValidation() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               {validationResults.loadingIssues === 'fail' && <li>Corrigir erros de carregamento e fetch de dados</li>}
               {validationResults.pageStructure === 'fail' && <li>Melhorar estrutura da página com elementos essenciais</li>}
-              {validationResults.addLearning === 'fail' && <li>Implementar botão "Adicionar Aprendizado" funcional</li>}
+              {validationResults.addLearning === 'fail' && <li>Implementar botão “Adicionar Aprendizado“ funcional</li>}
               {validationResults.searchAndFilter === 'fail' && <li>Adicionar funcionalidade de busca e filtros</li>}
               {validationResults.navigation === 'fail' && <li>Corrigir título da página e navegação</li>}
             </ul>

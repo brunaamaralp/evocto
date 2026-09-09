@@ -141,7 +141,7 @@ export default function EditableCategory({ value, onChange, placeholder = "Digit
                   type="button"
                 >
                   <Plus className="h-3 w-3 inline mr-2" />
-                  Criar "{formatCategoryDisplay(inputValue)}"
+                  Criar “{formatCategoryDisplay(inputValue)}“
                 </button>
               )}
             </motion.div>

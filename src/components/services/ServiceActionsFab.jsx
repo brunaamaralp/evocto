@@ -49,7 +49,9 @@ export default function ServiceActionsFab() {
   const reload = () => {
     try {
       window.location.reload();
-    } catch (_) {}
+    } catch (_err) {
+      // ignore reload failures (e.g. restricted environments)
+    }
   };
 
   const activateAndGenerate = async () => {

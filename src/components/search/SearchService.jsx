@@ -42,12 +42,13 @@ export class SearchService {
           id: item.id, type, title: item.name, subtitle: `Serviço • ${client?.name || ''}`,
           meta: 'Serviço Recorrente', href: createPageUrl(`services/${item.id}`), score: 0
         };
-      case 'cycle':
+      case 'cycle': {
         const cycleClient = service ? mockDatabase.clients.find(c => c.id === service.clientId) : null;
         return {
           id: item.id, type, title: item.name, subtitle: `Ciclo • ${service?.name} • ${cycleClient?.name}`,
           meta: item.status, href: createPageUrl(`active-cycles?id=${item.id}`), score: 0
         };
+      }
       case 'workorder':
         return {
           id: item.id, type, title: item.title, subtitle: `Job • ${client?.name}`,

@@ -20,7 +20,7 @@ export default function BriefingUpdateProposals({ proposals }) {
                 {proposal.type}
               </Badge>
             </div>
-            <p className="text-sm text-slate-600 mt-1">"{proposal.change}"</p>
+            <p className="text-sm text-slate-600 mt-1">“{proposal.change}“</p>
             {proposal.evidence && <p className="text-xs text-slate-500 mt-1">Evidência: {proposal.evidence}</p>}
           </div>
         ))}

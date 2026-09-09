@@ -397,7 +397,7 @@ export default function ServiceEditModal({
                 <div className="text-center py-8 text-gray-500">
                   <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Nenhuma fase configurada</p>
-                  <p className="text-sm">Clique em "Adicionar Fase" para começar</p>
+                  <p className="text-sm">Clique em “Adicionar Fase“ para começar</p>
                 </div>
               ) : (
                 <div className="space-y-4">

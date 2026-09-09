@@ -160,7 +160,7 @@ export default function ClosingPanel() {
           <div className="p-3 rounded-md bg-amber-50 text-amber-700 text-sm flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 mt-0.5" />
             <div>
-              Para finalizar, recomenda-se mover o ciclo para "closing" e anexar os documentos finais. Você pode concluir mesmo em "{plan.status}".
+              Para finalizar, recomenda-se mover o ciclo para “closing“ e anexar os documentos finais. Você pode concluir mesmo em “{plan.status}“.
             </div>
           </div>
         )}

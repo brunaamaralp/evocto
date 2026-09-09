@@ -101,9 +101,10 @@ export default function ClientSetupWizard({ clientId, serviceId, onComplete }) {
 
   const getStepStatus = (stepId) => {
     switch (stepId) {
-      case 'briefing':
+      case 'briefing': {
         const briefingTask = tasks.find(t => t.type === 'briefing');
         return briefingTask?.status === 'completed' ? 'completed' : 'pending';
+      }
       
       case 'kpi_setup':
         return kpis.length > 0 ? 'completed' : 'pending';

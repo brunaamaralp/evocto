@@ -102,7 +102,7 @@ export default function TranslationAuditor() {
         {!results && (
           <div className="text-center py-8 text-gray-500">
             <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>Click "Run Audit" to check translation consistency</p>
+            <p>Click “Run Audit“ to check translation consistency</p>
           </div>
         )}
 

@@ -137,7 +137,7 @@ const TimelineEvent = ({ event, isLast }) => {
                         <div className="mb-2">
                           <span className="text-xs text-gray-600">Feedback: </span>
                           <p className="text-xs text-gray-700 mt-1 italic">
-                            "{event.details.feedback}"
+                            “{event.details.feedback}“
                           </p>
                         </div>
                       )}

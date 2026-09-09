@@ -182,7 +182,7 @@ export default function ClientActionButtons({
             <AlertDialogDescription>
               <div className="space-y-3">
                 <p>
-                  Tem certeza que deseja inativar o cliente <strong>"{client.name}"</strong>?
+                  Tem certeza que deseja inativar o cliente <strong>“{client.name}“</strong>?
                 </p>
                 
                 {relatedData && (
@@ -231,7 +231,7 @@ export default function ClientActionButtons({
             <AlertDialogDescription>
               <div className="space-y-4">
                 <p>
-                  Tem certeza que deseja <strong className="text-red-600">excluir permanentemente</strong> o cliente <strong>"{client.name}"</strong>?
+                  Tem certeza que deseja <strong className="text-red-600">excluir permanentemente</strong> o cliente <strong>“{client.name}“</strong>?
                 </p>
                 
                 {relatedData && (relatedData.services > 0 || relatedData.totalTasks > 0) && (

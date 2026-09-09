@@ -771,7 +771,7 @@ export default function EmptyStatesAudit() {
                   <div className="font-medium text-sm text-slate-700 mb-1">
                     {key.replace('_', ' ').toUpperCase()}
                   </div>
-                  <div className="text-slate-600 text-sm">"{text}"</div>
+                  <div className="text-slate-600 text-sm">“{text}“</div>
                 </div>
               ))}
             </TabsContent>
@@ -781,7 +781,7 @@ export default function EmptyStatesAudit() {
                   <div className="font-medium text-sm text-blue-700 mb-1">
                     {key.replace('_', ' ').toUpperCase()}
                   </div>
-                  <div className="text-blue-600 text-sm">"{text}"</div>
+                  <div className="text-blue-600 text-sm">“{text}“</div>
                 </div>
               ))}
             </TabsContent>

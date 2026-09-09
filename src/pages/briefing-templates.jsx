@@ -239,7 +239,7 @@ export default function BriefingTemplatesPage() {
                         <div className="text-center py-8 text-gray-500">
                           <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                           <p>Nenhum template criado para esta categoria</p>
-                          <p className="text-sm">Clique em "Novo" para criar o primeiro template</p>
+                          <p className="text-sm">Clique em “Novo“ para criar o primeiro template</p>
                         </div>
                       )}
                     </div>

@@ -34,14 +34,14 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
     tasks.forEach(task => {
       // Created tasks
       const createdDate = new Date(task.created_date).toISOString().split('T')[0];
-      if (tasksByDay.hasOwnProperty(createdDate)) {
+      if (Object.hasOwn(tasksByDay, createdDate)) {
         tasksByDay[createdDate]++;
       }
       
       // Completed tasks
       if (task.completedAt) {
         const completedDate = new Date(task.completedAt).toISOString().split('T')[0];
-        if (completedByDay.hasOwnProperty(completedDate)) {
+        if (Object.hasOwn(completedByDay, completedDate)) {
           completedByDay[completedDate]++;
         }
       }

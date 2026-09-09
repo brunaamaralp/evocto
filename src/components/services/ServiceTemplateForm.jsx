@@ -490,7 +490,7 @@ export default function ServiceTemplateForm({
               {formData.deliverables.length === 0 ? (
                 <div className="text-center py-8 border-2 border-dashed rounded-lg">
                   <p className="text-gray-500">
-                    Nenhuma etapa criada ainda. Clique em "Adicionar Etapa" para começar.
+                    Nenhuma etapa criada ainda. Clique em “Adicionar Etapa“ para começar.
                   </p>
                 </div>
               ) : (

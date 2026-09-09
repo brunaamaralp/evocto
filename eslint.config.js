@@ -63,10 +63,17 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/prop-types': 'off',
       'react/jsx-no-target-blank': 'off',
+      'react/display-name': 'warn',
+      'react/no-unknown-property': [
+        'error',
+        { ignore: ['cmdk-input-wrapper', 'toast-close'] },
+      ],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+      // Keep intentional incomplete deps visible without failing CI/lint gate.
+      'react-hooks/exhaustive-deps': 'warn',
       // Autofixable unused imports; keep vars/args under control with _ prefix.
       'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',

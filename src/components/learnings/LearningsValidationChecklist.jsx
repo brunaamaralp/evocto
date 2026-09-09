@@ -448,7 +448,7 @@ export default function LearningsValidationChecklist() {
             <Alert>
               <Plus className="h-4 w-4" />
               <AlertDescription>
-                ✅ Estado vazio detectado - usuário deveria ver CTA de "Adicionar primeiro aprendizado"
+                ✅ Estado vazio detectado - usuário deveria ver CTA de “Adicionar primeiro aprendizado“
               </AlertDescription>
             </Alert>
           )}

@@ -263,8 +263,8 @@ export default function LearningApplicationModal({
                     <span className="font-medium text-green-800">Preview da Aplicação</span>
                   </div>
                   <p className="text-sm text-green-700">
-                    O aprendizado <strong>"{learning.title}"</strong> será aplicado ao{' '}
-                    <strong>"{getTargetName(targetId)}"</strong>
+                    O aprendizado <strong>“{learning.title}“</strong> será aplicado ao{' '}
+                    <strong>“{getTargetName(targetId)}“</strong>
                   </p>
                   {applicationNotes && (
                     <p className="text-sm text-green-600 mt-2">

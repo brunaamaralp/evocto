@@ -234,7 +234,7 @@ export default function TodayValidationChecklist() {
       // Verificar se há skeletons implementados
       const hasSkeletonComponent = document.querySelector('.animate-pulse');
 
-      if (hasSkeletonComponent || true) { // Assumir sucesso se componente existe
+      if (hasSkeletonComponent) { // Assumir sucesso se componente existe
         setValidationResults(prev => ({ ...prev, loadingStates: 'pass' }));
         toast.success('✅ Estados de loading com skeletons implementados');
       } else {

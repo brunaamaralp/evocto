@@ -13,15 +13,16 @@ import {
   AlertCircle,
   Loader2,
   Target,
-  Calendar,
-  AlertTriangle,
   Clock,
   Database,
+  Briefcase,
+  Megaphone,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
+import ClientActiveCampaignsPanel from '@/components/client/ClientActiveCampaignsPanel';
 import ClientExecutionPanel from '@/components/client/ClientExecutionPanel';
 import ClientKnowledgeSummary from '@/components/client/ClientKnowledgeSummary';
 import InviteClientModal from '@/components/client/InviteClientModal';
@@ -45,14 +46,12 @@ export default function ClientDetailPage() {
   const {
     client,
     briefs,
-    documents,
-    learnings,
-    evolutionEvents,
     loading,
     error,
     reload,
     activeServices,
     activeCycles,
+    activeCampaigns,
     attentionItems,
     counts,
   } = useClientHubData(clientId, agencyId);
@@ -188,23 +187,23 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="bg-[#EAF2FB] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#2E5A7A]">Serviços</p>
+                <p className="text-sm text-[#2E5A7A]">Serviços ativos</p>
                 <p className="text-2xl font-bold text-[#18162A]">{counts.services}</p>
               </div>
-              <Target className="h-7 w-7 text-[#5B9BD5]" />
+              <Briefcase className="h-7 w-7 text-[#5B9BD5]" />
             </CardContent>
           </Card>
           <Card className="bg-[#E6F7F0] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#085041]">Ciclos ativos</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.cyclesActive}</p>
+                <p className="text-sm text-[#085041]">Campanhas ativas</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.campaignsActive}</p>
               </div>
-              <Calendar className="h-7 w-7 text-[#22C98A]" />
+              <Megaphone className="h-7 w-7 text-[#22C98A]" />
             </CardContent>
           </Card>
           <Card className="bg-[#FFF8E6] border-transparent shadow-none">
@@ -214,15 +213,6 @@ export default function ClientDetailPage() {
                 <p className="text-2xl font-bold text-[#18162A]">{counts.approvalsPending}</p>
               </div>
               <Clock className="h-7 w-7 text-[#E0B84A]" />
-            </CardContent>
-          </Card>
-          <Card className="bg-[#FDEBEC] border-transparent shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#8A2A2A]">Merece atenção</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.attention}</p>
-              </div>
-              <AlertTriangle className="h-7 w-7 text-[#E24B4A]" />
             </CardContent>
           </Card>
         </div>
@@ -278,6 +268,11 @@ export default function ClientDetailPage() {
           </Card>
         )}
 
+        <ClientActiveCampaignsPanel
+          clientId={clientId}
+          campaigns={activeCampaigns}
+        />
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <ClientAttentionPanel items={attentionItems} />
           <ClientExecutionPanel
@@ -287,14 +282,7 @@ export default function ClientDetailPage() {
           />
         </div>
 
-        <ClientKnowledgeSummary
-          clientId={clientId}
-          briefs={briefs}
-          learnings={learnings}
-          evolutionEvents={evolutionEvents}
-          documents={documents}
-          kpisCount={counts.kpis}
-        />
+        <ClientKnowledgeSummary clientId={clientId} briefs={briefs} kpisCount={counts.kpis} />
 
         <Card>
           <CardHeader>

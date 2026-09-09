@@ -27,12 +27,21 @@ import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
 } from '@/lib/taskFilterPresets';
+import {
+  filterTasksByScope,
+} from '@/lib/taskScope';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 
 /**
  * Componente principal de tarefas com 4 visualizações
  */
-export default function TaskManager({ clientId, serviceId, userRole = 'consultor' }) {
+export default function TaskManager({
+  clientId,
+  serviceId,
+  cycleId = null,
+  briefingId = null,
+  userRole = 'consultor',
+}) {
   const { user } = useSession();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +74,8 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
       if (serviceId) taskFilters.serviceId = serviceId;
 
       const tasksData = await Task.filter(taskFilters, '-created_date');
-      setTasks(tasksData);
+      const scoped = filterTasksByScope(tasksData, { cycleId, briefingId });
+      setTasks(scoped.tasks);
     } catch (err) {
       console.error('Erro ao carregar tarefas:', err);
       setError('Erro ao carregar tarefas');
@@ -73,7 +83,7 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
     } finally {
       setLoading(false);
     }
-  }, [clientId, serviceId]);
+  }, [clientId, serviceId, cycleId, briefingId]);
 
   useEffect(() => {
     loadTasks();
@@ -110,28 +120,10 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
     setShowTaskForm(true);
   };
 
-  const handleTaskSaved = async (taskData) => {
-    try {
-      if (editingTask) {
-        await Task.update(editingTask.id, taskData);
-        toast.success('Tarefa atualizada com sucesso!');
-      } else {
-        await Task.create({
-          ...taskData,
-          clientId,
-          serviceId,
-          createdBy: user.id
-        });
-        toast.success('Tarefa criada com sucesso!');
-      }
-      
-      await loadTasks();
-      setShowTaskForm(false);
-      setEditingTask(null);
-    } catch (err) {
-      console.error('Erro ao salvar tarefa:', err);
-      toast.error('Erro ao salvar tarefa');
-    }
+  const handleTaskSaved = async () => {
+    await loadTasks();
+    setShowTaskForm(false);
+    setEditingTask(null);
   };
 
   const handleTaskUpdate = async (taskId, updates) => {
@@ -390,6 +382,8 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
           onSave={handleTaskSaved}
           clientId={clientId}
           serviceId={serviceId}
+          cycleId={cycleId}
+          briefingId={briefingId}
         />
       )}
     </div>

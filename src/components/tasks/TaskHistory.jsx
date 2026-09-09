@@ -294,7 +294,7 @@ export default function TaskHistory({ task }) {
 
                     {event.type === 'comment' && event.metadata?.type === 'comment' && (
                       <div className="text-xs text-gray-600 bg-blue-50 rounded p-2 italic">
-                        "{event.metadata.content.substring(0, 100)}{event.metadata.content.length > 100 ? '...' : ''}"
+                        “{event.metadata.content.substring(0, 100)}{event.metadata.content.length > 100 ? '...' : ''}“
                       </div>
                     )}
                   </div>

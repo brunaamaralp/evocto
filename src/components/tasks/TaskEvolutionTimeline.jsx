@@ -180,7 +180,7 @@ const TimelineEvent = ({ event, isLast, showDetails = false }) => {
                           <ul className="mt-1 space-y-1">
                             {event.source.snippets.map((snippet, i) => (
                               <li key={i} className="text-blue-700 italic">
-                                "...{snippet}..."
+                                “...{snippet}...“
                               </li>
                             ))}
                           </ul>

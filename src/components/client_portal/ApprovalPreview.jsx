@@ -36,15 +36,17 @@ export default function ApprovalPreview({
       let contentData = null;
       
       switch (approval.contentType) {
-        case 'briefing':
+        case 'briefing': {
           const { BriefingVersion } = await import('@/api/entities');
           contentData = await BriefingVersion.get(approval.contentId);
           break;
+        }
           
-        case 'cycle_plan':
+        case 'cycle_plan': {
           const { CyclePlan } = await import('@/api/entities');
           contentData = await CyclePlan.get(approval.contentId);
           break;
+        }
           
         default:
           contentData = { 
@@ -250,7 +252,7 @@ export default function ApprovalPreview({
           <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
             <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Preview não disponível</h3>
-            <p className="text-gray-600 mb-4">Use o botão "Baixar PDF" para visualizar o documento completo</p>
+            <p className="text-gray-600 mb-4">Use o botão “Baixar PDF“ para visualizar o documento completo</p>
             {approval.pdfUrl && (
               <Button
                 variant="outline"
@@ -632,7 +634,7 @@ export default function ApprovalPreview({
                       {comment && (
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                           <h4 className="font-medium text-blue-900 mb-2">Seus comentários:</h4>
-                          <p className="text-blue-800 italic">"{comment}"</p>
+                          <p className="text-blue-800 italic">“{comment}“</p>
                         </div>
                       )}
                     </div>

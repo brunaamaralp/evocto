@@ -223,7 +223,7 @@ export class NotificationDispatcher {
         }
         break;
 
-      case 'admin':
+      case 'admin': {
         const admins = await User.filter({
           agencyId: this.agencyId,
           role: { $in: ['owner', 'admin'] }
@@ -235,6 +235,7 @@ export class NotificationDispatcher {
           type: 'admin'
         })));
         break;
+      }
 
       case 'custom':
         if (template.custom_recipients) {

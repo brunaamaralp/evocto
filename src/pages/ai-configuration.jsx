@@ -199,7 +199,7 @@ export default function AIConfigurationPage() {
               <div>
                 <h4 className="font-semibold text-red-600">Erro de API Key</h4>
                 <p className="text-sm text-gray-600">
-                  Verifique se a API key está correta e tem permissões adequadas. Teste a conexão usando o botão "Testar APIs".
+                  Verifique se a API key está correta e tem permissões adequadas. Teste a conexão usando o botão “Testar APIs“.
                 </p>
               </div>
               

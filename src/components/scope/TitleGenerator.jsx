@@ -258,7 +258,7 @@ export default function TitleGenerator({
             <div className="text-center py-8 text-slate-500">
               <Wand2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
               <p className="text-sm">Nenhuma sugestão ainda</p>
-              <p className="text-xs">Clique em "Gerar Novos" para criar opções</p>
+              <p className="text-xs">Clique em “Gerar Novos“ para criar opções</p>
             </div>
           )}
         </div>

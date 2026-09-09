@@ -14,7 +14,9 @@ export default function TaskCreateFab() {
       try {
         // Tenta acionar um evento de refresh alternativo
         window.dispatchEvent(new CustomEvent("task:refresh"));
-      } catch {}
+      } catch (_err) {
+        // ignore CustomEvent failures
+      }
       if (typeof window !== "undefined") {
         window.location.reload();
       }
