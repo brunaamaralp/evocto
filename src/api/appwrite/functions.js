@@ -94,29 +94,69 @@ export async function createServiceInstance({
   templateId,
   clientId,
   customizations = {},
+  startDate,
+  contractValue,
+  templateName,
 } = {}) {
+  if (!templateId) throw new Error('templateId é obrigatório');
+  if (!clientId) throw new Error('clientId é obrigatório');
+
   const Service = createEntityAdapter('services');
   const Client = createEntityAdapter('clients');
 
   const template = await Service.get(templateId);
+  if (!template?.id) throw new Error('Template não encontrado');
+
   const client = await Client.get(clientId);
-  const { id: _id, created_date, updated_date, is_template, ...templateData } = template;
+  if (!client?.id) throw new Error('Cliente não encontrado');
+
+  const {
+    id: _id,
+    created_date: _created,
+    updated_date: _updated,
+    is_template: _isTemplate,
+    clientId: _templateClientId,
+    ...templateData
+  } = template;
+
+  const mergedCustom = {
+    ...customizations,
+    ...(startDate ? { start_date: String(startDate).slice(0, 10) } : {}),
+    ...(contractValue != null && contractValue !== ''
+      ? { contract_value: Number(contractValue) }
+      : {}),
+    ...(templateName ? { name: templateName } : {}),
+  };
 
   const instance = await Service.create({
     ...templateData,
-    ...customizations,
+    ...mergedCustom,
     is_template: false,
     is_active: true,
     clientId,
     agencyId: template.agencyId || client.agencyId,
+    base_service_id: templateId,
     templateId,
-    name: customizations.name || template.name,
+    template_version_used: template.template_version || template.version || '1.0',
+    name: mergedCustom.name || template.name,
+    status: mergedCustom.status || 'active',
+    service_status: mergedCustom.service_status || 'active',
   });
 
+  if (!instance?.id) {
+    throw new Error('Falha ao criar a instância do serviço');
+  }
+
+  // Shape compatível com callers legados (Base44: { data: { success, serviceInstance } })
+  // e com callers novos (serviceInstance / success no topo).
   return {
     success: true,
     serviceInstance: instance,
-    data: instance,
+    data: {
+      success: true,
+      serviceInstance: instance,
+      id: instance.id,
+    },
   };
 }
 

@@ -1,17 +1,17 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Plus, Search, Filter, Briefcase, Calendar, Users, 
+  Plus, Search, Briefcase, Calendar, Users, 
   Settings, Eye, MoreVertical, Activity, RefreshCw,
-  TrendingUp, Clock, CheckCircle, AlertCircle, LayoutTemplate,
-  Target, DollarSign, Copy, X, FileText
+  TrendingUp, AlertCircle, LayoutTemplate,
+  Target, Copy, FileText
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -21,7 +21,6 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { createPageUrl } from '@/utils';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import ServiceTemplateEditor from '@/components/services/ServiceTemplateEditor';
 import ServiceInstanceEditor from '@/components/services/ServiceInstanceEditor';
@@ -227,7 +226,7 @@ const TemplateCard = ({ template, onEdit, onDuplicate, onUse }) => {
 
 function ServicesOverviewPage() {
   const { agencyId } = useSession();
-  const t = useT();
+  const _t = useT();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -308,7 +307,7 @@ function ServicesOverviewPage() {
     setShowServiceEditor(true);
   };
 
-  const handleEditService = (service) => {
+  const _handleEditService = (service) => {
     setEditingService(service);
     setShowServiceEditor(true);
   };
@@ -335,7 +334,7 @@ function ServicesOverviewPage() {
         updated_date: undefined
       };
       
-      const duplicated = await Service.create(newTemplate);
+      const _duplicated = await Service.create(newTemplate);
       toast.success('Template duplicado com sucesso!');
       loadData();
     } catch (error) {
@@ -579,31 +578,17 @@ function ServicesOverviewPage() {
           onSaved={handleTemplateSaved}
         />
 
-        {showServiceEditor && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold">
-                    {editingService ? 'Editar Serviço' : 'Novo Serviço'}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowServiceEditor(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-                <ServiceInstanceEditor
-                  serviceInstance={editingService}
-                  clients={clients}
-                  onSave={handleServiceSaved}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <ServiceInstanceEditor
+          isOpen={showServiceEditor}
+          onClose={() => {
+            setShowServiceEditor(false);
+            setEditingService(null);
+          }}
+          serviceInstance={editingService}
+          clients={clients}
+          templates={templates}
+          onSaved={handleServiceSaved}
+        />
       </div>
     </ErrorBoundary>
   );

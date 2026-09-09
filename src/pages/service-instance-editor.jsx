@@ -12,9 +12,12 @@ import { AlertCircle, Loader2, Plus, CheckCircle2, ArrowRight } from "lucide-rea
 import { createServiceInstance } from "@/api/functions";
 import { fixServiceAgencyId } from "@/api/functions";
 import { fixTemplateAgencyIds } from "@/api/functions";
+import { ensureCicloMensalTemplate } from "@/api/functions/ensureCicloMensalTemplate";
 import { createPageUrl } from "@/utils";
+import { useSession } from "@/components/auth/SessionManager";
 
 export default function ServiceInstanceEditorPage() {
+  const { agencyId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const serviceIdParam = urlParams.get("serviceId") || "";
   const clientIdParam = urlParams.get("clientId") || "";
@@ -49,7 +52,7 @@ export default function ServiceInstanceEditorPage() {
         const s = await Service.get(serviceIdParam);
         if (!active) return;
         setService(s);
-      } catch (e) {
+      } catch (_e) {
         setError("Não foi possível carregar o serviço selecionado. Tente novamente.");
       } finally {
         setLoading(false);
@@ -69,10 +72,28 @@ export default function ServiceInstanceEditorPage() {
       try {
         setError("");
         setInvalidTemplateParam(false);
-        const [tpls, cls] = await Promise.all([
-          Service.filter({ is_template: true, is_active: true }, "-updated_date", 500),
-          Client.list("-updated_date", 500)
-        ]);
+
+        if (agencyId) {
+          await ensureCicloMensalTemplate(agencyId).catch(() => null);
+        }
+
+        let tpls = agencyId
+          ? await Service.filter({ agencyId, is_template: true }, "-updated_date", 500)
+          : await Service.filter({ is_template: true }, "-updated_date", 500);
+
+        if (!Array.isArray(tpls) || tpls.length === 0) {
+          const all = agencyId
+            ? await Service.filter({ agencyId }, "-updated_date", 100)
+            : await Service.filter({}, "-updated_date", 100);
+          tpls = (Array.isArray(all) ? all : []).filter(
+            (s) => s.is_template === true || s.is_template === "true" || s.is_template === 1
+          );
+        }
+
+        const cls = agencyId
+          ? await Client.filter({ agencyId }, "-updated_date", 500)
+          : await Client.list("-updated_date", 500);
+
         if (!active) return;
         setTemplates(tpls || []);
         setClients(cls || []);
@@ -82,10 +103,10 @@ export default function ServiceInstanceEditorPage() {
           if (!exists) {
             setSelectedTemplate("");
             setInvalidTemplateParam(true);
-            setError("O template informado na URL não foi encontrado. Pode ser um template antigo sem agencyId. Você pode tentar corrigir abaixo e recarregar a lista.");
+            setError("O template informado na URL não foi encontrado. Selecione um template válido abaixo.");
           }
         }
-      } catch (e) {
+      } catch (_e) {
         setError("Falha ao carregar templates/clientes. Tente novamente.");
       }
     }
@@ -93,21 +114,23 @@ export default function ServiceInstanceEditorPage() {
     return () => {
       active = false;
     };
-  }, [serviceIdParam, templateIdParam]);
+  }, [serviceIdParam, templateIdParam, agencyId]);
 
   const handleFixTemplates = async () => {
     try {
       setFixingTemplates(true);
       setError("");
-      const { data } = await fixTemplateAgencyIds({});
-      // Recarregar listas
+      await fixTemplateAgencyIds({});
       const [tpls, cls] = await Promise.all([
-        Service.filter({ is_template: true, is_active: true }, "-updated_date", 500),
-        Client.list("-updated_date", 500)
+        agencyId
+          ? Service.filter({ agencyId, is_template: true }, "-updated_date", 500)
+          : Service.filter({ is_template: true }, "-updated_date", 500),
+        agencyId
+          ? Client.filter({ agencyId }, "-updated_date", 500)
+          : Client.list("-updated_date", 500)
       ]);
       setTemplates(tpls || []);
       setClients(cls || []);
-      // Revalidar o templateIdParam após correção
       if (templateIdParam) {
         const exists = Array.isArray(tpls) && tpls.some(t => String(t.id) === String(templateIdParam));
         if (exists) {
@@ -128,7 +151,6 @@ export default function ServiceInstanceEditorPage() {
   };
 
   const handleCreateInstance = async () => {
-    // Garantir que o template selecionado existe na lista atual
     const templateExists = templates.some(t => String(t.id) === String(selectedTemplate));
     if (!selectedTemplate || !templateExists) {
       setError("Selecione um template válido da lista.");
@@ -143,7 +165,7 @@ export default function ServiceInstanceEditorPage() {
     try {
       const selectedTplObj = templates.find(t => String(t.id) === String(selectedTemplate));
 
-      const { data } = await createServiceInstance({
+      const response = await createServiceInstance({
         templateId: selectedTemplate,
         templateName: selectedTplObj?.name || null,
         clientId: selectedClient,
@@ -152,11 +174,16 @@ export default function ServiceInstanceEditorPage() {
         customizations: {}
       });
 
-      if (!data?.success) {
-        throw new Error(data?.error || "Falha ao criar a instância.");
+      const ok = response?.success === true || response?.data?.success === true;
+      const newId =
+        response?.serviceInstance?.id ||
+        response?.data?.serviceInstance?.id ||
+        response?.data?.id;
+
+      if (!ok && !newId) {
+        throw new Error(response?.data?.error || response?.error || "Falha ao criar a instância.");
       }
 
-      const newId = data?.serviceInstance?.id;
       if (newId) {
         window.location.href = createPageUrl("service-detail") + `?serviceId=${newId}`;
       } else {

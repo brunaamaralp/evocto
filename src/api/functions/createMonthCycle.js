@@ -82,7 +82,7 @@ export async function createMonthCycle(opts = {}) {
         start_date: String(startDate).slice(0, 10),
       },
     });
-    service = result.serviceInstance || result.data;
+    service = result.serviceInstance || result.data?.serviceInstance || result.data;
     if (!service?.id) throw new Error('Falha ao criar instância do serviço');
   }
 

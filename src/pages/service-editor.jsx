@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import LoadingState from '@/components/shared/LoadingState';
 import { Service } from '@/api/entities';
 import { createPageUrl } from '@/utils';
@@ -10,25 +10,33 @@ export default function ServiceEditorPage() {
   useEffect(() => {
     const redirectToCorrectEditor = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const serviceId = urlParams.get('serviceId');
+      const serviceId = urlParams.get('serviceId') || urlParams.get('id');
+      const templateId = urlParams.get('templateId');
+      const clientId = urlParams.get('clientId');
+
+      // Criar instância a partir de um template
+      if (!serviceId && templateId) {
+        const qs = new URLSearchParams({ templateId });
+        if (clientId) qs.set('clientId', clientId);
+        window.location.replace(
+          `${createPageUrl('service-instance-editor')}?${qs.toString()}`
+        );
+        return;
+      }
 
       if (!serviceId) {
-        // Sem serviceId, redirecionar para lista de serviços
         window.location.replace(createPageUrl('services-overview'));
         return;
       }
 
       try {
-        // Buscar o serviço para determinar se é template ou instância
         const service = await Service.get(serviceId);
 
         if (!service) {
-          // Serviço não encontrado
           window.location.replace(createPageUrl('services-overview'));
           return;
         }
 
-        // Redirecionar para o editor correto
         if (service.is_template) {
           window.location.replace(
             createPageUrl('service-template-editor') + `?serviceId=${serviceId}`
@@ -38,10 +46,8 @@ export default function ServiceEditorPage() {
             createPageUrl('service-instance-editor') + `?serviceId=${serviceId}`
           );
         }
-
       } catch (error) {
         console.error('Erro ao determinar tipo de serviço:', error);
-        // Em caso de erro, redirecionar para lista de serviços
         window.location.replace(createPageUrl('services-overview'));
       }
     };

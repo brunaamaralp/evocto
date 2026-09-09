@@ -29,17 +29,15 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Search, Settings, Clock, Target, Users, Calendar, 
-  DollarSign, ArrowRight, ArrowLeft, CheckCircle,
-  AlertTriangle, FileText, BookOpen, Package,
-  Play, Eye, UserPlus, Briefcase, GitBranch,
-  LayoutTemplate, Loader2, Info, Lock
+  Search, Clock, Target, Users, ArrowRight, ArrowLeft, CheckCircle,
+  AlertTriangle, Package,
+  Play, GitBranch, Loader2, Info, Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceInstanceCreation } from '@/hooks/useServiceInstanceCreation';
 import { useServiceFormValidation } from '@/hooks/useServiceFormValidation';
 import { useExitConfirmation, ExitConfirmationModal } from '@/hooks/useExitConfirmation';
-import { ServiceCreationProgress, ServiceCreationSummary } from '@/components/services/ServiceCreationFeedback';
+import { useErrorHandling } from '@/hooks/useErrorHandling';
 import BriefingValidation from '@/components/briefing/BriefingValidation';
 import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
 
@@ -79,22 +77,22 @@ export default function RefactoredServiceCreateModal({
   onSave 
 }) {
   const { user } = useSession();
+  const { handleError } = useErrorHandling();
   
   // Hooks centralizados
   const {
     createServiceInstanceWithFeedback,
-    validateInstanceData,
+    _validateInstanceData,
     isCreating,
     error: creationError,
     warnings: creationWarnings
   } = useServiceInstanceCreation();
 
   const {
-    fieldErrors,
+    _fieldErrors,
     validateForm,
-    validateFieldRealTime,
-    canProceed,
-    clearAllErrors,
+    _validateFieldRealTime,
+    _clearAllErrors,
     showValidationErrors
   } = useServiceFormValidation();
 
@@ -111,7 +109,7 @@ export default function RefactoredServiceCreateModal({
   
   // Wizard state
   const [currentStep, setCurrentStep] = useState(WIZARD_STEPS.SELECT_TEMPLATE);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [createdServiceId, setCreatedServiceId] = useState(null);
 
   // Templates state
@@ -153,11 +151,23 @@ export default function RefactoredServiceCreateModal({
 
     try {
       setLoading(true);
-      const templatesData = await Service.filter({
-        agencyId: user.data.agencyId,
+      const agencyId = user.data.agencyId;
+      const { ensureCicloMensalTemplate } = await import(
+        '@/api/functions/ensureCicloMensalTemplate'
+      );
+      await ensureCicloMensalTemplate(agencyId).catch(() => null);
+
+      let templatesData = await Service.filter({
+        agencyId,
         is_template: true,
-        is_active: true
       }, '-created_date');
+
+      if (!Array.isArray(templatesData) || templatesData.length === 0) {
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        templatesData = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+      }
 
       setTemplates(templatesData || []);
     } catch (error) {
@@ -192,8 +202,8 @@ export default function RefactoredServiceCreateModal({
 
   // Filtrar templates
   const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = template.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (template.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || template.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -623,7 +633,7 @@ export default function RefactoredServiceCreateModal({
   if (!isOpen) return null;
 
   const progress = ((currentStep - WIZARD_STEPS.SELECT_TEMPLATE + 1) / Object.keys(WIZARD_STEPS).length) * 100;
-  const canProceed = canProceedToNextStep();
+  const canProceedNext = canProceedToNextStep();
   const canGoBack = currentStep > WIZARD_STEPS.SELECT_TEMPLATE;
   const isLastStep = currentStep === WIZARD_STEPS.BRIEFING_REQUIREMENT;
 
@@ -691,7 +701,7 @@ export default function RefactoredServiceCreateModal({
             {isLastStep ? (
               <Button
                 onClick={handleCreateService}
-                disabled={!canProceed || isCreating}
+                disabled={!canProceedNext || isCreating}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {isCreating ? (
@@ -704,7 +714,7 @@ export default function RefactoredServiceCreateModal({
             ) : (
               <Button
                 onClick={() => setCurrentStep(prev => prev + 1)}
-                disabled={!canProceed || isCreating}
+                disabled={!canProceedNext || isCreating}
               >
                 Próximo
                 <ArrowRight className="w-4 h-4 ml-2" />

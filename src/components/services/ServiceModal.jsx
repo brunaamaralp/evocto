@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ export default function ServiceModal({
   selectedClient = null,
   mode = 'wizard'
 }) {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [teamMembers, setTeamMembers] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -50,12 +50,24 @@ export default function ServiceModal({
       if (!agencyId) return;
       setLoadingTemplates(true);
       try {
-        const fetchedTemplates = await Service.filter({
+        const { ensureCicloMensalTemplate } = await import(
+          '@/api/functions/ensureCicloMensalTemplate'
+        );
+        await ensureCicloMensalTemplate(agencyId).catch(() => null);
+
+        let fetchedTemplates = await Service.filter({
           agencyId,
           is_template: true,
-          is_active: true
-        });
-        setTemplates(fetchedTemplates);
+        }, '-updated_date', 100);
+
+        if (!Array.isArray(fetchedTemplates) || fetchedTemplates.length === 0) {
+          const all = await Service.filter({ agencyId }, '-updated_date', 100);
+          fetchedTemplates = (Array.isArray(all) ? all : []).filter(
+            (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+          );
+        }
+
+        setTemplates(fetchedTemplates || []);
       } catch (err) {
         console.error('Failed to fetch templates:', err);
       } finally {

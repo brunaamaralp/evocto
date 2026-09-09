@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,7 +16,7 @@ export default function ServiceCreateModal({
   onSuccess,
   preselectedTemplateId = null 
 }) {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -46,14 +46,29 @@ export default function ServiceCreateModal({
       console.log('📋 Carregando dados para modal ServiceCreate');
 
       const [clientsData, templatesData] = await Promise.all([
-        Client.filter({ agencyId, status: 'ativo' }),
-        Service.filter({ agencyId, is_template: true, is_active: true })
+        Client.filter({ agencyId }),
+        Service.filter({ agencyId, is_template: true })
       ]);
 
       console.log(`✅ Carregados ${clientsData.length} clientes e ${templatesData.length} templates`);
 
       setClients(clientsData);
-      setTemplates(templatesData);
+
+      let list = Array.isArray(templatesData) ? templatesData : [];
+      if (list.length === 0) {
+        const { ensureCicloMensalTemplate } = await import(
+          '@/api/functions/ensureCicloMensalTemplate'
+        );
+        const seeded = await ensureCicloMensalTemplate(agencyId).catch(() => null);
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        list = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+        if (seeded?.id && !list.some((t) => t.id === seeded.id)) {
+          list = [seeded, ...list];
+        }
+      }
+      setTemplates(list);
     } catch (error) {
       console.error('❌ Erro ao carregar dados:', error);
       toast.error('Erro ao carregar dados');

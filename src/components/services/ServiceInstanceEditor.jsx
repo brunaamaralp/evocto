@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,12 +21,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { 
-  Save, AlertTriangle, Calendar, DollarSign, Users, 
-  Target, Clock, FileText, Settings, LayoutTemplate, X,
-  Briefcase
+  Save, AlertTriangle, Calendar, DollarSign, FileText, LayoutTemplate, X,
+  Briefcase, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
+import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { createServiceInstance } from '@/api/functions';
 
 const SERVICE_STATUS_OPTIONS = [
   { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
@@ -36,20 +37,25 @@ const SERVICE_STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Cancelado', color: 'bg-red-100 text-red-800' }
 ];
 
+const NONE_TEMPLATE = '__none__';
+
 /**
  * Modal para criação e edição de INSTÂNCIAS de serviço
  * Instâncias são serviços específicos para um cliente
  */
 export default function ServiceInstanceEditor({ 
-  isOpen, 
+  isOpen = true, 
   onClose, 
   serviceInstance = null,
   clients = [],
-  templates = [],
-  onSaved 
+  templates: templatesProp = [],
+  onSaved,
+  onSave,
 }) {
   const { user, agencyId } = useSession();
   const [saving, setSaving] = useState(false);
+  const [templates, setTemplates] = useState(templatesProp || []);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -70,10 +76,46 @@ export default function ServiceInstanceEditor({
     cycle_frequency: 'monthly',
     is_active: true,
     base_service_id: null,
-    template_version_used: null
+    template_version_used: null,
+    deliverables: [],
   });
 
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  useEffect(() => {
+    if (Array.isArray(templatesProp) && templatesProp.length > 0) {
+      setTemplates(templatesProp);
+    }
+  }, [templatesProp]);
+
+  useEffect(() => {
+    if (!isOpen || !agencyId || serviceInstance) return;
+    if ((templatesProp || []).length > 0) return;
+
+    let cancelled = false;
+    const loadTemplates = async () => {
+      setLoadingTemplates(true);
+      try {
+        await ensureCicloMensalTemplate(agencyId).catch(() => null);
+        let list = await Service.filter({ agencyId, is_template: true }, '-updated_date', 100);
+        if (!Array.isArray(list) || list.length === 0) {
+          const all = await Service.filter({ agencyId }, '-updated_date', 100);
+          list = (Array.isArray(all) ? all : []).filter(
+            (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+          );
+        }
+        if (!cancelled) setTemplates(list || []);
+      } catch (err) {
+        console.warn('[ServiceInstanceEditor] templates:', err);
+        if (!cancelled) setTemplates([]);
+      } finally {
+        if (!cancelled) setLoadingTemplates(false);
+      }
+    };
+
+    loadTemplates();
+    return () => { cancelled = true; };
+  }, [isOpen, agencyId, serviceInstance, templatesProp]);
 
   useEffect(() => {
     if (serviceInstance && isOpen) {
@@ -97,7 +139,8 @@ export default function ServiceInstanceEditor({
         cycle_frequency: serviceInstance.cycle_frequency || 'monthly',
         is_active: serviceInstance.is_active !== false,
         base_service_id: serviceInstance.base_service_id,
-        template_version_used: serviceInstance.template_version_used
+        template_version_used: serviceInstance.template_version_used,
+        deliverables: serviceInstance.deliverables || [],
       });
 
       // Se baseado em template, carregar o template
@@ -126,13 +169,25 @@ export default function ServiceInstanceEditor({
         cycle_frequency: 'monthly',
         is_active: true,
         base_service_id: null,
-        template_version_used: null
+        template_version_used: null,
+        deliverables: [],
       });
       setSelectedTemplate(null);
     }
   }, [serviceInstance, isOpen, templates]);
 
   const handleTemplateChange = (templateId) => {
+    if (!templateId || templateId === NONE_TEMPLATE) {
+      setSelectedTemplate(null);
+      setFormData(prev => ({
+        ...prev,
+        base_service_id: null,
+        template_version_used: null,
+        deliverables: [],
+      }));
+      return;
+    }
+
     const template = templates.find(t => t.id === templateId);
     if (template) {
       setSelectedTemplate(template);
@@ -141,17 +196,11 @@ export default function ServiceInstanceEditor({
         name: template.name,
         description: template.description,
         category: template.category,
-        pricing: template.pricing,
-        cycle_frequency: template.cycle_frequency,
+        pricing: template.pricing || prev.pricing,
+        cycle_frequency: template.cycle_frequency || prev.cycle_frequency,
         base_service_id: template.id,
-        template_version_used: template.version
-      }));
-    } else {
-      setSelectedTemplate(null);
-      setFormData(prev => ({
-        ...prev,
-        base_service_id: null,
-        template_version_used: null
+        template_version_used: template.template_version || template.version || '1.0',
+        deliverables: template.deliverables || [],
       }));
     }
   };
@@ -190,37 +239,66 @@ export default function ServiceInstanceEditor({
 
     setSaving(true);
     try {
-      // IMPORTANTE: Garantir que é uma instância
-      const instanceData = {
-        ...formData,
-        agencyId,
-        is_template: false,       // FORÇAR como instância
-        // Garantir metadados corretos de instância
-        template_metadata: null,  // Instâncias não têm metadados de template
-        instance_metadata: {
-          created_from_template: formData.base_service_id,
-          account_manager: user?.id,
-          project_code: generateProjectCode(formData.clientId, formData.name)
-        }
-      };
-
       let savedService;
+
       if (serviceInstance) {
+        const instanceData = {
+          ...formData,
+          agencyId,
+          is_template: false,
+          template_metadata: null,
+          instance_metadata: {
+            created_from_template: formData.base_service_id,
+            account_manager: user?.id,
+            project_code: generateProjectCode(formData.clientId, formData.name)
+          }
+        };
         savedService = await Service.update(serviceInstance.id, instanceData);
         toast.success('Serviço atualizado com sucesso!');
+      } else if (formData.base_service_id) {
+        const response = await createServiceInstance({
+          templateId: formData.base_service_id,
+          clientId: formData.clientId,
+          customizations: {
+            name: formData.name,
+            description: formData.description,
+            category: formData.category,
+            start_date: formData.start_date,
+            end_date: formData.end_date,
+            service_status: formData.service_status,
+            contract_value: formData.contract_value,
+            pricing: formData.pricing,
+            cycle_frequency: formData.cycle_frequency,
+            is_active: formData.is_active,
+          },
+        });
+        savedService = response?.serviceInstance || response?.data?.serviceInstance || response?.data || response;
+        if (!savedService?.id) {
+          throw new Error('Instância criada, mas sem ID retornado');
+        }
+        toast.success('Serviço criado a partir do template!');
       } else {
+        const instanceData = {
+          ...formData,
+          agencyId,
+          is_template: false,
+          template_metadata: null,
+          instance_metadata: {
+            created_from_template: null,
+            account_manager: user?.id,
+            project_code: generateProjectCode(formData.clientId, formData.name)
+          }
+        };
         savedService = await Service.create(instanceData);
         toast.success('Serviço criado com sucesso!');
       }
 
-      if (onSaved) {
-        onSaved(savedService);
-      }
-      
-      onClose();
+      const notify = onSaved || onSave;
+      if (notify) notify(savedService);
+      onClose?.();
     } catch (error) {
       console.error('Erro ao salvar serviço:', error);
-      toast.error('Erro ao salvar serviço');
+      toast.error(error?.message || 'Erro ao salvar serviço');
     } finally {
       setSaving(false);
     }
@@ -241,7 +319,7 @@ export default function ServiceInstanceEditor({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose?.(); }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -262,7 +340,7 @@ export default function ServiceInstanceEditor({
 
         <div className="space-y-6">
           {/* Seleção de Template (apenas para novos serviços) */}
-          {!serviceInstance && templates.length > 0 && (
+          {!serviceInstance && (
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -271,35 +349,50 @@ export default function ServiceInstanceEditor({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Selecionar Template</Label>
-                    <Select
-                      value={selectedTemplate?.id || ''}
-                      onValueChange={handleTemplateChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Criar do zero ou usar template..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Criar do zero</SelectItem>
-                        {templates.map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name} (v{template.version})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {loadingTemplates ? (
+                  <div className="flex items-center gap-2 text-sm text-blue-700">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Carregando templates...
                   </div>
-                  
-                  {selectedTemplate && (
-                    <div className="flex items-center gap-2 text-sm text-blue-700">
-                      <Badge variant="outline" className="border-blue-300">
-                        Template: {selectedTemplate.name}
-                      </Badge>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Selecionar Template</Label>
+                      <Select
+                        value={selectedTemplate?.id || NONE_TEMPLATE}
+                        onValueChange={handleTemplateChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Criar do zero ou usar template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE_TEMPLATE}>Criar do zero</SelectItem>
+                          {templates.map(template => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name}
+                              {(template.template_version || template.version)
+                                ? ` (v${template.template_version || template.version})`
+                                : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {templates.length === 0 && (
+                        <p className="text-sm text-amber-700 mt-2">
+                          Nenhum template encontrado. Abra a aba Templates para instalar o Ciclo Mensal de Campanhas.
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
+                    
+                    {selectedTemplate && (
+                      <div className="flex items-center gap-2 text-sm text-blue-700">
+                        <Badge variant="outline" className="border-blue-300">
+                          Template: {selectedTemplate.name}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {selectedTemplate && (
                   <div className="mt-3 p-3 bg-blue-100 rounded-lg">
@@ -307,7 +400,7 @@ export default function ServiceInstanceEditor({
                       <strong>Descrição:</strong> {selectedTemplate.description}
                     </p>
                     <p className="text-sm text-blue-700 mt-1">
-                      Os campos abaixo foram preenchidos com base no template. Você pode ajustá-los conforme necessário.
+                      {selectedTemplate.deliverables?.length || 0} fases serão herdadas deste template.
                     </p>
                   </div>
                 )}

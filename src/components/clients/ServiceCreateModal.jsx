@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Service } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
+import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { useSession } from '@/components/auth/SessionManager';
 import { Loader2, Plus, AlertCircle } from 'lucide-react';
 
 export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientId, clientName }) {
+  const { agencyId } = useSession();
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -19,14 +23,32 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
       setError('');
       setSelectedTemplateId('');
     }
-  }, [isOpen]);
+  }, [isOpen, agencyId]);
 
   const loadTemplates = async () => {
+    setLoadingTemplates(true);
     try {
-      const templatesData = await Service.filter({ is_template: true, is_active: true });
-      setTemplates(templatesData || []);
-    } catch (err) {
+      if (agencyId) {
+        await ensureCicloMensalTemplate(agencyId).catch(() => null);
+      }
+
+      let list = agencyId
+        ? await Service.filter({ agencyId, is_template: true }, '-updated_date', 100)
+        : await Service.filter({ is_template: true }, '-updated_date', 100);
+
+      if ((!Array.isArray(list) || list.length === 0) && agencyId) {
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        list = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+      }
+
+      setTemplates(Array.isArray(list) ? list : []);
+    } catch (_err) {
       setError('Erro ao carregar templates');
+      setTemplates([]);
+    } finally {
+      setLoadingTemplates(false);
     }
   };
 
@@ -40,38 +62,28 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
     setError('');
 
     try {
-      // DEBUG
-      console.log('[DEBUG] Criando serviço para cliente:', { clientId, templateId: selectedTemplateId });
-
       const response = await createServiceInstance({
-        clientId: clientId,
-        templateId: selectedTemplateId
+        clientId,
+        templateId: selectedTemplateId,
       });
 
-      // DEBUG DA RESPOSTA
-      console.log('[DEBUG] Resposta createServiceInstance (ServiceCreateModal):', response);
-
-      // CORREÇÃO: Múltiplas tentativas para extrair o serviceId
-      const newServiceId = response?.data?.service?.id || 
-                          response?.data?.serviceId || 
-                          response?.data?.id ||
-                          response?.service?.id ||
-                          response?.serviceId ||
-                          response?.id;
-
-      console.log('[DEBUG] ServiceId extraído (ServiceCreateModal):', newServiceId);
+      const newServiceId =
+        response?.serviceInstance?.id ||
+        response?.data?.service?.id ||
+        response?.data?.serviceId ||
+        response?.data?.id ||
+        response?.service?.id ||
+        response?.serviceId ||
+        response?.id;
 
       if (newServiceId) {
-        if (onSuccess) {
-          onSuccess(newServiceId);
-        }
-        onClose();
+        onSuccess?.(newServiceId);
+        onClose?.();
       } else {
-        console.error('[DEBUG] Falha ao extrair serviceId da resposta:', response);
         setError('Serviço criado, mas não foi possível obter o ID');
       }
     } catch (err) {
-      console.error('[DEBUG] Erro na criação do serviço:', err);
+      console.error('[ServiceCreateModal] Erro:', err);
       setError(err.message || 'Erro ao criar serviço');
     } finally {
       setLoading(false);
@@ -81,7 +93,7 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -99,31 +111,40 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
 
           <div>
             <Label>Template de Serviço *</Label>
-            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um template" />
-              </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-auto">
-                {templates.map(template => (
-                  <SelectItem key={template.id} value={template.id}>
-                    <div>
-                      <div className="font-medium">{template.name}</div>
-                      <div className="text-xs text-gray-500">{template.category}</div>
-                      {template.description && (
-                        <div className="text-xs text-gray-400 mt-1">{template.description.slice(0, 60)}...</div>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {loadingTemplates ? (
+              <div className="flex items-center gap-2 text-sm text-gray-600 py-3">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Carregando templates...
+              </div>
+            ) : (
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-auto">
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      <div>
+                        <div className="font-medium">{template.name}</div>
+                        <div className="text-xs text-gray-500">{template.category}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {!loadingTemplates && templates.length === 0 && (
+              <p className="text-sm text-amber-700 mt-2">
+                Nenhum template disponível. Instale o Ciclo Mensal de Campanhas na aba Templates.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} disabled={loading}>
               Cancelar
             </Button>
-            <Button onClick={handleCreate} disabled={loading || !selectedTemplateId}>
+            <Button onClick={handleCreate} disabled={loading || loadingTemplates || !selectedTemplateId}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
