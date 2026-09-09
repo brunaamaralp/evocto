@@ -157,24 +157,23 @@ export default function ClientDetailPage() {
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
 
   return (
-    <div className={`min-h-full ${CLIENT_CONTEXT.shellBg}`}>
-      <main className="flex-1 min-w-0 p-6 space-y-6 overflow-auto">
+    <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 mb-1">
               {CLIENT_CONTEXT.label}
             </p>
-            <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">{client.name}</h1>
             {(client.legal_name || client.email) && (
-              <p className="text-gray-600">{client.legal_name || client.email}</p>
+              <p className="text-[#7A7595]">{client.legal_name || client.email}</p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={client.status === 'ativo' ? 'default' : 'secondary'}>
               {client.status || '—'}
             </Badge>
             {counts.attention > 0 && (
-              <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+              <Badge className="bg-[#FFF8E6] text-[#7A5A10] hover:bg-[#FFF8E6]">
                 {counts.attention} atenção
               </Badge>
             )}
@@ -194,52 +193,52 @@ export default function ClientDetailPage() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-[#EAF2FB] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Serviços</p>
-                <p className="text-2xl font-bold">{counts.services}</p>
+                <p className="text-sm text-[#2E5A7A]">Serviços</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.services}</p>
               </div>
-              <Target className="h-7 w-7 text-blue-600" />
+              <Target className="h-7 w-7 text-[#5B9BD5]" />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#E6F7F0] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Ciclos ativos</p>
-                <p className="text-2xl font-bold">{counts.cyclesActive}</p>
+                <p className="text-sm text-[#085041]">Ciclos ativos</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.cyclesActive}</p>
               </div>
-              <Calendar className="h-7 w-7 text-green-600" />
+              <Calendar className="h-7 w-7 text-[#22C98A]" />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#FFF8E6] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Aprovações</p>
-                <p className="text-2xl font-bold">{counts.approvalsPending}</p>
+                <p className="text-sm text-[#7A5A10]">Aprovações</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.approvalsPending}</p>
               </div>
-              <Clock className="h-7 w-7 text-amber-600" />
+              <Clock className="h-7 w-7 text-[#E0B84A]" />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#FDEBEC] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Merece atenção</p>
-                <p className="text-2xl font-bold">{counts.attention}</p>
+                <p className="text-sm text-[#8A2A2A]">Merece atenção</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.attention}</p>
               </div>
-              <AlertTriangle className="h-7 w-7 text-red-500" />
+              <AlertTriangle className="h-7 w-7 text-[#E24B4A]" />
             </CardContent>
           </Card>
         </div>
 
         {showSetup && (
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-[#C5DBF0] bg-[#EAF2FB]">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-900 text-base">
+              <CardTitle className="flex items-center gap-2 text-[#2E5A7A] text-base">
                 <Zap className="w-5 h-5" />
                 Configuração inicial ({completedSteps}/{setupChecklist.length})
               </CardTitle>
-              <p className="text-blue-700 text-sm">
+              <p className="text-[#2E5A7A]/80 text-sm">
                 Complete estas etapas para começar a operar com {client.name}
               </p>
             </CardHeader>
@@ -248,17 +247,17 @@ export default function ClientDetailPage() {
                 {setupChecklist.map((step) => (
                   <div
                     key={step.id}
-                    className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                    className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E8E5F5]/80"
                   >
                     <div className="flex items-center gap-3">
                       {step.completed ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <CheckCircle className="w-5 h-5 text-[#22C98A]" />
                       ) : (
-                        <Circle className="w-5 h-5 text-gray-400" />
+                        <Circle className="w-5 h-5 text-[#7A7595]" />
                       )}
                       <div>
-                        <h4 className="font-medium text-gray-900">{step.title}</h4>
-                        <p className="text-sm text-gray-600">{step.description}</p>
+                        <h4 className="font-medium text-[#18162A]">{step.title}</h4>
+                        <p className="text-sm text-[#7A7595]">{step.description}</p>
                       </div>
                     </div>
                     {!step.completed && (
@@ -307,41 +306,41 @@ export default function ClientDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
                 <Link to={createPageUrl(`client-services?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Target className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 bg-[#EAF2FB] rounded-xl">
+                      <Target className="w-5 h-5 text-[#5B9BD5]" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Serviços</div>
-                      <div className="text-sm text-gray-500">Operação e ciclos</div>
+                      <div className="text-sm text-[#7A7595]">Operação e ciclos</div>
                     </div>
                   </div>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
                 <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <FileText className="w-5 h-5 text-green-600" />
+                    <div className="p-2 bg-[#E6F7F0] rounded-xl">
+                      <FileText className="w-5 h-5 text-[#22C98A]" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Briefing</div>
-                      <div className="text-sm text-gray-500">Contexto do negócio</div>
+                      <div className="text-sm text-[#7A7595]">Contexto do negócio</div>
                     </div>
                   </div>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
                 <Link to={createPageUrl(`client-learnings?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Database className="w-5 h-5 text-purple-600" />
+                    <div className="p-2 bg-[#EDE9FB] rounded-xl">
+                      <Database className="w-5 h-5 text-[#6C47D8]" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Aprendizados</div>
-                      <div className="text-sm text-gray-500">Base de conhecimento</div>
+                      <div className="text-sm text-[#7A7595]">Base de conhecimento</div>
                     </div>
                   </div>
                 </Link>
@@ -349,7 +348,6 @@ export default function ClientDetailPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
 
       <InviteClientModal
         isOpen={inviteModalOpen}

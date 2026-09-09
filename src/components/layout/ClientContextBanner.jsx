@@ -16,11 +16,11 @@ export default function ClientContextBanner({
 
   return (
     <div className={`${className}`}>
-      <div className={`h-1.5 w-full ${CLIENT_CONTEXT.topBar}`} aria-hidden />
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2 bg-teal-50 border-b border-teal-200">
+      <div className={`h-1 w-full ${CLIENT_CONTEXT.topBar}`} aria-hidden />
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2.5 bg-teal-50/90 border-b border-teal-100">
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold shrink-0 ${CLIENT_CONTEXT.chip}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shrink-0 ${CLIENT_CONTEXT.chip}`}
           >
             <Building2 className="w-3.5 h-3.5" />
             {CLIENT_CONTEXT.label}
@@ -33,7 +33,7 @@ export default function ClientContextBanner({
         </div>
         <Link
           to={createPageUrl('clients')}
-          className="inline-flex items-center gap-1 text-xs font-medium text-teal-800 hover:text-teal-950 shrink-0"
+          className="inline-flex items-center gap-1 text-xs font-medium text-teal-800 hover:text-teal-950 shrink-0 rounded-full px-2 py-1 hover:bg-teal-100/80 transition-colors"
         >
           <X className="w-3.5 h-3.5" />
           {CLIENT_CONTEXT.exitLabel}

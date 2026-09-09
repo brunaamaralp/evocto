@@ -28,42 +28,42 @@ import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 
-// Configurações das colunas do Kanban
+// Soft pastel kanban columns
 const KANBAN_COLUMNS = [
   { 
     id: 'backlog', 
     title: 'Backlog', 
-    color: 'bg-gray-100',
+    color: 'bg-[#EDE8F5]',
     description: 'Tarefas em espera'
   },
   { 
     id: 'todo', 
     title: 'A Fazer', 
-    color: 'bg-blue-100',
+    color: 'bg-[#DCEAF8]',
     description: 'Prontas para iniciar'
   },
   { 
     id: 'in_progress', 
     title: 'Em Andamento', 
-    color: 'bg-yellow-100',
+    color: 'bg-[#FFE4D1]',
     description: 'Sendo executadas'
   },
   { 
     id: 'in_review', 
     title: 'Em Revisão', 
-    color: 'bg-purple-100',
+    color: 'bg-[#E8D9F7]',
     description: 'Aguardando revisão'
   },
   { 
     id: 'completed', 
     title: 'Concluído', 
-    color: 'bg-green-100',
+    color: 'bg-[#D0F0E4]',
     description: 'Finalizadas'
   },
   { 
     id: 'blocked', 
     title: 'Bloqueado', 
-    color: 'bg-red-100',
+    color: 'bg-[#FAD9DB]',
     description: 'Com impedimentos'
   }
 ];
@@ -81,13 +81,13 @@ function TaskCard({ task, users, clients }) {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#FAD9DB] text-[#8A2A2A]';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[#FFE4D1] text-[#8A4A22]';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[#FFF8E6] text-[#7A5A10]';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#DCEAF8] text-[#2E5A7A]';
     }
   };
 
@@ -97,7 +97,7 @@ function TaskCard({ task, users, clients }) {
 
   return (
     <Card
-      className="mb-3 cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+      className="mb-3 cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden rounded-2xl border-transparent"
       style={colorStyle}
     >
       <CardContent className="p-3">
@@ -413,35 +413,34 @@ export default function TasksManagerPage() {
   const hasFilters = selectedClient !== 'all' || selectedUser !== 'all' || selectedStatus !== 'all' || searchTerm;
 
   return (
-    <div className="container mx-auto p-6 max-w-full">
+    <div className="max-w-full space-y-6">
       {/* Cabeçalho */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Gerenciador de Tarefas</h1>
-          <Button
-            onClick={() => {
-              // Abrir modal de criação de tarefa
-              window.dispatchEvent(new CustomEvent('task:create'));
-            }}
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nova Tarefa
-          </Button>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Gerenciador de Tarefas</h1>
+          <p className="text-[#7A7595] mt-1">
+            Visualize e gerencie todas as tarefas da organização
+          </p>
         </div>
-        <p className="text-gray-600">
-          Visualize e gerencie todas as tarefas da organização
-        </p>
+        <Button
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('task:create'));
+          }}
+          className="gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Nova Tarefa
+        </Button>
       </div>
 
       {/* Barra de Filtros */}
-      <Card className="mb-6">
+      <Card className="bg-[#F5F2FC]/70 border-[#E8E5F5]">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Filter className="w-5 h-5" />
+            <Filter className="w-5 h-5 text-[#6C47D8]" />
             Filtros
             {totalTasks > 0 && (
-              <Badge variant="secondary" className="ml-auto">
+              <Badge variant="secondary" className="ml-auto rounded-full">
                 {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
               </Badge>
             )}

@@ -385,7 +385,7 @@ function EnhancedKanbanColumn({ column, tasks, users, onCardClick, isDraggingOve
   const useVirtualization = tasks.length > 50; // Virtualize when many tasks
 
   return (
-    <div className="flex-shrink-0 w-80 min-w-80 bg-gray-50 rounded-lg p-4">
+    <div className={`flex-shrink-0 w-80 min-w-80 rounded-2xl p-4 ${column.color || 'bg-[#F5F2FC]'}`}>
       {/* Enhanced Column Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -397,8 +397,8 @@ function EnhancedKanbanColumn({ column, tasks, users, onCardClick, isDraggingOve
           >
             <MoreVertical className={`w-3 h-3 transition-transform ${collapsed ? 'rotate-90' : ''}`} />
           </Button>
-          <h3 className="font-medium text-gray-900 text-sm">{column.title}</h3>
-          <Badge variant="secondary" className="text-xs h-5">
+          <h3 className="font-semibold text-[#18162A] text-sm">{column.title}</h3>
+          <Badge variant="secondary" className="text-xs h-5 rounded-full">
             {tasks.length}
           </Badge>
         </div>
@@ -499,15 +499,15 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
     animationsEnabled: true
   });
 
-  // Columns configuration
+  // Columns configuration — soft pastel stages
   const KANBAN_COLUMNS = [
-    { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100', limit: null },
-    { id: 'todo', title: 'A Fazer', status: 'todo', color: 'bg-blue-100', limit: 10 },
-    { id: 'in_progress', title: 'Em Progresso', status: 'in_progress', color: 'bg-yellow-100', limit: 5 },
-    { id: 'in_review', title: 'Em Revisão', status: 'in_review', color: 'bg-purple-100', limit: 3 },
-    { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100', limit: null },
-    { id: 'cancelled', title: 'Cancelado', status: 'cancelled', color: 'bg-red-100', limit: null },
-    { id: 'blocked', title: 'Bloqueado', status: 'blocked', color: 'bg-orange-100', limit: null }
+    { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-[#EDE8F5]', limit: null },
+    { id: 'todo', title: 'A Fazer', status: 'todo', color: 'bg-[#DCEAF8]', limit: 10 },
+    { id: 'in_progress', title: 'Em Progresso', status: 'in_progress', color: 'bg-[#FFE4D1]', limit: 5 },
+    { id: 'in_review', title: 'Em Revisão', status: 'in_review', color: 'bg-[#E8D9F7]', limit: 3 },
+    { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-[#D0F0E4]', limit: null },
+    { id: 'cancelled', title: 'Cancelado', status: 'cancelled', color: 'bg-[#E6E6EA]', limit: null },
+    { id: 'blocked', title: 'Bloqueado', status: 'blocked', color: 'bg-[#FAD9DB]', limit: null }
   ];
 
   // Enhanced load tasks with caching

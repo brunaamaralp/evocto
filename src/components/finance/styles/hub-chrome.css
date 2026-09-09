@@ -213,8 +213,14 @@
   width: 100%;
   box-sizing: border-box;
   --finance-table-max-height: calc(100vh - 200px);
+  padding: 8px 4px 32px;
 }
-.finance-page-inner { max-width: 1100px; margin: 0 auto; padding: 0; box-sizing: border-box; }
+.finance-page-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
 .finance-label-with-hint {
   display: inline-flex;
   align-items: center;

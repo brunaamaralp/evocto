@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
 import ModernHeader from './ModernHeader';
 import ClientContextBanner from './ClientContextBanner';
@@ -7,7 +8,8 @@ import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 /**
- * Layout contextual que adapta a navegação baseado na página atual
+ * Layout contextual que adapta a navegação baseado na página atual.
+ * Soft UI: canvas tintado + painel principal arredondado.
  */
 export default function ContextualLayout({ user, children }) {
   const location = useLocation();
@@ -107,11 +109,7 @@ export default function ContextualLayout({ user, children }) {
   }, [isClientShell, context.clientId]);
 
   return (
-    <div
-      className={`min-h-screen flex ${
-        isClientShell ? CLIENT_CONTEXT.shellBg : 'bg-gray-50'
-      }`}
-    >
+    <div className={`evocto-shell ${isClientShell ? CLIENT_CONTEXT.shellBg : ''}`}>
       <ContextualSidebar
         user={user}
         currentPage={currentPage}
@@ -122,7 +120,12 @@ export default function ContextualLayout({ user, children }) {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <motion.div
+        className="evocto-main-panel"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+      >
         {isClientShell && (
           <ClientContextBanner
             clientId={context.clientId}
@@ -138,18 +141,19 @@ export default function ContextualLayout({ user, children }) {
         />
 
         <main
-          className={`flex-1 overflow-auto ${
+          className={`flex-1 overflow-auto p-4 sm:p-6 lg:p-8 ${
             isClientShell ? CLIENT_CONTEXT.contentAccent : ''
           }`}
         >
           {children}
         </main>
-      </div>
+      </motion.div>
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-[2px]"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden
         />
       )}
     </div>

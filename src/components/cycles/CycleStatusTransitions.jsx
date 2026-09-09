@@ -17,7 +17,7 @@ export const CYCLE_STATUS_FLOW = {
   planning: {
     label: 'Planejamento',
     icon: FileText,
-    color: 'bg-blue-100 text-blue-800',
+    color: 'bg-[#EAF2FB] text-[#2E5A7A]',
     description: 'Definindo estratégias e prioridades do ciclo',
     nextStates: ['pending_approval'],
     actions: [
@@ -37,7 +37,7 @@ export const CYCLE_STATUS_FLOW = {
   pending_approval: {
     label: 'Em Aprovação',
     icon: Clock,
-    color: 'bg-yellow-100 text-yellow-800',
+    color: 'bg-[#F3EAFB] text-[#5A3A7A]',
     description: 'Aguardando aprovação do cliente',
     nextStates: ['approved', 'planning'], // pode voltar para planning se rejeitado
     actions: [
@@ -56,7 +56,7 @@ export const CYCLE_STATUS_FLOW = {
   approved: {
     label: 'Aprovado',
     icon: CheckCircle2,
-    color: 'bg-green-100 text-green-800',
+    color: 'bg-[#E6F7F0] text-[#085041]',
     description: 'Plano aprovado, pronto para execução',
     nextStates: ['in_execution'],
     actions: [
@@ -70,7 +70,7 @@ export const CYCLE_STATUS_FLOW = {
   in_execution: {
     label: 'Em Execução',
     icon: Play,
-    color: 'bg-purple-100 text-purple-800',
+    color: 'bg-[#FFF0E6] text-[#8A4A22]',
     description: 'Executando as atividades do ciclo',
     nextStates: ['closing'],
     actions: [
@@ -89,7 +89,7 @@ export const CYCLE_STATUS_FLOW = {
   closing: {
     label: 'Fechamento',
     icon: ArrowRight,
-    color: 'bg-orange-100 text-orange-800',
+    color: 'bg-[#FFF8E6] text-[#7A5A10]',
     description: 'Coletando resultados e aprendizados',
     nextStates: ['completed'],
     actions: [
@@ -108,7 +108,7 @@ export const CYCLE_STATUS_FLOW = {
   completed: {
     label: 'Concluído',
     icon: CheckCircle2,
-    color: 'bg-slate-100 text-slate-800',
+    color: 'bg-[#EDE8F5] text-[#4A4068]',
     description: 'Ciclo finalizado com sucesso',
     nextStates: [],
     actions: [

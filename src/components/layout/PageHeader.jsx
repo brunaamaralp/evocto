@@ -1,23 +1,13 @@
 import React from 'react';
 
 /**
- * Cabeçalho padrão de página (H1 + subtítulo + meta + ações + toolbar).
- *
- * @param {object} props
- * @param {string} props.title
- * @param {string} [props.subtitle]
- * @param {React.ReactNode} [props.meta]
- * @param {React.ReactNode} [props.actions]
- * @param {React.ReactNode} [props.toolbar] — conteúdo interno de page-header-card
- * @param {React.ReactNode} [props.prefix] — link ou breadcrumb acima do título
- * @param {string} [props.className]
- * @param {string} [props.metaClassName]
- * @param {boolean} [props.animate=true]
+ * Soft UI page header: bold title + optional subtitle/metrics + actions.
  */
 export default function PageHeader({
   title,
   subtitle,
   meta,
+  metrics,
   actions,
   toolbar,
   prefix,
@@ -25,26 +15,52 @@ export default function PageHeader({
   metaClassName = '',
   animate = true,
 }) {
-  const rootClass = ['navi-page-header', animate ? 'animate-in' : '', className].filter(Boolean).join(' ');
-  const metaClass = ['navi-eyebrow', 'navi-page-header__meta', metaClassName].filter(Boolean).join(' ');
+  const rootClass = [
+    'flex flex-col gap-4 mb-6',
+    animate ? 'animate-in fade-in duration-300' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <header className={rootClass}>
       {prefix}
-      <div className="navi-page-header__top">
-        <div className="navi-page-header__intro">
-          <h1 className="navi-page-title">{title}</h1>
-          {subtitle ? <p className="navi-subtitle navi-page-header__subtitle">{subtitle}</p> : null}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">
+            {title}
+          </h1>
+          {subtitle ? (
+            <p className="text-sm text-[#7A7595] max-w-2xl">{subtitle}</p>
+          ) : null}
           {meta ? (
-            <p className={metaClass} data-page-meta>
+            <p
+              className={`text-xs font-medium text-[#9B8EC4] uppercase tracking-wide ${metaClassName}`}
+              data-page-meta
+            >
               {meta}
             </p>
           ) : null}
         </div>
-        {actions ? <div className="navi-page-header__actions">{actions}</div> : null}
+        {actions ? (
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>
+        ) : null}
       </div>
+
+      {Array.isArray(metrics) && metrics.length > 0 ? (
+        <div className="flex flex-wrap gap-6 sm:gap-8 pt-1">
+          {metrics.map((m, i) => (
+            <div key={m.label || i} className="evocto-kpi">
+              <span className="evocto-kpi-value">{m.value}</span>
+              <span className="evocto-kpi-label">{m.label}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {toolbar ? (
-        <div className="page-header-card navi-page-header__toolbar">
+        <div className="rounded-2xl bg-[#F5F2FC]/80 border border-[#E8E5F5]/80 p-3 sm:p-4">
           {toolbar}
         </div>
       ) : null}

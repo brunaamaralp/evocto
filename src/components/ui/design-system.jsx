@@ -4,16 +4,16 @@ import React from 'react';
 export const designTokens = {
   colors: {
     primary: {
-      50: '#EFF6FF',
-      100: '#DBEAFE', 
-      200: '#BFDBFE',
-      300: '#93C5FD',
-      400: '#60A5FA',
-      500: '#3B82F6', // Main brand color
-      600: '#2563EB',
-      700: '#1D4ED8',
-      800: '#1E40AF',
-      900: '#1E3A8A'
+      50: '#F5F2FC',
+      100: '#EDE9FB',
+      200: '#D4CBF5',
+      300: '#AFA9EC',
+      400: '#8B7AE0',
+      500: '#6C47D8', // Brand purple
+      600: '#5A3BC0',
+      700: '#4A2FA3',
+      800: '#3A2480',
+      900: '#2A1A5C'
     },
     secondary: {
       50: '#F8FAFC',
@@ -82,13 +82,19 @@ export const designTokens = {
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
   },
   borderRadius: {
-    sm: '0.125rem',   // 2px
-    base: '0.25rem',  // 4px
-    md: '0.375rem',   // 6px
-    lg: '0.5rem',     // 8px
-    xl: '0.75rem',    // 12px
-    '2xl': '1rem',    // 16px
+    sm: '0.375rem',
+    base: '0.5rem',
+    md: '0.75rem',
+    lg: '1rem',
+    xl: '1.25rem',
+    '2xl': '1.25rem',
+    panel: '1.5rem',
     full: '9999px'
+  },
+  softShadows: {
+    card: '0 4px 16px rgba(24, 22, 42, 0.05), 0 1px 3px rgba(24, 22, 42, 0.04)',
+    panel: '0 8px 32px rgba(24, 22, 42, 0.06), 0 2px 8px rgba(24, 22, 42, 0.04)',
+    elevated: '0 12px 40px rgba(24, 22, 42, 0.1)'
   }
 };
 
@@ -96,15 +102,15 @@ export const designTokens = {
 
 export const Card = ({ children, className = '', variant = 'default', ...props }) => {
   const variants = {
-    default: 'bg-white border border-secondary-200 shadow-base',
-    elevated: 'bg-white border border-secondary-200 shadow-lg',
-    outlined: 'bg-white border-2 border-secondary-300',
-    ghost: 'bg-secondary-50 border border-secondary-100'
+    default: 'bg-white shadow-[var(--shadow-card)] border border-[#E8E5F5]/60',
+    elevated: 'bg-white shadow-[var(--shadow-elevated)] border border-[#E8E5F5]/40',
+    outlined: 'bg-white border-2 border-[#D4CBF5]',
+    ghost: 'bg-[#F5F2FC] border border-[#EDE9FB]'
   };
   
   return (
     <div 
-      className={`rounded-xl p-6 ${variants[variant]} ${className}`}
+      className={`rounded-2xl p-6 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

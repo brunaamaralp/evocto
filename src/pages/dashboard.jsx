@@ -151,61 +151,88 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Visão geral da sua agência
-        </p>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Dashboard</h1>
+          <p className="text-[#7A7595] mt-1">
+            Visão geral da sua agência
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-6 sm:gap-8">
+          <div className="evocto-kpi">
+            <span className="evocto-kpi-value">{dashboardData.stats.totalClients}</span>
+            <span className="evocto-kpi-label">Clientes ativos</span>
+          </div>
+          <div className="evocto-kpi">
+            <span className="evocto-kpi-value">{dashboardData.stats.activeServices}</span>
+            <span className="evocto-kpi-label">Serviços</span>
+          </div>
+          <div className="evocto-kpi">
+            <span className="evocto-kpi-value">{dashboardData.stats.pendingTasks}</span>
+            <span className="evocto-kpi-label">Pendentes</span>
+          </div>
+          <div className="evocto-kpi">
+            <span className="evocto-kpi-value">{dashboardData.stats.completedThisWeek}</span>
+            <span className="evocto-kpi-label">Concluídas (sem.)</span>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
+      {/* Stats Grid — pastel modules */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-[#EAF2FB] border-transparent shadow-none">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Clientes Ativos</p>
-                <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.totalClients}</p>
+                <p className="text-sm font-medium text-[#2E5A7A]">Clientes Ativos</p>
+                <p className="text-3xl font-bold text-[#18162A] tracking-tight">{dashboardData.stats.totalClients}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <div className="h-11 w-11 rounded-2xl bg-white/70 flex items-center justify-center">
+                <Users className="h-5 w-5 text-[#5B9BD5]" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
+        <Card className="bg-[#E6F7F0] border-transparent shadow-none">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Serviços Ativos</p>
-                <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.activeServices}</p>
+                <p className="text-sm font-medium text-[#085041]">Serviços Ativos</p>
+                <p className="text-3xl font-bold text-[#18162A] tracking-tight">{dashboardData.stats.activeServices}</p>
               </div>
-              <Briefcase className="h-8 w-8 text-green-600" />
+              <div className="h-11 w-11 rounded-2xl bg-white/70 flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-[#22C98A]" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
+        <Card className="bg-[#FFF0E6] border-transparent shadow-none">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Tarefas Pendentes</p>
-                <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.pendingTasks}</p>
+                <p className="text-sm font-medium text-[#8A4A22]">Tarefas Pendentes</p>
+                <p className="text-3xl font-bold text-[#18162A] tracking-tight">{dashboardData.stats.pendingTasks}</p>
               </div>
-              <CheckSquare className="h-8 w-8 text-orange-600" />
+              <div className="h-11 w-11 rounded-2xl bg-white/70 flex items-center justify-center">
+                <CheckSquare className="h-5 w-5 text-[#E8955A]" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
+        <Card className="bg-[#EDE9FB] border-transparent shadow-none">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Concluídas (Semana)</p>
-                <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.completedThisWeek}</p>
+                <p className="text-sm font-medium text-[#4A2FA3]">Concluídas (Semana)</p>
+                <p className="text-3xl font-bold text-[#18162A] tracking-tight">{dashboardData.stats.completedThisWeek}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <div className="h-11 w-11 rounded-2xl bg-white/70 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-[#6C47D8]" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -217,7 +244,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Activity className="h-5 w-5 mr-2" />
+              <Activity className="h-5 w-5 mr-2 text-[#6C47D8]" />
               Atividade Recente
             </CardTitle>
           </CardHeader>
@@ -226,11 +253,11 @@ export default function DashboardPage() {
               {dashboardData.recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
+                    <div className="h-2 w-2 bg-[#6C47D8] rounded-full"></div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.description}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-sm text-[#18162A]">{activity.description}</p>
+                    <p className="text-xs text-[#7A7595]">{activity.time}</p>
                   </div>
                 </div>
               ))}
@@ -242,7 +269,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Clock className="h-5 w-5 mr-2" />
+              <Clock className="h-5 w-5 mr-2 text-[#E8955A]" />
               Próximas Tarefas
             </CardTitle>
           </CardHeader>
@@ -251,8 +278,8 @@ export default function DashboardPage() {
               {dashboardData.upcomingTasks.map((task) => (
                 <div key={task.id} className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                    <p className="text-xs text-gray-500">Vence em {task.dueDate}</p>
+                    <p className="text-sm font-medium text-[#18162A]">{task.title}</p>
+                    <p className="text-xs text-[#7A7595]">Vence em {task.dueDate}</p>
                   </div>
                   <Badge 
                     variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'secondary'}
@@ -267,32 +294,32 @@ export default function DashboardPage() {
       </div>
 
       {/* Ações Rápidas */}
-      <Card>
+      <Card className="bg-[#F5F2FC]/60 border-[#E8E5F5]">
         <CardHeader>
           <CardTitle>Ações Rápidas</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Link to={createPageUrl('clients')}>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Cliente
               </Button>
             </Link>
             <Link to={createPageUrl('services')}>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
                 <Building className="h-4 w-4 mr-2" />
                 Template Serviço
               </Button>
             </Link>
             <Link to={createPageUrl('tasks-manager')}>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
                 <CheckSquare className="h-4 w-4 mr-2" />
                 Ver Tarefas
               </Button>
             </Link>
             <Link to={createPageUrl('library')}>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
                 <FileText className="h-4 w-4 mr-2" />
                 Biblioteca
               </Button>

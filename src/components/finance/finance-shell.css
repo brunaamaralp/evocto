@@ -4,4 +4,5 @@
  */
 @import '../../styles/tokens/finance.css';
 @import './styles/finance-module-tokens.css';
+@import './styles/navi-hub-chrome.css';
 @import './styles/hub-chrome.css';
