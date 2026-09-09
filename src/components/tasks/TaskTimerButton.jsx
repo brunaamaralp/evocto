@@ -4,12 +4,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { useTaskTimer } from '@/hooks/useTaskTimer';
-import {
-  buildTimerStartedToast,
-  pauseTimeEntry,
-  startTimeEntry,
-  stopTimeEntry,
-} from '@/lib/timeEntriesApi';
+import { buildTimerStartedToast } from '@/lib/timeEntriesCore';
+import { pauseTimeEntry, startTimeEntry, stopTimeEntry } from '@/lib/timeEntriesApi';
 
 export default function TaskTimerButton({
   task,
