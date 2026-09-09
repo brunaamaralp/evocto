@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,8 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { 
-  GitBranch, AlertTriangle, Info, CheckCircle,
-  Plus, ArrowUp, Clock, FileText, Users
+  GitBranch, AlertTriangle, Info, CheckCircle, ArrowUp, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 

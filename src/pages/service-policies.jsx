@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 
 export default function ServicePoliciesPage() {
-  const { agency } = useSession();
+  const { _agency } = useSession();
   const [policies, setPolicies] = useState({
     rc_expiry_days: 7,
     learning_triage_sla_hours: 48,

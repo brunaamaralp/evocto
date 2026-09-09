@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Home, Clock, CheckSquare, FileText, User, 
-  AlertCircle, Settings, HelpCircle
+  AlertCircle, HelpCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,7 +22,7 @@ import HelpSupport from '@/components/client_portal/HelpSupport';
 
 export default function ClientPortal() {
   const { user } = useSession();
-  const { t } = useTranslation();
+  const { _t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [clientData, setClientData] = useState(null);
   const [services, setServices] = useState([]);

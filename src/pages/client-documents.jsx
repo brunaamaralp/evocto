@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { ClientDocument } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -7,12 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
-  FileText, Download, Upload, Eye, Edit, Trash2,
-  Search, Filter, Calendar, User, Tag, 
+  FileText, Download, Upload, Eye,
+  Search, User, 
   FolderOpen, File, Image, Archive, Share2,
-  ArrowLeft, Plus, RefreshCw, ExternalLink
+  ArrowLeft, RefreshCw
 } from 'lucide-react';
 import {
   Select,
@@ -51,7 +50,7 @@ const STATUS_LABELS = {
   archived: 'Arquivado'
 };
 
-const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highlighted = false }) => {
+const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlighted = false }) => {
   const getFileIcon = (fileType) => {
     if (fileType?.includes('pdf')) return <File className="w-5 h-5 text-red-500" />;
     if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#6C47D8]" />;
@@ -163,7 +162,7 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highligh
 };
 
 export default function ClientDocumentsPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
   const documentId = urlParams.get('documentId');
@@ -171,7 +170,7 @@ export default function ClientDocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [client, setClient] = useState(null);
-  const [services, setServices] = useState([]);
+  const [_services, setServices] = useState([]);
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -218,7 +217,7 @@ export default function ClientDocumentsPage() {
     }
   }, [loading, documentId, documents]);
 
-  const handleViewDocument = async (document) => {
+  const handleViewDocument = async (_document) => {
     // TODO: Implementar visualização do documento
     toast.info('Visualização em desenvolvimento');
   };
@@ -238,7 +237,7 @@ export default function ClientDocumentsPage() {
     }
   };
 
-  const handleEditDocument = (document) => {
+  const handleEditDocument = (_document) => {
     // TODO: Implementar edição/compartilhamento
     toast.info('Edição em desenvolvimento');
   };

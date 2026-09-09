@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { withDefault, safeGet } from '@/components/utils/safeGuards';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { withDefault } from '@/components/utils/safeGuards';
 
 // Import translations with safe fallback
 import enTranslations from './locales-en';

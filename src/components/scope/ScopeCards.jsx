@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,7 +23,7 @@ function ScopeColumn({ type, items, provided, onUpdateItem, onDeleteItem, onAddI
   return (
     <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3 min-h-[100px] flex-grow flex flex-col">
       <div className="flex-grow space-y-3">
-        {items.map((item, index) => (
+        {items.map((item, _index) => (
           <Draggable key={item.id} draggableId={String(item.id)} index={item.order}>
             {(draggableProvided) => (
               <div

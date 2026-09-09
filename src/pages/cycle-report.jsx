@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CyclePlan, Client, Service, LearningEntry } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -10,8 +10,7 @@ import {
   Loader2, 
   Download, 
   Share2, 
-  TrendingUp, 
-  Calendar,
+  TrendingUp,
   Target,
   CheckCircle2,
   AlertTriangle,
@@ -93,7 +92,7 @@ const SatisfactionStars = ({ score }) => {
 export default function CycleReport() {
   const { cycleId } = useParams();
   const navigate = useNavigate();
-  const { agency, user } = useSession();
+  const { agency, _user } = useSession();
   
   const [cycle, setCycle] = useState(null);
   const [client, setClient] = useState(null);
@@ -184,7 +183,7 @@ export default function CycleReport() {
       const reportUrl = `${window.location.origin}${createPageUrl(`cycle-report/${cycleId}`)}`;
       await navigator.clipboard.writeText(reportUrl);
       toast.success("Link do relatório copiado!");
-    } catch (error) {
+    } catch (_error) {
       toast.error("Falha ao copiar link");
     }
   };

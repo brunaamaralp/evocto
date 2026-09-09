@@ -1,9 +1,8 @@
 
-import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, RefreshCw, Plus, Inbox } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, Inbox } from 'lucide-react';
 
 /**
  * Componente para renderizar diferentes estados de forma consistente
@@ -12,7 +11,7 @@ export function StateRenderer({
   loading, 
   error, 
   isEmpty, 
-  data,
+  _data,
   onRetry,
   emptyState,
   children,

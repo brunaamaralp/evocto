@@ -96,7 +96,7 @@ export class DocumentAnalysisService {
     
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = (_e) => {
         // Simular texto extraído
         const mockText = this.generateMockDocumentText(file.name);
         resolve(mockText);

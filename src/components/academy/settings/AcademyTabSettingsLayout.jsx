@@ -1,4 +1,3 @@
-import React from 'react';
 import FinanceSettingsDetailHeader from '../../finance/settings/FinanceSettingsDetailHeader.jsx';
 import '../../finance/finance.css';
 

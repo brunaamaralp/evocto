@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { healthMonitor } from './HealthAuditor';
 import { RenderHealthCheck, useLoadingHealthCheck } from './ComponentHealthWrapper';
@@ -9,7 +9,7 @@ import { RenderHealthCheck, useLoadingHealthCheck } from './ComponentHealthWrapp
 export default function PageHealthChecker({ children, pageName }) {
   const location = useLocation();
   const [isPageLoading, setIsPageLoading] = useState(true);
-  const [pageErrors, setPageErrors] = useState([]);
+  const [_pageErrors, setPageErrors] = useState([]);
 
   // Monitorar loading da página
   useLoadingHealthCheck(isPageLoading, `page_${pageName}`, 15000);

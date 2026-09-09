@@ -1,4 +1,4 @@
-import { ID, Query } from 'appwrite';
+import { Query } from 'appwrite';
 import { databases, DB_ID } from './appwrite.js';
 import { freezeStudentApi, listPlanFreezesApi, unfreezeStudentApi } from './studentsApi.js';
 import { applyTaskTemplateForTrigger, TASK_TEMPLATE_TRIGGERS } from './applyTaskTemplateClient.js';
@@ -18,14 +18,10 @@ import {
 } from '../../lib/planFreezeProjection.js';
 import {
   FREEZE_STATUS_ACTIVE,
-  effectiveFreezeDaysUsed,
-  planYearStartYmd,
   referenceMonthsInRange,
   computeDurationDays,
   bundleExtensionMonthsFromDays,
   paymentFreezeEndYmd,
-  isFreezeIndefinite,
-  toYmd,
   parseYmdLocal,
   isFreezeActive,
 } from '../../lib/planFreezeCore.js';
@@ -127,7 +123,7 @@ async function markPaymentsFrozen({ leadId, academyId, startYmd, endYmd, planNam
   return { updated };
 }
 
-async function revertFrozenPaymentsAfterUnfreeze({
+async function _revertFrozenPaymentsAfterUnfreeze({
   leadId,
   academyId,
   unfreezeYmd,
@@ -161,7 +157,7 @@ async function revertFrozenPaymentsAfterUnfreeze({
   return { reverted };
 }
 
-async function shortenPlanFreezeRecordClient({ leadId, academyId, freezeStartYmd, newEndYmd }) {
+async function _shortenPlanFreezeRecordClient({ leadId, academyId, freezeStartYmd, newEndYmd }) {
   if (!PLAN_FREEZES_COL) return { updated: false };
   const start = String(freezeStartYmd || '').slice(0, 10);
   const end = String(newEndYmd || '').slice(0, 10);
@@ -357,14 +353,14 @@ export async function endPlanFreeze({
   student,
   leadId,
   academyId,
-  userId,
-  teamId,
+  _userId,
+  _teamId,
   updateLead,
   mergeStudent,
   onAfterUnfreeze,
-  academySettingsRaw = null,
+  _academySettingsRaw = null,
   early = false,
-  payments = null,
+  _payments = null,
 }) {
   if (!student || String(student.freeze_status || '') !== FREEZE_STATUS_ACTIVE) {
     return { skipped: true };

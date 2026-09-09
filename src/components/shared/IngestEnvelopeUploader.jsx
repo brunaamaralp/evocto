@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createIngestEnvelope } from '@/api/functions';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export default function IngestEnvelopeUploader({
   acceptedTypes = Object.keys(SUPPORTED_FORMATS),
   className = ""
 }) {
-  const { user } = useSession();
+  const { _user } = useSession();
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
   const [completedUploads, setCompletedUploads] = useState([]);

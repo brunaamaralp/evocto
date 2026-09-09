@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
@@ -60,7 +60,7 @@ const REPORT_TYPES = [
   {
     id: 'marketing_360_monthly',
     name: 'Marketing 360 Mensal',
-    description: 'Relatório mensal do retainer de marketing operacional',
+    description: 'Relatório mensal do recorrente de marketing operacional',
     icon: FileText,
     formats: ['pdf']
   },

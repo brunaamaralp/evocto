@@ -1,4 +1,3 @@
-import React from 'react';
 import { SEXO_OPTIONS } from '../../lib/leadSexo.js';
 import FormSelect from './FormSelect.jsx';
 

@@ -1,9 +1,7 @@
-import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { 
-  AlertTriangle, CheckCircle, Info, XCircle,
-  Database, GitBranch, Shield, Users, Clock
+  AlertTriangle, CheckCircle, XCircle
 } from 'lucide-react';
 
 /**

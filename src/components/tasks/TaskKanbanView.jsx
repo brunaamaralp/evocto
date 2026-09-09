@@ -1,18 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { 
-  Calendar, 
-  Clock, 
-  User as UserIcon, 
-  Flag,
-  Plus,
+  Calendar,
   MoreVertical,
   Eye,
-  Edit,
   Target,
   Lightbulb,
   CheckCircle,
@@ -41,7 +36,7 @@ const PRIORITY_COLORS = {
  * Visualização Kanban com drag & drop
  */
 export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loading }) {
-  const [draggedTask, setDraggedTask] = useState(null);
+  const [_draggedTask, setDraggedTask] = useState(null);
 
   // Agrupar tarefas por status
   const tasksByStatus = tasks.reduce((acc, task) => {

@@ -5,7 +5,7 @@
  * Mock API para dados do dashboard executivo
  */
 export const mockClientDashboardAPI = {
-  async getDashboardData(clientId, serviceId, period = '3m') {
+  async getDashboardData(clientId, serviceId, _period = '3m') {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -69,7 +69,7 @@ export const mockClientDashboardAPI = {
     };
   },
 
-  async getProgressData(clientId, serviceId) {
+  async getProgressData(_clientId, _serviceId) {
     await new Promise(resolve => setTimeout(resolve, 300));
     
     return {
@@ -101,7 +101,7 @@ export const mockClientDashboardAPI = {
     };
   },
 
-  async getInsights(clientId, serviceId) {
+  async getInsights(_clientId, _serviceId) {
     await new Promise(resolve => setTimeout(resolve, 200));
     
     return {

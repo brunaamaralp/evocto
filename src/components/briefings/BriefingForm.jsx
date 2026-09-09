@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Building2, Users, Target, TrendingUp, Calendar, 
-  DollarSign, FileText, AlertTriangle, CheckCircle,
+  Building2, Users, Target, TrendingUp, FileText, AlertTriangle, CheckCircle,
   Database, Shield, Briefcase
 } from 'lucide-react';
 import { useT } from '@/components/i18n/I18nProvider';
@@ -18,11 +17,11 @@ export default function BriefingForm({
   briefing, 
   setBriefing, 
   client, 
-  isEditing = false, 
+  _isEditing = false, 
   onSave, 
   saving = false 
 }) {
-  const t = useT();
+  const _t = useT();
   const [completionScore, setCompletionScore] = useState(0);
 
   // Calcular score de completude

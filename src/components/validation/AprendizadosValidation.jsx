@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { LearningEntry, Client, CyclePlan } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { LearningEntry, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   CheckCircle, 
@@ -13,16 +11,9 @@ import {
   AlertTriangle, 
   Play, 
   Lightbulb,
-  Search,
-  Plus,
-  Filter,
-  BookOpen,
-  Zap,
-  Users,
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { createPageUrl } from '@/utils';
 
 const ValidationItem = ({ title, status, description, evidence, onTest }) => {
   const getStatusIcon = () => {
@@ -102,7 +93,7 @@ export default function AprendizadosValidation() {
     try {
       // Verificar se a página carrega
       const currentPath = window.location.pathname;
-      const pageTitle = document.title;
+      const _pageTitle = document.title;
       
       // Verificar elementos essenciais da página
       const hasTitle = document.querySelector('h1');
@@ -139,7 +130,7 @@ export default function AprendizadosValidation() {
     setTesting('addLearning');
     try {
       const addButton = document.querySelector('button[class*="Novo"], button:contains("Adicionar"), button:contains("Novo Aprendizado")');
-      const hasModal = document.querySelector('[role="dialog"], [class*="modal"], [class*="Modal"]');
+      const _hasModal = document.querySelector('[role="dialog"], [class*="modal"], [class*="Modal"]');
       
       setValidationResults(prev => ({ 
         ...prev, 
@@ -151,7 +142,7 @@ export default function AprendizadosValidation() {
         hasAddButton: !!addButton
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, addLearning: 'fail' }));
     }
     setTesting('');
@@ -172,7 +163,7 @@ export default function AprendizadosValidation() {
         searchAndFilter: searchScore >= 2 ? 'pass' : searchScore === 1 ? 'pending' : 'fail'
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, searchAndFilter: 'fail' }));
     }
     setTesting('');
@@ -189,7 +180,7 @@ export default function AprendizadosValidation() {
         applyToPlanning: applyButtons.length > 0 ? 'pass' : 'fail'
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, applyToPlanning: 'fail' }));
     }
     setTesting('');
@@ -222,7 +213,7 @@ export default function AprendizadosValidation() {
         }));
       }
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, emptyState: 'fail' }));
     }
     setTesting('');
@@ -244,7 +235,7 @@ export default function AprendizadosValidation() {
         customerSource: hasCustomerInfo ? 'pass' : learnings.length === 0 ? 'pending' : 'fail'
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, customerSource: 'fail' }));
     }
     setTesting('');
@@ -269,7 +260,7 @@ export default function AprendizadosValidation() {
         navigation: navScore >= 2 ? 'pass' : navScore === 1 ? 'pending' : 'fail'
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, navigation: 'fail' }));
     }
     setTesting('');
@@ -315,7 +306,7 @@ export default function AprendizadosValidation() {
         loadingErrors: errors
       }));
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, loadingIssues: 'fail' }));
     }
     setTesting('');

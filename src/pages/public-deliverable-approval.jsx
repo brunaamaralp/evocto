@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ApprovalRequest } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +24,7 @@ export default function PublicDeliverableApprovalPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [status, setStatus] = useState('pending');
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const _urlParams = new URLSearchParams(window.location.search);
   const token = window.location.pathname.split('/').pop();
 
   const loadApprovalData = useCallback(async () => {

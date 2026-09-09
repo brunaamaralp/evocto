@@ -6,7 +6,6 @@ import { Job } from '@/api/entities';
 import { AuditLog } from '@/api/entities';
 import { Notification } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
-import { toast } from 'sonner';
 
 /**
  * Controlador centralizado para transições de estado idempotentes e resistentes a race conditions
@@ -224,7 +223,7 @@ export class StateTransitionController {
     });
   }
 
-  async createIdempotentAuditLog(effect, dedupeKey) {
+  async createIdempotentAuditLog(effect, _dedupeKey) {
     // AuditLog sempre permite duplicatas, mas podemos usar dedupe para performance
     const recentLogs = await AuditLog.filter({
       agencyId: this.agencyId,
@@ -295,7 +294,7 @@ export class StateTransitionController {
     });
   }
 
-  async propagateStatusIdempotently(effect, updatedEntity, dedupeKey) {
+  async propagateStatusIdempotently(effect, updatedEntity, _dedupeKey) {
     // Propagar mudanças de status para entidades relacionadas
     // Ex: Task blocked → Deliverable has_blockers = true
     

@@ -1,15 +1,15 @@
 
-import React, { useState, useEffect } from "react";
-import { Scope, Brief, Project, Client, AuditLog, User } from "@/api/entities";
+import { useState, useEffect } from "react";
+import { Scope, Brief, Project, Client, AuditLog } from "@/api/entities";
 import { InvokeLLM } from "@/api/integrations";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Plus, Search, Target, CheckCircle, AlertTriangle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -64,7 +64,7 @@ export default function ScopeGeneratorPage() {
   const [isValidating, setIsValidating] = useState(false);
   const [isCreating, setIsCreating] = useState(false); // Added for creation loading state
   const navigate = useNavigate();
-  const { authorize, can, ROLES } = useAuthorization();
+  const { authorize, can, _ROLES } = useAuthorization();
   const { agency, user } = useSession(); // Correctly get user from useSession
 
   useEffect(() => {

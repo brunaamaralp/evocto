@@ -1,21 +1,16 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { useT } from '@/components/i18n/I18nProvider';
 import { LearningEntry } from '@/api/entities';
-import { UploadFile, ExtractDataFromUploadedFile } from '@/api/integrations';
+import { UploadFile } from '@/api/integrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Upload, FileText, Image, BarChart3, MessageCircle, Target,
-  Lightbulb, Clock, CheckCircle, AlertCircle, Filter, Search,
-  Calendar, TrendingUp, TrendingDown, Award, Zap, Eye,
-  Download, Trash2, Edit, Plus, ArrowRight, ChevronDown,
-  FileSpreadsheet, File, Brain, Sparkles, History, Users
+  Lightbulb, Clock, CheckCircle, AlertCircle, Filter, Search, TrendingUp,
+  Download, Trash2, Plus,
+  FileSpreadsheet, File, Brain, Sparkles, History
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -33,12 +28,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Configuração das categorias de aprendizados
@@ -906,7 +897,7 @@ export default function LearningsTab({ client }) {
             {filteredLearnings.length > 0 ? (
               <div className="space-y-8">
                 <AnimatePresence>
-                  {filteredLearnings.map((learning, index) => (
+                  {filteredLearnings.map((learning, _index) => (
                     <LearningTimelineCard
                       key={learning.id}
                       learning={learning}

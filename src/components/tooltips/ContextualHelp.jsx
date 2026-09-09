@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -244,7 +244,7 @@ export function ProcessStepHelp({ title, description, tips = [] }) {
   );
 }
 
-export default function ContextualHelp({ type, data = {}, className = "" }) {
+export default function ContextualHelp({ type, data = {}, _className = "" }) {
   switch (type) {
     case 'phase':
       return <PhaseContextualHelp phaseType={data.phaseType} compact={data.compact} />;

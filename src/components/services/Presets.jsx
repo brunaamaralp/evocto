@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,8 +11,7 @@ import {
   Package, 
   ChevronDown, 
   ChevronUp,
-  Calendar,
-  Zap
+  Calendar
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -89,7 +88,7 @@ export default function Presets({ service, onUpdate }) {
     });
   };
 
-  const addDeliverableToBundle = (deliverable) => {
+  const _addDeliverableToBundle = (deliverable) => {
     if (deliverable && !newBundle.deliverables.includes(deliverable)) {
       setNewBundle({
         ...newBundle,
@@ -98,7 +97,7 @@ export default function Presets({ service, onUpdate }) {
     }
   };
 
-  const removeDeliverableFromBundle = (deliverable) => {
+  const _removeDeliverableFromBundle = (deliverable) => {
     setNewBundle({
       ...newBundle,
       deliverables: newBundle.deliverables.filter(d => d !== deliverable)

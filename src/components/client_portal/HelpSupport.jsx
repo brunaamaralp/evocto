@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,12 +18,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { 
-  HelpCircle, MessageCircle, Phone, Mail, 
-  ExternalLink, ChevronDown, Search, Book,
-  PlayCircle, FileText, CheckCircle, BarChart3, Bell,
-  X, Send, Clock, CheckCircle2, Loader2
+  HelpCircle, MessageCircle, Phone, Mail, ChevronDown, Search, Book,
+  PlayCircle, CheckCircle, BarChart3, Bell, Send, Clock, Loader2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { SendEmail } from '@/api/integrations';
 

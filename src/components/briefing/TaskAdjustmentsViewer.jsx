@@ -7,24 +7,27 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Settings, 
   ArrowUp, 
   ArrowDown, 
-  Eye, 
   EyeOff, 
   Plus, 
   FileText, 
   Target,
-  BarChart3,
-  Filter,
-  Search
+  BarChart3
 } from 'lucide-react';
 import { useTaskAdjustments } from '@/hooks/useTaskAdjustments';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function TaskAdjustmentsViewer({ 
   servicoInstanciaId, 
@@ -36,17 +39,17 @@ export default function TaskAdjustmentsViewer({
     isLoading,
     error,
     stats,
-    getAdjustmentsByAction,
+    _getAdjustmentsByAction,
     getAdjustmentsForTask,
     hasAdjustments,
     totalAdjustments,
     prioritizeCount,
     deferCount,
-    hideCount,
+    _hideCount,
     addTaskCount,
     addSubtaskCount,
-    addNoteCount,
-    setMilestoneCount
+    _addNoteCount,
+    _setMilestoneCount
   } = useTaskAdjustments(servicoInstanciaId);
 
   const [activeTab, setActiveTab] = useState('overview');

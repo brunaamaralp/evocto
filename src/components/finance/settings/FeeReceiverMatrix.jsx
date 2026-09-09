@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ACQUIRER_INSTALLMENT_COUNTS } from '../../../lib/acquirerFees.js';
 import { CARD_BRANDS, CARD_BRAND_UI_LABELS } from '../../../lib/cardBrands.js';

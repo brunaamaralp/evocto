@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Service } from '@/api/entities';
-import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
-  Save, ArrowLeft, Plus, Trash2, GripVertical, Edit3, CheckSquare,
-  Users, Calendar, Clock, Flag, FileText, Zap, Eye, Settings,
-  AlertCircle, Check, X, User as UserIcon, Building2, Loader2,
-  MoreVertical, Edit, Move3D, Sparkles, Wifi, WifiOff, CheckCircle2
+  Save, ArrowLeft, Plus, Trash2, GripVertical, Edit3, CheckSquare, Calendar, Clock, FileText,
+  AlertCircle, X, User as UserIcon, Building2, Loader2, Move3D, Sparkles, CheckCircle2
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'sonner';

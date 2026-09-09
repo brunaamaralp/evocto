@@ -16,7 +16,7 @@ class ServiceErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     return { 
       hasError: true,
       errorId: `service_error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`

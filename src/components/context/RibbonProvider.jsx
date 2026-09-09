@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { withDefault } from '@/components/utils/safeGuards';
 
 const RibbonContext = createContext(null);
@@ -151,7 +151,7 @@ export function useRibbon() {
 export function useSafeRibbon() {
   try {
     return useRibbon();
-  } catch (error) {
+  } catch (_error) {
     // Retornar API no-op se provider não estiver disponível
     return {
       content: null,

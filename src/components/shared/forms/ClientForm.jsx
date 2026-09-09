@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -51,7 +50,7 @@ export default function ClientForm({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const validateForm = () => {
+  const _validateForm = () => {
     return validateFields(formData, {
       name: [validators.required, validators.minLength(2)],
       email: [validators.email],

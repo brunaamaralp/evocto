@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,7 +52,7 @@ const REPORT_TYPES = {
   marketing_360_monthly: {
     name: 'Marketing 360 Mensal',
     icon: FileText,
-    description: 'Relatório mensal do retainer de marketing operacional',
+    description: 'Relatório mensal do recorrente de marketing operacional',
     category: 'Marketing 360',
     formats: ['pdf']
   },
@@ -68,7 +68,7 @@ const REPORT_TYPES = {
 export default function CustomReportGenerator({ 
   serviceId, 
   clientId, 
-  serviceName,
+  _serviceName,
   serviceCategory,
   onReportGenerated 
 }) {

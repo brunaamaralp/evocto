@@ -1,17 +1,13 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Search,
-  Filter,
-  Calendar,
   User,
   Activity,
   FileText,
@@ -21,10 +17,8 @@ import {
   Edit3,
   Trash2,
   RefreshCw,
-  Download,
-  Eye
+  Download
 } from 'lucide-react';
-import { AuditLog } from '@/api/entities';
 
 const AUDIT_ACTIONS = [
   { value: 'all', label: 'Todas as Ações' },
@@ -53,13 +47,13 @@ const TIME_RANGES = [
 
 export default function KPIAuditViewer({ 
   clientId, 
-  serviceId,
+  _serviceId,
   entityId,
   className = "" 
 }) {
   const [auditLogs, setAuditLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
   // Filtros
@@ -67,9 +61,9 @@ export default function KPIAuditViewer({
   const [selectedAction, setSelectedAction] = useState('all');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
   const [selectedTimeRange, setSelectedTimeRange] = useState('30d');
-  const [selectedUser, setSelectedUser] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [selectedUser, _setSelectedUser] = useState('all');
+  const [_dateFrom, _setDateFrom] = useState('');
+  const [_dateTo, _setDateTo] = useState('');
 
   // Paginação
   const [currentPage, setCurrentPage] = useState(1);

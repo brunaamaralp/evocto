@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,6 @@ import {
   Activity,
   Download,
   RefreshCw,
-  Eye,
   XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -108,7 +107,7 @@ class HealthMonitor {
 
       try {
         perfObserver.observe({ entryTypes: ['navigation', 'resource'] });
-      } catch (e) {
+      } catch (_e) {
         console.warn('Performance monitoring not supported');
       }
     }
@@ -268,7 +267,7 @@ class HealthMonitor {
       if (navEntries.length > 0) {
         return Math.round(navEntries[0].loadEventEnd);
       }
-    } catch (e) {
+    } catch (_e) {
       return null;
     }
     return null;

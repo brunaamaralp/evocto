@@ -5,22 +5,18 @@
  * Refatorado para usar componentes menores e hooks customizados
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   TestTube,
-  Database,
   Activity,
   AlertTriangle,
   FileText,
   Zap,
-  Users,
-  Building2,
   PlayCircle,
   CheckCircle2,
   XCircle,

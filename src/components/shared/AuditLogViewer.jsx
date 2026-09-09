@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useAuthorization } from '@/components/auth/useAuthorization';
 import { AuditLog } from '@/api/entities';
@@ -17,9 +17,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Shield, Eye, Download, Search, Filter,
+  Shield, Eye, Download, Search,
   Clock, User, AlertTriangle, CheckCircle,
-  XCircle, Info, Zap
+  XCircle, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistance } from 'date-fns';

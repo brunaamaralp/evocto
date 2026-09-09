@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
-import { Search, Link as LinkIcon, BookOpen, ExternalLink } from 'lucide-react';
+import { Search, BookOpen, ExternalLink } from 'lucide-react';
 import { glossaryData } from './glossaryData';
 
 export const GlossaryContext = React.createContext();

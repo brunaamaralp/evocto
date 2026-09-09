@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
-  Save, 
   Edit3, 
   Check, 
   X, 
@@ -214,7 +212,7 @@ const EditableCard = ({
   );
 };
 
-export default function InsightsCards({ insights, onSave, isGenerating, isSaving }) {
+export default function InsightsCards({ insights, onSave, isGenerating, _isSaving }) {
   const [insightsData, setInsightsData] = useState(insights);
   const [manualEdits, setManualEdits] = useState(insights.manual_edits || {});
 

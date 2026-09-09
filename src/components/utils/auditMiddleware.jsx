@@ -27,7 +27,7 @@ export class AuditMiddleware {
         try {
           const base44 = createClientFromRequest(context.request);
           beforeData = await base44.entities[entityName].get(context.entityId);
-        } catch (e) {
+        } catch (_e) {
           console.warn(`Could not fetch before data for ${entityName}:${context.entityId}`);
         }
       }

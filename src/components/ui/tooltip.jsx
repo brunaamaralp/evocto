@@ -180,7 +180,7 @@ function TooltipContent({ children, className = "", side = "top", sideOffset = 8
 
 // Enhanced tooltips built on top of the primitives
 const EnhancedTooltip = ({
-  children,
+  _children,
   content,
   type = "info",
   icon = true,

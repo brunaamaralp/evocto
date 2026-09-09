@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
-  TrendingDown, 
   Target, 
   CheckCircle, 
   Clock, 
@@ -15,22 +14,19 @@ import {
   Info,
   Lightbulb,
   Calendar,
-  DollarSign,
   Percent,
   BarChart3,
   Users,
-  FileText,
-  Star
+  FileText
 } from 'lucide-react';
 import { useClientDashboard } from '@/hooks/useClientDashboard';
-import { toast } from 'sonner';
 
 /**
  * Dashboard Executivo Redesignado - Foco em Resultados
  */
-export default function ExecutiveDashboard({ clientId, serviceId }) {
+export default function ExecutiveDashboard({ _clientId, _serviceId }) {
   const { dashboardData, loading, error } = useClientDashboard();
-  const [selectedPeriod, setSelectedPeriod] = useState('3m');
+  const [_selectedPeriod, _setSelectedPeriod] = useState('3m');
   const [expandedKPIs, setExpandedKPIs] = useState(new Set());
 
   if (loading) {
@@ -515,7 +511,7 @@ function DashboardSkeleton() {
 /**
  * Componente de Erro
  */
-function DashboardError({ error }) {
+function DashboardError({ _error }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <Card className="max-w-md mx-auto">

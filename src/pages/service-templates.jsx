@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,13 +13,11 @@ import {
 import { 
   Search, 
   Plus, 
-  Filter, 
   Edit, 
   Copy, 
   Trash2,
   Download,
   Upload,
-  Settings,
   CalendarPlus
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -33,7 +31,7 @@ import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemp
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
-  const { user, agencyId, loading: sessionLoading } = useSession();
+  const { _user, agencyId, loading: sessionLoading } = useSession();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

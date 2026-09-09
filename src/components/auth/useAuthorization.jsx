@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback } from 'react';
 import { useSession } from './SessionManager';
 import { auditLogger } from '@/components/utils/auditLogger';
 

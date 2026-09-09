@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { BriefingTemplate } from '@/api/entities';
@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  FileText, CheckCircle, Clock, AlertCircle, 
-  Building, User, ArrowRight, Download, RefreshCw
+  FileText, CheckCircle, Clock, AlertCircle, ArrowRight, Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -19,7 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function ClientDiagnosticPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [clientId, setClientId] = useState(null);
   const [client, setClient] = useState(null);
   const [diagnosticTemplate, setDiagnosticTemplate] = useState(null);
@@ -396,7 +395,7 @@ export default function ClientDiagnosticPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {diagnosticTemplate.categories.map((category, index) => (
+                {diagnosticTemplate.categories.map((category, _index) => (
                   <div key={category.id} className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">{category.name}</h4>

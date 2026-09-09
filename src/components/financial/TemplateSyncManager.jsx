@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +12,8 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Plus, 
-  Minus, 
-  ArrowRight,
+  Minus,
   Eye,
-  Settings,
   GitMerge
 } from 'lucide-react';
 import { syncTemplateKPIs } from '@/api/functions';

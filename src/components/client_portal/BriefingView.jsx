@@ -1,13 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Brief, BriefingVersion } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { 
-  FileText, Eye, Download, Calendar, User,
-  Target, Users, MessageSquare, Lightbulb,
+  FileText, Download,
+  Target, Users, MessageSquare,
   CheckCircle, AlertCircle, Info
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -71,7 +69,7 @@ export default function BriefingView({ clientId }) {
         link.click();
         document.body.removeChild(link);
         toast.success('Download iniciado');
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao fazer download');
       }
     }

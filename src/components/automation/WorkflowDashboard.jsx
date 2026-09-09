@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Play, Pause, RefreshCw, Settings, AlertTriangle,
+  Play, RefreshCw, Settings, AlertTriangle,
   CheckCircle, Clock, Zap, BarChart3, Users,
   FileText, Target, ArrowRight, Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
-import { workflowAutomation } from '@/api/functions';
 
 // Componente para Card de Workflow
 const WorkflowCard = ({ workflow, onAction }) => {

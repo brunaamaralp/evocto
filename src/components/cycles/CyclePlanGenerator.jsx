@@ -1,13 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CyclePlan } from '@/api/entities';
-import { Service } from '@/api/entities';
 import { generateCyclePlan } from '@/api/functions';
 import { showToast } from '@/components/feedback/EnhancedFeedback';
 import { 
@@ -47,7 +45,7 @@ const PlanSection = ({ icon: Icon, title, content, confidence }) => (
 );
 
 const CyclePlanGenerator = ({ service, client, targetPeriod, onPlanGenerated, onCancel }) => {
-  const { agencyId } = useSession();
+  const { _agencyId } = useSession();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');

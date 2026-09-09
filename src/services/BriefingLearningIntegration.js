@@ -1,6 +1,4 @@
 import { LearningEntry, Brief } from '@/api/entities';
-import { useSession } from '@/components/auth/SessionManager';
-import { toast } from 'sonner';
 
 /**
  * Serviço para integração real de aprendizados com briefings

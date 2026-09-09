@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { databases, DB_ID, JOURNAL_COL } from '../../lib/appwrite';
 import { Query } from 'appwrite';

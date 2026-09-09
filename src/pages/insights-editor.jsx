@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Insights, Job, Brief } from '@/api/entities';
 import { InvokeLLM } from '@/api/integrations';
@@ -27,7 +27,7 @@ export default function InsightsEditor() {
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
-    const { agency } = useSession();
+    const { _agency } = useSession();
 
     const processInsightJob = useCallback(async (job) => {
         if (isProcessing) return;

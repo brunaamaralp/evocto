@@ -1,11 +1,7 @@
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ActionableItemCard from './ActionableItemCard';
 
 export default function DashboardSection({ 
   title, 
@@ -14,12 +10,12 @@ export default function DashboardSection({
   iconColor, 
   children,
   items = [],
-  emptyState 
+  _emptyState 
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   
   const safeItems = Array.isArray(items) ? items : [];
-  const hasItems = safeItems.length > 0;
+  const _hasItems = safeItems.length > 0;
 
   // Usa a nova classe .card como base
   return (

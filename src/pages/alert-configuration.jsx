@@ -4,7 +4,7 @@
  * Interface para gerenciar regras de alerta e monitoramento
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,10 +34,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Alert,
-  AlertDescription,
-} from '@/components/ui/alert';
+
+
 import {
   Plus,
   Edit,
@@ -45,69 +43,14 @@ import {
   Play,
   Pause,
   Settings,
-  Bell,
-  BellOff,
   Save,
   X,
   AlertTriangle,
-  CheckCircle,
-  Clock
+  CheckCircle
 } from 'lucide-react';
 import { useAlertManager } from '@/utils/alertManager';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-// Tipos
-interface AlertRule {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  conditions: {
-    level?: string[];
-    category?: string[];
-    severity?: string[];
-    userId?: string;
-    agencyId?: string;
-    timeWindow?: number;
-    threshold?: number;
-    messagePattern?: string;
-  };
-  actions: {
-    email?: {
-      enabled: boolean;
-      recipients: string[];
-      template: string;
-    };
-    slack?: {
-      enabled: boolean;
-      webhook: string;
-      channel: string;
-    };
-    webhook?: {
-      enabled: boolean;
-      url: string;
-      headers?: Record<string, string>;
-    };
-    dashboard?: {
-      enabled: boolean;
-      showNotification: boolean;
-    };
-  };
-  cooldown: number;
-  lastTriggered?: number;
-}
-
-interface AlertInstance {
-  id: string;
-  ruleId: string;
-  triggeredAt: number;
-  logs: any[];
-  message: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  resolved: boolean;
-  resolvedAt?: number;
-}
 
 const SEVERITY_COLORS = {
   low: 'bg-green-100 text-green-800',
@@ -129,15 +72,15 @@ export default function AlertConfigurationPage() {
   } = useAlertManager();
 
   // Estado
-  const [rules, setRules] = useState<AlertRule[]>([]);
-  const [instances, setInstances] = useState<AlertInstance[]>([]);
+  const [rules, setRules] = useState([]);
+  const [instances, setInstances] = useState([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingRule, setEditingRule] = useState<AlertRule | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [_editingRule, setEditingRule] = useState(null);
+  const [_loading, _setLoading] = useState(false);
 
   // Formulário de nova regra
-  const [newRule, setNewRule] = useState<Partial<AlertRule>>({
+  const [newRule, setNewRule] = useState({
     name: '',
     description: '',
     enabled: true,
@@ -196,14 +139,14 @@ export default function AlertConfigurationPage() {
   const handleCreateRule = () => {
     if (!newRule.name || !newRule.description) return;
 
-    const rule: AlertRule = {
+    const rule = {
       id: `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: newRule.name!,
-      description: newRule.description!,
-      enabled: newRule.enabled!,
-      conditions: newRule.conditions!,
-      actions: newRule.actions!,
-      cooldown: newRule.cooldown!
+      name: newRule.name,
+      description: newRule.description,
+      enabled: newRule.enabled,
+      conditions: newRule.conditions,
+      actions: newRule.actions,
+      cooldown: newRule.cooldown
     };
 
     addRule(rule);
@@ -213,13 +156,13 @@ export default function AlertConfigurationPage() {
   };
 
   // Atualizar regra
-  const handleUpdateRule = (ruleId: string, updates: Partial<AlertRule>) => {
+  const handleUpdateRule = (ruleId, updates) => {
     updateRule(ruleId, updates);
     loadData();
   };
 
   // Remover regra
-  const handleRemoveRule = (ruleId: string) => {
+  const handleRemoveRule = (ruleId) => {
     if (confirm('Tem certeza que deseja remover esta regra?')) {
       removeRule(ruleId);
       loadData();
@@ -227,7 +170,7 @@ export default function AlertConfigurationPage() {
   };
 
   // Resolver alerta
-  const handleResolveAlert = (alertId: string) => {
+  const handleResolveAlert = (alertId) => {
     resolveAlert(alertId);
     loadData();
   };

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SupportLibrary from '@/components/library/SupportLibrary';
 import { BookOpen, Users, Zap } from 'lucide-react';

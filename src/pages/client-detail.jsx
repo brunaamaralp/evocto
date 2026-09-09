@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import ClientExecutionPanel from '@/components/client/ClientExecutionPanel';
 import ClientKnowledgeSummary from '@/components/client/ClientKnowledgeSummary';
 import InviteClientModal from '@/components/client/InviteClientModal';
-import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 export default function ClientDetailPage() {
   const { agencyId, isAuthenticated } = useSession();

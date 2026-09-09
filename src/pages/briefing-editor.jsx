@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Save, ArrowLeft, FileText, AlertTriangle, CheckCircle,
-  Loader2, Eye, Plus, Info
+  Loader2
 } from 'lucide-react';
 import { Brief } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -20,7 +19,7 @@ import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 
 function BriefingEditorPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -78,7 +77,7 @@ function BriefingEditorPage() {
   const [error, setError] = useState(null);
   const [briefing, setBriefing] = useState(null);
   const [client, setClient] = useState(null);
-  const [project, setProject] = useState(null);
+  const [_project, setProject] = useState(null);
 
   // 🔧 CORREÇÃO: Modo de operação mais permissivo
   const isEditing = Boolean(briefingId);

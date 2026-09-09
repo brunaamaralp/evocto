@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
 import {
   User, Target, Clock, BarChart3, FileText, // New icons for service stats
   Edit, Copy, Trash2, MoreHorizontal, // Updated icons for dropdown
@@ -195,7 +194,7 @@ export default function ServiceCard({
             <span className="text-sm text-gray-600">
               {service.pricing.type === 'fixed' ? 'Preço fixo' :
                 service.pricing.type === 'hourly' ? 'Por hora' :
-                  service.pricing.type === 'retainer' ? 'Retainer' : 'Taxa sucesso'}
+                  service.pricing.type === 'retainer' || service.pricing.type === 'recorrente' ? 'Recorrente' : 'Taxa sucesso'}
             </span>
             <span className="font-semibold text-green-600">
               R$ {service.pricing.base_price?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

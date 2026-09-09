@@ -1,4 +1,3 @@
-import React from 'react';
 import { ReportKpiCardSkeleton } from '../reports/shared/ReportKpiCard.jsx';
 import { DashboardHeroKpiSkeleton } from '../dashboard/DashboardHeroKpi.jsx';
 import './skeleton-card.css';

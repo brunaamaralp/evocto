@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { LearningEntry, Client, Service, Task } from '@/api/entities';
+import { useState, useCallback } from 'react';
+import { LearningEntry } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 
 /**

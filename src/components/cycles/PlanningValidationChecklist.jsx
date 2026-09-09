@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CyclePlan, Service, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { generateCyclePlan } from '@/api/functions';
@@ -63,7 +63,7 @@ const ValidationStep = ({ title, status, description, action, onTest }) => {
 };
 
 export default function PlanningValidationChecklist() {
-  const { agency, user } = useSession();
+  const { agency, _user } = useSession();
   const [validationResults, setValidationResults] = useState({
     aiGeneration: 'untested',
     editCapabilities: 'untested', 
@@ -153,7 +153,7 @@ export default function PlanningValidationChecklist() {
         toast.error('❌ Campos editáveis não encontrados na estrutura do plano');
       }
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, editCapabilities: 'fail' }));
       toast.error('❌ Erro ao validar capacidades de edição');
     }
@@ -191,7 +191,7 @@ export default function PlanningValidationChecklist() {
         toast.error('❌ Fluxo de status incompleto ou incorreto');
       }
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, statusFlow: 'fail' }));
       toast.error('❌ Erro ao validar fluxo de status');
     }
@@ -227,7 +227,7 @@ export default function PlanningValidationChecklist() {
         toast.error('❌ Controle de versões não encontrado ou snapshot_data ausente');
       }
 
-    } catch (error) {
+    } catch (_error) {
       setValidationResults(prev => ({ ...prev, versionControl: 'fail' }));
       toast.error('❌ Erro ao validar controle de versões');
     }

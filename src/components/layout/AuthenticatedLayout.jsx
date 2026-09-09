@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { RibbonProvider } from '@/components/context/RibbonProvider';
 import ContextualLayout from './ContextualLayout';

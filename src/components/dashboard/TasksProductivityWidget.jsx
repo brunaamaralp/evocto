@@ -1,19 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Task, User, CyclePlan } from '@/api/entities';
+import { Task, User } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, TrendingDown, Clock, CheckCircle,
-  AlertTriangle, BarChart3, Users, Target,
-  Calendar, Zap, Timer, Activity
+  TrendingUp, BarChart3, Users, Target, Zap, Timer, Activity
 } from 'lucide-react';
-import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, subDays, startOfWeek } from 'date-fns';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
-import { motion } from 'framer-motion';
 
 // Métricas de produtividade
 const ProductivityMetrics = ({ tasks, timeRange = 'week' }) => {
@@ -24,7 +18,7 @@ const ProductivityMetrics = ({ tasks, timeRange = 'week' }) => {
 
     const now = new Date();
     const completedTasks = tasks.filter(t => t.status === 'completed');
-    const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
+    const _inProgressTasks = tasks.filter(t => t.status === 'in_progress');
     const overdueTasks = tasks.filter(t => 
       t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed'
     );

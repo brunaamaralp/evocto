@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -11,20 +10,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Play, Pause, PauseCircle, CheckCircle, RotateCcw, 
-  XCircle, Archive, AlertTriangle, ChevronDown,
-  Clock, Settings, Loader2, Info
+  XCircle, Archive, AlertTriangle, ChevronDown, Settings, Loader2, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ServiceStateMachine from './ServiceStateMachine';
@@ -259,7 +255,7 @@ export default function ServiceStatusManager({ service, onServiceUpdate }) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  {availableTransitions.map((transition, index) => {
+                  {availableTransitions.map((transition, _index) => {
                     const config = TRANSITION_CONFIGS[transition];
                     if (!config) return null;
 

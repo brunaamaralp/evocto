@@ -41,7 +41,7 @@ class HttpClient {
             'Authorization': `Bearer ${user.token}`
           };
         }
-      } catch (error) {
+      } catch (_error) {
         // Silently fail - request pode ser público
       }
       return config;

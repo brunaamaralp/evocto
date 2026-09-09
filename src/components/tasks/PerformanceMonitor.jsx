@@ -10,7 +10,6 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Eye,
   EyeOff
 } from 'lucide-react';
 
@@ -113,7 +112,7 @@ export default function PerformanceMonitor({
   onToggle 
 }) {
   const getPerformanceStatus = (metrics) => {
-    const { renderTime, fps, memoryUsage, taskCount } = metrics;
+    const { renderTime, fps, memoryUsage, _taskCount } = metrics;
     
     if (renderTime > 500 || fps < 30 || memoryUsage > 100) {
       return { status: 'warning', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle };

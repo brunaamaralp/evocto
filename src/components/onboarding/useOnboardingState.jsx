@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Client, Brief, CyclePlan, LearningEntry } from '@/api/entities';
+import { Client, Brief, CyclePlan } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 
 export function useOnboardingState() {
-  const { agency, user } = useSession();
+  const { agency, _user } = useSession();
   const [onboardingState, setOnboardingState] = useState({
     hasClients: false,
     hasBriefing: false,

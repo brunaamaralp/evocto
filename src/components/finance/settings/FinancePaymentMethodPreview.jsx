@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { buildPaymentMethodRegistrationPreview } from '../../../lib/financeTxSettlementDisplay.js';
 
 const TONE_CLASS = {

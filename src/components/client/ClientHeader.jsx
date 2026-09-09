@@ -1,9 +1,8 @@
 
-import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Building, Mail, Phone, MapPin, Calendar, 
+  Building, Mail, Phone, Calendar, 
   Settings, ArrowLeft, RefreshCw,
   LayoutDashboard, Briefcase, FileText, CheckSquare, FolderOpen // New imports for tabs
 } from 'lucide-react';
@@ -18,7 +17,7 @@ export default function ClientHeader({
   showBackButton = true,
   activeTab, // New prop
   onTabChange, // New prop
-  actions = [] // New prop (not used in this component's logic, but added as per outline)
+  _actions = [] // New prop (not used in this component's logic, but added as per outline)
 }) {
   if (!client) {
     return (

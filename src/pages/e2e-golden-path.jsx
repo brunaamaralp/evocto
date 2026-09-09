@@ -20,7 +20,7 @@ export default function E2EGoldenPathPage() {
       } else {
         setReport(data);
       }
-    } catch (e) {
+    } catch (_e) {
       setError("Erro ao comunicar com o runner E2E.");
     } finally {
       setRunning(false);

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +38,7 @@ export default function LearningPromotionModal({
   const {
     promoteToPlaybook,
     loading,
-    error
+    _error
   } = useLearningManagement();
 
   const [promotionData, setPromotionData] = useState({
@@ -60,7 +59,7 @@ export default function LearningPromotionModal({
       toast.success('Aprendizado promovido para playbook da agência!');
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (_err) {
       // Erro já tratado no hook
     }
   };

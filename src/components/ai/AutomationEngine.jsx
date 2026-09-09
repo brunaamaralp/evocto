@@ -1,23 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
-  Zap, Clock, CheckCircle, AlertTriangle, Play, Pause,
-  Settings, BarChart3, Target, Mail, MessageSquare,
-  Calendar, FileText, TrendingUp, Users, Brain
+  Zap, Clock, CheckCircle, AlertTriangle, Play,
+  Settings, BarChart3, Target, Mail, Brain
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 
 // Tipos de automação disponíveis
 const AUTOMATION_TYPES = {
@@ -157,7 +154,7 @@ export const AutomationEngine = ({ agencyId }) => {
   const [loading, setLoading] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedAutomation, setSelectedAutomation] = useState(null);
-  const [executionHistory, setExecutionHistory] = useState([]);
+  const [_executionHistory, setExecutionHistory] = useState([]);
 
   // Simular carregamento das automações
   useEffect(() => {

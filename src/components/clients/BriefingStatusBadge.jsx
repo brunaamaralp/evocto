@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +10,7 @@ import {
   Check, 
   Loader2, 
   AlertCircle, 
-  RefreshCw, 
-  X,
+  RefreshCw,
   Clock,
   Shield,
   Eye

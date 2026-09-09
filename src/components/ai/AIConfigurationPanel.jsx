@@ -4,7 +4,7 @@
  * Componente para configurar e testar APIs de IA
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Bot, 
-  CheckCircle, 
   XCircle, 
   AlertTriangle, 
   Settings, 
@@ -65,7 +64,7 @@ export default function AIConfigurationPanel() {
     try {
       localStorage.setItem('ai_config', JSON.stringify(config));
       toast.success('Configuração de IA salva com sucesso!');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao salvar configuração');
     } finally {
       setSaving(false);
@@ -87,7 +86,7 @@ export default function AIConfigurationPanel() {
       } else {
         toast.warning('Nenhuma API de IA funcionando');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao testar APIs');
     } finally {
       setTesting(false);
@@ -114,7 +113,7 @@ export default function AIConfigurationPanel() {
       
       toast.success('Teste de geração de tarefas concluído!');
       console.log('Resposta da IA:', response);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro no teste de geração de tarefas');
     }
   };
@@ -137,7 +136,7 @@ export default function AIConfigurationPanel() {
       
       toast.success('Teste de análise de documento concluído!');
       console.log('Análise da IA:', response);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro no teste de análise de documento');
     }
   };

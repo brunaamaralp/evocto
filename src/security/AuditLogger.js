@@ -533,7 +533,7 @@ export class AuditLogger extends EventEmitter {
    */
   getActiveSessions() {
     const activeSessions = [];
-    for (const [sessionId, session] of this.sessions) {
+    for (const [_sessionId, session] of this.sessions) {
       if (session.isActive) {
         activeSessions.push(session);
       }

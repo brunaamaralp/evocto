@@ -1,10 +1,7 @@
-import React from 'react';
 import { Task } from '@/api/entities';
 import { Service } from '@/api/entities';
-import { User } from '@/api/entities';
 import { AuditLog } from '@/api/entities';
 import { Notification } from '@/api/entities';
-import { toast } from 'sonner';
 
 /**
  * Task State Machine
@@ -108,7 +105,7 @@ export class TaskStateMachine {
         } else if (blockerTask.status === 'completed') {
           errors.push('Tarefa bloqueadora já está concluída');
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push('Erro ao validar tarefa bloqueadora');
       }
     }

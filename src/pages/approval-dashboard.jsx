@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
-import { ApprovalRequest, Client, Agency } from '@/api/entities';
-import ApprovalWorkflow from '@/components/approval/ApprovalWorkflow';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, Filter, Download, BarChart3, Clock, 
-  CheckCircle, XCircle, AlertCircle, Calendar,
-  FileText, Users, TrendingUp, TrendingDown,
+import { Download, BarChart3, Clock, 
+  CheckCircle, XCircle, AlertCircle,
+  FileText, TrendingUp, TrendingDown,
   Eye, Send, MoreHorizontal, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,7 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -275,8 +271,8 @@ const ApprovalsTable = ({ approvals, onAction }) => {
 
 // Componente principal
 export default function ApprovalDashboard() {
-  const t = useT();
-  const { user } = useSession();
+  const _t = useT();
+  const { _user } = useSession();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -358,7 +354,7 @@ export default function ApprovalDashboard() {
   });
 
   // Ações da tabela
-  const handleAction = async (action, approval) => {
+  const handleAction = async (action, _approval) => {
     switch (action) {
       case 'view':
         // Implementar visualização
@@ -368,7 +364,7 @@ export default function ApprovalDashboard() {
         try {
           // Implementar reenvio
           toast.success('Convite reenviado!');
-        } catch (error) {
+        } catch (_error) {
           toast.error('Erro ao reenviar');
         }
         break;
@@ -378,7 +374,7 @@ export default function ApprovalDashboard() {
             // Implementar revogação
             toast.success('Aprovação revogada');
             await loadApprovals();
-          } catch (error) {
+          } catch (_error) {
             toast.error('Erro ao revogar');
           }
         }

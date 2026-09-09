@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -217,7 +217,7 @@ function NextStepCard({ step, service }) {
  */
 function StepItem({ 
   step, 
-  index, 
+  _index, 
   isCurrent, 
   isNext, 
   isLast, 
@@ -549,7 +549,7 @@ function canStartStep(step, allSteps) {
 
   // Verificar critérios específicos do deliverable
   if (step.type === 'deliverable') {
-    const criteria = step.entity.completion_criteria || {};
+    const _criteria = step.entity.completion_criteria || {};
     
     // Se tem dependências, verificar se estão resolvidas
     if (step.entity.depends_on?.length > 0) {

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -12,10 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { 
-  Calendar, 
-  Clock, 
-  User as UserIcon, 
-  Flag,
+  Calendar,
   Edit,
   Eye,
   Download,
@@ -49,7 +46,7 @@ const STATUS_COLORS = {
 /**
  * Visualização Lista com tabela e exportação
  */
-export default function TaskListView({ tasks, onTaskUpdate, onEditTask, onExport, loading }) {
+export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExport, loading }) {
   const [sortField, setSortField] = useState('dueDate');
   const [sortDirection, setSortDirection] = useState('asc');
 

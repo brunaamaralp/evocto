@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Plus,
   Search,
-  Filter,
   FileText,
   Building,
   Loader2,
@@ -94,7 +93,7 @@ class ServiceCache {
 const serviceCache = new ServiceCache();
 
 export default function ServicesPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [activeTab, setActiveTab] = useState('templates');
 
   // P2: Estados separados para templates e instâncias

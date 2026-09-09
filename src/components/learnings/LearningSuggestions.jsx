@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Lightbulb, 
   Sparkles, 
-  TrendingUp, 
   Users, 
   Briefcase, 
   CheckSquare,
@@ -16,7 +15,6 @@ import {
   Zap
 } from 'lucide-react';
 import { useLearningSuggestions } from '@/hooks/useLearningSuggestions';
-import LearningCard from './LearningCard';
 
 /**
  * Componente para exibir sugestões de aprendizados baseadas no contexto

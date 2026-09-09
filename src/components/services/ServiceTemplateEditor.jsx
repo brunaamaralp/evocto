@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -23,15 +22,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Plus, Trash2, Save, Clock, Target, 
-  AlertTriangle, CheckCircle, Calendar, Settings, 
-  Copy, FileText, Package, BookOpen, GitBranch, X,
+import { Save, Target, Settings, X,
   LayoutTemplate, DollarSign // Added LayoutTemplate and DollarSign
 } from 'lucide-react';
 import { useServiceTemplateValidation } from '@/hooks/useServiceTemplateValidation';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
+import { toast } from 'sonner';
 import { useExitConfirmation } from '@/hooks/useExitConfirmation';
 import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
@@ -40,7 +37,7 @@ const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label])
 const PRICING_TYPES = [
   { value: 'fixed', label: 'Preço Fixo' },
   { value: 'hourly', label: 'Por Hora' },
-  { value: 'retainer', label: 'Mensalidade' },
+  { value: 'recorrente', label: 'Recorrente' },
   { value: 'success_fee', label: 'Taxa de Sucesso' }
 ];
 
@@ -60,7 +57,7 @@ export default function ServiceTemplateEditor({
   template = null, 
   onSaved 
 }) {
-  const { user, agencyId } = useSession();
+  const { user, _agencyId } = useSession();
   const [saving, setSaving] = useState(false);
   
   const [formData, setFormData] = useState({

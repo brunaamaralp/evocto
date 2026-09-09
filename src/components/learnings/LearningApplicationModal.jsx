@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,18 +23,13 @@ import {
   FileInput, 
   Zap, 
   CheckCircle, 
-  AlertTriangle, 
   Lightbulb,
-  Target,
-  Users,
-  Briefcase,
-  CheckSquare,
   ArrowRight,
   Sparkles
 } from 'lucide-react';
 import { useLearningManagement } from '@/hooks/useLearningManagement';
 import { useSession } from '@/components/auth/SessionManager';
-import { Brief, CyclePlan, Service } from '@/api/entities';
+import { Brief, CyclePlan } from '@/api/entities';
 import { toast } from 'sonner';
 
 /**
@@ -52,7 +46,7 @@ export default function LearningApplicationModal({
     applyLearningToBriefing,
     applyLearningToCycle,
     loading,
-    error
+    _error
   } = useLearningManagement();
 
   const [applicationType, setApplicationType] = useState('briefing');
@@ -102,7 +96,7 @@ export default function LearningApplicationModal({
       toast.success(`Aprendizado aplicado ao ${applicationType === 'briefing' ? 'briefing' : 'ciclo'} com sucesso!`);
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (_err) {
       // Erro já tratado no hook
     }
   };

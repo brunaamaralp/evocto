@@ -58,6 +58,7 @@ export async function initializeAI() {
   
   // Fallback para MockLLM
   console.warn('⚠️ Nenhuma API de IA configurada, usando MockLLM');
+  const { MockLLM } = await import('@/api/integrations/LocalLLM');
   return new MockLLM();
 }
 
@@ -123,7 +124,7 @@ export async function testAIProviders() {
   // Testar OpenAI
   if (aiConfig.openai.apiKey && aiConfig.openai.apiKey !== 'sk-your-key-here') {
     try {
-      const llm = await initializeOpenAI(aiConfig.openai);
+      const _llm = await initializeOpenAI(aiConfig.openai);
       results.openai.available = true;
     } catch (error) {
       results.openai.error = error.message;
@@ -133,7 +134,7 @@ export async function testAIProviders() {
   // Testar Anthropic
   if (aiConfig.anthropic.apiKey && aiConfig.anthropic.apiKey !== 'sk-ant-your-key-here') {
     try {
-      const llm = await initializeAnthropic(aiConfig.anthropic);
+      const _llm = await initializeAnthropic(aiConfig.anthropic);
       results.anthropic.available = true;
     } catch (error) {
       results.anthropic.error = error.message;
@@ -143,7 +144,7 @@ export async function testAIProviders() {
   // Testar Ollama
   if (aiConfig.ollama.baseUrl) {
     try {
-      const llm = await initializeOllama(aiConfig.ollama);
+      const _llm = await initializeOllama(aiConfig.ollama);
       results.ollama.available = true;
     } catch (error) {
       results.ollama.error = error.message;

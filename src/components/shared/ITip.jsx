@@ -23,7 +23,7 @@ export default function ITip({ termSlug, placement = 'top' }) {
     try {
       const seenData = JSON.parse(localStorage.getItem(I_TIP_SEEN_KEY) || '{}');
       setSeenCount(seenData[termSlug] || 0);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   }, [termSlug]);
 
   const handleOpen = () => {
@@ -33,7 +33,7 @@ export default function ITip({ termSlug, placement = 'top' }) {
       seenData[termSlug] = newCount;
       localStorage.setItem(I_TIP_SEEN_KEY, JSON.stringify(seenData));
       setSeenCount(newCount);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   };
 
   if (!termData || seenCount >= 3) {

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Client } from '@/api/entities';
 import { Project } from '@/api/entities';
@@ -17,9 +16,8 @@ import { Brief } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { showToast } from '@/components/feedback/EnhancedFeedback';
 import { 
-  FileText, Users, Target, TrendingUp, 
-  CheckCircle, ArrowRight, ArrowLeft,
-  Sparkles, AlertTriangle, Info
+  FileText, 
+  CheckCircle, ArrowRight, ArrowLeft, AlertTriangle
 } from 'lucide-react';
 
 const StepIndicator = ({ currentStep, totalSteps }) => (
@@ -54,7 +52,7 @@ export default function CreateBriefingFlow({ clientId, onComplete, onCancel }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [client, setClient] = useState(null);
-  const [project, setProject] = useState(null);
+  const [_project, _setProject] = useState(null);
   const [services, setServices] = useState([]);
 
   const [formData, setFormData] = useState({

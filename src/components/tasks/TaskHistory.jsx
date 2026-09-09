@@ -1,11 +1,9 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Clock, User, CheckCircle, AlertCircle, PlayCircle,
-  PauseCircle, XCircle, Edit3, UserPlus, MessageSquare,
+  Clock, CheckCircle, AlertCircle, PlayCircle, XCircle, UserPlus, MessageSquare,
   Paperclip, Calendar, ArrowRight
 } from 'lucide-react';
 import { formatDistance } from 'date-fns';

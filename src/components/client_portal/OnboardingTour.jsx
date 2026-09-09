@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -15,7 +15,7 @@ import {
   FileText, Eye, BarChart3, HelpCircle,
   Star, X, SkipForward
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
@@ -73,8 +73,8 @@ export default function OnboardingTour({
   onComplete 
 }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState([]);
-  const { user, updateUser } = useSession();
+  const [_completedSteps, setCompletedSteps] = useState([]);
+  const { _user, updateUser } = useSession();
 
   const currentStepData = tourSteps[currentStep];
   const progress = ((currentStep + 1) / tourSteps.length) * 100;

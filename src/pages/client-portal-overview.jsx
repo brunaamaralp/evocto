@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Service } from '@/api/entities';
 import { Task } from '@/api/entities';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  FileText, Clock, CheckCircle2, AlertTriangle, 
+  FileText, CheckCircle2, AlertTriangle, 
   Target, Calendar, Users, ArrowRight 
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
@@ -18,7 +18,7 @@ export default function ClientPortalOverviewPage() {
   const { user, isAuthenticated } = useSession();
   const [services, setServices] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
-  const [recentTasks, setRecentTasks] = useState([]);
+  const [_recentTasks, setRecentTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

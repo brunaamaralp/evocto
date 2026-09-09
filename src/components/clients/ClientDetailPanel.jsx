@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,7 @@ export default function ClientDetailPanel({ client, onEdit, className = '' }) {
     if (!dateString) return 'N/A';
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
-    } catch (error) {
+    } catch (_error) {
       return 'Data inválida';
     }
   };

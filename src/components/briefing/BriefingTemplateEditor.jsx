@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,16 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   Trash2, 
-  Edit, 
   Save, 
   AlertCircle,
   Loader2,
-  GripVertical,
   Settings
 } from 'lucide-react';
 import { BriefingTemplate } from '@/api/entities';
@@ -254,7 +251,7 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
             </div>
 
             <div className="space-y-4">
-              {formData.categories.map((category, categoryIndex) => (
+              {formData.categories.map((category, _categoryIndex) => (
                 <Card key={category.id} className="border-l-4 border-l-blue-500">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -293,7 +290,7 @@ export default function BriefingTemplateEditor({ template, isOpen, onClose, onSa
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {category.questions?.map((question, questionIndex) => (
+                      {category.questions?.map((question, _questionIndex) => (
                         <Card key={question.id} className="bg-gray-50">
                           <CardContent className="p-3 space-y-2">
                             <div className="flex items-start justify-between gap-2">

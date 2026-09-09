@@ -229,7 +229,7 @@ export default function TasksManagerPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   // Carregar dados
-  const loadData = useCallback(async (useCache = true) => {
+  const loadData = useCallback(async (_useCache = true) => {
     if (!agencyId) return;
     
     setLoading(true);

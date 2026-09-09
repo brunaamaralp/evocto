@@ -1,4 +1,3 @@
-import React from 'react';
 import FilterBar from '../shared/FilterBar.jsx';
 import { DateInputField } from '../DateInput';
 

@@ -168,7 +168,7 @@ class FunctionManager {
   // Implementar funções críticas localmente
   async generateTasksFromService(params) {
     try {
-      const { serviceId, autoAssign = false, startDate } = params;
+      const { serviceId, _autoAssign = false, startDate } = params;
       
       // Buscar serviço
       const service = await this.adapter.entities.get('services', serviceId);
@@ -319,9 +319,9 @@ export class UniversalAdapter {
   createDatabase() {
     switch (this.config.database.type) {
       case 'postgresql':
-        return new PostgreSQLDatabase(this.config.database);
       case 'sqlite':
-        return new SQLiteDatabase(this.config.database);
+        console.warn(`[localClient] DB type "${this.config.database.type}" não disponível; usando MemoryDatabase`);
+        return new MemoryDatabase();
       default:
         return new MemoryDatabase();
     }
@@ -330,9 +330,9 @@ export class UniversalAdapter {
   createAuth() {
     switch (this.config.auth.type) {
       case 'auth0':
-        return new Auth0Auth(this.config.auth);
       case 'keycloak':
-        return new KeycloakAuth(this.config.auth);
+        console.warn(`[localClient] Auth type "${this.config.auth.type}" não disponível; usando MockAuth`);
+        return new MockAuth();
       default:
         return new MockAuth();
     }
@@ -350,9 +350,9 @@ export class UniversalAdapter {
   createLLM() {
     switch (this.config.llm.type) {
       case 'openai':
-        return new OpenAILLM(this.config.llm);
       case 'anthropic':
-        return new AnthropicLLM(this.config.llm);
+        console.warn(`[localClient] LLM type "${this.config.llm.type}" não disponível; usando MockLLM`);
+        return new MockLLM();
       default:
         return new MockLLM();
     }
@@ -361,9 +361,9 @@ export class UniversalAdapter {
   createEmail() {
     switch (this.config.email.type) {
       case 'sendgrid':
-        return new SendGridEmail(this.config.email);
       case 'nodemailer':
-        return new NodemailerEmail(this.config.email);
+        console.warn(`[localClient] Email type "${this.config.email.type}" não disponível; usando MockEmail`);
+        return new MockEmail();
       default:
         return new MockEmail();
     }
@@ -449,7 +449,7 @@ class MockAuth {
 }
 
 class MockLLM {
-  async invokeLLM(prompt, options = {}) {
+  async invokeLLM(prompt, _options = {}) {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -458,7 +458,7 @@ class MockLLM {
 }
 
 class MockEmail {
-  async sendEmail(to, subject, body, options = {}) {
+  async sendEmail(to, subject, body, _options = {}) {
     console.log(`[MockEmail] Enviando email para ${to}: ${subject}`);
     return { success: true };
   }

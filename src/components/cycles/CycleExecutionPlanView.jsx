@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,6 @@ import {
   AlertCircle,
   FlaskConical,
   MessageSquare,
-  TrendingUp,
   Lightbulb,
   CheckCircle2,
   FileSignature,
@@ -22,7 +21,6 @@ import {
   GitBranchPlus
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 // --- Mock Data para Simulação ---
 const mockInputs = {

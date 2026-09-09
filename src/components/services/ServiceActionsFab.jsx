@@ -1,14 +1,14 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Service } from "@/api/entities";
-import { Loader2, Settings2, PlayCircle, PauseCircle, Trash2, CheckCircle2, Eye, AlertTriangle } from "lucide-react";
+import { Loader2, Settings2, PlayCircle, PauseCircle, Trash2, CheckCircle2 } from "lucide-react";
 import { useTaskGeneration } from "@/hooks/useTaskGeneration";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { TaskPreview } from "@/components/tasks/TaskPreview";
 import { toast } from "sonner";
 
 export default function ServiceActionsFab() {
-  const [open, setOpen] = React.useState(false);
+  const [_open, _setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [service, setService] = React.useState(null);
   const [error, setError] = React.useState("");
@@ -20,7 +20,7 @@ export default function ServiceActionsFab() {
     activateServiceAndGenerateTasks,
     validateServiceActivation,
     isGenerating,
-    error: taskGenerationError
+    error: _taskGenerationError
   } = useTaskGeneration();
 
   const { handleError } = useErrorHandling();
@@ -36,7 +36,7 @@ export default function ServiceActionsFab() {
       try {
         const s = await Service.get(serviceId);
         if (mounted) setService(s || null);
-      } catch (e) {
+      } catch (_e) {
         if (mounted) setError("Não foi possível carregar os dados do serviço.");
       }
     }

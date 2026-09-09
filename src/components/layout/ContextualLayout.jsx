@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
@@ -61,6 +61,7 @@ export default function ContextualLayout({ user, children }) {
       'client-services',
       'client-tasks',
       'client-documents',
+      'client-financeiro',
       'client-detail',
       'client-learnings',
       'client-evolution',

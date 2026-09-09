@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, BookCopy, FileText, GitBranchPlus, Rocket } from 'lucide-react';
+import { ArrowRight, BookCopy, FileText, Rocket } from 'lucide-react';
 
 export default function LearningActions({ results, onConfirm }) {
   const [decisions, setDecisions] = useState({});

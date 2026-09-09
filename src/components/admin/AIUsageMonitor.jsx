@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuditLog, Agency } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
-import { AlertTriangle, DollarSign, Activity, Shield, Zap, Settings } from 'lucide-react';
+import { AlertTriangle, Activity, Shield, Zap, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AIUsageMonitor() {
@@ -23,7 +23,7 @@ export default function AIUsageMonitor() {
     warningThreshold: 80, // 80% do limite
     enabled: true
   });
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.role === 'owner' || user?.role === 'admin') {

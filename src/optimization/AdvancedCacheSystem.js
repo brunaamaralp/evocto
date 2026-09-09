@@ -125,7 +125,7 @@ export class AdvancedCacheSystem extends EventEmitter {
   /**
    * Obtém valor do cache
    */
-  get(key, options = {}) {
+  get(key, _options = {}) {
     const now = Date.now();
     const metadata = this.metadata.get(key);
 
@@ -237,7 +237,7 @@ export class AdvancedCacheSystem extends EventEmitter {
   /**
    * Estratégia Cache Only
    */
-  async cacheOnlyStrategy(key, fetchFunction, options) {
+  async cacheOnlyStrategy(key, _fetchFunction, _options) {
     const cachedValue = this.get(key);
     if (cachedValue === null) {
       throw new Error('Valor não encontrado no cache');
@@ -384,7 +384,7 @@ export class AdvancedCacheSystem extends EventEmitter {
   calculateSize(data) {
     try {
       return JSON.stringify(data).length;
-    } catch (error) {
+    } catch (_error) {
       return 0;
     }
   }

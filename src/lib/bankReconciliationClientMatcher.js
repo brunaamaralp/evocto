@@ -278,7 +278,7 @@ export function reconcileBatch(extratoItems, index, onProgress, options = {}) {
 }
 
 /** @deprecated classificação unificada via resolveBankMatchSuggestion */
-export function classifyReconciliationCandidates(candidates, options = {}) {
+export function classifyReconciliationCandidates(candidates, _options = {}) {
   const scored = (candidates || []).map((c) => ({
     tx: { id: c.txId },
     score: c.score,
@@ -302,7 +302,7 @@ export function scoreReconciliationValue(itemAmount, txAmount) {
 }
 
 /** @deprecated use scoreBankItemToTxBase */
-export function scoreReconciliationDate(itemDateYmd, txDateYmdValue, maxDays = RECON_CLIENT_DEFAULT_MAX_DATE_DAYS) {
+export function scoreReconciliationDate(itemDateYmd, txDateYmdValue, _maxDays = RECON_CLIENT_DEFAULT_MAX_DATE_DAYS) {
   const item = { amount: 100, direction: 'credit', date: itemDateYmd };
   const tx = {
     gross: 100,

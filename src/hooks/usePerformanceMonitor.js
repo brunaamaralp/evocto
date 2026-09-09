@@ -40,7 +40,7 @@ export function usePerformanceMonitor() {
         performanceObserverRef.current.observe({ 
           entryTypes: ['measure', 'navigation'] 
         });
-      } catch (error) {
+      } catch (_error) {
         // PerformanceObserver não suportado
       }
     }

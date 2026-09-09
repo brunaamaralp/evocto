@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Task, CyclePlan, EvolutionEvent } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { Task, CyclePlan } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  CheckCircle, Clock, Play, Target, Calendar,
-  TrendingUp, Award, Sparkles, ChevronDown, ChevronRight,
-  FileText, MessageCircle, Eye, ThumbsUp, AlertCircle
+  CheckCircle, Clock, Play, Target, Calendar, Award, Sparkles, ChevronDown, ChevronRight,
+  FileText, ThumbsUp
 } from 'lucide-react';
-import { format, parseISO, isSameMonth, isToday } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Ícones para diferentes tipos de eventos
-const getEventIcon = (type, status) => {
+const getEventIcon = (type, _status) => {
   switch (type) {
     case 'task_completed':
       return <CheckCircle className="w-4 h-4 text-green-500" />;

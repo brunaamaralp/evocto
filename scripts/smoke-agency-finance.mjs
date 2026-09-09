@@ -63,7 +63,7 @@ async function main() {
       agencyId,
       clientId: 'smoke-client',
       clientName: 'Smoke Cliente',
-      type: 'retainer',
+      type: 'recorrente',
       description: 'Smoke cobrança',
       amount: 100,
       status: 'open',

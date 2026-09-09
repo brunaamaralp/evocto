@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   FINANCE_REMINDER_PLACEHOLDERS,
   normalizeWhatsappRemindersConfig,

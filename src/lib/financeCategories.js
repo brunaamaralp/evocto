@@ -438,7 +438,7 @@ const BY_KEY = FINANCE_CATEGORIES;
 const BY_LABEL = new Map(
   Object.values(FINANCE_CATEGORIES).map((c) => [c.label.trim().toLowerCase(), c])
 );
-const BY_TYPE_DEFAULT = new Map(
+const _BY_TYPE_DEFAULT = new Map(
   Object.values(FINANCE_CATEGORIES).map((c) => [c.type, c])
 );
 

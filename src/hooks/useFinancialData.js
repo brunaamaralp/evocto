@@ -242,7 +242,7 @@ export function useFinancialData() {
 /**
  * Gerar dados mock para demonstração
  */
-function generateMockFinancialData(clientId, serviceId, period) {
+function generateMockFinancialData(clientId, serviceId, _period) {
   const diagnosticoKPIs = [
     { key: 'clareza_posicionamento', label: 'Clareza de Posicionamento', unit: 'score', value: 7.2, target: 8.0, visible: true },
     { key: 'consistencia_canais', label: 'Consistência entre Canais', unit: '%', value: 68, target: 80, visible: true },

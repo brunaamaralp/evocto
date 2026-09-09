@@ -1,20 +1,14 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Filter, 
-  Plus, 
   Search,
   Calendar,
-  Download,
   RefreshCw
 } from "lucide-react";
 import { FinancialKPI } from "@/api/entities";

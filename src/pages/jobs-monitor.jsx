@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Safe development detection
 const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';

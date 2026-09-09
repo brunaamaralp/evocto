@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
@@ -142,7 +142,7 @@ export function useTaskReminders() {
   /**
    * Gerar conteúdo do lembrete
    */
-  const generateReminderContent = useCallback((task, reminderType) => {
+  const generateReminderContent = useCallback((task, _reminderType) => {
     const dueDate = new Date(task.dueDate);
     const diffDays = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
 
@@ -366,7 +366,7 @@ export class TaskReminderService {
   /**
    * Gerar conteúdo do lembrete
    */
-  generateReminderContent(task, reminderType) {
+  generateReminderContent(task, _reminderType) {
     const dueDate = new Date(task.dueDate);
     const diffDays = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
 

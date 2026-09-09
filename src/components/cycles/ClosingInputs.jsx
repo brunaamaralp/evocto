@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FileUp, Link2, BrainCircuit, Loader2 } from 'lucide-react';
+import { FileUp, BrainCircuit, Loader2 } from 'lucide-react';
 
 export default function ClosingInputs({ onProcess, loading }) {
   const [attachments, setAttachments] = useState([]);

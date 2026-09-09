@@ -3,7 +3,6 @@
  * Intercepta erros genéricos e padroniza respostas
  */
 
-import { createHash } from 'node:crypto';
 
 // Tipos de erro mapeados
 export const ERROR_TYPES = {

@@ -154,7 +154,6 @@ export function useStudentMetricsReport({ enabled, academyId, preset, range, onD
     const fetchKey = `${academyId}|${range.from}|${range.to}|${preset}`;
     if (lastFetchKeyRef.current === fetchKey) return;
     void fetchReportRef.current(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, academyId, preset, enabled]);
 
   return {

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Client } from '@/api/entities';
+import { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { ValidatedInput, CNPJInput, PhoneInput, EmailInput } from '@/components/ui/ValidatedInput';
 import {
   Select, 
@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Save, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Save, Loader2, CheckCircle } from 'lucide-react';
 import { useClientValidation } from '@/hooks/useClientValidation';
 import { useErrorHandling, useFormErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
@@ -28,9 +28,9 @@ import ClientLoginConfig from './ClientLoginConfig';
 import { toast } from 'sonner';
 
 export default function ClientQuickCreate({ onClientCreated, triggerButton = null }) {
-  const { user } = useSession();
+  const { _user } = useSession();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'login_config'
   
   // Hooks centralizados
@@ -43,20 +43,20 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
     showValidationErrors,
     checkDuplicates,
     sanitizeData,
-    handleSpecificError
+    _handleSpecificError
   } = useClientValidation();
 
-  const { handleError, handleValidationError } = useErrorHandling();
+  const { _handleError, _handleValidationError } = useErrorHandling();
   const { 
     fieldErrors, 
     clearAllFieldErrors, 
-    handleFormError 
+    _handleFormError 
   } = useFormErrorHandling();
   
   const { validateAgencyWithFeedback, getValidAgencyId } = useAgencyValidation();
   
   // Hook para criação de usuários
-  const { createClientWithUser, createClientOnly } = useClientUserCreation();
+  const { _createClientWithUser, _createClientOnly } = useClientUserCreation();
   
   // Confirmação de saída
   const { handleExitAttempt: handleCloseWithConfirmation } = useExitConfirmation(
@@ -72,7 +72,7 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
   );
   
   // Rate limiting para formulário
-  const { submitWithRateLimit } = useFormRateLimit({
+  const { _submitWithRateLimit } = useFormRateLimit({
     maxRequests: 3,
     windowMs: 30000 // 30 segundos
   });
@@ -111,12 +111,12 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
   };
 
   // Formatar campos automaticamente (mantido para compatibilidade)
-  const handleCNPJChange = (value) => {
+  const _handleCNPJChange = (value) => {
     const formatted = formatCNPJ(value);
     handleFieldChange('cnpj', formatted);
   };
 
-  const handlePhoneChange = (value) => {
+  const _handlePhoneChange = (value) => {
     const formatted = formatPhone(value);
     handleFieldChange('phone', formatted);
   };
@@ -227,11 +227,11 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
     </Button>
   );
 
-  const hasFieldError = (field) => {
+  const _hasFieldError = (field) => {
     return fieldValidationErrors[field] || fieldErrors[field];
   };
 
-  const getFieldError = (field) => {
+  const _getFieldError = (field) => {
     return fieldValidationErrors[field] || fieldErrors[field];
   };
 

@@ -1,7 +1,7 @@
 // Utilitário para construção de CSS Tailwind otimizado
 // Este componente gerencia a transição do CDN para CSS compilado
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export function TailwindBuilder() {
   const [cssStatus, setCssStatus] = useState('loading');
@@ -23,7 +23,7 @@ export function TailwindBuilder() {
       } else {
         throw new Error('Compiled CSS not found');
       }
-    } catch (error) {
+    } catch (_error) {
       // Fallback para CDN
       setUseCompiledCSS(false);
       setCssStatus('cdn');

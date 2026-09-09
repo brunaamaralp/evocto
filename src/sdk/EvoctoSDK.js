@@ -453,8 +453,8 @@ export class EvoctoExamples {
   }
 }
 
-// Exportar classes principais
-export { EvoctoSDK as default, EvoctoAPIError, EvoctoUtils, EvoctoExamples };
+// Exportar classe principal
+export default EvoctoSDK;
 
 // Exportar para uso global
 if (typeof window !== 'undefined') {

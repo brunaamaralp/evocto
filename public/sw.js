@@ -30,7 +30,7 @@ const API_CACHE_PATTERNS = [
 ];
 
 // Instalar Service Worker
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker: Instalando...');
   
   event.waitUntil(
@@ -50,7 +50,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 });
 
 // Ativar Service Worker
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   console.log('🔧 Service Worker: Ativando...');
   
   event.waitUntil(
@@ -73,7 +73,7 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 });
 
 // Interceptar requisições
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
@@ -96,25 +96,25 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 });
 
 // Verificar se é recurso estático
-function isStaticAsset(request: Request): boolean {
+function isStaticAsset(request) {
   const url = new URL(request.url);
   return url.pathname.match(/\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/);
 }
 
 // Verificar se é requisição da API
-function isApiRequest(request: Request): boolean {
+function isApiRequest(request) {
   const url = new URL(request.url);
   return url.pathname.startsWith('/api/') || API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname));
 }
 
 // Verificar se é requisição de página
-function isPageRequest(request: Request): boolean {
+function isPageRequest(request) {
   const url = new URL(request.url);
   return request.headers.get('accept')?.includes('text/html') || url.pathname === '/';
 }
 
 // Estratégia Cache First
-async function cacheFirst(request: Request): Promise<Response> {
+async function cacheFirst(request) {
   try {
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
@@ -134,7 +134,7 @@ async function cacheFirst(request: Request): Promise<Response> {
 }
 
 // Estratégia Network First
-async function networkFirst(request: Request): Promise<Response> {
+async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
     
@@ -162,7 +162,7 @@ async function networkFirst(request: Request): Promise<Response> {
 }
 
 // Estratégia Stale While Revalidate
-async function staleWhileRevalidate(request: Request): Promise<Response> {
+async function staleWhileRevalidate(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
   const cachedResponse = await cache.match(request);
 
@@ -177,7 +177,7 @@ async function staleWhileRevalidate(request: Request): Promise<Response> {
 }
 
 // Interceptar mensagens do cliente
-self.addEventListener('message', (event: MessageEvent) => {
+self.addEventListener('message', (event) => {
   const { type, payload } = event.data;
 
   switch (type) {
@@ -202,7 +202,7 @@ self.addEventListener('message', (event: MessageEvent) => {
 });
 
 // Cachear URLs específicas
-async function cacheUrls(urls: string[]): Promise<void> {
+async function cacheUrls(urls) {
   const cache = await caches.open(DYNAMIC_CACHE);
   
   for (const url of urls) {
@@ -218,13 +218,13 @@ async function cacheUrls(urls: string[]): Promise<void> {
 }
 
 // Limpar cache específico
-async function clearCache(cacheName: string): Promise<void> {
+async function clearCache(cacheName) {
   const deleted = await caches.delete(cacheName);
   console.log(`🗑️ Cache ${cacheName} ${deleted ? 'removido' : 'não encontrado'}`);
 }
 
 // Obter tamanho do cache
-async function getCacheSize(): Promise<number> {
+async function getCacheSize() {
   const cacheNames = await caches.keys();
   let totalSize = 0;
 
@@ -245,7 +245,7 @@ async function getCacheSize(): Promise<number> {
 }
 
 // Sincronização em background
-self.addEventListener('sync', (event: SyncEvent) => {
+self.addEventListener('sync', (event) => {
   console.log('🔄 Background sync:', event.tag);
   
   switch (event.tag) {
@@ -256,7 +256,7 @@ self.addEventListener('sync', (event: SyncEvent) => {
 });
 
 // Executar sincronização em background
-async function doBackgroundSync(): Promise<void> {
+async function doBackgroundSync() {
   try {
     // Implementar lógica de sincronização offline
     console.log('🔄 Executando sincronização em background...');
@@ -273,13 +273,13 @@ async function doBackgroundSync(): Promise<void> {
 }
 
 // Obter dados offline (placeholder)
-async function getOfflineData(): Promise<any[]> {
+async function getOfflineData() {
   // Implementar lógica para obter dados salvos offline
   return [];
 }
 
 // Sincronizar dados offline (placeholder)
-async function syncOfflineData(data: any[]): Promise<void> {
+async function syncOfflineData(data) {
   // Implementar lógica para sincronizar dados com o servidor
   console.log('📤 Sincronizando dados offline:', data.length, 'itens');
 }

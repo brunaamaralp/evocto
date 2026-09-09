@@ -3,7 +3,6 @@ import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
@@ -19,7 +18,7 @@ import {
 import {
   CheckCircle, AlertTriangle, Clock, FileText, 
   Shield, Play, Pause, Eye, ChevronDown, 
-  ChevronUp, Lock, Unlock, Info, Loader2
+  ChevronUp, Lock, Info, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeliverableStateMachine from './DeliverableStateMachine';

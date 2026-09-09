@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +41,7 @@ const BRIEFING_SERVICE_CATEGORIES = Object.fromEntries(
 );
 
 export default function BriefingTemplatesPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(DEFAULT_SERVICE_CATEGORY);
@@ -260,7 +260,7 @@ export default function BriefingTemplatesPage() {
             setShowEditor(false);
             setEditingTemplate(null);
           }}
-          onSave={async (template) => {
+          onSave={async (_template) => {
             setShowEditor(false);
             setEditingTemplate(null);
             await loadTemplates();

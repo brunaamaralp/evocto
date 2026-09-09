@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect, useContext } from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 
 /**
  * Sistema de cache inteligente para otimizar requests e dados

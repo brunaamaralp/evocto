@@ -605,7 +605,7 @@ export default function ServiceInstanceEditor({
                     <SelectContent>
                       <SelectItem value="fixed">Preço Fixo</SelectItem>
                       <SelectItem value="hourly">Por Hora</SelectItem>
-                      <SelectItem value="retainer">Mensalidade</SelectItem>
+                      <SelectItem value="recorrente">Recorrente</SelectItem>
                       <SelectItem value="success_fee">Taxa de Sucesso</SelectItem>
                     </SelectContent>
                   </Select>

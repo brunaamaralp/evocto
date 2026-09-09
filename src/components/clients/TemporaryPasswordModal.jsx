@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ import {
   CheckCircle, 
   AlertCircle,
   Shield,
-  Clock,
   User
 } from 'lucide-react';
 import { generateTemporaryPassword } from '@/api/clientUserAPI';
@@ -61,7 +60,7 @@ export default function TemporaryPasswordModal({
       toast.success('Senha copiada para a área de transferência!');
       
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch (_err) {
       toast.error('Erro ao copiar senha');
     }
   };

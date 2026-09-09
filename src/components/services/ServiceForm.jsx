@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Service, AuditLog } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import {
@@ -104,8 +104,8 @@ export default function ServiceForm({ isOpen, onClose, onSuccess, clientId = nul
           response_time: '24 hours'
         },
         pricing: {
-          // Adjust pricing type based on frequency, 'one_time' services are typically not 'retainer'
-          type: formData.defaultFrequency === 'one_time' ? 'one_time' : 'retainer',
+          // Adjust pricing type based on frequency; one_time services are typically not recorrente
+          type: formData.defaultFrequency === 'one_time' ? 'one_time' : 'recorrente',
           billing_cycle: formData.defaultFrequency
         },
         rules_guardrails: {

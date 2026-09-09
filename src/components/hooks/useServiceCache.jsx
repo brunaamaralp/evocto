@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 /**
  * P2: Hook para cache inteligente de serviços
  */
-export function useServiceCache(agencyId) {
+export function useServiceCache(_agencyId) {
   const cacheRef = useRef({
     templates: new Map(),
     instances: new Map(),

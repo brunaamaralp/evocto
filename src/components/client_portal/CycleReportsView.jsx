@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CyclePlan, Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { 
   BarChart3, Download, Calendar, CheckCircle, 
-  TrendingUp, Target, Lightbulb, FileText,
-  ExternalLink, Eye, Activity, Award
+  TrendingUp, Target, Lightbulb, Activity, Award
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -44,7 +43,7 @@ const CyclePlanCard = ({ cycle, service }) => {
         link.click();
         document.body.removeChild(link);
         toast.success('Download iniciado');
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao fazer download');
       }
     }

@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-export default function SafeLink({ to, children, className = "", pendingClassName = "", onNavigate, replace = false, prefetch = false, ...rest }) {
+export default function SafeLink({ to, children, className = "", pendingClassName = "", onNavigate, replace = false, _prefetch = false, ...rest }) {
   const navigate = useNavigate();
   const [pending, setPending] = React.useState(false);
 

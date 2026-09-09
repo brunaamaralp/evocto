@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/components/i18n/I18nProvider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,6 @@ import {
   Loader2, 
   Sparkles,
   FileText,
-  Clock,
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -352,8 +351,8 @@ export default function BriefingWizard({
 }
 
 // Question Input Component
-function QuestionInput({ question, value, onChange, language }) {
-  const { t } = useTranslation();
+function QuestionInput({ question, value, onChange, _language }) {
+  const { _t } = useTranslation();
 
   const handleInputChange = (newValue) => {
     onChange(newValue);

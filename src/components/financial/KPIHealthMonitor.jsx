@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,7 +83,7 @@ export default function KPIHealthMonitor({
     return HEALTH_LEVELS.critical;
   };
 
-  const getSeverityIcon = (severity) => {
+  const _getSeverityIcon = (severity) => {
     switch (severity) {
       case 'critical': return <AlertTriangle className="w-4 h-4 text-red-500" />;
       case 'high': return <AlertTriangle className="w-4 h-4 text-orange-500" />;

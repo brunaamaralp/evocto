@@ -1,27 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
-import { Client } from '@/api/entities';
-import { Service } from '@/api/entities';
-import { CyclePlan } from '@/api/entities';
-import { LearningEntry } from '@/api/entities';
-import { generateCyclePlan } from '@/api/functions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
 import { 
-  Calendar, Clock, Plus, Filter, Search, Bell, Users,
-  CheckCircle, AlertCircle, TrendingUp, TrendingDown,
-  BarChart3, Target, Zap, Brain, Award, ArrowRight,
-  User, Building, Briefcase, PlayCircle, PauseCircle,
-  Settings, Eye, Edit, FileText, MessageCircle, Lightbulb,
-  ChevronRight, ChevronDown, MoreHorizontal, Star,
-  Activity, DollarSign, Timer, Sparkles, Send, ThumbsUp,
-  ThumbsDown, History, RotateCcw, Save, X, Mail
+  Calendar, Clock,
+  CheckCircle, AlertCircle, Target, Zap,
+  User, PlayCircle, Eye, Edit, MessageCircle,
+  ChevronRight, ChevronDown, Timer, Sparkles, Send, ThumbsUp,
+  ThumbsDown, History, Save, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -36,21 +27,11 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Separator } from '@/components/ui/separator';
+
+
+
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Status do planejamento
@@ -428,8 +409,8 @@ const TaskCard = ({ task, onStatusChange }) => {
 
 // Componente principal
 export default function ClientPlanningPage() {
-  const session = useSession();
-  const t = useT();
+  const _session = useSession();
+  const _t = useT();
   
   // Estados principais
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { NotificationPreference } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Bell, Mail, Clock, Smartphone } from 'lucide-react';
+import { Bell, Clock, Smartphone } from 'lucide-react';
 
 export default function NotificationSettingsPage() {
   const { user } = useSession();

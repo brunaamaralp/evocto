@@ -1,4 +1,3 @@
-import React from 'react';
 import StatusBanner from './StatusBanner.jsx';
 
 /**

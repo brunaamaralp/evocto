@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,12 +8,11 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import {
-  ChevronLeft, ChevronDown, ExternalLink, Settings, 
+  ChevronLeft, ChevronDown, ExternalLink, 
   Eye, MoreVertical, Users, Briefcase, Calendar,
-  FileText, TrendingUp, MessageCircle
+  FileText, TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import StatusBadge from '@/components/shared/StatusBadge';
 
 const ContextHeader = ({ 

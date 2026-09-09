@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { AgentExecution } from '@/api/entities';
 import { Notification } from '@/api/entities';
@@ -388,7 +388,7 @@ class AgentExecutor {
   }
 
   // Calcular próxima execução
-  getNextExecutionTime(agentId, config) {
+  getNextExecutionTime(_agentId, _config) {
     // Implementar cálculo baseado no schedule
     return new Date(Date.now() + 60 * 60 * 1000); // 1 hora para exemplo
   }

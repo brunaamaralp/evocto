@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FinancialKPI } from '@/api/entities';
 import { KPIFormulaDefinition } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea'; // This import is not used in the current code, but keeping it as it was in the original file.
+// This import is not used in the current code, but keeping it as it was in the original file.
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -382,7 +382,7 @@ export default function KPIVersionManager({
               )}
 
               <div className="space-y-4">
-                {kpiHistory.map((version, index) => {
+                {kpiHistory.map((version, _index) => {
                   const status = getVersionStatus(version);
                   const StatusIcon = status.icon;
                   const lineage = calculateDataLineage(version);

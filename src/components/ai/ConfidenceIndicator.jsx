@@ -47,8 +47,21 @@ export default function ConfidenceIndicator({
   onReviewRequired,
   className = ''
 }) {
+  const isValidScore = typeof score === 'number' && score >= 0 && score <= 100;
+  const level = isValidScore ? getConfidenceLevel(score) : null;
+  const Icon = level?.icon;
+  const message = isValidScore ? getConfidenceMessage(score, level, context) : '';
+  const isLowConfidence = isValidScore && score < threshold;
+
+  React.useEffect(() => {
+    if (!isValidScore) return;
+    if (isLowConfidence && onReviewRequired) {
+      onReviewRequired(score, context);
+    }
+  }, [score, isValidScore, isLowConfidence, onReviewRequired, context]);
+
   // Validação de entrada
-  if (typeof score !== 'number' || score < 0 || score > 100) {
+  if (!isValidScore) {
     return (
       <TooltipProvider>
         <Tooltip>
@@ -65,18 +78,6 @@ export default function ConfidenceIndicator({
       </TooltipProvider>
     );
   }
-
-  const level = getConfidenceLevel(score);
-  const Icon = level.icon;
-  const message = getConfidenceMessage(score, level, context);
-  const isLowConfidence = score < threshold;
-  
-  // React quando confiança é baixa
-  React.useEffect(() => {
-    if (isLowConfidence && onReviewRequired) {
-      onReviewRequired(score, context);
-    }
-  }, [score, isLowConfidence, onReviewRequired, context]);
 
   if (compact) {
     return (

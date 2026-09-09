@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +22,8 @@ import {
 } from "@/constants/performanceKPIs";
 
 export default function EmptyKPIState({ 
-  clientId, 
-  serviceId, 
+  _clientId, 
+  _serviceId, 
   onKPICreated, 
   showCreateButton = true,
   compact = false 
@@ -31,7 +31,7 @@ export default function EmptyKPIState({
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [creatingKPIs, setCreatingKPIs] = useState(false);
 
-  const handleCreateSuggestedKPIs = async (category) => {
+  const handleCreateSuggestedKPIs = async (_category) => {
     setCreatingKPIs(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));

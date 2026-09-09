@@ -6,11 +6,9 @@ import { ApprovalRequest } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import ProcessStepper from '@/components/client/ProcessStepper';
 import { 
-  Clock, CheckCircle, AlertCircle, FileText, 
-  TrendingUp, Calendar, Target, ArrowRight,
+  Clock, CheckCircle, AlertCircle, FileText, Calendar, Target, ArrowRight,
   Bell, Settings, Eye
 } from 'lucide-react';
 import { toast } from 'sonner';

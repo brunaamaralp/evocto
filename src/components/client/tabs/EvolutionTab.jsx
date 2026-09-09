@@ -29,7 +29,7 @@ export default function EvolutionTab() {
       try {
         const data = await EvolutionEvent.filter({ agencyId, clientId }, "-date");
         if (!cancelled) setEvents(data || []);
-      } catch (e) {
+      } catch (_e) {
         if (!cancelled) setError("Não foi possível carregar evolução");
       } finally {
         if (!cancelled) setLoading(false);

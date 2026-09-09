@@ -25,7 +25,6 @@ export const PAYMENT_METHOD_ALIASES = {
   credito_avista: 'cartao_credito',
   credit: 'cartao_credito',
   credit_card: 'cartao_credito',
-  'cartao_de_credito': 'cartao_credito',
   'cartao_de_debito': 'cartao_debito',
   maquininha: 'cartao_credito',
   parcelado: 'cartao_credito',

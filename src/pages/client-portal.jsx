@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { getClientDashboardData } from '@/api/functions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Clock, CheckCircle, FileText, AlertCircle, 
-  Calendar, User, Building, Mail, RefreshCw, Loader2,
+  Calendar, Building, RefreshCw, Loader2,
   BarChart3, TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,6 +17,8 @@ import ExecutiveDashboard from '@/components/client_portal/ExecutiveDashboard';
 import ProgressFeedbackSystem from '@/components/client_portal/ProgressFeedbackSystem';
 import EducationalMicrotexts from '@/components/client_portal/EducationalMicrotexts';
 import ClientOnboardingSystem from '@/components/client_portal/ClientOnboardingSystem';
+import LoadingState from '@/components/shared/LoadingStates';
+import EmptyState from '@/components/shared/EmptyState';
 
 export default function ClientPortalPage() {
   const { user, isAuthenticated, loading: sessionLoading, agencyId } = useSession();
@@ -26,6 +28,7 @@ export default function ClientPortalPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   // Verificar se é primeira visita e mostrar onboarding
   useEffect(() => {

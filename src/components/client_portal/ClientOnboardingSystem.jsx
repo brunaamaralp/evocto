@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -21,11 +21,8 @@ import {
   BarChart3,
   FileText,
   Users,
-  Settings,
-  Lightbulb,
   Target,
   TrendingUp,
-  Calendar,
   Bell,
   HelpCircle,
   X,

@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge'; // Added this import
-import { Plus, UserPlus, Building, Users } from 'lucide-react';
+import { UserPlus, Building, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
 import EmptyState from '@/components/shared/EmptyState';

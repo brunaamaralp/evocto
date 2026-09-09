@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
-import { Card, Typography, StatusBadge } from '@/components/ui/design-system';
+import { Card, Typography } from '@/components/ui/design-system';
 import { Client, Service, CyclePlan, LearningEntry, Notification } from '@/api/entities';
 import {
   TrendingUp,
@@ -10,9 +10,7 @@ import {
   Briefcase,
   Calendar,
   BookOpen,
-  AlertCircle,
   CheckCircle,
-  Clock,
   ArrowRight,
   Zap
 } from 'lucide-react';
@@ -36,7 +34,7 @@ export default function ModernDashboard() {
     if (!agencyId) return;
     
     try {
-      const [clients, services, cycles, learnings, notifications] = await Promise.all([
+      const [clients, services, cycles, learnings, _notifications] = await Promise.all([
         Client.filter({ agencyId }),
         Service.filter({ agencyId, is_active: true }),
         CyclePlan.filter({ agencyId, status: { $in: ['pending_approval', 'in_execution'] } }),

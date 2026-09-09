@@ -1,21 +1,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { useT } from '@/components/i18n/I18nProvider';
 import { Brief } from '@/api/entities';
 import { LearningEntry } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Edit, Save, X, Plus, Trash2, Eye, EyeOff, History, 
+  Edit, Save, X, Plus, Trash2, Eye, History, 
   Building, Target, TrendingUp, Users, ShoppingCart, 
   DollarSign, BarChart3, Lightbulb, FileText, AlertCircle,
   CheckCircle, Clock, Zap, Star, Award, MessageCircle,
-  ArrowRight, ChevronDown, ChevronRight, Globe, MapPin,
+  ArrowRight, Globe, MapPin,
   Sparkles, TrendingDown, Calendar, Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,10 +25,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -232,7 +227,7 @@ const ModernEditableField = ({
       await onSave(editValue);
       setIsEditing(false);
       toast.success('Campo atualizado com sucesso');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao salvar alterações');
     } finally {
       setSaving(false);
@@ -353,7 +348,7 @@ const ModernEditableList = ({
       await onUpdate(editItems);
       setIsEditing(false);
       toast.success('Lista atualizada com sucesso');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao salvar alterações');
     }
   };
@@ -1117,7 +1112,7 @@ export default function BriefingMasterPage({ client }) {
                 <TabsList className="grid grid-cols-4 lg:grid-cols-8 gap-2 h-auto p-1 bg-transparent">
                   {Object.values(BRIEFING_SECTIONS).map((section) => {
                     const SectionIcon = section.icon;
-                    const isActive = activeSection === section.id;
+                    const _isActive = activeSection === section.id;
                     
                     return (
                       <TabsTrigger

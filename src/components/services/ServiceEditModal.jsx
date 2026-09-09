@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Service } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +21,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Plus, Trash2, GripVertical, Clock, Target, 
-  FileText, Calendar, DollarSign, LayoutTemplate
+  Plus, Trash2, Target, 
+  FileText, DollarSign, LayoutTemplate
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
+import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceEditModal({ 
   isOpen, 
@@ -175,7 +175,7 @@ export default function ServiceEditModal({
     }));
   };
 
-  const getTaskTypeLabel = (type) => {
+  const _getTaskTypeLabel = (type) => {
     const labels = {
       'analise_documentos': 'Análise de Documentos',
       'coleta_dados': 'Coleta de Dados',
@@ -334,7 +334,7 @@ export default function ServiceEditModal({
                     <SelectContent>
                       <SelectItem value="fixed">Preço Fixo</SelectItem>
                       <SelectItem value="hourly">Por Hora</SelectItem>
-                      <SelectItem value="retainer">Mensalidade</SelectItem>
+                      <SelectItem value="recorrente">Recorrente</SelectItem>
                       <SelectItem value="success_fee">Taxa de Sucesso</SelectItem>
                     </SelectContent>
                   </Select>

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Implementa API pública com autenticação, rate limiting e documentação
  */
 export class PublicAPI extends EventEmitter {
-  constructor(options = {}) {
+  constructor(_options = {}) {
     super();
     this.endpoints = new Map();
     this.apiKeys = new Map();
@@ -519,7 +519,7 @@ export class PublicAPI extends EventEmitter {
    * Encontra endpoint
    */
   findEndpoint(method, path) {
-    for (const [key, endpoint] of this.endpoints) {
+    for (const [_key, endpoint] of this.endpoints) {
       if (endpoint.method === method && this.matchPath(endpoint.path, path)) {
         return endpoint;
       }
@@ -567,7 +567,7 @@ export class PublicAPI extends EventEmitter {
   /**
    * Valida parâmetros
    */
-  validateParameters(endpoint, params) {
+  validateParameters(_endpoint, _params) {
     // Implementar validação de parâmetros
     return { valid: true };
   }
@@ -608,7 +608,7 @@ export class PublicAPI extends EventEmitter {
   /**
    * Implementações dos endpoints
    */
-  async getServices(query) {
+  async getServices(_query) {
     // Simular busca de serviços
     return [
       {
@@ -662,7 +662,7 @@ export class PublicAPI extends EventEmitter {
     };
   }
 
-  async calculatePrice(serviceId, context) {
+  async calculatePrice(serviceId, _context) {
     // Simular cálculo de preço
     return {
       serviceId,
@@ -674,7 +674,7 @@ export class PublicAPI extends EventEmitter {
     };
   }
 
-  async createOrder(orderData) {
+  async createOrder(_orderData) {
     // Simular criação de pedido
     return {
       orderId: uuidv4(),
@@ -698,7 +698,7 @@ export class PublicAPI extends EventEmitter {
     };
   }
 
-  async getReviews(serviceId, query) {
+  async getReviews(_serviceId, _query) {
     // Simular obtenção de avaliações
     return [
       {
@@ -711,7 +711,7 @@ export class PublicAPI extends EventEmitter {
     ];
   }
 
-  async createReview(serviceId, reviewData) {
+  async createReview(_serviceId, _reviewData) {
     // Simular criação de avaliação
     return {
       reviewId: uuidv4(),

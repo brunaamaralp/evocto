@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,8 +28,8 @@ const CHART_COLORS = [
 
 export default function KPIChart({ 
   kpis, 
-  period = '6m', 
-  category = 'all',
+  _period = '6m', 
+  _category = 'all',
   height = 400 
 }) {
   const [chartType, setChartType] = useState('trend'); // trend | comparison | distribution
@@ -61,7 +61,7 @@ export default function KPIChart({
         fullDate: timestamp
       };
 
-      kpiData.forEach((kpi, index) => {
+      kpiData.forEach((kpi, _index) => {
         const point = kpi.historical_values?.find(
           p => (p.calculated_at || p.period) === timestamp
         );
@@ -335,7 +335,7 @@ export default function KPIChart({
 
               <div className="space-y-4">
                 <h4 className="font-semibold">Taxa de Sucesso por Categoria</h4>
-                {distributionData.map((category, index) => (
+                {distributionData.map((category, _index) => (
                   <div key={category.name} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{category.name}</span>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -26,10 +25,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { 
-  Calendar, Clock, User as UserIcon, Tag, Plus, X, 
-  Paperclip, CheckSquare, Square, Upload, Timer,
-  Target, Flag, AlertCircle, MessageCircle, Play,
-  Pause, RotateCcw, Save, Trash2, FileText, Lightbulb
+  Calendar, Plus, X, CheckSquare, Square,
+  Target, Play,
+  Pause, Save, Trash2, FileText, Lightbulb
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

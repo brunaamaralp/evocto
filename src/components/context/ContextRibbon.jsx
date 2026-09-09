@@ -1,15 +1,14 @@
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAppContext } from './ContextProvider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Building, Settings, ArrowLeft } from 'lucide-react';
+import { ChevronRight, Building, ArrowLeft } from 'lucide-react';
 import { useRibbon } from '@/components/context/RibbonProvider';
-import { safeClearRibbon } from '@/components/utils/compat-ribbon';
 
-export default function ContextRibbon({ clientId, projectId, serviceId }) {
+export default function ContextRibbon({ clientId, _projectId, _serviceId }) {
   const { ribbonContext, loading, error } = useAppContext();
   const ribbon = useRibbon();
 

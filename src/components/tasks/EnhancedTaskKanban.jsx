@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -9,12 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Calendar, 
-  Clock, 
-  User as UserIcon, 
-  Flag,
+  Calendar,
   Plus,
-  Filter,
   Search,
   MessageCircle,
   Paperclip,
@@ -35,7 +31,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { FixedSizeList as List } from 'react-window';
 import TaskCreateModal from './TaskCreateModal';
 import TaskAnalytics from './TaskAnalytics';
@@ -148,7 +143,7 @@ function DragPlaceholder({ column, isDraggingOver, draggedItem }) {
 }
 
 // Virtualized task list for performance
-function VirtualizedTaskList({ tasks, users, columnId, onCardClick }) {
+function VirtualizedTaskList({ tasks, users, _columnId, onCardClick }) {
   const itemHeight = 120; // Height of each task card
   const maxHeight = 600; // Maximum height of the list
 
@@ -190,7 +185,7 @@ function VirtualizedTaskList({ tasks, users, columnId, onCardClick }) {
 }
 
 // Enhanced task card with more visual indicators
-function EnhancedTaskCard({ task, index, users, onClick, isDragging = false }) {
+function EnhancedTaskCard({ task, index, users, onClick, _isDragging = false }) {
   const assignedUser = users.find(u => u.id === task.assignedTo);
   
   // Enhanced calculations
@@ -380,7 +375,7 @@ function EnhancedTaskCard({ task, index, users, onClick, isDragging = false }) {
 }
 
 // Enhanced Kanban Column with virtualization
-function EnhancedKanbanColumn({ column, tasks, users, onCardClick, isDraggingOver, draggedItem }) {
+function EnhancedKanbanColumn({ column, tasks, users, onCardClick, _isDraggingOver, draggedItem }) {
   const [collapsed, setCollapsed] = useState(false);
   const useVirtualization = tasks.length > 50; // Virtualize when many tasks
 

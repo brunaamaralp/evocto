@@ -7,7 +7,6 @@ import EmptyState from "@/components/shared/EmptyState"; // Added import for Emp
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -75,7 +74,7 @@ export default function SettingsTab() {
       await Client.update(client.id, form);
       toast.success("Configurações do cliente salvas");
       reload();
-    } catch (e) {
+    } catch (_e) {
       toast.error("Erro ao salvar");
     } finally {
       setSaving(false);

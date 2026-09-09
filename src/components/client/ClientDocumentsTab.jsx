@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ClientDocument } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,13 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   FileText, Upload, Download, Eye, EyeOff, History, 
-  Plus, Search, Filter, ExternalLink, Shield, 
-  Clock, User, Folder, Archive, Settings, Trash2
+  Plus, Search, ExternalLink, Shield, 
+  Clock, User, Folder, Archive, Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { UploadFile } from '@/api/integrations';
@@ -45,7 +43,7 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [selectedVisibility, setSelectedVisibility] = useState('all');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [selectedDeliverable, setSelectedDeliverable] = useState(null);
+  const [_selectedDeliverable, _setSelectedDeliverable] = useState(null);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
@@ -135,7 +133,7 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
       const file = files[0];
       
       // Upload do arquivo
-      const uploadResult = await UploadFile({ file });
+      const _uploadResult = await UploadFile({ file });
       
       // Salvar documento automaticamente
       const saveResult = await saveDocumentAutomatically({

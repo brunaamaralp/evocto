@@ -1,15 +1,13 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LearningEntry } from '@/api/entities';
 import LearningApplicationModal from './LearningApplicationModal';
 import LearningPromotionModal from './LearningPromotionModal';
 import { useLearningManagement } from '@/hooks/useLearningManagement';
 import {
   Eye,
-  Share2,
   TrendingUp,
   BookCopy,
   Calendar,
@@ -23,7 +21,6 @@ import {
   Globe,
   Lock,
   GitBranchPlus,
-  Send,
   Download,
   Rocket,
   AlertTriangle,
@@ -67,9 +64,9 @@ export default function LearningCard({
   showGlobalActions = false, 
   showReviewActions = false,
   onUpdate, 
-  onPromote 
+  _onPromote 
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [needsReview, setNeedsReview] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -78,9 +75,9 @@ export default function LearningCard({
   const {
     validateLearning,
     archiveLearning,
-    applyLearningToBriefing,
-    applyLearningToCycle,
-    promoteToPlaybook
+    _applyLearningToBriefing,
+    _applyLearningToCycle,
+    _promoteToPlaybook
   } = useLearningManagement();
 
   const SourceIcon = sourceIcons[learning.sourceType] || FileText;
@@ -97,7 +94,7 @@ export default function LearningCard({
   };
 
   const confidenceLevel = getConfidenceLevel(learning.confidence_score);
-  const confidenceColor = confidenceColors[confidenceLevel];
+  const _confidenceColor = confidenceColors[confidenceLevel];
 
   const handleValidateLearning = async () => {
     try {

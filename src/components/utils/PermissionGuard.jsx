@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -15,13 +15,13 @@ import {
 export function PermissionGuard({ 
   requiredRoles = [], 
   requiredPermissions = [], 
-  resource = null,
+  _resource = null,
   children,
   fallback = null,
   showDisabled = true,
   disabledMessage = "Você não tem permissão para esta ação"
 }) {
-  const { user, hasRole, hasAnyRole } = useSession();
+  const { user, _hasRole, hasAnyRole } = useSession();
 
   const hasRequiredRole = requiredRoles.length === 0 || hasAnyRole(requiredRoles);
   

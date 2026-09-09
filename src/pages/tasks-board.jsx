@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Task } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -104,7 +104,7 @@ export default function TasksBoardPage() {
     setColumns(next);
   }, [filtered]);
 
-  const onDragEnd = async (evt) => {
+  const _onDragEnd = async (evt) => {
     const { active, over } = evt;
     if (!over) return;
     const fromCol = Object.keys(columns).find(c => columns[c].some(t => t.id === active.id));

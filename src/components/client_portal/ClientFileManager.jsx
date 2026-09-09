@@ -1,26 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+
+
 import { 
   Upload, 
   Download, 
-  Eye, 
   Trash2, 
-  Edit, 
   Search, 
-  Filter, 
   Folder, 
   FileText, 
   Image, 
@@ -42,8 +33,8 @@ export default function ClientFileManager({ clientId, serviceId = null }) {
   const {
     files,
     loading,
-    error,
-    uploading,
+    _error,
+    _uploading,
     loadFiles,
     deleteFile,
     downloadFile,
@@ -131,7 +122,7 @@ export default function ClientFileManager({ clientId, serviceId = null }) {
     if (window.confirm('Tem certeza que deseja remover este arquivo?')) {
       try {
         await deleteFile(fileId);
-      } catch (error) {
+      } catch (_error) {
         // Erro já tratado no hook
       }
     }

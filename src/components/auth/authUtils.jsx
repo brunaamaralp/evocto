@@ -1,5 +1,4 @@
 // Utilitários para autenticação e JWT
-import { AUTH_ERROR_TYPES, getAuthError } from './authErrors';
 
 // Schema para Session (usando validação manual)
 export const SessionSchema = {
@@ -91,7 +90,7 @@ export function isSessionExpired(session) {
     const clockSkew = 60 * 1000; // 60 segundos em ms
     
     return expiresAt.getTime() <= (now.getTime() + clockSkew);
-  } catch (error) {
+  } catch (_error) {
     return true;
   }
 }

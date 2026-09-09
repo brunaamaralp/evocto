@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { User, AuditLog } from '@/api/entities';
 import { SendEmail } from '@/api/integrations';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export default function PasswordReset() {
         // User is logged in, redirect to account page
         navigate('/dashboard'); // Use built-in navigation
       }
-    } catch (error) {
+    } catch (_error) {
       // User not authenticated, continue with reset flow
     }
   };
@@ -114,7 +114,7 @@ export default function PasswordReset() {
       toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
       setStep('success');
 
-    } catch (error) {
+    } catch (_error) {
       setError('Erro ao enviar email. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -192,7 +192,7 @@ export default function PasswordReset() {
       // Redirect to built-in login
       navigate('/login');
 
-    } catch (error) {
+    } catch (_error) {
       setError('Erro interno. Tente novamente ou entre em contato com o suporte.');
     } finally {
       setIsLoading(false);

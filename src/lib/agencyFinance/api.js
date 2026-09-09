@@ -172,13 +172,14 @@ export async function reverseCash({ agencyId, id }) {
 
 /* ─── Charges ──────────────────────────────────────────── */
 
-export async function listCharges({ agencyId, month, status, limit = 200 } = {}) {
+export async function listCharges({ agencyId, month, status, clientId, limit = 200 } = {}) {
   const aid = assertAgency(agencyId);
   const queries = [
     Query.equal('agencyId', aid),
     Query.limit(Math.min(500, limit)),
     Query.orderDesc('dueDate'),
   ];
+  if (clientId) queries.push(Query.equal('clientId', String(clientId)));
   if (month) queries.push(Query.equal('competenceMonth', month));
   if (status) queries.push(Query.equal('status', status));
   const res = await db().listRows({ databaseId: DATABASE_ID, tableId: AF_CHARGES, queries });
@@ -197,7 +198,7 @@ export async function createCharge({ agencyId, payload }) {
       clientId: payload.clientId,
       clientName: payload.clientName || '',
       serviceId: payload.serviceId || '',
-      type: payload.type || 'retainer',
+      type: payload.type === 'retainer' ? 'recorrente' : payload.type || 'recorrente',
       description: payload.description || '',
       amount,
       status: payload.status || 'open',

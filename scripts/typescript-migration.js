@@ -8,7 +8,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 class TypeScriptMigration {
   constructor() {
@@ -78,7 +78,7 @@ class TypeScriptMigration {
         console.log(`   Instalando ${dep}...`);
         execSync(`npm install -D ${dep}`, { stdio: 'pipe' });
         console.log(`   ✅ ${dep} instalado`);
-      } catch (error) {
+      } catch (_error) {
         console.log(`   ⚠️  ${dep} já instalado ou erro na instalação`);
       }
     }
@@ -346,7 +346,7 @@ interface TestRunnerProps {
     
     // Renomear vite.config.js para vite.config.ts
     if (fs.existsSync('vite.config.js')) {
-      const content = fs.readFileSync('vite.config.js', 'utf8');
+      const _content = fs.readFileSync('vite.config.js', 'utf8');
       const tsContent = `import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'

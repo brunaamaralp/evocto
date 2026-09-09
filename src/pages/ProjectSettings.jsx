@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Project } from '@/api/entities';
 import { UploadFile } from '@/api/integrations';
@@ -20,7 +20,6 @@ import {
   Globe, 
   Mail,
   Loader2,
-  CheckCircle,
   AlertTriangle,
   Settings as SettingsIcon
 } from 'lucide-react';
@@ -170,7 +169,7 @@ export default function ProjectSettings() {
     }));
   };
 
-  const validateEmails = (emails) => {
+  const _validateEmails = (emails) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emails.every(email => emailRegex.test(email));
   };

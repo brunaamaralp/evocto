@@ -1,4 +1,3 @@
-import React from "react";
 
 // Temporariamente desabilitado devido a problemas de rate limit
 export default function UXMonitor() {

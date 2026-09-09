@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
@@ -17,8 +16,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Play, Pause, CheckCircle, AlertTriangle, RotateCcw,
-  MoreHorizontal, Clock, Eye, UserCheck, XCircle
+  Play, CheckCircle, AlertTriangle, RotateCcw,
+  MoreHorizontal, Eye, XCircle
 } from 'lucide-react';
 import { TaskStateMachine } from './TaskStateMachine';
 import { useSession } from '@/components/auth/SessionManager';

@@ -1,16 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   CheckCircle2, 
   AlertTriangle, 
   Info, 
   Clock,
-  RefreshCw,
-  FileText,
-  TrendingUp,
-  Upload
+  RefreshCw
 } from 'lucide-react';
 
 const NotificationContext = createContext();
@@ -33,7 +29,7 @@ const PROCESS_TYPES = {
 
 export function NotificationProvider({ children }) {
   const [activeProcesses, setActiveProcesses] = useState(new Map());
-  const [notifications, setNotifications] = useState([]);
+  const [_notifications, _setNotifications] = useState([]);
 
   // Registrar processo em background
   const registerProcess = useCallback((processId, type, description, estimatedDuration) => {

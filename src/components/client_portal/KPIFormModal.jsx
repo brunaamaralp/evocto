@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -31,7 +30,6 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { useClientGoalsKPIs } from '@/hooks/useClientGoalsKPIs';
-import { toast } from 'sonner';
 
 /**
  * Modal para criação de novos KPIs
@@ -83,7 +81,7 @@ export default function KPIFormModal({
       
       onSuccess();
       handleClose();
-    } catch (error) {
+    } catch (_error) {
       // Erro já tratado no hook
     }
   };

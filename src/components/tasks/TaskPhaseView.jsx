@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   ChevronDown,
@@ -39,7 +38,7 @@ const STATUS_COLORS = {
 /**
  * Visualização Por Fase com agrupamento e progresso
  */
-export default function TaskPhaseView({ tasks, onTaskUpdate, onEditTask, loading }) {
+export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loading }) {
   const [expandedPhases, setExpandedPhases] = useState(new Set());
 
   // Agrupar tarefas por fase/entregável
@@ -202,7 +201,7 @@ export default function TaskPhaseView({ tasks, onTaskUpdate, onEditTask, loading
   // Renderizar fase
   const renderPhase = (phaseName, phaseData) => {
     const isExpanded = expandedPhases.has(phaseName);
-    const progressColor = phaseData.progress === 100 ? 'bg-green-500' : 
+    const _progressColor = phaseData.progress === 100 ? 'bg-green-500' : 
                          phaseData.progress >= 75 ? 'bg-blue-500' : 
                          phaseData.progress >= 50 ? 'bg-yellow-500' : 'bg-red-500';
 

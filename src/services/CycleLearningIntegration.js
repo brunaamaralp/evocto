@@ -1,6 +1,4 @@
 import { LearningEntry, CyclePlan } from '@/api/entities';
-import { useSession } from '@/components/auth/SessionManager';
-import { toast } from 'sonner';
 
 /**
  * Serviço para integração real de aprendizados com ciclos

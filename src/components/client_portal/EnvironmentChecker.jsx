@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +46,7 @@ export default function EnvironmentChecker() {
         icon: Shield,
         priority: 'high'
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         name: 'CLIENT_ACTIVATION_SECRET',
         status: 'error',
@@ -87,7 +87,7 @@ export default function EnvironmentChecker() {
   const checkEmailService = async () => {
     try {
       // Test if we can import email service
-      const { SendEmail } = await import('@/api/integrations');
+      const { _SendEmail } = await import('@/api/integrations');
       
       return {
         name: 'Email Service',
@@ -97,7 +97,7 @@ export default function EnvironmentChecker() {
         icon: CheckCircle,
         priority: 'high'
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         name: 'Email Service',
         status: 'warning',
@@ -112,7 +112,7 @@ export default function EnvironmentChecker() {
   const checkApprovalFlow = async () => {
     try {
       // Test if approval functions are accessible
-      const { processClientApproval } = await import('@/api/functions');
+      const { _processClientApproval } = await import('@/api/functions');
       
       return {
         name: 'Approval Flow',
@@ -123,7 +123,7 @@ export default function EnvironmentChecker() {
         priority: 'high',
         testUrl: '/test-approval-flow'
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         name: 'Approval Flow',
         status: 'error',
@@ -140,7 +140,7 @@ export default function EnvironmentChecker() {
     
     try {
       // Test dashboard data loading performance
-      const { getClientDashboardData } = await import('@/api/functions');
+      const { _getClientDashboardData } = await import('@/api/functions');
       // Note: This would normally make an actual call, but we'll simulate
       
       const loadTime = Date.now() - startTime;
@@ -164,7 +164,7 @@ export default function EnvironmentChecker() {
         icon: CheckCircle,
         priority: 'medium'
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         name: 'Performance',
         status: 'error',
@@ -268,7 +268,7 @@ export default function EnvironmentChecker() {
       } else {
         toast.error('Teste do fluxo falhou - verificar logs');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao executar teste do fluxo');
     }
   };

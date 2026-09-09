@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { EvolutionEvent } from '@/api/entities';
 import { Client } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  TrendingUp, Calendar, ArrowLeft, Eye,
-  CheckCircle, AlertTriangle, Users, Target
+  TrendingUp, Calendar, ArrowLeft,
+  CheckCircle, Users, Target
 } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
@@ -18,7 +17,7 @@ import { toast } from 'sonner';
 import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientEvolutionPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
   
@@ -71,7 +70,7 @@ export default function ClientEvolutionPage() {
     );
   }
 
-  const getImpactColor = (impact) => {
+  const _getImpactColor = (impact) => {
     switch (impact) {
       case 'high': return 'bg-red-100 text-red-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
@@ -80,7 +79,7 @@ export default function ClientEvolutionPage() {
     }
   };
 
-  const getTypeIcon = (type) => {
+  const _getTypeIcon = (type) => {
     switch (type) {
       case 'plan_approved': return <CheckCircle className="w-4 h-4" />;
       case 'learning_applied': return <TrendingUp className="w-4 h-4" />;

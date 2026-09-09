@@ -5,7 +5,7 @@
  * Inclui formulário de briefing e visualização de ajustes
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,18 +33,18 @@ export default function BriefingDemoPage() {
 
   const { 
     briefing, 
-    adjustments, 
-    stats,
-    isLoading,
-    isSubmitting,
+    _adjustments, 
+    _stats,
+    _isLoading,
+    _isSubmitting,
     error,
     hasActiveBriefing,
-    adjustmentsCount
+    _adjustmentsCount
   } = useBriefing(demoServiceId);
 
   const {
-    adjustments: taskAdjustments,
-    stats: adjustmentStats,
+    adjustments: _taskAdjustments,
+    stats: _adjustmentStats,
     totalAdjustments
   } = useTaskAdjustments(demoServiceId);
 

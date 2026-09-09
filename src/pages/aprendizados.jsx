@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { LearningEntry, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -14,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
 import {
@@ -22,26 +20,20 @@ import {
   SlidersHorizontal,
   Upload,
   Lightbulb,
-  Globe,
-  User,
-  TrendingUp,
   Plus,
   BookCopy,
-  FolderClock,
-  AlertTriangle,
   X,
-  CheckCircle,
   Download
 } from 'lucide-react';
 import LearningCard from '../components/learnings/LearningCard';
 import AutoLearningInputModal from '@/components/learnings/AutoLearningInputModal';
 import PromoteToPlaybookModal from '@/components/learnings/PromoteToPlaybookModal';
 import LearningManualForm from '@/components/learnings/LearningManualForm';
-import { ConfidenceSummary, useConfidenceTracking } from '@/components/ai/ConfidenceIndicator';
+import { useConfidenceTracking } from '@/components/ai/ConfidenceIndicator';
 import { motion } from 'framer-motion';
 import RelationalGuard from '../components/utils/RelationalGuard';
 import { useSafeFetcher, useSafeAction } from '../components/hooks/useSafeFetcher';
-import { StateRenderer, EmptyState, ErrorAlert } from '../components/shared/StateRenderer';
+import { StateRenderer, EmptyState } from '../components/shared/StateRenderer';
 
 // Define filter options globally or based on typical data
 const FILTER_OPTIONS = {
@@ -147,7 +139,7 @@ const FilterPanel = ({ filters, onFiltersChange, onClearFilters, appliedCount })
 
 function AprendizadosPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, _setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     tipo: 'todos',
     origem: 'todos',
@@ -184,7 +176,7 @@ function AprendizadosPage() {
 
   const clients = learnings?.clients || [];
   const learningsList = learnings?.learnings || [];
-  const { needsReview, lowConfidenceCount } = useConfidenceTracking(learningsList);
+  const { _needsReview, lowConfidenceCount } = useConfidenceTracking(learningsList);
 
   const applyFiltersToLearning = (learning) => {
     if (filters.tipo !== 'todos') {
@@ -231,7 +223,7 @@ function AprendizadosPage() {
     return scopeMatch && searchMatch && filtersMatch;
   });
 
-  const handleUploadSuccess = (newOrUpdatedLearning) => {
+  const handleUploadSuccess = (_newOrUpdatedLearning) => {
     refresh();
     setShowAutoInputModal(false);
     toast.success('Aprendizado adicionado/atualizado com sucesso!');
@@ -248,7 +240,7 @@ function AprendizadosPage() {
     toast.success('Aprendizado promovido com sucesso!');
   };
 
-  const handleReviewLearning = async (learningId, action) => {
+  const _handleReviewLearning = async (learningId, action) => {
     await executeAction(async () => {
       const learning = learningsList.find(l => l.id === learningId);
       if (!learning) throw new Error('Aprendizado não encontrado.');

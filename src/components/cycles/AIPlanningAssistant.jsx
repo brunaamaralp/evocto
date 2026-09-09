@@ -1,28 +1,17 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import ConfidenceIndicator from '@/components/ai/ConfidenceIndicator';
 import {
-  Bot,
-  Lightbulb,
-  TrendingUp,
-  Calendar,
   CheckCircle2,
   AlertTriangle,
   Loader2,
   RefreshCw,
-  Clock,
   Target,
-  Zap,
-  Database,
-  BarChart3,
   BookOpen,
-  AlertCircle,
   ChevronDown,
   Shield,
   Info,
@@ -34,7 +23,6 @@ import {
   FileText  // Added as per outline
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 import { generateCyclePlan } from '@/api/functions';
 import {
   Collapsible,
@@ -414,7 +402,7 @@ function ReviewStep({
 }
 
 
-export default function AIPlanningAssistant({ serviceId, clientId, visible = false }) {
+export default function AIPlanningAssistant({ serviceId, _clientId, _visible = false }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlanResult, setGeneratedPlanResult] = useState(null); // Holds the full planResult object
   const [error, setError] = useState(null);

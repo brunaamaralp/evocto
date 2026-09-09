@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,7 @@ import { Task } from '@/api/entities';
  * DASHBOARD LIMPO - Apenas métricas essenciais da nova estrutura
  */
 export default function DashboardPage() {
-  const { user, agencyId, loading: sessionLoading } = useSession();
+  const { _user, agencyId, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);

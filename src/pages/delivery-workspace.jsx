@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { Service, Client, Task } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';

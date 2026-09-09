@@ -1,4 +1,3 @@
-import React from 'react';
 import ClientFileManager from '@/components/client_portal/ClientFileManager';
 
 export default function DeliveryWorkspaceFiles({ clientId, serviceId }) {

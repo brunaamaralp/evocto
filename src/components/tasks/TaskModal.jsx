@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -24,8 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Plus, X, Save, Calendar, Clock, User as UserIcon, 
-  Target, AlertTriangle, CheckSquare, Trash2
+  Plus, X, Save, User as UserIcon, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 

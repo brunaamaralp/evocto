@@ -1,5 +1,5 @@
 import '../../styles/offline-banner.css';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export function OfflineBanner() {
   const [offline, setOffline] = useState(!navigator.onLine);

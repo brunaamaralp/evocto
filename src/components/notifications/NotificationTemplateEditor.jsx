@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { NotificationTemplate } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,11 +11,10 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Bell, Mail, Smartphone, Webhook, Plus, Edit, Trash2,
-  Save, Eye, EyeOff, Settings, Clock, CheckCircle,
-  AlertTriangle, Target, Play, Info
+  Save, Eye, EyeOff, Clock, CheckCircle,
+  AlertTriangle, Target, Play
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -85,8 +84,8 @@ export default function NotificationTemplateEditor({ serviceId = null, deliverab
   const [loading, setLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState('StageStarted');
-  const [selectedChannel, setSelectedChannel] = useState('email');
+  const [_selectedEvent, _setSelectedEvent] = useState('StageStarted');
+  const [_selectedChannel, _setSelectedChannel] = useState('email');
 
   const [formData, setFormData] = useState({
     event: 'StageStarted',

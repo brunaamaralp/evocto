@@ -1,5 +1,4 @@
 import '../../styles/field-error.css';
-import React from 'react';
 
 /**
  * Mensagem de validação abaixo de um campo de formulário.

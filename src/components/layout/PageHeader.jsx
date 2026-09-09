@@ -1,4 +1,3 @@
-import React from 'react';
 
 /**
  * Soft UI page header: bold title + optional subtitle/metrics + actions.

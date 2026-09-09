@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -68,7 +68,7 @@ export default function ServiceForm({
     }));
   };
 
-  const validateForm = () => {
+  const _validateForm = () => {
     return validateFields(formData, {
       name: [validators.required, validators.minLength(3)],
       description: [validators.required, validators.minLength(10)],
@@ -81,7 +81,8 @@ export default function ServiceForm({
   const pricingTypeLabels = {
     'fixed': 'Preço Fixo',
     'hourly': 'Por Hora',
-    'retainer': 'Mensalidade',
+    'recorrente': 'Recorrente',
+    'retainer': 'Recorrente',
     'success_fee': 'Taxa de Sucesso'
   };
 

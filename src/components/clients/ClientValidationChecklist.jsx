@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Client, Brief, CyclePlan, LearningEntry, EvolutionEvent } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +13,7 @@ import {
   Clock, 
   AlertTriangle, 
   Play, 
-  User,
-  FileText,
-  Edit3,
-  TrendingUp,
-  BookOpen,
-  Calendar
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -267,7 +262,7 @@ export default function ClientValidationChecklist() {
       );
 
       // Simular teste de edição (sem modificar dados)
-      const testUpdate = {
+      const _testUpdate = {
         target_audience: briefing.target_audience + ' [TESTE_EDIÇÃO]'
       };
 

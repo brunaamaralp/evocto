@@ -13,7 +13,7 @@ import {
   isDfcExcludedTx,
 } from './financeDfcMapping.js';
 import { normalizeStatementPeriod, ymdInInclusiveRange } from './financeStatementPeriod.js';
-import { displayGross, displayNet, txDirection } from './financeTxDisplay.js';
+import { displayNet, txDirection } from './financeTxDisplay.js';
 import { txSettledYmd } from './bankAccountBalances.js';
 
 function roundMoney(n) {

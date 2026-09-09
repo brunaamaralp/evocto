@@ -210,9 +210,9 @@ export async function createAppwriteFinanceTx({ academyId, payload }) {
     amount,
     origin: payload.origin || 'manual',
     ...payload,
-    academyId,
-    agencyId: academyId,
   };
+  data.academyId = academyId;
+  data.agencyId = academyId;
 
   const rowData = splitData(pickKnown(data, TX_KEYS.concat(Object.keys(payload || {}))), TX_KEYS);
   // ensure core fields present
@@ -320,9 +320,9 @@ export async function createAppwriteClientBilling({ academyId, payload }) {
     plan_name: payload.plan_name || '',
     method: payload.method || 'pix',
     ...payload,
-    academy_id: academyId,
-    agencyId: academyId,
   };
+  data.academy_id = academyId;
+  data.agencyId = academyId;
 
   const rowData = splitData(data, BILL_KEYS);
   Object.assign(rowData, pickKnown(data, BILL_KEYS));

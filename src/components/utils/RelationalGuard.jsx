@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRelAudit } from './useRelAudit';
 import DevAuditBadge from './DevAuditBadge';
 
@@ -9,7 +8,7 @@ export default function RelationalGuard({
   children, 
   autoRun = true 
 }) {
-  const { auditResults, loading, runAudit, hasIssues } = useRelAudit(
+  const { auditResults, loading, runAudit, _hasIssues } = useRelAudit(
     entityType, 
     entityId, 
     { autoRun }

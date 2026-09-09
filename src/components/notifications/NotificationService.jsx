@@ -150,7 +150,7 @@ export class NotificationService {
     }
   }
 
-  static buildEmailBody(notification, user) {
+  static buildEmailBody(notification, _user) {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     
     return `

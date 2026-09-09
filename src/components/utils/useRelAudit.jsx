@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Client, Service, CyclePlan, Brief, BriefingVersion, 
-  LearningEntry, PlaybookItem, WorkOrder, AuditLog, User 
+  LearningEntry, User 
 } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 
@@ -380,7 +380,7 @@ async function checkTokens(agencyId) {
           fixHint: 'Clean up expired magic link tokens'
         });
       }
-    } catch (error) {
+    } catch (_error) {
       // User access might be restricted
       results.push({
         check: 'magic_link_tokens',

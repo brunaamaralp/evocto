@@ -1,14 +1,14 @@
 // Browser-safe crypto utilities (substitutos para crypto do Node.js)
-export const createHash = (algorithm) => {
+export const createHash = (_algorithm) => {
   console.warn('createHash chamado - use Web Crypto API ao invés de Node crypto');
   
   // Implementação simplificada usando Web Crypto API
   return {
-    update: (data) => {
+    update: (_data) => {
       console.warn('hash.update chamado - implemente com crypto.subtle.digest');
       return this;
     },
-    digest: (encoding) => {
+    digest: (_encoding) => {
       console.warn('hash.digest chamado - implemente com crypto.subtle.digest');
       return 'browser-safe-hash-placeholder';
     }

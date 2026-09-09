@@ -12,7 +12,6 @@ import {
   indexVariantsByLegacyId,
   indexVariantsByProductCombo,
   normText,
-  variantComboKey,
 } from './backfillStockMovesRemapSecondary.js';
 
 export function normStockSize(size) {
@@ -119,7 +118,7 @@ export function resolveOrphanStockId(stockId, ctx = {}) {
   const {
     variants = [],
     oldVariants = [],
-    stockItems = [],
+    _stockItems = [],
     products = [],
     variantIds,
     legacyByStockId,

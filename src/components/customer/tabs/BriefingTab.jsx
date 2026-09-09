@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { useSession } from '@/components/auth/SessionManager';
 import { PublicBriefingToken, PublicBriefingResponse, BriefingTemplate } from '@/api/entities';
@@ -23,7 +23,6 @@ import {
   Plus,
   MessageCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { format, isValid } from 'date-fns';
 import { generatePublicBriefingToken } from '@/api/functions';
@@ -37,7 +36,7 @@ const EmptyState = ({ icon: Icon, title, description, action }) => (
   </div>
 );
 
-const LoadingState = ({ t }) => (
+const LoadingState = ({ _t }) => (
   <div className="space-y-4">
     {[1, 2, 3].map((i) => (
       <Card key={i} className="animate-pulse">
@@ -157,7 +156,7 @@ export default function BriefingTab({ customer, services = [] }) {
     try {
       await navigator.clipboard.writeText(token.publicUrl);
       toast.success(t('briefing.success.linkCopied'));
-    } catch (err) {
+    } catch (_err) {
       toast.error(t('briefing.errors.copyFailed'));
     }
   };

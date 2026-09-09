@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -50,7 +50,7 @@ export default function TranslationAuditor() {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to download report');
     }
   };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { CyclePlan } from "@/api/entities";
 import { ApprovalRequest } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { approvalWorkflow } from "@/api/functions";
-import { Mail, Clock, ShieldCheck, Link2, Copy, RefreshCw, AlertTriangle } from "lucide-react";
+import { Mail, Clock, ShieldCheck, Link2, RefreshCw, AlertTriangle } from "lucide-react";
 
 function useUrlId() {
   const [id, setId] = useState(null);

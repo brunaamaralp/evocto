@@ -1,14 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  FileText, Download, Eye, MessageCircle, 
-  CheckCircle, XCircle, Clock, AlertTriangle,
-  ExternalLink, User, Calendar, Loader2, X,
+  FileText, Download, MessageCircle, 
+  CheckCircle, Clock, AlertTriangle, User, Loader2, X,
   ChevronLeft, ChevronRight, Maximize2, Minimize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

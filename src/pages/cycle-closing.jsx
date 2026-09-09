@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CyclePlan, Client, Service, LearningEntry } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -10,10 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle2, Upload, FileText, TrendingUp, BookOpen, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle2, Upload, FileText, TrendingUp, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { motion } from 'framer-motion';
 
 const MetricInput = ({ label, value, onChange, placeholder, suffix = "" }) => (
   <div className="space-y-2">
@@ -85,7 +84,7 @@ const FileUploadCard = ({ title, description, files, onFilesChange }) => {
 export default function CycleClosing() {
   const { cycleId } = useParams();
   const navigate = useNavigate();
-  const { agency, user } = useSession();
+  const { agency, _user } = useSession();
   
   const [cycle, setCycle] = useState(null);
   const [client, setClient] = useState(null);

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ImportJob } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
 import { getImportJobStatus } from '@/api/functions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +15,6 @@ import {
   TrendingUp,
   Eye
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 const STATUS_CONFIGS = {

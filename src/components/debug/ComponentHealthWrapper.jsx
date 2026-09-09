@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHealthMonitor } from './HealthAuditor';
 
 /**
@@ -91,7 +91,7 @@ export function useMemoryLeakDetector(identifier) {
   useEffect(() => {
     // Capturar valores no momento da criação do effect
     const mountTime = mountTimeRef.current;
-    const initialEffectCount = effectCountRef.current;
+    const _initialEffectCount = effectCountRef.current;
     
     return () => {
       const lifeTime = Date.now() - mountTime;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
 import { 
   CheckCircle, XCircle, AlertTriangle,
   MessageCircle, Clock, ArrowRight, ArrowLeft,
-  Loader2, Shield, FileText, Eye
+  Loader2, Shield, FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -267,7 +267,7 @@ function CommentStep({ action, comment, onCommentChange, onNext, onBack }) {
 }
 
 // Step 3: Confirmação final
-function FinalConfirmationStep({ approval, action, comment, onConfirm, onBack, loading }) {
+function FinalConfirmationStep({ _approval, action, comment, onConfirm, onBack, loading }) {
   const isApproval = action === 'approve';
 
   return (

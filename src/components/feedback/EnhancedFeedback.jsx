@@ -196,7 +196,7 @@ export const SuccessAnimation = ({ isVisible, onComplete }) => {
 };
 
 // Error boundary with better UX
-export const ErrorFallback = ({ error, resetErrorBoundary }) => (
+export const ErrorFallback = ({ _error, resetErrorBoundary }) => (
   <div className="min-h-64 flex items-center justify-center p-8">
     <div className="text-center">
       <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

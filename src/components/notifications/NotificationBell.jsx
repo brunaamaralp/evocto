@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Notification } from '@/api/entities';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Bell, Check, X, AlertTriangle, Info, 
-  CheckCircle, Clock, User, Calendar,
-  ExternalLink, Settings, Archive
+  CheckCircle, Clock, User, Calendar, Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

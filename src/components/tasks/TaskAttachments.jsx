@@ -1,17 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
 import { UploadFile } from '@/api/integrations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Upload, File, FileImage, FileText, Download,
-  Trash2, Eye, Plus, X, Check, AlertCircle,
-  Camera, Shield
+  Trash2, Eye, Plus, X, Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 

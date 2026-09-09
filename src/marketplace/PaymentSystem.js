@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Implementa processamento de pagamentos e cálculo de comissões
  */
 export class PaymentSystem extends EventEmitter {
-  constructor(options = {}) {
+  constructor(_options = {}) {
     super();
     this.payments = new Map();
     this.commissions = new Map();
@@ -311,7 +311,7 @@ export class PaymentSystem extends EventEmitter {
   getApplicableCommissionRules(payment) {
     const applicableRules = [];
     
-    for (const [ruleId, rule] of this.commissions) {
+    for (const [_ruleId, rule] of this.commissions) {
       // Verificar se a regra se aplica ao valor
       if (rule.minAmount && payment.netAmount < rule.minAmount) continue;
       if (rule.maxAmount && payment.netAmount > rule.maxAmount) continue;
@@ -610,7 +610,7 @@ export class PaymentSystem extends EventEmitter {
   getPaymentStats() {
     const payments = Array.from(this.payments.values());
     const commissions = Array.from(this.commissions.values());
-    const payouts = Array.from(this.payouts.values());
+    const _payouts = Array.from(this.payouts.values());
     const refunds = Array.from(this.refunds.values());
 
     const totalPayments = payments.length;

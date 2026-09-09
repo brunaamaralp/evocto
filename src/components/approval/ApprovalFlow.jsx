@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
 import { 
   Send, 
   ExternalLink, 
@@ -25,16 +24,16 @@ import { toast } from 'sonner';
 
 export default function ApprovalFlow({ 
   scope, 
-  brief, 
-  insights, 
-  project, 
-  client,
+  _brief, 
+  _insights, 
+  _project, 
+  _client,
   onSendForApproval,
   onRegenerateToken,
   isSending = false 
 }) {
   const [versions, setVersions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
 
   React.useEffect(() => {
     loadVersions();
@@ -63,7 +62,7 @@ export default function ApprovalFlow({
     return `${window.location.origin}${createPageUrl(`PublicApproval?token=${token}`)}`;
   };
 
-  const isExpired = (expiresAt) => {
+  const _isExpired = (expiresAt) => {
     if (!expiresAt) return false;
     return isAfter(new Date(), new Date(expiresAt));
   };

@@ -1,4 +1,3 @@
-import React from 'react';
 import InvitesPanel from '@/components/team/InvitesPanel';
 import { getModulePastel } from '@/lib/modulePastels';
 

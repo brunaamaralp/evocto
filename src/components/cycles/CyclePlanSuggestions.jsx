@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { InvokeLLM } from '@/api/integrations';
 import { Brief, LearningEntry, PlaybookItem } from '@/api/entities';

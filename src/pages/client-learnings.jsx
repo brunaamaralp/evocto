@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { LearningEntry } from '@/api/entities';
 import { Client } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
-  Lightbulb, Search, ArrowLeft, Eye, Star,
-  FileText, TrendingUp, Target, Filter
+  Lightbulb, Search, ArrowLeft, Eye, Star, TrendingUp
 } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
@@ -18,7 +16,7 @@ import { toast } from 'sonner';
 import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientLearningsPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
   

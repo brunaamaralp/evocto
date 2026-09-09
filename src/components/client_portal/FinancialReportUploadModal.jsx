@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
@@ -23,10 +23,6 @@ import {
   CheckCircle, 
   AlertCircle,
   Loader2,
-  X,
-  Eye,
-  Download,
-  Calendar,
   DollarSign,
   Percent
 } from 'lucide-react';
@@ -150,7 +146,7 @@ export default function FinancialReportUploadModal({
         throw new Error(`Erro na análise: ${response.statusText}`);
       }
 
-      const analysisResult = await response.json();
+      const _analysisResult = await response.json();
       
       // Simular dados extraídos (substituir pelos dados reais da IA)
       const mockExtractedData = {

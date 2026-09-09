@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -11,8 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   LogOut, User, Settings, Home, FileText, 
-  CheckCircle, BarChart3, HelpCircle, ChevronDown,
-  Bell, Menu, X
+  CheckCircle, BarChart3, HelpCircle, ChevronDown, Menu, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
@@ -58,7 +57,7 @@ export function ClientLayout({ children }) {
     try {
       await logout();
       toast.success('Logout realizado com sucesso');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao fazer logout');
     }
   };

@@ -25,7 +25,7 @@ export function clearRibbonContext() {
       window.__ribbonInstance.clear();
       return;
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignorar erros silenciosamente
   }
 }
@@ -61,7 +61,7 @@ export function safeClearRibbon() {
     if (typeof clearRibbonContext === 'function') {
       clearRibbonContext();
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignorar erro silenciosamente
   }
 }

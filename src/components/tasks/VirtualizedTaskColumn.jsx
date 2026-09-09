@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
-import InfiniteLoader from 'react-window-infinite-loader';
 
 // Componente TaskCard otimizado com React.memo
 const MemoizedTaskCard = React.memo(function MemoizedTaskCard({ 
@@ -185,7 +184,7 @@ export default function VirtualizedTaskColumn({
   clients = [],
   showClientInfo = false,
   onTaskClick,
-  onDragEnd,
+  _onDragEnd,
   droppableId,
   isDragDisabled = false
 }) {
@@ -198,7 +197,7 @@ export default function VirtualizedTaskColumn({
     visibleCount
   } = useVirtualizedTasks(tasks, 30); // Páginas de 30 tarefas
 
-  const [showVirtualization, setShowVirtualization] = useState(tasks.length > 100);
+  const [showVirtualization, _setShowVirtualization] = useState(tasks.length > 100);
 
   // Auto-load próxima página quando próximo do final
   const handleScroll = useCallback((event) => {

@@ -7,7 +7,7 @@ import { Notification } from "@/api/entities";
 import { UploadPrivateFile } from "@/api/integrations";
 import { useSession } from "@/components/auth/SessionManager";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,10 +25,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-  Loader2, Calendar, Paperclip, CheckSquare, X, Send, 
+  Loader2, Calendar, Paperclip, CheckSquare, Send, 
   User as UserIcon, AlertCircle, MessageCircle, Clock,
-  Flag, Eye, Hash, AtSign, Check, Save, ExternalLink,
-  Building2, ArrowRight, Zap, MoreVertical, Edit, Trash2, Plus, Link2, History
+  Flag, Eye, AtSign, Check, Save,
+  Building2, MoreVertical, Edit, Trash2, Plus, Link2, History
 } from "lucide-react";
 // import ReactQuill from "react-quill"; // Removido - não instalado
 import { toast } from "sonner";
@@ -609,7 +609,7 @@ export default function TaskDrawer() {
       setCommentText("");
       toast.success("Comentário enviado!");
       
-    } catch (e) {
+    } catch (_e) {
       setError("Não foi possível enviar o comentário. Tente novamente.");
       toast.error("Erro ao enviar comentário.");
     } finally {

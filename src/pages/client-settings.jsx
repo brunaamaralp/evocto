@@ -1,18 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Settings, User, Building, Mail, Phone, MapPin,
-  RefreshCw, Save, AlertCircle, CheckCircle, Trash2,
+  Settings, User, Building,
+  RefreshCw, Save, AlertCircle, Trash2,
   ArrowLeft, CheckSquare, Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -22,7 +21,7 @@ import { getEmpresaByClientId, configFromEmpresa } from '@/lib/empresaConfig';
 import EmpresaConfigResumo from '@/components/briefing/campanha/EmpresaConfigResumo';
 
 export default function ClientSettingsPage() {
-  const { user, isAuthenticated, agencyId } = useSession();
+  const { _user, isAuthenticated, agencyId } = useSession();
   const [clientId, setClientId] = useState(null);
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);

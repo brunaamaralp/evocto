@@ -1,4 +1,3 @@
-import React from 'react';
 import { TURMA_OUTRO_VALUE } from '../../lib/academyTurmas.js';
 import FormSelect from './FormSelect.jsx';
 

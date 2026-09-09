@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { FinancialKPI } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ const KPI_CATEGORIES = Object.fromEntries(
   ])
 );
 
-const UNIT_LABELS = {
+const _UNIT_LABELS = {
   percentage: { label: '%', icon: Percent },
   currency: { label: 'R$', icon: DollarSign },
   ratio: { label: 'x', icon: Hash },
@@ -50,7 +50,7 @@ export default function FinancialDashboard({ clientId, serviceId }) {
     if (!clientId) return;
 
     try {
-      const agencyId = user?.data?.agencyId || user?.data?.clientId; // Cliente pode ter acesso via clientId
+      const _agencyId = user?.data?.agencyId || user?.data?.clientId; // Cliente pode ter acesso via clientId
       
       const kpiData = await FinancialKPI.filter({
         clientId,

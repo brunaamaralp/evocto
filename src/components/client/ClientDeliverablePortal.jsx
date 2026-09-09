@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  CheckCircle, XCircle, Eye, MessageSquare, 
-  Clock, Shield, Target, FileText, Calendar,
+  CheckCircle, XCircle, MessageSquare, 
+  Clock, Shield, Target, Calendar,
   ThumbsUp, ThumbsDown, Send
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,7 +18,7 @@ export default function ClientDeliverablePortal({
   serviceId, 
   deliverables = [], 
   onApprovalAction,
-  userRole = 'client' 
+  _userRole = 'client' 
 }) {
   const [selectedDeliverable, setSelectedDeliverable] = useState(null);
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);

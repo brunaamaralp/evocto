@@ -29,7 +29,7 @@ export default function ClientLibraryTab() {
       try {
         const data = await LearningEntry.filter({ agencyId, projectId: clientId }, "-updated_date");
         if (!cancelled) setItems(data || []);
-      } catch (e) {
+      } catch (_e) {
         if (!cancelled) setError("Não foi possível carregar aprendizados");
       } finally {
         if (!cancelled) setLoading(false);

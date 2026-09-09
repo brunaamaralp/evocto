@@ -26,9 +26,7 @@ import {
   Image, 
   File,
   AlertCircle,
-  CheckCircle,
   X,
-  Plus,
   Folder
 } from 'lucide-react';
 import { useClientFileManagement } from '@/hooks/useClientFileManagement';
@@ -106,7 +104,7 @@ export default function FileUploadModal({
       
       onSuccess();
       handleClose();
-    } catch (error) {
+    } catch (_error) {
       // Erro já tratado no hook
     }
   };

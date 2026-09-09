@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Typography, Button } from '@/components/ui/design-system';
 
 export const Spinner = ({ 

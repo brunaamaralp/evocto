@@ -219,7 +219,7 @@ async function testPWAManager() {
     if (typeof permissionGranted !== 'boolean') {
       throw new Error('Solicitação de permissão de notificação falhou');
     }
-  } catch (error) {
+  } catch (_error) {
     // Pode falhar em ambiente de teste, não é crítico
     console.log('Permissão de notificação não disponível em ambiente de teste');
   }
@@ -234,7 +234,7 @@ async function testPWAManager() {
       if (!notification) {
         throw new Error('Envio de notificação falhou');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Envio de notificação não disponível em ambiente de teste');
     }
   }
@@ -410,7 +410,7 @@ async function testPhase3Integration() {
     eventReceived = true;
   });
   
-  const orderId = serviceCatalog.createOrder({
+  const _orderId = serviceCatalog.createOrder({
     clientId: 'client123',
     serviceId: 'financial_diagnosis',
     quantity: 1,
@@ -445,7 +445,7 @@ async function testPhase3Integration() {
 async function testPhase3Performance() {
   // Teste 1: Medir tempo de resposta do Service Catalog
   const startTime = Date.now();
-  const services = serviceCatalog.getAllServices();
+  const _services = serviceCatalog.getAllServices();
   const serviceCatalogTime = Date.now() - startTime;
   
   if (serviceCatalogTime > 1000) { // 1 segundo
@@ -469,7 +469,7 @@ async function testPhase3Performance() {
 
   // Teste 3: Medir tempo de resposta da Public API
   const startTime3 = Date.now();
-  const apiKey = publicAPI.generateAPIKey({
+  const _apiKey = publicAPI.generateAPIKey({
     clientId: 'client123',
     clientName: 'Test Client',
     tier: 'premium'

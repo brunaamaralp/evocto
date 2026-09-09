@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useNavigate } from 'react-router-dom';
 import AgencyOnboarding from '@/components/onboarding/AgencyOnboarding';

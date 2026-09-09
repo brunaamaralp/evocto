@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDismissibleMenu } from '../../../hooks/useDismissibleMenu';
 import './menu.css';
 

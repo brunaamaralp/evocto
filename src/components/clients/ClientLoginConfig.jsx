@@ -1,16 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+
 import { 
   Switch,
 } from '@/components/ui/switch';
@@ -28,8 +23,7 @@ import {
   AlertCircle,
   Copy,
   RefreshCw,
-  Shield,
-  Send
+  Shield
 } from 'lucide-react';
 import { useClientUserCreation } from '@/hooks/useClientUserCreation';
 import { toast } from 'sonner';
@@ -49,7 +43,7 @@ export default function ClientLoginConfig({
     generateTemporaryPassword,
     createClientWithUser,
     createClientOnly,
-    inviteExistingClient,
+    _inviteExistingClient,
     validateUserData,
     checkEmailAvailability
   } = useClientUserCreation();
@@ -74,7 +68,7 @@ export default function ClientLoginConfig({
         try {
           const available = await checkEmailAvailability(userData.email);
           setEmailAvailable(available);
-        } catch (err) {
+        } catch (_err) {
           setEmailAvailable(null);
         } finally {
           setEmailChecking(false);
@@ -150,7 +144,7 @@ export default function ClientLoginConfig({
 
       onSuccess(result);
 
-    } catch (err) {
+    } catch (_err) {
       // Erro já tratado no hook
     }
   };

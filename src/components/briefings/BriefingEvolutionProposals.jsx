@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Brief, EvolutionEvent, AuditLog } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';

@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Task, EvolutionEvent, Client, CyclePlan } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { Task, EvolutionEvent, Client } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar, CheckCircle, Play, Target, Clock,
-  TrendingUp, Award, Sparkles, ChevronDown, ChevronRight,
-  User, MessageCircle, FileText, Eye, Lightbulb,
+  TrendingUp, Award, Sparkles, ChevronDown, ChevronRight, Lightbulb,
   Activity, BarChart3, Zap, AlertTriangle
 } from 'lucide-react';
-import { format, parseISO, isToday, isSameMonth } from 'date-fns';
+import { format, parseISO, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Mapeamento de ícones para tipos de evento
-const getEventIcon = (type, category) => {
+const getEventIcon = (type, _category) => {
   const iconMap = {
     // Eventos de tarefas
     'task_completed': <CheckCircle className="w-4 h-4 text-green-500" />,
@@ -207,7 +206,7 @@ const TimelineEvent = ({ event, isLast, showDetails = false }) => {
 };
 
 // Agrupamento por período
-const TimelinePeriod = ({ period, events, periodLabel }) => {
+const TimelinePeriod = ({ _period, events, periodLabel }) => {
   const [expanded, setExpanded] = useState(true);
   
   return (
@@ -304,7 +303,7 @@ export const TaskEvolutionTimeline = ({
             if (task.clientId) {
               try {
                 client = await Client.get(task.clientId);
-              } catch (e) {
+              } catch (_e) {
                 console.warn('Cliente não encontrado:', task.clientId);
               }
             }

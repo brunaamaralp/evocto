@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSession } from './SessionManager';
 import { LoadingSpinner } from '@/components/shared/LoadingStates';
 import { Button } from '@/components/ui/button';

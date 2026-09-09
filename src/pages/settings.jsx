@@ -4,7 +4,7 @@
  * Consolida todas as configurações em uma única página com abas
  */
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Agency } from '@/api/entities';
@@ -20,8 +20,6 @@ import {
   Palette, 
   Shield, 
   Building2,
-  Upload,
-  Eye,
   Clock,
   AlertTriangle,
   Zap,

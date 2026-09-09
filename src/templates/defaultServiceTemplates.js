@@ -4,7 +4,7 @@
  * Os 3 produtos principais da agência:
  * 1. Diagnóstico de Comunicação e Marca (avulso)
  * 2. Estratégia de Conteúdo e Posicionamento
- * 3. Marketing Operacional 360 (retainer)
+ * 3. Marketing Operacional 360 (recorrente)
  * 4. Ciclo Mensal 4 Semanas (pipeline operacional)
  */
 
@@ -450,12 +450,12 @@ export const MARKETING_360_TEMPLATE = {
   id: 'marketing_360_template',
   name: 'Marketing Operacional 360',
   description:
-    'Retainer completo: planejamento, produção, mídia, distribuição e governança de ciclo com a agência',
+    'Recorrente completo: planejamento, produção, mídia, distribuição e governança de ciclo com a agência',
   category: 'marketing_digital',
   language: 'pt',
 
   pricing: {
-    type: 'retainer',
+    type: 'recorrente',
     base_price: 12000,
     currency: 'BRL',
     billing_cycle: 'monthly',
@@ -659,7 +659,7 @@ export const MARKETING_360_TEMPLATE = {
 
   briefing_template: {
     title: 'Briefing — Marketing Operacional 360',
-    description: 'Contexto para operar o retainer mensal de marketing e comunicação',
+    description: 'Contexto para operar o recorrente mensal de marketing e comunicação',
     questions: [
       {
         id: 'objetivos_negocio',

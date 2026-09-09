@@ -8,7 +8,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 class TestSetup {
   constructor() {
@@ -73,7 +73,7 @@ class TestSetup {
         console.log(`   Instalando ${dep}...`);
         execSync(`npm install -D ${dep}`, { stdio: 'pipe' });
         console.log(`   ✅ ${dep} instalado`);
-      } catch (error) {
+      } catch (_error) {
         console.log(`   ⚠️  ${dep} já instalado ou erro na instalação`);
       }
     }

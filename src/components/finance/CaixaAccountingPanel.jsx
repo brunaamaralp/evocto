@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import './finance.css';
 import { ID, Query } from 'appwrite';
 import { useLeadStore } from '../../store/useLeadStore';

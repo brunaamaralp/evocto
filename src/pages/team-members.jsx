@@ -1,4 +1,3 @@
-import React from 'react';
 import TeamMembersPanel from '@/components/team/TeamMembersPanel';
 
 export default function TeamMembersPage() {

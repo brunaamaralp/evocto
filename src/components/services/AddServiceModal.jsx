@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Service, CyclePlan, AuditLog, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { useNavigate } from 'react-router-dom';
@@ -132,7 +132,7 @@ export default function AddServiceModal({ isOpen, onClose, customerId, onSuccess
             setCustomers(customersData);
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Silent error handling for production
         if (!cancelled) {
           setTemplates([]);
@@ -294,7 +294,7 @@ export default function AddServiceModal({ isOpen, onClose, customerId, onSuccess
         navigate(navigateToCustomer(targetCustomerId));
       }
       
-    } catch (error) {
+    } catch (_error) {
       toast.error("Falha ao criar serviço.");
     } finally {
       setIsSubmitting(false);

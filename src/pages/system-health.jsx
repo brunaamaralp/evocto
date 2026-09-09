@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import SystemHealthChecker from '@/components/debug/SystemHealthChecker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { Activity, Shield, AlertTriangle } from 'lucide-react';
  * Substitui npm run check:build && npm run check:imports
  */
 export default function SystemHealthPage() {
-  const { user, isAdmin, isOwner } = useSession();
+  const { _user, isAdmin, isOwner } = useSession();
 
   // Verificar permissões
   if (!isAdmin() && !isOwner()) {

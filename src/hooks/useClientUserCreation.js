@@ -1,10 +1,7 @@
 import { useState, useCallback } from 'react';
 import { User, Client } from '@/api/entities';
 import { 
-  createClientUser, 
-  checkEmailAvailability, 
-  generateTemporaryPassword,
-  sendWelcomeEmail 
+  generateTemporaryPassword 
 } from '@/api/clientUserAPI';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
@@ -226,7 +223,7 @@ export function useClientUserCreation() {
   return {
     loading,
     error,
-    checkEmailAvailability: checkEmailAvailabilityHook,
+    checkEmailAvailability,
     generateTemporaryPassword: generateTemporaryPasswordHook,
     createClientWithUser,
     createClientOnly,

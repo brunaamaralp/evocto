@@ -3,10 +3,10 @@
  * Como não podemos criar scripts externos, fazemos verificações no cliente
  */
 
-// import { componentExports, checkEssentialComponents } from './imports';
+import { useState, useEffect } from 'react';
 
 // Funções simples para substituir as que não existem
-const componentExports = {};
+const _componentExports = {};
 const checkEssentialComponents = () => ({ hasIssues: false, issues: [] });
 
 /**

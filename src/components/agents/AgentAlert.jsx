@@ -1,6 +1,4 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -10,12 +8,10 @@ import {
   AlertCircle, 
   CheckCircle, 
   ExternalLink,
-  Bell,
   Calendar,
   FileText,
   TrendingDown
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

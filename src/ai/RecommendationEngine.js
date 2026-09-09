@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Implementa engine de recomendações baseado em regras e ML
  */
 export class RecommendationEngine extends EventEmitter {
-  constructor(options = {}) {
+  constructor(_options = {}) {
     super();
     this.recommendations = new Map();
     this.rules = new Map();
@@ -356,7 +356,7 @@ export class RecommendationEngine extends EventEmitter {
   /**
    * Gera recomendações colaborativas
    */
-  async generateCollaborativeRecommendations(userId, context) {
+  async generateCollaborativeRecommendations(userId, _context) {
     const recommendations = [];
     
     // Simular filtro colaborativo
@@ -388,7 +388,7 @@ export class RecommendationEngine extends EventEmitter {
   /**
    * Encontra usuários similares
    */
-  findSimilarUsers(userId) {
+  findSimilarUsers(_userId) {
     // Simulação de usuários similares
     return [
       { id: 'user_123', similarity: 0.85 },
@@ -400,9 +400,9 @@ export class RecommendationEngine extends EventEmitter {
   /**
    * Gera recomendações baseadas em conteúdo
    */
-  async generateContentBasedRecommendations(userId, context) {
-    const recommendations = [];
-    const userProfile = this.getUserProfile(userId);
+  async generateContentBasedRecommendations(userId, _context) {
+    const _recommendations = [];
+    const _userProfile = this.getUserProfile(userId);
     
     // Simular recomendações baseadas em conteúdo
     const contentRecommendations = [
@@ -483,7 +483,7 @@ export class RecommendationEngine extends EventEmitter {
   /**
    * Calcula score de relevância
    */
-  calculateRelevanceScore(recommendation, context) {
+  calculateRelevanceScore(recommendation, _context) {
     let score = 0;
     
     // Score baseado na confiança
@@ -554,7 +554,7 @@ export class RecommendationEngine extends EventEmitter {
   /**
    * Obtém role do usuário
    */
-  getUserRole(userId) {
+  getUserRole(_userId) {
     // Simulação - em produção, obter do sistema de autenticação
     const roles = ['admin', 'consultant', 'client'];
     return roles[Math.floor(Math.random() * roles.length)];

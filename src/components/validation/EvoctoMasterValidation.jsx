@@ -1,12 +1,10 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CyclePlan, Client, Service, LearningEntry, Brief } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
   CheckCircle, 
@@ -366,7 +364,7 @@ export default function EvoctoMasterValidation() {
     const results = Object.values(validationResults);
     const passCount = results.filter(r => r === 'pass').length;
     const partialCount = results.filter(r => r === 'partial').length;
-    const failCount = results.filter(r => r === 'fail').length;
+    const _failCount = results.filter(r => r === 'fail').length;
     
     if (passCount >= 6) return 'pass';
     if (passCount + partialCount >= 5) return 'partial';

@@ -4,13 +4,12 @@
  * Interface para executar testes QA
  */
 
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Play, Square, RotateCcw, Download, 
+  Play, Square, RotateCcw, 
   CheckCircle, XCircle, Clock, AlertTriangle 
 } from 'lucide-react';
 import { useQATestRunner } from '@/hooks/useQATestRunner';
@@ -33,7 +32,7 @@ export default function TestRunner({ testContext = {} }) {
   const handleRunTest = async (testType) => {
     try {
       await runTest(testType, testContext);
-    } catch (error) {
+    } catch (_error) {
       // Error já é tratado pelo hook
     }
   };
@@ -41,7 +40,7 @@ export default function TestRunner({ testContext = {} }) {
   const handleRunAllTests = async () => {
     try {
       await runAllTests(testContext);
-    } catch (error) {
+    } catch (_error) {
       // Error já é tratado pelo hook
     }
   };
@@ -161,7 +160,7 @@ export default function TestRunner({ testContext = {} }) {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">Testes Disponíveis</h3>
           
-          {Object.entries(TEST_TYPES).map(([key, testType]) => {
+          {Object.entries(TEST_TYPES).map(([_key, testType]) => {
             const status = getTestStatus(testType);
             const result = testResults[testType];
             const steps = TEST_STEPS[testType];

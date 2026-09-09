@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,26 +14,17 @@ import {
   Edit3, 
   Save, 
   X, 
-  Plus, 
-  Trash2, 
-  History, 
   RefreshCw,
   AlertTriangle,
-  CheckCircle2,
   TrendingUp,
   TrendingDown, // Added TrendingDown here
   Calculator,
-  Target,
-  Clock,
-  MoreHorizontal,
-  Upload,
-  Download
+  Target
 } from 'lucide-react';
 import { FinancialKPI } from '@/api/entities';
 import { KPIFormulaDefinition } from '@/api/entities';
 import { calculateKPIs } from '@/api/functions';
 import { updateKPIWithHistory } from '@/api/functions';
-import { validateKPIFormula } from '@/api/functions';
 import KPIChart from './KPIChart';
 import EmptyKPIState from './EmptyKPIState';
 import { PERFORMANCE_KPI_CATEGORIES, DEFAULT_KPI_CATEGORY, resolveKPICategory } from '@/constants/performanceKPIs';
@@ -79,7 +70,7 @@ export default function KPIManager({
 
   // Estados para edição
   const [editForm, setEditForm] = useState({});
-  const [validationResult, setValidationResult] = useState(null);
+  const [_validationResult, setValidationResult] = useState(null);
   const [availableFormulas, setAvailableFormulas] = useState([]);
 
   const loadKPIs = useCallback(async () => {
@@ -277,7 +268,7 @@ export default function KPIManager({
     }
   };
 
-  const getStatusColor = (current, target, thresholds) => {
+  const getStatusColor = (current, target, _thresholds) => {
     if (!current || !target) return 'text-gray-500';
     
     const deviation = Math.abs((current - target) / target);

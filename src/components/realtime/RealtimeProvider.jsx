@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { cacheUtils } from '@/components/performance/CacheManager';
 
@@ -142,7 +142,7 @@ class RealtimeManager {
   }
 
   processMessage(message) {
-    const { type, payload, timestamp } = message;
+    const { type, payload, _timestamp } = message;
     
     // Atualizar último heartbeat
     if (type === 'heartbeat') {

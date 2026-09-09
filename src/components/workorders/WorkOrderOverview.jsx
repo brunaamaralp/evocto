@@ -1,29 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   FileText,
-  Calendar,
-  DollarSign,
   CheckCircle2,
-  Clock,
-  AlertCircle,
   Upload,
   Download,
   ExternalLink,
   Target,
   XCircle,
-  TrendingUp,
   Lightbulb,
   History,
   Paperclip,
-  BarChart3
+  BarChart3,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -178,7 +170,7 @@ const EscopoCard = ({ scope }) => (
 );
 
 // Componente para Resultados e Extração de Aprendizados
-const ResultadosCard = ({ workOrder, onExtractLearning }) => {
+const ResultadosCard = ({ workOrder, _onExtractLearning }) => {
   const [extracting, setExtracting] = useState(false);
   const [resultFiles, setResultFiles] = useState([]);
   
@@ -392,7 +384,7 @@ const HistoricoCard = ({ versions }) => (
 );
 
 // Componente principal
-export default function WorkOrderOverview({ workOrderId }) {
+export default function WorkOrderOverview({ _workOrderId }) {
   const workOrder = mockWorkOrder; // Em produção viria do banco
   const versions = mockVersionHistory;
 

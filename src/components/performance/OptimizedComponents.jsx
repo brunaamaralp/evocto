@@ -43,7 +43,7 @@ export const OptimizedList = memo(({
   items = [], 
   renderItem, 
   keyExtractor,
-  windowSize = 20,
+  _windowSize = 20,
   itemHeight = 60,
   className = ""
 }) => {

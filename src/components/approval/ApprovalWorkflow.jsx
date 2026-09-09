@@ -1,21 +1,17 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { ApprovalRequest } from '@/api/entities';
 import { approvalWorkflow } from '@/api/functions';
 import { showToast } from '@/components/feedback/EnhancedFeedback';
 import { 
   Send, Mail, Clock, CheckCircle, XCircle,
-  AlertTriangle, Copy, Download, FileText,
-  Calendar, Users, Building, Eye, Loader2
+  AlertTriangle, Copy, FileText, Eye, Loader2
 } from 'lucide-react';
 
 const ApprovalStatusBadge = ({ status }) => {
@@ -38,7 +34,7 @@ const ApprovalStatusBadge = ({ status }) => {
   );
 };
 
-const ApprovalCard = ({ approval, onResend, onRevoke }) => {
+const ApprovalCard = ({ approval, onResend, _onRevoke }) => {
   const [loading, setLoading] = useState(false);
 
   const handleCopyLink = () => {
@@ -61,7 +57,7 @@ const ApprovalCard = ({ approval, onResend, onRevoke }) => {
       
       showToast.success('Lembrete enviado com sucesso!');
       if (onResend) onResend(approval.id);
-    } catch (error) {
+    } catch (_error) {
       showToast.error('Erro ao enviar lembrete');
     } finally {
       setLoading(false);

@@ -1,10 +1,7 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  TrendingUp, TrendingDown, Minus, Users, 
-  Briefcase, Calendar, CheckCircle, Clock,
-  AlertTriangle, FileText, Target
+  TrendingUp, TrendingDown, Minus
 } from 'lucide-react';
 
 const StatsCard = ({ 

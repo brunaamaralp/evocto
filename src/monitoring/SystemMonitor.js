@@ -201,7 +201,7 @@ export class SystemMonitor extends EventEmitter {
    */
   checkAlerts() {
     for (const [ruleName, rule] of this.alertRules) {
-      for (const [metricName, metrics] of this.metrics) {
+      for (const [_metricName, metrics] of this.metrics) {
         if (metrics.length === 0) continue;
 
         const latestMetric = metrics[metrics.length - 1];

@@ -1,14 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { SupportLibrary as SupportLibraryEntity } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  BookOpen, Play, FileText, CheckSquare, Video, Download,
-  Search, Filter, Star, Clock, Users, Lightbulb
+  BookOpen, FileText, CheckSquare, Video,
+  Search, Star, Clock, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';

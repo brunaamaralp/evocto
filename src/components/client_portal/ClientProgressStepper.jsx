@@ -1,7 +1,5 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   CheckCircle, Circle, Clock, AlertCircle, 
   ArrowRight, FileText, Users, Target
@@ -48,7 +46,7 @@ const PHASE_DESCRIPTIONS = {
   }
 };
 
-export default function ClientProgressStepper({ service, currentPhase, onPhaseClick, showContext = true }) {
+export default function ClientProgressStepper({ service, _currentPhase, _onPhaseClick, showContext = true }) {
   const phases = service?.deliverables || [];
   
   const getPhaseStatus = (phase) => {
@@ -136,7 +134,7 @@ export default function ClientProgressStepper({ service, currentPhase, onPhaseCl
             
             {/* Phase Items */}
             <div className="space-y-6">
-              {phases.map((phase, index) => {
+              {phases.map((phase, _index) => {
                 const status = getPhaseStatus(phase);
                 const PhaseIcon = PHASE_ICONS[phase.category] || FileText;
                 const description = PHASE_DESCRIPTIONS[phase.category] || {

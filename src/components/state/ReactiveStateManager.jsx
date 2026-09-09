@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 
 /**
@@ -280,7 +280,7 @@ const ReactiveStateContext = createContext(null);
 
 // Provider
 export function ReactiveStateProvider({ children }) {
-  const { user, agencyId } = useSession();
+  const { _user, _agencyId } = useSession();
   const [state, dispatch] = useReducer(reactiveStateReducer, INITIAL_STATE);
   
   // Actions memoizadas

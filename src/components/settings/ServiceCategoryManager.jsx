@@ -1,18 +1,15 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Plus, 
   Edit, 
   Trash2, 
-  Save, 
-  X, 
-  Palette,
+  Save,
   Tag
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -20,7 +17,7 @@ import { Agency } from '@/api/entities';
 import { toast } from 'sonner';
 
 export default function ServiceCategoryManager() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

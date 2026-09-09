@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,12 +16,10 @@ import {
   Search, 
   Command, 
   X,
-  ChevronDown,
   Building,
   Briefcase
 } from 'lucide-react';
 import { useAppContext } from './ContextProvider';
-import { motion, AnimatePresence } from 'framer-motion';
 import QuickSwitcher from './QuickSwitcher';
 
 export default function ContextHeader() {
@@ -29,7 +27,7 @@ export default function ContextHeader() {
     currentClient,
     currentProject,
     clients,
-    projects,
+    _projects,
     getProjectsForClient,
     switchContext,
     clearContext,

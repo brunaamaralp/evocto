@@ -1,4 +1,3 @@
-import React from 'react';
 import { DELIVERY_WORKSPACE_NAV_ITEMS } from '@/lib/deliveryWorkspaceTabs';
 
 export default function DeliveryWorkspaceNav({

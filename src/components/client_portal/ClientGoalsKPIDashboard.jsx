@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ export default function ClientGoalsKPIDashboard({ clientId, serviceId = null }) 
     goals,
     kpis,
     loading,
-    error,
+    _error,
     loadGoals,
     loadKPIs,
     getGoalsStats,
@@ -277,7 +277,7 @@ export default function ClientGoalsKPIDashboard({ clientId, serviceId = null }) 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {kpis.slice(0, 3).map((kpi, index) => {
+                {kpis.slice(0, 3).map((kpi, _index) => {
                   const records = kpi.records || [];
                   const latest = records[records.length - 1];
                   const previous = records[records.length - 2];

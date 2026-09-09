@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,20 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
   Link as LinkIcon,
   Copy,
   Eye,
   EyeOff,
-  Calendar,
-  Clock,
-  Settings,
   Trash2,
   RefreshCw,
   ExternalLink,
   AlertTriangle,
-  CheckCircle2,
   Send
 } from 'lucide-react';
 import { generatePublicBriefingToken } from '@/api/functions';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { ClientContextProvider } from '@/components/hooks/useClientContext';
 
 /**

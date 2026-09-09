@@ -1,11 +1,7 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Lightbulb, Plus } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import LearningButton from '../learnings/LearningButton';
 
 export default function RecentLearnings({ learnings }) {

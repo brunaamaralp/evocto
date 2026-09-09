@@ -1,7 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { User } from '@/api/entities';
-import { withDefault, safeGet } from '@/components/utils/safeGuards';
 
 // Constantes de status da sessão
 export const SESSION_STATUS = {

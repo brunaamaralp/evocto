@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { safeGet } from '@/components/utils/safeGuards';
-import { createPageUrl } from '@/utils';
-import {
-    LayoutDashboard, Users, Briefcase, FileText, Bot, Settings, LogOut, ChevronDown, ChevronRight, HelpCircle, BookOpen, BarChart3, HeartPulse,
+import { Users, Briefcase, Settings, LogOut, ChevronDown, ChevronRight, BookOpen,
     Home, Clock, ClipboardList, CheckSquare, User, Bell, Palette, Tag, Shield, Zap
 } from 'lucide-react';
 import { useT } from '@/components/i18n/I18nProvider';
@@ -13,7 +11,7 @@ import { BRAND } from '@/lib/brandAssets';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 
 // Component for individual navigation items
-const NavItem = ({ item, isActive, collapsed }) => {
+const NavItem = ({ item, _isActive, collapsed }) => {
   const Icon = item.icon;
   
   return (
@@ -36,7 +34,7 @@ const NavItem = ({ item, isActive, collapsed }) => {
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
-  const { user, logout, userName, isOwner, isAdmin } = useSession();
+  const { user, logout, userName, _isOwner, _isAdmin } = useSession();
   const location = useLocation();
   const t = useT();
 

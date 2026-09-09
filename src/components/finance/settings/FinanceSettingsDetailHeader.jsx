@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 
 export default function FinanceSettingsDetailHeader({ title, subtitle, onBack, backLabel = 'Financeiro' }) {

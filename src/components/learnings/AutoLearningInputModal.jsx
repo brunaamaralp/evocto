@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { LearningEntry, AuditLog } from '@/api/entities';
 import { UploadFile, ExtractDataFromUploadedFile } from '@/api/integrations';
 import { handleRobustAIError, withRobustAICall } from '@/components/ai/AIErrorHandler';
 import ConfidenceIndicator from '@/components/ai/ConfidenceIndicator';
-import { randomUUID } from '../debug/CryptoShim'; // ✅ Browser-safe crypto
+// ✅ Browser-safe crypto
 import {
   Dialog,
   DialogContent,
@@ -51,7 +51,7 @@ const FileTypeIcon = ({ fileName }) => {
   return <File className="w-5 h-5 text-slate-500" />;
 };
 
-const ProcessingSteps = ({ currentStep, progress }) => {
+const ProcessingSteps = ({ _currentStep, progress }) => {
   const steps = [
     { id: 'upload', label: 'Enviando arquivo', threshold: 30 },
     { id: 'extract', label: 'Analisando conteúdo', threshold: 70 },

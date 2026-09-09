@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import {
 } from '@/lib/printableReport';
 import { toast } from 'sonner';
 
-function deliverableProgress(deliverables = [], tasks = []) {
+function deliverableProgress(deliverables = [], _tasks = []) {
   if (!deliverables.length) return 0;
   const done = deliverables.filter((d) =>
     ['completed', 'approved'].includes(String(d.status || '').toLowerCase())

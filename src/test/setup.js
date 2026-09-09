@@ -38,7 +38,7 @@ Object.defineProperty(window, 'crypto', {
       return arr;
     },
     subtle: {
-      digest: async (algorithm, data) => {
+      digest: async (_algorithm, _data) => {
         // Mock implementation
         const hash = new Uint8Array(32);
         for (let i = 0; i < hash.length; i++) {

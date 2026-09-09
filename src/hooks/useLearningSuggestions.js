@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { LearningEntry } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 

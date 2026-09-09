@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
 export default function UploadCenter() {
-  const { user } = useSession();
+  const { _user } = useSession();
   const [uploadQueue, setUploadQueue] = useState([]);
   const [processing, setProcessing] = useState(false);
 

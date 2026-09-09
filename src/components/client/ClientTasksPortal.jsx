@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Task, CyclePlan, Client, Service } from '@/api/entities';
+import { Task, CyclePlan } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  CheckCircle, Clock, Play, Pause, FileText, 
-  Calendar, User, Target, Eye, ThumbsUp, ThumbsDown,
-  MessageCircle, Download, ExternalLink, AlertCircle,
-  Activity, BarChart3, TrendingUp, Award, Sparkles
+  CheckCircle, Clock, Play, FileText, 
+  Calendar, Target, Eye, ThumbsUp,
+  MessageCircle, ExternalLink, AlertCircle,
+  Activity, BarChart3, Sparkles
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -68,7 +68,7 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
         await onApprove(task.id, feedback);
         toast.success('Tarefa aprovada com sucesso!');
         setFeedback('');
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao aprovar tarefa');
       } finally {
         setSubmittingFeedback(false);
@@ -88,7 +88,7 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
         await onRequestChanges(task.id, feedback);
         toast.success('Feedback enviado com sucesso!');
         setFeedback('');
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao enviar feedback');
       } finally {
         setSubmittingFeedback(false);

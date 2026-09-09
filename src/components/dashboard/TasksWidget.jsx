@@ -1,15 +1,14 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Task, User } from '@/api/entities';
+import { Task } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  CheckSquare, Clock, TrendingUp, Users, 
-  ArrowRight, Calendar, AlertTriangle, Target,
-  BarChart3, Zap, Timer, Plus
+  CheckSquare, 
+  ArrowRight, Calendar, AlertTriangle, Target, Timer, Plus
 } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -98,7 +97,7 @@ export const TasksWidget = ({ clientId = null, cycleId = null }) => {
   const [tasks, setTasks] = useState([]);
   const [metrics, setMetrics] = useState({});
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('week'); // 'today', 'week', 'month'
+  const [timeRange, _setTimeRange] = useState('week'); // 'today', 'week', 'month'
 
   // Carregar dados de tarefas com useCallback
   const loadTasksData = useCallback(async () => {
@@ -116,7 +115,7 @@ export const TasksWidget = ({ clientId = null, cycleId = null }) => {
       // Filtrar por período se necessário
       let filteredTasks = allTasks;
       if (timeRange !== 'all') {
-        const now = new Date(); // Unused, can be removed if not needed elsewhere
+        const _now = new Date(); // Unused, can be removed if not needed elsewhere
         const filterDate = new Date();
         
         switch (timeRange) {

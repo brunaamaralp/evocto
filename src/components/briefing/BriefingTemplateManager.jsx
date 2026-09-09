@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { useSession } from '@/components/auth/SessionManager';
 import { BriefingTemplate } from '@/api/entities';
@@ -13,23 +13,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { 
   Plus, 
   Edit, 
   Copy, 
   Trash2, 
-  FileText, 
   Languages,
-  Settings,
   Loader2,
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import CategoryEditor from './CategoryEditor';
-import QuestionEditor from './QuestionEditor';
 
 const DEFAULT_TEMPLATES = {
   social_media: {
@@ -162,7 +158,7 @@ export default function BriefingTemplateManager({ serviceType }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [_selectedTemplate, _setSelectedTemplate] = useState(null);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
 

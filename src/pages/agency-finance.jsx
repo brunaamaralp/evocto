@@ -2,7 +2,7 @@
  * Financeiro Agência — UI enxuta (opção B).
  * Abas: Visão geral · Cobranças · A pagar · Caixa · DRE
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import {
   CHARGE_TYPES,
+  CHARGE_TYPE_LABELS,
   CHARGE_STATUSES,
   PAYABLE_STATUSES,
   PAYABLE_CATEGORIES,
@@ -112,7 +113,7 @@ export default function AgencyFinancePage() {
 
   const [chargeForm, setChargeForm] = useState({
     clientId: '',
-    type: 'retainer',
+    type: 'recorrente',
     description: '',
     amount: '',
     dueDate: todayYmd(),
@@ -193,7 +194,7 @@ export default function AgencyFinancePage() {
       setChargeOpen(false);
       setChargeForm({
         clientId: '',
-        type: 'retainer',
+        type: 'recorrente',
         description: '',
         amount: '',
         dueDate: todayYmd(),
@@ -387,7 +388,7 @@ export default function AgencyFinancePage() {
                       {charges.map((c) => (
                         <tr key={c.id}>
                           <td>{c.clientName || clientName[c.clientId] || '—'}</td>
-                          <td>{CHARGE_TYPES[c.type] || c.type}</td>
+                          <td>{CHARGE_TYPE_LABELS[c.type] || c.type}</td>
                           <td>{c.description || '—'}</td>
                           <td>{c.dueDate || '—'}</td>
                           <td className="af-num">{formatBRL(c.amount)}</td>
@@ -605,7 +606,7 @@ export default function AgencyFinancePage() {
             </div>
             <div className="space-y-1.5">
               <Label>Descrição</Label>
-              <Input value={chargeForm.description} onChange={(e) => setChargeForm((f) => ({ ...f, description: e.target.value }))} placeholder="Retainer setembro…" />
+              <Input value={chargeForm.description} onChange={(e) => setChargeForm((f) => ({ ...f, description: e.target.value }))} placeholder="Recorrente setembro…" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

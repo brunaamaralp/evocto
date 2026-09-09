@@ -15,9 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   CheckSquare, MessageCircle, Paperclip, History, 
-  Upload, Download, Play, Pause, Clock, User,
-  FileText, Image, Video, Archive, Trash2, 
-  Plus, Send, Edit, Eye, Calendar
+  Upload, Download, Play, Pause, Clock,
+  FileText, Image, Video, Archive, Send, Eye, Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -63,7 +62,7 @@ export default function TaskDetails({ taskId, onClose, onTaskUpdate }) {
   
   // States for different tabs
   const [newComment, setNewComment] = useState('');
-  const [editingComment, setEditingComment] = useState(null);
+  const [_editingComment, _setEditingComment] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [attachmentDescription, setAttachmentDescription] = useState('');
   const [timeEntry, setTimeEntry] = useState({

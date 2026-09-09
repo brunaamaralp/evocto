@@ -9,7 +9,7 @@ const defaultFinanceConfig = {
   cardFees: {},
   bankAccounts: [{ id: 'caixa', name: 'Caixa', active: true }],
   plans: [
-    { id: 'retainer', name: 'Retainer mensal', price: 0, active: true },
+    { id: 'recorrente', name: 'Recorrente mensal', price: 0, active: true },
     { id: 'projeto', name: 'Projeto avulso', price: 0, active: true },
   ],
   captureMethods: [],

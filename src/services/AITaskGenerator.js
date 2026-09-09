@@ -5,7 +5,6 @@
  */
 
 import { getBestAIProvider } from '@/config/aiConfig';
-import { Task } from '@/api/entities';
 
 export class AITaskGenerator {
   constructor() {
@@ -176,7 +175,7 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
   /**
    * Cria tarefa do sistema baseada na resposta da IA
    */
-  async createTaskFromAI(aiTask, briefingData, index) {
+  async createTaskFromAI(aiTask, briefingData, _index) {
     const taskData = {
       title: aiTask.title,
       description: aiTask.description,
@@ -335,7 +334,7 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
 
     const templates = fallbackTemplates[serviceType] || fallbackTemplates['diagnostico_comunicacao'];
     
-    return templates.map((template, index) => ({
+    return templates.map((template, _index) => ({
       ...template,
       briefingId: briefingData.id,
       serviceId: briefingData.servico_instancia_id,

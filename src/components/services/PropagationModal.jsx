@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,9 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   AlertTriangle, 
   CheckCircle, 
-  X, 
   ArrowRight,
-  Users,
   FileText
 } from 'lucide-react';
 

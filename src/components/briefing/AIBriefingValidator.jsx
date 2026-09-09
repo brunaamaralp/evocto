@@ -2,16 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
-  Bot, 
   CheckCircle, 
-  AlertTriangle, 
   Loader2, 
-  MessageCircle, 
   Lightbulb,
   ThumbsUp,
   X
@@ -123,7 +118,7 @@ export default function AIBriefingValidator({
       
       // Disparar follow-ups programados se necessário
       if (analysis.shouldTriggerFollowUp && question.followUps) {
-        const triggeredFollowUps = question.followUps.filter(fuId => 
+        const triggeredFollowUps = question.followUps.filter(_fuId => 
           analysis.triggers.some(trigger => 
             question.followUpTriggers?.includes(trigger)
           )

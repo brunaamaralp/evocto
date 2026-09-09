@@ -1,4 +1,3 @@
-import React from "react";
 import { Check, Clock, Loader2, AlertCircle, Wifi, WifiOff } from "lucide-react";
 
 export default function AutosaveStatus({ state, lastSavedAt }) {

@@ -1,5 +1,3 @@
-import React from 'react';
-import { motion } from 'framer-motion';
 import { 
   Dialog,
   DialogContent,
@@ -13,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Download, 
   Trash2, 
-  Eye, 
   Calendar,
   User,
   FileText,

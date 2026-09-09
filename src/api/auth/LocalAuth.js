@@ -266,7 +266,7 @@ class JWTAuth {
         const user = this.verifyToken(token);
         this.currentUser = user;
         return user;
-      } catch (error) {
+      } catch (_error) {
         localStorage.removeItem('auth_token');
         return null;
       }
@@ -310,7 +310,7 @@ class JWTAuth {
   }
 
   verifyToken(token) {
-    const [header, payload, signature] = token.split('.');
+    const [_header, payload, _signature] = token.split('.');
     const user = JSON.parse(atob(payload));
     
     if (user.exp < Date.now()) {

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, AlertCircle, CheckCircle } from 'lucide-react';

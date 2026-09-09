@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 import { mockClientDashboardAPI } from '@/api/mockAPIs';
@@ -189,7 +189,7 @@ export function useClientDashboard() {
 /**
  * Gera dados mock para demonstração
  */
-function generateMockDashboardData(clientId, serviceId, period) {
+function generateMockDashboardData(clientId, serviceId, _period) {
   const diagnosticoKPIs = [
     { key: 'clareza_posicionamento', label: 'Clareza de Posicionamento', unit: 'score', value: 7.2, target: 8.0, visible: true },
     { key: 'consistencia_canais', label: 'Consistência entre Canais', unit: '%', value: 68, target: 80, visible: true },

@@ -75,7 +75,7 @@ class SetupFixer {
         console.log(`   Instalando ${dep}...`);
         execSync(`npm install -D ${dep}`, { stdio: 'pipe' });
         console.log(`   ✅ ${dep} instalado`);
-      } catch (error) {
+      } catch (_error) {
         console.log(`   ⚠️  ${dep} já instalado ou erro na instalação`);
       }
     }
@@ -91,7 +91,7 @@ class SetupFixer {
         try {
           execSync(`chmod +x ${script}`, { stdio: 'pipe' });
           console.log(`   ✅ ${script} executável`);
-        } catch (error) {
+        } catch (_error) {
           console.log(`   ⚠️  Não foi possível tornar ${script} executável`);
         }
       }

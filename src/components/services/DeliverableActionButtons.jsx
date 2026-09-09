@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  CheckCircle, XCircle, MessageCircle, Clock, 
-  AlertTriangle, ChevronDown 
+  CheckCircle, XCircle, MessageCircle, Clock, ChevronDown 
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,7 +29,7 @@ export default function DeliverableActionButtons({
   onActionComplete,
   compact = false 
 }) {
-  const { canApproveDeliverables, user } = usePermissions();
+  const { _canApproveDeliverables, user } = usePermissions();
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [comment, setComment] = useState('');

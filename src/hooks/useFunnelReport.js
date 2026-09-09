@@ -160,7 +160,6 @@ export function useFunnelReport({
     },
     // profileFilter e onDateError são lidos via ref — não precisam entrar nos deps.
     // Isso evita que a mudança de profileFilter invalide fetchReport e dispare o Effect 1.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [academyId, enabled, preset, range.from, range.to, chartMode]
   );
 
@@ -176,7 +175,6 @@ export function useFunnelReport({
     // Guard: se voltando à aba sem mudar período, não re-busca dados já carregados.
     if (lastFetchKeyRef.current === fetchKey) return;
     void fetchReportRef.current(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, chartMode, academyId, preset, enabled]);
 
   // Effect 2: profileFilter com debounce — único trigger de fetch para mudança de filtro.
@@ -188,7 +186,6 @@ export function useFunnelReport({
     }
     const t = window.setTimeout(() => void fetchReportRef.current(false), 300);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileFilter, enabled]);
 
   return {

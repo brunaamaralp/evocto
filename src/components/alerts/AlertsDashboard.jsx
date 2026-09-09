@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -10,31 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+
+
 import { 
   Bell, 
   Clock, 
   Target, 
   User, 
   Settings,
-  CheckCircle, 
-  AlertCircle,
   RefreshCw,
-  Calendar,
-  Mail,
-  Smartphone,
-  Slack,
   Filter,
-  Search,
   Eye,
   EyeOff,
-  MoreHorizontal,
   TrendingUp,
   TrendingDown,
   Minus

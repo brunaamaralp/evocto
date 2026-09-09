@@ -7,8 +7,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { briefingService } from '@/services/briefingService';
-import { TaskAdjustment } from '@/models/TaskAdjustment';
-import { toast } from 'sonner';
 
 export function useTaskAdjustments(servicoInstanciaId) {
   const [state, setState] = useState({

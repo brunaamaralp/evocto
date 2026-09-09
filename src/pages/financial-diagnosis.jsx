@@ -1,19 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { BriefingTemplate } from '@/api/entities';
 import { PublicBriefingToken } from '@/api/entities';
 import { PublicBriefingResponse } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { 
-  FileText, Users, Clock, CheckCircle, 
-  AlertCircle, Send, Eye, Download, Plus,
-  Copy, Mail, Calendar, ExternalLink
+  FileText, Users, Clock, CheckCircle, Eye, Download, Plus,
+  Copy, Mail, Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -24,7 +22,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -44,7 +41,7 @@ const DiagnosticTokenCard = ({ token, client, onRevoke }) => {
     try {
       await navigator.clipboard.writeText(publicUrl);
       toast.success('Link copiado para o clipboard!');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao copiar link');
     }
   };
@@ -207,7 +204,7 @@ const CreateDiagnosticModal = ({ clients, onCreateToken, isOpen, setIsOpen }) =>
       setSelectedClientId('');
       setCustomMessage('');
       setValidityDays(7);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao criar diagnóstico');
     } finally {
       setCreating(false);
@@ -282,7 +279,7 @@ export default function FinancialDiagnosisPage() {
   const { user } = useSession();
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState([]);
-  const [diagnosticTemplate, setDiagnosticTemplate] = useState(null);
+  const [_diagnosticTemplate, setDiagnosticTemplate] = useState(null);
   const [activeTokens, setActiveTokens] = useState([]);
   const [responses, setResponses] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);

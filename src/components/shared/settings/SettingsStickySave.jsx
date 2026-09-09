@@ -1,4 +1,3 @@
-import React from 'react';
 import '../../finance/finance.css';
 
 /** Barra fixa de save — reutiliza estilos do hub financeiro. */

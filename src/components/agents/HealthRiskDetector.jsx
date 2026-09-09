@@ -3,7 +3,7 @@
  * Analisa diferentes entidades e detecta problemas potenciais
  */
 
-import { differenceInHours, differenceInDays, isAfter, addHours } from 'date-fns';
+import { differenceInHours, differenceInDays } from 'date-fns';
 
 export class HealthRiskDetector {
   constructor(agencyPolicies = {}) {
@@ -19,7 +19,7 @@ export class HealthRiskDetector {
   /**
    * Analisa todos os dados e retorna uma lista de riscos detectados
    */
-  async analyzeAll({ cyclePlans, services, clients, learnings, briefingVersions }) {
+  async analyzeAll({ cyclePlans, _services, _clients, learnings, briefingVersions }) {
     const risks = [];
     const now = new Date();
 

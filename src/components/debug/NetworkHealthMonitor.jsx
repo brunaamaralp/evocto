@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Monitor de saúde de rede para detectar padrões problemáticos
  */
 export default function NetworkHealthMonitor() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [_isOnline, setIsOnline] = useState(navigator.onLine);
   const [connectionType, setConnectionType] = useState('unknown');
 
   useEffect(() => {

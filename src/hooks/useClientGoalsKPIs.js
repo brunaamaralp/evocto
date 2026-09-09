@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Client, Service, Task, FinancialKPI } from '@/api/entities';
+import { useState, useCallback } from 'react';
+import { FinancialKPI } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ export function useClientGoalsKPIs() {
   /**
    * Carrega metas do cliente
    */
-  const loadGoals = useCallback(async (clientId) => {
+  const loadGoals = useCallback(async (_clientId) => {
     setLoading(true);
     setError(null);
 

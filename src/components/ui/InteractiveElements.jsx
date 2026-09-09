@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Typography } from '@/components/ui/design-system';
-import { ChevronRight, ExternalLink, Copy, Check } from 'lucide-react';
+import { ChevronRight, Copy, Check } from 'lucide-react';
 
 export const ActionCard = ({ 
   title, 

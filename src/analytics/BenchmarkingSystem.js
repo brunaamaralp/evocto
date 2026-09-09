@@ -117,7 +117,7 @@ export class BenchmarkingSystem extends EventEmitter {
    */
   updateMarketData() {
     // Simular atualização de dados de mercado
-    for (const [key, data] of this.marketData) {
+    for (const [_key, data] of this.marketData) {
       data.lastUpdated = Date.now();
       data.growth_rate += (Math.random() - 0.5) * 0.5; // Variação de ±0.25%
     }
@@ -130,7 +130,7 @@ export class BenchmarkingSystem extends EventEmitter {
    */
   updateBenchmarks() {
     // Simular atualização de benchmarks
-    for (const [clientId, clientData] of this.clientData) {
+    for (const [clientId, _clientData] of this.clientData) {
       this.calculateClientBenchmark(clientId);
     }
     
@@ -215,7 +215,7 @@ export class BenchmarkingSystem extends EventEmitter {
    * Calcula score de KPI
    */
   calculateKPIScore(value, standard) {
-    const { min, max, average } = standard;
+    const { min, max, _average } = standard;
     
     if (value >= max) return 100;
     if (value <= min) return 0;
@@ -272,7 +272,7 @@ export class BenchmarkingSystem extends EventEmitter {
   /**
    * Obtém recomendação para KPI
    */
-  getKPIRecommendation(kpiName, score, standard) {
+  getKPIRecommendation(kpiName, score, _standard) {
     if (score >= 80) {
       return `Excelente performance em ${kpiName}. Continue mantendo este nível.`;
     }

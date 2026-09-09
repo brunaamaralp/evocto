@@ -1,6 +1,4 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard,
   Users,
@@ -11,10 +9,8 @@ import {
   BarChart3,
   Settings,
   Zap,
-  FileText,
   Target,
   TrendingUp,
-  Bell,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useSession } from '@/components/auth/SessionManager';

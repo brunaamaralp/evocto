@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { 
-  ArrowLeft, Settings, Users, Calendar, Clock,
+  ArrowLeft, Settings, Users, Calendar,
   Target, DollarSign, FileText, MoreVertical
 } from 'lucide-react';
 import {

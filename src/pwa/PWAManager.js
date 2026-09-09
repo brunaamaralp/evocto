@@ -364,7 +364,7 @@ export class PWAManager extends EventEmitter {
       } else if (wasOnline && !this.isOnline) {
         this.emit('offline');
       }
-    } catch (error) {
+    } catch (_error) {
       const wasOnline = this.isOnline;
       this.isOnline = false;
       
@@ -579,7 +579,7 @@ export class ServiceWorkerManager {
    */
   message() {
     self.addEventListener('message', (event) => {
-      const { type, data } = event.data;
+      const { type, _data } = event.data;
       
       switch (type) {
         case 'SKIP_WAITING':

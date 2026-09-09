@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Brain, Zap, TrendingUp, AlertCircle, CheckCircle, Clock,
-  Settings, Activity, BarChart3, Lightbulb, Target, RefreshCw,
-  Play, Pause, Eye, MoreVertical, Plus, Search, Filter, AlertTriangle
+  Brain, AlertCircle, CheckCircle,
+  Settings, Activity, Lightbulb, Target, RefreshCw, Pause, Eye, MoreVertical, AlertTriangle
 } from 'lucide-react';
 import { SmartRecommendation } from '@/api/entities';
 import { AgentExecution } from '@/api/entities';
@@ -18,8 +17,6 @@ import EmptyState from '@/components/shared/EmptyState';
 import StatusBadge from '@/components/shared/StatusBadge';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import { createPageUrl } from '@/utils';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -228,7 +225,7 @@ const AgentExecutionCard = ({ execution }) => {
 
 function AICentralPage() {
   const { agencyId } = useSession();
-  const t = useT();
+  const _t = useT();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

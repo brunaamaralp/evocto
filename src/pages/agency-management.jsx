@@ -1,25 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+
 import { 
-  Building, Users, Settings, Palette, Mail, 
-  Phone, Globe, Upload, Save, Plus, Edit,
-  UserPlus, RefreshCw, Trash2, Shield, Crown
+  Building, Users, Settings, Palette, Mail, Upload, Save, Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT } from '@/components/i18n/I18nProvider';
@@ -29,7 +20,7 @@ import { Agency } from '@/api/entities';
 
 export default function AgencyManagementPage() {
   const { user, agency, agencyId, isOwner, isAdmin } = useSession();
-  const t = useT();
+  const _t = useT();
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('info');
   

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
@@ -128,7 +128,7 @@ export function useKPIAlerts() {
   /**
    * Calcular tendência do KPI
    */
-  const calculateTrend = useCallback((kpi) => {
+  const calculateTrend = useCallback((_kpi) => {
     // Simular cálculo de tendência baseado em dados históricos
     // Em implementação real, usar dados históricos reais
     const trend = Math.random() > 0.5 ? 'up' : 'down';
@@ -144,7 +144,7 @@ export function useKPIAlerts() {
   /**
    * Gerar recomendação baseada no KPI
    */
-  const generateRecommendation = useCallback((kpi, alertLevel, progress) => {
+  const generateRecommendation = useCallback((kpi, alertLevel, _progress) => {
     const recommendations = {
       receita_mensal: {
         critical: 'Foque em estratégias de crescimento de receita. Considere novos produtos ou mercados.',
@@ -382,7 +382,7 @@ export class KPIAlertService {
   /**
    * Calcular tendência do KPI
    */
-  calculateTrend(kpi) {
+  calculateTrend(_kpi) {
     // Simular cálculo de tendência
     const trend = Math.random() > 0.5 ? 'up' : 'down';
     const percentage = Math.random() * 10;
@@ -397,7 +397,7 @@ export class KPIAlertService {
   /**
    * Gerar recomendação
    */
-  generateRecommendation(kpi, alertLevel, progress) {
+  generateRecommendation(kpi, alertLevel, _progress) {
     const recommendations = {
       receita_mensal: {
         critical: 'Foque em estratégias de crescimento de receita. Considere novos produtos ou mercados.',
@@ -490,7 +490,7 @@ export class KPIAlertService {
       trendPercentage: Math.abs(trend.percentage).toFixed(1),
       recommendation,
       alertLevel,
-      dashboardUrl: `${window.location.origin}/cliente/${config.clientId}/servicos/${config.serviceId}/dashboard`
+      dashboardUrl: `${window.location.origin}/cliente/${alert.clientId}/servicos/${alert.serviceId}/dashboard`
     };
   }
 

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Implementa marketplace de serviços com precificação dinâmica e avaliações
  */
 export class ServiceCatalog extends EventEmitter {
-  constructor(options = {}) {
+  constructor(_options = {}) {
     super();
     this.services = new Map();
     this.categories = new Map();
@@ -346,7 +346,7 @@ export class ServiceCatalog extends EventEmitter {
   /**
    * Aplica precificação sazonal
    */
-  applySeasonalPricing(rule, context) {
+  applySeasonalPricing(rule, _context) {
     const currentMonth = new Date().getMonth() + 1;
     for (const condition of rule.conditions) {
       if (condition.month === currentMonth) {
@@ -376,7 +376,7 @@ export class ServiceCatalog extends EventEmitter {
     const activePromotions = [];
     const now = Date.now();
 
-    for (const [promotionId, promotion] of this.promotions) {
+    for (const [_promotionId, promotion] of this.promotions) {
       if (promotion.status === 'active' &&
           promotion.startDate <= now &&
           promotion.endDate >= now &&

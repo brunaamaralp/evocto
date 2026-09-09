@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { CyclePlan, BriefingVersion } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { useTranslation } from '@/components/i18n/I18nProvider';
@@ -12,9 +12,7 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  Send,
-  Calendar,
-  FileText
+  Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -164,7 +162,7 @@ const EmptyState = ({ type }) => {
 export default function ApprovalsTab({ customerId }) {
   const { client } = useClient();
   const { agency } = useSession();
-  const { t } = useTranslation();
+  const { _t } = useTranslation();
   
   const [approvals, setApprovals] = useState({
     cycles: [],

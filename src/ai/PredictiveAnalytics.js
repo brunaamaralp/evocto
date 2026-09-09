@@ -341,7 +341,7 @@ export class PredictiveAnalytics extends EventEmitter {
   /**
    * Atualiza dados para próximo período
    */
-  updateDataForNextPeriod(currentData, prediction) {
+  updateDataForNextPeriod(currentData, _prediction) {
     // Simular evolução dos dados
     const updatedData = { ...currentData };
     
@@ -495,7 +495,7 @@ export class PredictiveAnalytics extends EventEmitter {
   /**
    * Detecta padrão semanal
    */
-  detectWeeklyPattern(values) {
+  detectWeeklyPattern(_values) {
     // Simulação de detecção de padrão semanal
     const confidence = Math.random() * 0.4 + 0.6; // 60-100%
     return {

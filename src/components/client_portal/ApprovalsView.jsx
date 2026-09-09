@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ApprovalRequest } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,13 +12,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { 
   Eye, Calendar, Clock, CheckCircle, XCircle, 
-  FileText, AlertTriangle, Download, ExternalLink,
-  MessageSquare, User, Building
+  FileText, AlertTriangle, Download,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';

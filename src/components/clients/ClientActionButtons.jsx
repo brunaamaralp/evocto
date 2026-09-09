@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   MoreHorizontal, 
@@ -66,7 +66,7 @@ export default function ClientActionButtons({
       const data = await checkRelatedData();
       setRelatedData(data);
       setShowInactivateDialog(true);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao verificar dados do cliente');
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export default function ClientActionButtons({
       const data = await checkRelatedData();
       setRelatedData(data);
       setShowDeleteDialog(true);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao verificar dados do cliente');
     } finally {
       setLoading(false);
@@ -153,7 +153,7 @@ export default function ClientActionButtons({
                   await Client.update(client.id, { status: 'ativo' });
                   toast.success('Cliente reativado com sucesso');
                   onUpdate?.();
-                } catch (error) {
+                } catch (_error) {
                   toast.error('Erro ao reativar cliente');
                 }
               }}

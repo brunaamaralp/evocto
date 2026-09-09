@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export default function LanguageSelector() {
           ? 'Language changed to English' 
           : 'Idioma alterado para Português'
       );
-    } catch (error) {
+    } catch (_error) {
       toast.error(
         currentLanguage === 'en' 
           ? 'Failed to change language' 

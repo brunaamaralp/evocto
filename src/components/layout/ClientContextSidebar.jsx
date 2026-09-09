@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import {
   FolderOpen,
   Target,
   Lightbulb,
+  Wallet,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
@@ -104,6 +105,12 @@ export default function ClientContextSidebar({
       icon: FolderOpen,
       href: createPageUrl(`client-documents?clientId=${clientId}`),
       active: location.pathname.includes('client-documents'),
+    },
+    {
+      label: 'Financeiro',
+      icon: Wallet,
+      href: createPageUrl(`client-financeiro?clientId=${clientId}`),
+      active: location.pathname.includes('client-financeiro'),
     },
     {
       label: 'Aprendizados',

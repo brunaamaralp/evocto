@@ -394,7 +394,7 @@ export const CICLO_MENSAL_4_SEMANAS_TEMPLATE = {
   offering_key: CICLO_MENSAL_TEMPLATE_KEY,
 
   pricing: {
-    type: 'retainer',
+    type: 'recorrente',
     base_price: 8000,
     currency: 'BRL',
     billing_cycle: 'monthly',

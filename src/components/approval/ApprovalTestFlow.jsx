@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Play, CheckCircle, AlertTriangle, Clock,
-  Mail, ExternalLink, FileText, User, Calendar
+  Play, CheckCircle, AlertTriangle, Clock, FileText
 } from 'lucide-react';
 import { approvalWorkflow } from '@/api/functions';
-import { processClientApproval } from '@/api/functions';
 
 const ApprovalTestFlow = ({ cyclePlan, briefingVersion, onTestComplete }) => {
   const [testResults, setTestResults] = useState({});

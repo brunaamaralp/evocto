@@ -128,7 +128,7 @@ export class SPASmokeTests {
             url: `${this.baseUrl}${route}`,
             note: 'API deve ser preservada, não reescrita para index.html'
           });
-        } catch (error) {
+        } catch (_error) {
           // Erro é esperado para URLs API fictícias
           this.results.push({
             test: `${testName} (${route})`,
@@ -161,7 +161,7 @@ export class SPASmokeTests {
 // Função helper para executar testes em development
 export async function runSPASmokeTests() {
   const tester = new SPASmokeTests();
-  const results = await tester.runAllTests();
+  const _results = await tester.runAllTests();
   const report = tester.generateReport();
   
   console.log('📊 Relatório SPA Tests:', report);

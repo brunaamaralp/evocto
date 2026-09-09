@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -7,13 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Zap, Settings, Users, Clock, Target, AlertCircle, 
+  Zap, Settings, Users, Target, AlertCircle, 
   Play, Pause, Plus, Trash2, Edit, Save, RefreshCw 
 } from 'lucide-react';
 
 export default function TaskAutomations({ settings, onSettingsChange, tasks, users }) {
   const [automationRules, setAutomationRules] = useState([]);
-  const [editingRule, setEditingRule] = useState(null);
+  const [_editingRule, setEditingRule] = useState(null);
   const [newRule, setNewRule] = useState({
     name: '',
     trigger: 'status_change',

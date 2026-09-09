@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { IngestEnvelope } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +52,7 @@ const STATUS_CONFIGS = {
 export default function IngestEnvelopeViewer({ 
   envelopeId = null, 
   showDetails = true,
-  onProcessingComplete = () => {},
+  _onProcessingComplete = () => {},
   className = ""
 }) {
   const { user } = useSession();

@@ -553,7 +553,7 @@ export class AIRulesService {
   }
 
   // Validar ação antes de criar ajuste
-  validateAction(actionData, briefing) {
+  validateAction(actionData, _briefing) {
     const errors = [];
 
     if (!actionData.action) {
@@ -670,7 +670,7 @@ export class AIRulesService {
   }
 
   // Validar tipos de dados
-  validateDataTypes(itens, serviceType, errors, warnings) {
+  validateDataTypes(itens, serviceType, errors, _warnings) {
     const typeValidations = {
       diagnostico_avulso: {
         disponibilidade_dados: ['baixa', 'media', 'alta'],

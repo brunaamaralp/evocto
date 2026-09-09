@@ -1,18 +1,16 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { User } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  ArrowRight, Shield, Eye, EyeOff, Loader2, 
-  CheckCircle, AlertCircle, Key, User as UserIcon 
+import { Shield, Eye, EyeOff, Loader2, 
+  CheckCircle, AlertCircle, Key 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
 
 export default function ClientActivation() {
   const location = useLocation();
@@ -45,14 +43,14 @@ export default function ClientActivation() {
         throw new Error('Formato de token inválido');
       }
 
-      const [randomPart, payloadBase64, signature] = tokenParts;
+      const [_randomPart, payloadBase64, _signature] = tokenParts;
       
       // Decodificar payload - usar atob para compatibilidade com browser
       let payload;
       try {
         const decodedPayload = atob(payloadBase64);
         payload = JSON.parse(decodedPayload);
-      } catch (e) {
+      } catch (_e) {
         throw new Error('Token corrompido');
       }
 

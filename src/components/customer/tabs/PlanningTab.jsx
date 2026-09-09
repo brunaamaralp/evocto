@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { useT } from '@/components/i18n/I18nProvider';
 import { CyclePlan } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { generateCyclePlan } from '@/api/functions';
@@ -10,14 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Calendar, Target, CheckCircle, Clock, AlertCircle, Zap,
-  Edit, Save, X, Plus, Trash2, Eye, EyeOff, History, 
-  Brain, Users, BarChart3, TrendingUp, Award, Lightbulb,
-  ArrowRight, ChevronDown, ChevronRight, Sparkles, Settings,
-  FileText, MessageCircle, Send, ThumbsUp, ThumbsDown,
-  PlayCircle, PauseCircle, RotateCcw, Filter, Search, Briefcase
+  Calendar, Target, CheckCircle, Clock,
+  Edit, Plus, Trash2, Eye, BarChart3, TrendingUp, Award, Lightbulb, Sparkles, Settings,
+  FileText, Send,
+  PlayCircle, Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -40,13 +36,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Separator } from '@/components/ui/separator';
+
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Status do planejamento
@@ -401,13 +392,13 @@ const DeliverableModal = ({ deliverable, open, onClose, onSave }) => {
 export default function PlanningTab({ client }) {
   const { agencyId } = useSession();
   const [currentPlan, setCurrentPlan] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [_plans, setPlans] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [showDeliverableModal, setShowDeliverableModal] = useState(false);
   const [editingDeliverable, setEditingDeliverable] = useState(null);
-  const [filters, setFilters] = useState({
+  const [_filters, _setFilters] = useState({
     period: 'current',
     status: 'all',
     type: 'all'

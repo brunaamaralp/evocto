@@ -4,7 +4,7 @@
  * Consolida todas as configurações em uma única página com abas
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Agency } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,8 +19,6 @@ import {
   Palette, 
   Shield, 
   Building2,
-  Upload,
-  Eye,
   Clock,
   AlertTriangle,
   Zap,

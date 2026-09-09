@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Brain, Sparkles, TrendingUp, AlertCircle, CheckCircle,
-  Lightbulb, Target, Clock, ArrowRight, Zap, MessageCircle,
-  BarChart3, Users, FileText, Settings, X, Send, Loader2
+  Brain, Sparkles, TrendingUp, AlertCircle,
+  Lightbulb, Target, Clock, Zap, MessageCircle, Send, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 
 // Tipos de sugestões da IA
 const SUGGESTION_TYPES = {
@@ -124,7 +122,7 @@ const AISuggestionCard = ({ suggestion, onApply, onDismiss }) => {
 };
 
 // Componente principal do Assistente de IA
-export const AIAssistant = ({ clientId, serviceId, context = 'general' }) => {
+export const AIAssistant = ({ clientId, serviceId, _context = 'general' }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

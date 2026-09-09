@@ -1,28 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+
+
 import { 
   Upload, 
   Calculator, 
-  History, 
   Database,
   FileText,
   Brain,
   CheckCircle,
-  AlertCircle,
-  Clock,
-  User,
-  Calendar
+  User
 } from 'lucide-react';
 import FinancialReportUploadModal from './FinancialReportUploadModal';
 import ManualKPIsInputModal from './ManualKPIsInputModal';
@@ -32,7 +22,7 @@ import { useFinancialData } from '@/hooks/useFinancialData';
  * Componente para gerenciar fontes de dados do dashboard
  */
 export default function DataSourceManager({ clientId, serviceId, serviceType, onDataUpdated }) {
-  const { loading, error } = useFinancialData();
+  const { loading, _error } = useFinancialData();
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
 

@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  FileText, Download, Eye, Calendar, 
+  FileText, Download, Eye, 
   TrendingUp, AlertTriangle, CheckCircle2,
-  BarChart3, PieChart, Target
+  BarChart3, Target
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -224,9 +224,9 @@ const ReportCard = ({ report, type }) => {
 };
 
 // Componente principal
-export default function FinancialReports({ clientId }) {
-  const [reports, setReports] = useState(mockReports);
-  const [loading, setLoading] = useState(false);
+export default function FinancialReports({ _clientId }) {
+  const [reports, _setReports] = useState(mockReports);
+  const [_loading, _setLoading] = useState(false);
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User } from '@/api/entities';
 import { Agency } from '@/api/entities';
@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { createPageUrl } from '@/utils';
 
 export default function ClientLogin() {
   const navigate = useNavigate();
@@ -44,7 +43,7 @@ export default function ClientLogin() {
           try {
             const agency = await Agency.get(savedAgencyId);
             setAgencyData(agency);
-          } catch (error) {
+          } catch (_error) {
             // Agência não existe mais, remover do localStorage
             localStorage.removeItem('clientLoginAgency');
           }
@@ -62,7 +61,7 @@ export default function ClientLogin() {
         // Usuário já logado, redirecionar
         navigate('/client-portal');
       }
-    } catch (error) {
+    } catch (_error) {
       // Usuário não autenticado, continuar com login
     }
   }, [navigate]);

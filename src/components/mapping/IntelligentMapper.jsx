@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { MappingProfile } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +49,7 @@ export default function IntelligentMapper({
   const { user } = useSession();
   const [mappings, setMappings] = useState([]);
   const [availableProfiles, setAvailableProfiles] = useState([]);
-  const [selectedProfile, setSelectedProfile] = useState('');
+  const [selectedProfile, _setSelectedProfile] = useState('');
   const [showSaveProfile, setShowSaveProfile] = useState(false);
   const [profileName, setProfileName] = useState('');
   const [autoDetecting, setAutoDetecting] = useState(false);

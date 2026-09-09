@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -37,7 +36,6 @@ import {
 import { useClientGoalsKPIs } from '@/hooks/useClientGoalsKPIs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { toast } from 'sonner';
 
 /**
  * Modal para criação de novas metas
@@ -88,7 +86,7 @@ export default function GoalFormModal({
       
       onSuccess();
       handleClose();
-    } catch (error) {
+    } catch (_error) {
       // Erro já tratado no hook
     }
   };

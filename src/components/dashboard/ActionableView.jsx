@@ -3,7 +3,7 @@ import { createPageUrl } from '@/utils';
 
 // Simulação da View Actionable - na implementação real, seria uma view/query consolidada
 export class ActionableView {
-  static async getActionableItems(agencyId) {
+  static async getActionableItems(_agencyId) {
     // Em produção, isso seria uma view materializada ou query que agrega:
     // ServiceCycle, ApprovalLink, WorkOrder, BriefingChange, LearningEntry, Meeting
     
@@ -164,7 +164,7 @@ export class ActionableView {
   }
 
   static categorizeItems(items) {
-    const now = new Date();
+    const _now = new Date();
     
     return {
       // 🔥 Críticos: priority >= 70 OU atrasado/hoje

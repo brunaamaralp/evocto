@@ -4,8 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { 
-  AlertTriangle, CheckCircle, Clock, Calendar, 
-  TrendingUp, TrendingDown, AlertCircle
+  AlertTriangle, CheckCircle, Clock, Calendar, AlertCircle
 } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 

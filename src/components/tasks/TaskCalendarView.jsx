@@ -1,19 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Clock,
   User,
   Flag,
   Target,
   Lightbulb,
-  CheckCircle,
-  AlertCircle,
-  Plus
+  CheckCircle
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,9 +35,9 @@ const STATUS_COLORS = {
 /**
  * Visualização Calendário com grid mensal
  */
-export default function TaskCalendarView({ tasks, onTaskUpdate, onEditTask, loading }) {
+export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loading }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('month'); // 'month' ou 'week'
+  const [_viewMode, _setViewMode] = useState('month'); // 'month' ou 'week'
 
   // Calcular dias do mês
   const monthStart = startOfMonth(currentDate);
@@ -214,7 +211,7 @@ export default function TaskCalendarView({ tasks, onTaskUpdate, onEditTask, load
     const dayTasks = tasksByDate[dateKey] || [];
     const isCurrentMonth = isSameMonth(day, currentDate);
     const isToday = isSameDay(day, new Date());
-    const isOverdue = dayTasks.some(task => 
+    const _isOverdue = dayTasks.some(task => 
       task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed'
     );
 

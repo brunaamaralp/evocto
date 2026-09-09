@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task, Client } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  CheckSquare, Clock, AlertTriangle, TrendingUp,
-  Calendar, User, ArrowRight, Plus, Filter
+  CheckSquare,
+  Calendar, ArrowRight, Plus
 } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

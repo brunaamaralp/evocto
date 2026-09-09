@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import ClientFinancialDashboard from '@/components/client_portal/ClientFinancialDashboard';

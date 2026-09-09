@@ -1,6 +1,4 @@
 
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 // Helper para mapear status internos para labels amigáveis
 export const getStatusLabel = (status) => {

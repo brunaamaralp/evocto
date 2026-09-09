@@ -1,4 +1,3 @@
-import React from 'react';
 import { NotificationTemplate } from '@/api/entities';
 import { NotificationDelivery } from '@/api/entities';
 import { Notification } from '@/api/entities';
@@ -573,7 +572,7 @@ export class NotificationDispatcher {
  * Provedores de entrega por canal
  */
 class EmailDeliveryProvider {
-  async send({ recipient, content, priority = 'medium' }) {
+  async send({ recipient, content, _priority = 'medium' }) {
     try {
       const result = await SendEmail({
         to: recipient.email,
@@ -594,7 +593,7 @@ class EmailDeliveryProvider {
 }
 
 class InAppDeliveryProvider {
-  async send({ recipient, content }) {
+  async send({ _recipient, _content }) {
     // Notificações in-app são criadas diretamente na função principal
     return {
       provider: 'InApp',
@@ -606,7 +605,7 @@ class InAppDeliveryProvider {
 }
 
 class SMSDeliveryProvider {
-  async send({ recipient, content }) {
+  async send({ _recipient, _content }) {
     // TODO: Implementar envio de SMS via provider (Twilio, etc.)
     throw new Error('SMS provider não implementado');
   }

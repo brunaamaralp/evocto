@@ -1,8 +1,7 @@
 import { Notification } from '@/api/entities';
 import { User } from '@/api/entities';
 import { Client } from '@/api/entities';
-import { format, differenceInHours, differenceInDays, isTomorrow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, differenceInHours, differenceInDays } from 'date-fns';
 
 /**
  * Serviço para criar notificações automáticas relacionadas a tarefas
@@ -59,7 +58,7 @@ export class TaskNotificationService {
     if (hoursUntilDue > 24 || hoursUntilDue < 0) return;
 
     try {
-      const [client, assignee] = await Promise.all([
+      const [client, _assignee] = await Promise.all([
         Client.get(task.clientId),
         task.assignedTo ? User.get(task.assignedTo) : null
       ]);
@@ -124,7 +123,7 @@ export class TaskNotificationService {
     if (daysOverdue <= 0) return;
 
     try {
-      const [client, assignee] = await Promise.all([
+      const [client, _assignee] = await Promise.all([
         Client.get(task.clientId),
         task.assignedTo ? User.get(task.assignedTo) : null
       ]);

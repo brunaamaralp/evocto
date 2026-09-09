@@ -1,5 +1,4 @@
-import React, { useEffect, useCallback, useRef } from 'react';
-import { debounce } from 'lodash';
+import React, { useEffect, useRef } from 'react';
 
 /**
  * Sistema de monitoramento de performance em tempo real
@@ -40,7 +39,7 @@ class PerformanceTracker {
         
         navObserver.observe({ entryTypes: ['navigation'] });
         this.observers.push(navObserver);
-      } catch (e) {
+      } catch (_e) {
         console.warn('Navigation timing observer not supported');
       }
 
@@ -56,7 +55,7 @@ class PerformanceTracker {
         
         paintObserver.observe({ entryTypes: ['paint'] });
         this.observers.push(paintObserver);
-      } catch (e) {
+      } catch (_e) {
         console.warn('Paint timing observer not supported');
       }
     }
@@ -88,7 +87,7 @@ class PerformanceTracker {
         
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
         this.observers.push(lcpObserver);
-      } catch (e) {
+      } catch (_e) {
         console.warn('LCP observer not supported');
       }
     }
@@ -108,7 +107,7 @@ class PerformanceTracker {
         
         fidObserver.observe({ entryTypes: ['first-input'] });
         this.observers.push(fidObserver);
-      } catch (e) {
+      } catch (_e) {
         console.warn('FID observer not supported');
       }
     }
@@ -141,7 +140,7 @@ class PerformanceTracker {
         
         clsObserver.observe({ entryTypes: ['layout-shift'] });
         this.observers.push(clsObserver);
-      } catch (e) {
+      } catch (_e) {
         console.warn('CLS observer not supported');
       }
     }
@@ -324,17 +323,18 @@ export const PerformanceMonitor = React.memo(({
       };
     }
   }, [name, trackMount]);
-  
+
   if (trackRender) {
     renderCount.current++;
-    
-    useEffect(() => {
-      performanceTracker.recordMetric(`component_render_${name}`, {
-        renderNumber: renderCount.current,
-        timestamp: Date.now()
-      });
-    });
   }
+
+  useEffect(() => {
+    if (!trackRender) return;
+    performanceTracker.recordMetric(`component_render_${name}`, {
+      renderNumber: renderCount.current,
+      timestamp: Date.now()
+    });
+  });
   
   return children;
 });

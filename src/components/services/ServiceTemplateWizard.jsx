@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +57,7 @@ const TASK_TYPES = {
 };
 
 export default function ServiceTemplateWizard({ isOpen, onClose, onTemplateCreated, editingTemplate = null }) {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -328,7 +328,7 @@ function BasicInfoStep({ data, onChange }) {
                 <SelectContent>
                   <SelectItem value="fixed">Preço Fixo</SelectItem>
                   <SelectItem value="hourly">Por Hora</SelectItem>
-                  <SelectItem value="retainer">Retainer Mensal</SelectItem>
+                  <SelectItem value="recorrente">Recorrente mensal</SelectItem>
                   <SelectItem value="success_fee">Taxa de Sucesso</SelectItem>
                 </SelectContent>
               </Select>

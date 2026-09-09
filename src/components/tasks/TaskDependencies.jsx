@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { 
   ArrowRight, Plus, X, AlertTriangle, CheckCircle,
-  Clock, Link2, Unlink, RefreshCw
+  Clock, Link2, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 

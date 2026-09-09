@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Send,
-  User,
   Building,
-  Save,
-  Eye
+  Save
 } from 'lucide-react';
 
 /**
@@ -43,7 +41,7 @@ export default function UnifiedBriefingForm({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const isPublicMode = mode === 'public';
+  const _isPublicMode = mode === 'public';
   const isInternalMode = mode === 'internal';
   
   // Dados do cliente (vem do token público ou props)

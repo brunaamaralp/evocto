@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
   User, 
   Building, 
-  Save, 
-  Send, 
   Eye,
   Clock,
   CheckCircle
@@ -26,7 +23,7 @@ export default function InternalBriefingForm({
   existingBrief = null 
 }) {
   const { user, agencyId } = useSession();
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [client, setClient] = useState(null);
   const [brief, setBrief] = useState(existingBrief);
   const [responses, setResponses] = useState({});

@@ -17,7 +17,7 @@ import { createPageUrl } from '@/utils';
 export default function ClientPortalServiceOverviewPage() {
   const { user, isAuthenticated } = useSession();
   const [service, setService] = useState(null);
-  const [tasks, setTasks] = useState([]);
+  const [_tasks, setTasks] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

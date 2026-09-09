@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { WorkOrder, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Briefcase, Filter } from 'lucide-react';
+import { Plus, Briefcase } from 'lucide-react';
 import WorkOrderCard from '../components/workorders/WorkOrderCard';
 
 export default function WorkOrdersPage() {

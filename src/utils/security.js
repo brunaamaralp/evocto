@@ -26,7 +26,7 @@ export async function hashPassword(password) {
     const hash = await simpleHash(password + salt);
     return `${salt}:${hash}`;
     
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Erro ao gerar hash da senha');
   }
 }
@@ -52,7 +52,7 @@ export async function verifyPassword(password, hashedPassword) {
     const testHash = await simpleHash(password + salt);
     return hash === testHash;
     
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -147,13 +147,9 @@ export function generateSecureToken() {
  * Obter IP do cliente de forma segura
  */
 export async function getClientIP() {
-  try {
-    // Em produção, isso seria feito no backend
-    // Aqui é apenas um placeholder seguro
-    return 'client_ip_placeholder';
-  } catch (error) {
-    return 'unknown';
-  }
+  // Em produção, isso seria feito no backend
+  // Aqui é apenas um placeholder seguro
+  return 'client_ip_placeholder';
 }
 
 /**

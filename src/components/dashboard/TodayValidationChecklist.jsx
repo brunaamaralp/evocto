@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { CyclePlan, Client, Service } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { CyclePlan, Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,7 @@ import {
   Clock,
   AlertTriangle,
   Play,
-  Monitor,
-  MousePointer,
-  Layout,
-  Smartphone
+  Monitor
 } from 'lucide-react';
 import { toast } from 'sonner';
 

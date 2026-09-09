@@ -1,5 +1,4 @@
 
-import React from "react";
 import { SessionProvider } from '@/components/auth/SessionManager';
 import I18nProvider from '@/components/i18n/I18nProvider';
 import { AppContextProvider } from '@/components/context/AppContextProvider';

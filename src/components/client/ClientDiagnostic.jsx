@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   AlertTriangle, CheckCircle, XCircle, Info, Settings,
-  User, Building, Mail, Briefcase, FileText, Calendar,
-  Plus, RefreshCw, Eye, ExternalLink
+  User, Building, Briefcase, FileText, Calendar, RefreshCw
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
@@ -16,7 +15,6 @@ import { Brief } from '@/api/entities';
 import { BriefingVersion } from '@/api/entities';
 import { User as UserEntity } from '@/api/entities';
 import { createPageUrl } from '@/utils';
-import { Link } from 'react-router-dom';
 
 const DiagnosticItem = ({ icon: Icon, title, status, description, action, actionText, severity = 'info' }) => {
   const severityStyles = {

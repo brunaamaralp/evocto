@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,6 @@ import {
   FileText, 
   Calendar,
   CheckCircle2,
-  ArrowRight,
   X,
   PlayCircle
 } from 'lucide-react';
@@ -58,12 +56,12 @@ const MISSIONS = [
 ];
 
 export default function TutorialGuide() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const { 
     progress, 
     isCompleted, 
     isHidden, 
-    markMissionComplete, 
+    _markMissionComplete, 
     skipTutorial,
     openDemoClient
   } = useTutorial();

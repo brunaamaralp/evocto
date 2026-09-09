@@ -30,7 +30,7 @@ export function useCustomerParams() {
 
     // Escutar mudanças na URL
     const handlePopstate = () => updateParams();
-    const handleUrlChange = () => updateParams();
+    const _handleUrlChange = () => updateParams();
     
     window.addEventListener('popstate', handlePopstate);
     

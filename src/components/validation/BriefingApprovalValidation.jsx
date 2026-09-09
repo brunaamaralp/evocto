@@ -1,20 +1,16 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Brief, CyclePlan, Client } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { Brief, CyclePlan } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   CheckCircle,
   XCircle,
   AlertTriangle,
   Play,
   Link as LinkIcon,
-  FileText,
-  Shield,
-  Search,
   RefreshCw
 } from 'lucide-react';
 import { navigateToBriefing, navigateToApproval } from '@/components/utils/navigation';

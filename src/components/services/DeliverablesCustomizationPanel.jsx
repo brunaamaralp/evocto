@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,7 +87,7 @@ const DeliverablesCustomizationPanel = ({
     deliverable[field] = value;
     
     // Verificar se foi customizado
-    const originalField = field.replace('custom', '').toLowerCase();
+    let originalField = field.replace('custom', '').toLowerCase();
     if (originalField === 'durationdays') originalField = 'duration_days';
     if (originalField === 'expectedoutcome') originalField = 'expected_outcome';
     
@@ -110,7 +110,7 @@ const DeliverablesCustomizationPanel = ({
     task[field] = value;
     
     // Verificar se foi customizado
-    const originalField = field.replace('custom', '').toLowerCase();
+    let originalField = field.replace('custom', '').toLowerCase();
     if (originalField === 'estimatedhours') originalField = 'estimated_hours';
     
     const hasChanged = task.originalValues[originalField] !== value;

@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { ClientDocument, Client } from '@/api/entities';
+import { useState, useCallback } from 'react';
+import { ClientDocument } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 

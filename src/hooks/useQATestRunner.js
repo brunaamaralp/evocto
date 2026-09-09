@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { Task, Client, User } from '@/api/entities';
+import { Task, Client } from '@/api/entities';
 
 const TEST_TYPES = {
   KANBAN_CLIENT: 'kanban_client',

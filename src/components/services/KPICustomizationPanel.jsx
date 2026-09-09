@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  TrendingUp, 
   Target, 
   Clock, 
   AlertCircle, 
-  Check, 
-  X, 
   Edit2,
   RotateCcw,
   Info
@@ -27,7 +24,7 @@ const KPICustomizationPanel = ({
   className = '' 
 }) => {
   const [customizedKPIs, setCustomizedKPIs] = useState([]);
-  const [editingKPI, setEditingKPI] = useState(null);
+  const [_editingKPI, _setEditingKPI] = useState(null);
 
   // Inicializar KPIs customizados baseados no template
   useEffect(() => {
@@ -104,7 +101,7 @@ const KPICustomizationPanel = ({
     onKPIsChange?.(updatedKPIs);
   };
 
-  const getPriorityColor = (priority) => {
+  const _getPriorityColor = (priority) => {
     const colors = {
       low: 'bg-blue-100 text-blue-800',
       medium: 'bg-yellow-100 text-yellow-800',

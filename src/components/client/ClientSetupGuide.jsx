@@ -6,15 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import {
   CheckCircle,
   Circle,
-  Briefcase,
-  FileText,
-  Settings,
   ArrowRight,
   Plus
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import { isBriefingCompleted, getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
+import { getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
 
 import { Service } from "@/api/entities";
 import { Project } from "@/api/entities";

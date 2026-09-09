@@ -1,4 +1,3 @@
-import { LEAD_STATUS } from './leadStatus.js';
 import { isStudentRecord, isActiveStudent } from './studentStatus.js';
 import { getPaymentRowStatus } from './collectionOverdue.js';
 import { buildReceivablesPath, RECEIVABLES_SECTIONS } from './financeiroReceivablesSections.js';

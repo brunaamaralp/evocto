@@ -1,24 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
+import { Task } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
-  CheckSquare, ArrowRight, RefreshCw, Plus, Target,
-  Calendar, User, AlertCircle, Clock, CheckCircle
+  CheckSquare, ArrowRight, Plus, Target, AlertCircle, Clock, CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
 import EmptyState from '@/components/shared/EmptyState';
 import TaskManager from '@/components/tasks/TaskManager';
-import { generateTasksFromCyclePlan } from '@/api/functions/generateTasksFromCyclePlan';
+import TaskForm from '@/components/tasks/TaskForm';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { getCardPastel } from '@/lib/modulePastels';
 
 // Componente de estatísticas das tarefas
@@ -30,7 +29,7 @@ const TaskStats = React.memo(({ tasks }) => {
     overdue: tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed').length
   };
 
-  const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
+  const _completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
 
   const statItems = [
     { icon: Target, label: 'Total', value: stats.total, idx: 0 },
@@ -79,8 +78,8 @@ export default function ClientTasksPage() {
   // Hooks centralizados
   const {
     generateTasksWithFeedback,
-    isGenerating,
-    error: taskGenerationError
+    _isGenerating,
+    error: _taskGenerationError
   } = useTaskGeneration();
 
   const { handleError } = useErrorHandling();
@@ -244,7 +243,7 @@ export default function ClientTasksPage() {
     setShowTaskForm(true);
   };
 
-  const handleEditTask = (task) => {
+  const _handleEditTask = (task) => {
     setEditingTask(task);
     setShowTaskForm(true);
   };

@@ -1,21 +1,17 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   TrendingUp, 
   TrendingDown, 
   Target, 
   AlertTriangle,
-  DollarSign,
-  Percent,
   BarChart3,
   LineChart,
   PieChart,
-  Calendar,
   Download,
   RefreshCw,
   Zap,
@@ -24,7 +20,6 @@ import {
 import { FinancialKPI } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
-import KPIChart from './KPIChart';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 const SERVICE_DASHBOARD_CONFIGS = {
@@ -52,7 +47,7 @@ const SERVICE_DASHBOARD_CONFIGS = {
   },
   'Marketing Operacional 360': {
     title: 'Marketing Operacional 360',
-    subtitle: 'Retainer completo — operação mensal',
+    subtitle: 'Recorrente completo — operação mensal',
     color: 'purple',
     keyMetrics: ['roas', 'cac', 'leads_qualificados', 'taxa_aprovacao_ciclo'],
     insights: [
@@ -86,7 +81,7 @@ const SERVICE_DASHBOARD_CONFIGS = {
   },
   'Gestão Financeira 360': {
     title: 'Marketing Operacional 360',
-    subtitle: 'Retainer completo — operação mensal',
+    subtitle: 'Recorrente completo — operação mensal',
     color: 'purple',
     keyMetrics: ['roas', 'cac', 'leads_qualificados', 'taxa_aprovacao_ciclo'],
     insights: [
@@ -106,8 +101,8 @@ export default function ExecutiveDashboard({
   className = "" 
 }) {
   const [client, setClient] = useState(null);
-  const [service, setService] = useState(null);
-  const [kpis, setKpis] = useState([]);
+  const [_service, setService] = useState(null);
+  const [_kpis, setKpis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState(timeRange);
   const [dashboardData, setDashboardData] = useState(null);

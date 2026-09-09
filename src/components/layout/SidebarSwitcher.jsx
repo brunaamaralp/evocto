@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useAppContext } from '@/components/context/AppContextProvider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -19,7 +19,7 @@ import StatusBadge from '@/components/shared/StatusBadge';
  * CORRIGIDO: Remove dependência desnecessária e usa contexto global
  */
 export default function SidebarSwitcher() {
-  const { user, agencyId } = useSession();
+  const { _user, _agencyId } = useSession();
   const { 
     currentClient, 
     currentService, 

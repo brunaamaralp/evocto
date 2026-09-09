@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "@/components/auth/SessionManager";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS = [

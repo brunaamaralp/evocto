@@ -259,7 +259,7 @@ export const identifyAIErrorType = (error) => {
   return null;
 };
 
-export const handleRobustAIError = (error, context = {}, options = {}) => {
+export const handleRobustAIError = (error, _context = {}, options = {}) => {
   const errorType = identifyAIErrorType(error);
   const errorConfig = errorType ? AI_ERROR_MESSAGES[errorType] : null;
   

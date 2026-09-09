@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  ExternalLink,
   ChevronDown,
   ChevronRight,
   Clock,

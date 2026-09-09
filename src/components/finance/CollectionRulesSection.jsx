@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bell, Plus, Trash2 } from 'lucide-react';
 import { DEFAULT_COLLECTION_RULES, DEFAULT_OVERDUE_LABEL } from '../../lib/collectionRules.js';
 

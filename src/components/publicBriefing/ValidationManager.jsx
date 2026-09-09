@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 export default function ValidationManager({ 
   responses, 
   questions, 
-  requiredErrors, 
+  _requiredErrors, 
   onValidationChange 
 }) {
   const validationResults = useMemo(() => {

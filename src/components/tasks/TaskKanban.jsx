@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -9,11 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Calendar, 
-  Clock, 
-  User as UserIcon, 
-  Flag,
+  Clock,
   Plus,
-  Filter,
   Search,
   MessageCircle,
   Paperclip,
@@ -319,10 +316,10 @@ export default function TaskKanban({ clientId, serviceId, filters = {} }) {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeTab, setActiveTab] = useState('todo'); // Para mobile
-  const [viewMode, setViewMode] = useState('board'); // board, list, compact
+  const [_viewMode, _setViewMode] = useState('board'); // board, list, compact
 
   // Responsive breakpoint detection
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();

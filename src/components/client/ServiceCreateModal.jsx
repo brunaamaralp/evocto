@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -25,10 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Search, Settings, Clock, Target, Users, Calendar, 
-  DollarSign, ArrowRight, ArrowLeft, CheckCircle,
-  AlertTriangle, FileText, BookOpen, Package,
-  Play, Eye, UserPlus, Briefcase, GitBranch,
+  Search, Clock, Target, Users, Calendar, ArrowRight, ArrowLeft, CheckCircle, FileText, UserPlus, Briefcase,
   LayoutTemplate, Loader2, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -266,7 +262,7 @@ export default function ServiceCreateModal({
       });
 
       // Create project team assignments
-      const teamAssignments = Object.entries(serviceConfig.team_assignments).filter(([role, userId]) => userId);
+      const teamAssignments = Object.entries(serviceConfig.team_assignments).filter(([_role, userId]) => userId);
       
       for (const [role, userId] of teamAssignments) {
         if (Array.isArray(userId)) {

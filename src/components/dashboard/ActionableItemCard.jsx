@@ -1,13 +1,9 @@
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
 
 // Placeholder for createPageUrl, assuming it's defined elsewhere in a real application

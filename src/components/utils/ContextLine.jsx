@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, Info } from 'lucide-react';
 
 export default function ContextLine({ context, outcome }) {

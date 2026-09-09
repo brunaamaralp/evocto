@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Este componente é apenas para estruturar o HTML que será enviado para a geração do PDF.
 // Ele não é renderizado diretamente na UI.

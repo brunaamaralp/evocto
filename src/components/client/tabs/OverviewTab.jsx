@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useNavigate } from 'react-router-dom';
 import { Service } from '@/api/entities';
@@ -11,7 +11,6 @@ import ClientSetupGuide from '../ClientSetupGuide';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from "@/components/ui/separator";
 import {
   Plus,
   Loader2,
@@ -37,7 +36,7 @@ import { ptBR } from 'date-fns/locale';
 import { isBriefingCompleted, getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
 
 export default function OverviewTab({ client, services, onUpdate }) {
-  const { agency, user } = useSession();
+  const { agency, _user } = useSession();
   const navigate = useNavigate();
 
   // Original states for dashboard data
@@ -192,6 +191,47 @@ export default function OverviewTab({ client, services, onUpdate }) {
       </div>
     );
   }
+
+  const SummaryPanel = () => {
+    const upcoming = tasks
+      .filter(t => t.dueDate && ['todo', 'in_progress'].includes(t.status))
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5);
+
+    return (
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-base">Resumo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-gray-600">
+              <Briefcase className="w-4 h-4 text-blue-600" />
+              <span>Serviços Ativos</span>
+            </div>
+            <Badge variant="secondary">{projectStats.activeServices || 0}</Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-gray-600">
+              <CheckSquare className="w-4 h-4 text-emerald-600" />
+              <span>Tarefas Pendentes</span>
+            </div>
+            <Badge variant="secondary">{projectStats.activeTasks || 0}</Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-gray-600">
+              <AlertCircle className="w-4 h-4 text-orange-600" />
+              <span>Tarefas Atrasadas</span>
+            </div>
+            <Badge variant="secondary">{projectStats.overdueTasks || 0}</Badge>
+          </div>
+          <div className="text-sm text-gray-600 pt-2">
+            Próxima entrega: {upcoming.length ? new Date(upcoming[0].dueDate).toLocaleDateString('pt-BR') : '—'}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -610,46 +650,4 @@ export default function OverviewTab({ client, services, onUpdate }) {
       )}
     </div>
   );
-
-  // SummaryPanel component definition moved here to avoid re-creation on every render
-  const SummaryPanel = () => {
-    const upcoming = tasks
-      .filter(t => t.dueDate && ['todo', 'in_progress'].includes(t.status))
-      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-      .slice(0, 5);
-
-    return (
-      <Card className="border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-base">Resumo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Briefcase className="w-4 h-4 text-blue-600" />
-              <span>Serviços Ativos</span>
-            </div>
-            <Badge variant="secondary">{projectStats.activeServices || 0}</Badge>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-600">
-              <CheckSquare className="w-4 h-4 text-emerald-600" />
-              <span>Tarefas Pendentes</span>
-            </div>
-            <Badge variant="secondary">{projectStats.activeTasks || 0}</Badge>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-600">
-              <AlertCircle className="w-4 h-4 text-orange-600" />
-              <span>Tarefas Atrasadas</span>
-            </div>
-            <Badge variant="secondary">{projectStats.overdueTasks || 0}</Badge>
-          </div>
-          <div className="text-sm text-gray-600 pt-2">
-            Próxima entrega: {upcoming.length ? new Date(upcoming[0].dueDate).toLocaleDateString('pt-BR') : '—'}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 }

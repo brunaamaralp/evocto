@@ -24,7 +24,7 @@ class AuditLogger {
   async getCurrentUser() {
     try {
       return await User.me();
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -157,7 +157,7 @@ class AuditLogger {
           if (jsonString.length > maxFieldSize) {
             sanitized[key] = '[OBJECT_TOO_LARGE]';
           }
-        } catch (error) {
+        } catch (_error) {
           sanitized[key] = '[CIRCULAR_REFERENCE]';
         }
       }

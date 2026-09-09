@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ApprovalActions from "@/components/cycles/ApprovalActions";
 import ClosingPanel from "@/components/cycles/ClosingPanel";

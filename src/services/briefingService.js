@@ -7,8 +7,6 @@
 
 import { Briefing } from '@/models/Briefing';
 import { TaskAdjustment } from '@/models/TaskAdjustment';
-import { aiRulesService } from '@/services/aiRulesService';
-import { useTriggerSystem } from '@/hooks/useTriggerSystem';
 
 export class BriefingService {
   constructor() {
@@ -369,7 +367,7 @@ export class BriefingService {
 
       // Integrar com sistema de triggers existente
       try {
-        const { useTriggerSystem } = await import('@/hooks/useTriggerSystem');
+        const { _useTriggerSystem } = await import('@/hooks/useTriggerSystem');
         // Em um contexto real, isso seria feito através de um contexto ou serviço global
         // await triggerSystem.registerEvent('briefing_submitted', 'Briefing', briefing.id, briefing.servico_instancia_id, briefing.cliente_id, eventData);
         console.log('[BriefingService] Evento registrado no sistema de triggers');

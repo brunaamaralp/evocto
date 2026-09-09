@@ -1,6 +1,5 @@
-import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 /**
  * Badge para indicar status de auditoria de desenvolvimento

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { createPageUrl } from '@/utils';
-import { Client, Service } from '@/api/entities';
+import { Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import BriefingWizard from './BriefingWizard';
 import { DEFAULT_TEMPLATES } from './BriefingTemplateManager';

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -19,8 +19,16 @@ import {
   AlertCircle,
   CheckCircle,
   Target,
-  BarChart3
+  BarChart3,
+  Database
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useClientDashboard } from '@/hooks/useClientDashboard';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import KPICard from './KPICard';
@@ -47,7 +55,7 @@ export default function ClientFinancialDashboard({ clientId, serviceId }) {
     formatPercentage
   } = useClientDashboard();
 
-  const { getFinancialData } = useFinancialData();
+  const { _getFinancialData } = useFinancialData();
   const [showDataSourceManager, setShowDataSourceManager] = useState(false);
 
   useEffect(() => {
@@ -60,7 +68,13 @@ export default function ClientFinancialDashboard({ clientId, serviceId }) {
     updatePeriod(clientId, serviceId, newPeriod);
   };
 
-  const handleDataUpdated = async (newData) => {
+  const handleRefresh = () => {
+    if (clientId && serviceId) {
+      loadDashboardData(clientId, serviceId, selectedPeriod);
+    }
+  };
+
+  const handleDataUpdated = async (_newData) => {
     // Recarregar dados do dashboard após atualização
     await loadDashboardData(clientId, serviceId, selectedPeriod);
     setShowDataSourceManager(false);

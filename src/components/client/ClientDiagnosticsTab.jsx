@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSession } from '@/components/auth/SessionManager';
+import { useState, useEffect, useCallback } from 'react';
 import { PublicBriefingToken } from '@/api/entities';
 import { PublicBriefingResponse } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { List, Send, CheckCircle, Clock, Eye, FileText } from 'lucide-react';
+import { Send, CheckCircle, Clock, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

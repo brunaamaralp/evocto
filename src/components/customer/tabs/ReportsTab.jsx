@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useClient } from '../../layout/ClientLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,7 +86,7 @@ const EmptyReports = () => (
   </div>
 );
 
-export default function ReportsTab({ customerId }) {
+export default function ReportsTab({ _customerId }) {
   const { client } = useClient();
   const [selectedPeriod, setSelectedPeriod] = useState('last_30_days');
   const [loading, setLoading] = useState(true);

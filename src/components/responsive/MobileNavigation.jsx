@@ -1,9 +1,5 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
-import { X } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 // Ícones SVG simples (sem dependências externas)
 const IconHome = () => (
@@ -73,7 +69,7 @@ const getDefaultNavigation = () => [
 /**
  * Navegação mobile usando Sheet do shadcn/ui
  */
-export default function MobileNavigation({ isOpen, onClose, context }) {
+export default function MobileNavigation({ isOpen, onClose, _context }) {
   const location = useLocation();
   const navigationItems = getDefaultNavigation();
 

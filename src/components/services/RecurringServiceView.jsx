@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,21 +9,16 @@ import {
   RotateCcw,
   Calendar,
   CheckCircle2,
-  Clock,
-  AlertCircle,
   TrendingUp,
   Target,
-  Users,
   Zap,
-  Download,
   Edit3,
   Eye,
   Sparkles,
   ArrowRight,
   History
 } from 'lucide-react';
-import { format, addDays, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 // Mock data para demonstração
 const mockServiceContract = {
@@ -339,7 +334,7 @@ const HistoricoCiclos = ({ ciclos }) => (
     </Card>
 );
 
-export default function RecurringServiceView({ serviceId }) {
+export default function RecurringServiceView({ _serviceId }) {
   const [activeTab, setActiveTab] = useState('ciclo-atual');
 
   return (

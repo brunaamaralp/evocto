@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useToast } from './useToast';
 import { useFollowupOutcome } from './useFollowupOutcome.js';
-import { isLeadPendingTriage, LEAD_TRIAGE_STATUS } from '../lib/leadTriage.js';
+import { isLeadPendingTriage } from '../lib/leadTriage.js';
 import { buildTriageConfirmClientPatch } from '../../lib/agentClassificationFields.js';
 import {
   computeFollowupState,

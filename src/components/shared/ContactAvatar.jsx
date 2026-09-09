@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { contactInitials } from '../../lib/contactInitials.js';
 import './contact-avatar.css';
 

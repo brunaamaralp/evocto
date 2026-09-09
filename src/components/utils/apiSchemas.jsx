@@ -180,7 +180,7 @@ export function safeParseOrFallback(schema, data, fallback) {
 }
 
 // Hook para dados validados
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export function useValidatedData(schema, initialData, fallback = null) {
   const [data, setData] = useState(() => 

@@ -3,7 +3,6 @@ import React from "react";
 import { useSession } from "@/components/auth/SessionManager";
 import { Client } from "@/api/entities";
 import { Service } from "@/api/entities";
-import { EmptyState } from "@/components/shared/EmptyState";
 
 export function useClientContext() {
   const { agencyId } = useSession();

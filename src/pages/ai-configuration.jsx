@@ -4,23 +4,19 @@
  * Interface para configurar e gerenciar APIs de IA
  */
 
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Bot, 
   Settings, 
-  TestTube, 
   CheckCircle, 
-  XCircle, 
   AlertTriangle,
   Brain,
   Zap,
   FileText,
   ArrowLeft
 } from 'lucide-react';
-import { toast } from 'sonner';
 import AIConfigurationPanel from '@/components/ai/AIConfigurationPanel';
 
 export default function AIConfigurationPage() {

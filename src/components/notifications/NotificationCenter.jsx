@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Notification } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { 
   Bell, 
   CheckCircle2, 
   Clock,
-  FileText,
   AlertTriangle,
   Loader2,
   ExternalLink

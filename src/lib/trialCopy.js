@@ -7,7 +7,7 @@ export const trialMarketing = {
   ctaPrimary: `Começar teste grátis de ${TRIAL_DAYS} dias`,
   heroHint: `Teste grátis por ${TRIAL_DAYS} dias · Sem cartão de crédito · Cancele quando quiser`,
   midHint: `${TRIAL_DAYS} dias grátis · Sem cartão · Cancele quando quiser`,
-  finalSub: `Teste ${TRIAL_DAYS} dias grátis e veja funil, automações e financeiro no mesmo lugar.`,
+  finalSub: `Teste ${TRIAL_DAYS} dias grátis e veja briefing, ciclos e aprovações no mesmo lugar.`,
   finalCta: `Ativar meu teste grátis de ${TRIAL_DAYS} dias`,
   plansFree: `${TRIAL_DAYS} dias grátis`,
   plansFreeSubscribe: `${TRIAL_DAYS} dias grátis — assinar`,

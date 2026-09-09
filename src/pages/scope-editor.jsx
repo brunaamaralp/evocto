@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Scope, Brief, Project, Client, BriefingVersion, ScopeItem } from "@/api/entities";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Save, Wand2 } from "lucide-react";
+import { ArrowLeft, Save, Wand2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import ScopeCards from "../components/scope/ScopeCards";
 import GuardrailsPanel from "../components/scope/GuardrailsPanel";
@@ -18,7 +18,7 @@ function ScopeHeader({ scope, project, client, onSave, isSaving, isGenerating, o
   // This state is included as per the outline, though the primary dynamic title
   // of the scope is handled by TitleGenerator component. This might be for a
   // general project/scope header title display.
-  const [title, setTitle] = useState(scope?.selected_title || project?.title || 'Novo Escopo');
+  const [_title, setTitle] = useState(scope?.selected_title || project?.title || 'Novo Escopo');
 
   // Effect to update the header title if scope or project props change
   useEffect(() => {

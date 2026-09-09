@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   RotateCcw, 
   Briefcase, 
-  Plus,
-  Calendar,
-  DollarSign,
-  Users
+  Plus
 } from 'lucide-react';
 import RecurringServiceView from '../../services/RecurringServiceView';
 
@@ -147,7 +144,7 @@ const WorkOrderCard = ({ workOrder }) => (
   </Card>
 );
 
-export default function ProjectsTab({ projects, client }) {
+export default function ProjectsTab({ _projects, _client }) {
   const [selectedService, setSelectedService] = useState(null);
   const [activeTab, setActiveTab] = useState("recorrentes");
 

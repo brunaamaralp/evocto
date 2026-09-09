@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,6 @@ import {
   RotateCcw,
   AlertCircle,
   CheckCircle2,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
   DollarSign,
   Percent,
   Hash

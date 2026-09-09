@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { getPipelineStageColor } from '../../lib/pipelineStageColors.js';
 import './stage-badge.css';
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
@@ -9,8 +9,7 @@ import { ApprovalRequest } from '@/api/entities';
 import StatsCard from './StatsCard';
 import { 
   Users, Briefcase, Calendar, CheckCircle, 
-  Clock, AlertTriangle, FileText, TrendingUp,
-  Target, Activity
+  Clock, FileText, TrendingUp, Activity
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
@@ -251,7 +250,7 @@ const DashboardStats = () => {
 
   function calculateTodayActivity() {
     // Calcular atividades do dia atual
-    const today = new Date().toDateString();
+    const _today = new Date().toDateString();
     let activities = 0;
 
     // Contar tarefas concluídas hoje

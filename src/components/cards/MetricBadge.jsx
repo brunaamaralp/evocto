@@ -1,4 +1,3 @@
-import React from "react";
 const variants = {
   success: "bg-green-50 text-green-700 ring-green-200",
   warn: "bg-amber-50 text-amber-700 ring-amber-200",

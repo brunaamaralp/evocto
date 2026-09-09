@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { FileDown } from 'lucide-react';
 import { useToast } from '../../hooks/useToast.js';
 import AsyncButton from './AsyncButton.jsx';

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { 
   Dialog,
   DialogContent,
@@ -19,13 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Calendar,
+import {
   TrendingUp,
   Save,
-  X,
-  Target,
-  BarChart3
+  X
 } from 'lucide-react';
 
 /**

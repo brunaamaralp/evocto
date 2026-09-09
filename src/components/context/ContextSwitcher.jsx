@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -18,14 +18,13 @@ import {
   X
 } from 'lucide-react';
 import { useAppContext } from './ContextProvider';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ContextSwitcher() {
   const {
     currentClient,
     currentProject,
     clients,
-    projects,
+    _projects,
     switchClientContext,
     switchProjectContext,
     clearContext,

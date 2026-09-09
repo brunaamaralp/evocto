@@ -40,7 +40,7 @@ export class GradualMigration {
         const { base44 } = await import('./base44Client.js');
         this.base44Client = base44;
         console.log('✅ Cliente Base44 inicializado');
-      } catch (error) {
+      } catch (_error) {
         console.warn('⚠️ Base44 não disponível, usando apenas cliente local');
         this.migrationMode = 'local';
       }

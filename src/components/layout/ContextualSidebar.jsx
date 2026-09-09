@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import {
@@ -95,6 +95,12 @@ export default function ContextualSidebar({
           icon: FolderOpen,
           href: `/client-documents?clientId=${clientId}`,
           isActive: currentPage === 'client-documents',
+        },
+        {
+          label: 'Financeiro',
+          icon: Wallet,
+          href: `/client-financeiro?clientId=${clientId}`,
+          isActive: currentPage === 'client-financeiro',
         },
         {
           label: 'Aprendizados',

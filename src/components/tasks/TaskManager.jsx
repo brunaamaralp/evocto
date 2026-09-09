@@ -1,26 +1,19 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CheckSquare, 
   Plus, 
-  Filter, 
   Download,
   Calendar,
   List,
   Kanban,
   Layers,
   RefreshCw,
-  Settings,
-  Eye,
-  AlertCircle,
-  Target,
-  Lightbulb,
-  CheckCircle
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TaskKanbanView from './TaskKanbanView';

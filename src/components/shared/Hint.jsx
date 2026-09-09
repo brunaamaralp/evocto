@@ -1,5 +1,4 @@
 import '../../styles/navi-hint.css';
-import React from 'react';
 import { HelpCircle } from 'lucide-react';
 
 /**

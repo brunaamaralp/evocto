@@ -1,4 +1,3 @@
-import React from 'react';
 
 /** Stub — contratos digitais do Nave não estão no Evocto ainda. */
 export default function ContractTemplatesPage() {

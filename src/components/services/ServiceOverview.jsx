@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { X, Plus, Clock, Target, DollarSign, Calendar } from 'lucide-react';
+import { X, Clock, Target, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
 
@@ -239,7 +239,7 @@ export default function ServiceOverview({ service, onUpdate, readOnly = false })
                       <SelectContent>
                         <SelectItem value="fixed">Valor Fixo</SelectItem>
                         <SelectItem value="hourly">Por Hora</SelectItem>
-                        <SelectItem value="retainer">Mensalidade</SelectItem>
+                        <SelectItem value="recorrente">Recorrente</SelectItem>
                         <SelectItem value="success_fee">Taxa de Sucesso</SelectItem>
                       </SelectContent>
                     </Select>
@@ -247,7 +247,7 @@ export default function ServiceOverview({ service, onUpdate, readOnly = false })
                     <Badge variant="outline">
                       {currentService.pricing.type === 'fixed' ? 'Valor Fixo' :
                        currentService.pricing.type === 'hourly' ? 'Por Hora' :
-                       currentService.pricing.type === 'retainer' ? 'Mensalidade' :
+                       currentService.pricing.type === 'recorrente' || currentService.pricing.type === 'retainer' ? 'Recorrente' :
                        currentService.pricing.type === 'success_fee' ? 'Taxa de Sucesso' :
                        currentService.pricing.type}
                     </Badge>

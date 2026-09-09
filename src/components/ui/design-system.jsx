@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Design Tokens
 export const designTokens = {

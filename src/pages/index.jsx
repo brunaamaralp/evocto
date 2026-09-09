@@ -174,6 +174,8 @@ import agencymanagement from "./agency-management";
 
 import clientdocuments from "./client-documents";
 
+import clientfinanceiro from "./client-financeiro";
+
 import systemhealth from "./system-health";
 
 import clientcontext from "./client-context";
@@ -407,6 +409,8 @@ const PAGES = {
     "agency-management": agencymanagement,
     
     "client-documents": clientdocuments,
+
+    "client-financeiro": clientfinanceiro,
     
     "system-health": systemhealth,
     
@@ -669,6 +673,8 @@ function PagesContent() {
                 <Route path="/agency-management" element={createElement(agencymanagement)} />
                 
                 <Route path="/client-documents" element={createElement(clientdocuments)} />
+
+                <Route path="/client-financeiro" element={createElement(clientfinanceiro)} />
                 
                 <Route path="/system-health" element={createElement(systemhealth)} />
                 

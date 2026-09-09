@@ -1,6 +1,5 @@
 import React from 'react';
 import { AlertTriangle, Inbox, Loader2, RefreshCw } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 // Componente para estados vazios padronizados

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { CyclePlan, Client, Service, LearningEntry, Brief } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { CyclePlan, Client, LearningEntry, Brief } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,13 +11,7 @@ import {
   XCircle, 
   Clock, 
   AlertTriangle, 
-  Play, 
   FileText,
-  Users,
-  Calendar,
-  Lightbulb,
-  Shield,
-  Wifi,
   Download,
   RefreshCw,
   Search

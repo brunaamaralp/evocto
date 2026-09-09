@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CyclePlan, Service, Client, AuditLog } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -7,7 +7,7 @@ import { useAppContext } from '@/components/context/ContextProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, Send, CheckCircle, ExternalLink, Loader2, Bot, Package, Hash, Clock } from 'lucide-react';
+import { ArrowLeft, Send, ExternalLink, Loader2, Bot, Package, Hash, Clock } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import SaveableForm from '../components/shared/SaveableForm';
 import AIPlanningAssistant from '../components/cycles/AIPlanningAssistant';
@@ -71,7 +71,7 @@ export default function CyclePlanPage() {
     const { planId } = useParams();
     const navigate = useNavigate();
     const { agency, user } = useSession();
-    const { buildRibbonContext, setRibbonContext } = useAppContext();
+    const { buildRibbonContext, _setRibbonContext } = useAppContext();
     const [cyclePlan, setCyclePlan] = useState(null);
     const [service, setService] = useState(null);
     const [client, setClient] = useState(null);
@@ -79,7 +79,7 @@ export default function CyclePlanPage() {
     const [isSending, setIsSending] = useState(false);
     const [showAIAssistant, setShowAIAssistant] = useState(false);
     const [activeTab, setActiveTab] = useState('plan'); // State for managing active tab
-    const [isGenerating, setIsGenerating] = useState(false); // For new generate plan function
+    const [_isGenerating, setIsGenerating] = useState(false); // For new generate plan function
 
     useEffect(() => {
         if (planId && agency?.id) {
@@ -223,7 +223,7 @@ export default function CyclePlanPage() {
         }
     };
 
-    const handleGeneratePlan = async () => {
+    const _handleGeneratePlan = async () => {
         if (!service?.id) {
             toast.error('Serviço não encontrado para gerar plano.');
             return;

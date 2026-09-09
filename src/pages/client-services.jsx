@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,31 +8,24 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Building, 
   Plus, 
-  Settings, 
-  Calendar,
-  DollarSign,
-  Users,
+  Settings,
   CheckCircle,
   Clock,
   AlertTriangle,
   FileText,
-  ArrowRight,
   Eye,
-  Edit,
   Play,
   Pause,
   TrendingUp
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
-import { Task } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import ContextHeader from '@/components/navigation/ContextHeader';
-import ServiceCard from '@/components/services/ServiceCard';
 import { getCardPastel } from '@/lib/modulePastels';
 
 /**
@@ -40,7 +33,7 @@ import { getCardPastel } from '@/lib/modulePastels';
  * Mostra todos os serviços/contratos ativos e histórico
  */
 export default function ClientServicesPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const navigate = useNavigate();
   
   const urlParams = new URLSearchParams(window.location.search);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AgentExecution, AuditLog } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,8 +14,6 @@ import {
   CheckCircle, 
   AlertTriangle, 
   RefreshCw,
-  TrendingUp,
-  Calendar,
   Zap,
   BarChart3
 } from 'lucide-react';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Calendar
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { FinancialKPI } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { resolveKPICategory } from '@/constants/performanceKPIs';
@@ -135,7 +135,7 @@ function KPIChart({ kpis, category }) {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip 
-              formatter={(value, name, props) => [
+              formatter={(value, name, _props) => [
                 formatKPIValue(value, 'number'),
                 name === 'atual' ? 'Valor Atual' : 'Meta'
               ]}
@@ -154,7 +154,7 @@ function KPIChart({ kpis, category }) {
 }
 
 export default function KPIDashboard({ clientId, serviceId }) {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const [kpis, setKpis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -193,7 +193,7 @@ export default function KPIDashboard({ clientId, serviceId }) {
     console.log('Editar KPI:', kpi);
   };
 
-  const kpisByCategory = kpis.reduce((acc, kpi) => {
+  const _kpisByCategory = kpis.reduce((acc, kpi) => {
     const category = resolveKPICategory(kpi.category);
     if (!acc[category]) acc[category] = [];
     acc[category].push(kpi);

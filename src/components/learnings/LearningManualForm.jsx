@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,7 +42,7 @@ export default function LearningManualForm({
     createLearning,
     updateLearning,
     loading,
-    error
+    _error
   } = useLearningManagement();
 
   const [formData, setFormData] = useState({
@@ -149,7 +148,7 @@ export default function LearningManualForm({
       
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (_err) {
       // Erro já tratado no hook
     }
   };

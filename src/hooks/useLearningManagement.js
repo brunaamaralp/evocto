@@ -263,7 +263,7 @@ export function useLearningManagement() {
 
     try {
       // Usar serviço de integração real
-      await cycleIntegration.applyLearningToCycle(learningId, cycleId, applicationNotes);
+      await cycleLearningIntegration.applyLearningToCycle(learningId, cycleId, applicationNotes);
       
       toast.success('Aprendizado aplicado ao ciclo com sucesso!');
       return true;

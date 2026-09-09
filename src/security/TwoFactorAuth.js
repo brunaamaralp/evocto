@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Sistema de Autenticação 2FA
@@ -228,7 +227,7 @@ export class TwoFactorAuth extends EventEmitter {
   /**
    * HMAC SHA1 (simulado)
    */
-  hmacSha1(key, data) {
+  hmacSha1(_key, _data) {
     // Implementação simplificada
     // Em produção, usar biblioteca crypto adequada
     return new Uint8Array(20).fill(0);
@@ -456,18 +455,18 @@ export class TwoFactorAuth extends EventEmitter {
       failedAttempts: 0
     };
 
-    for (const [userId, secretData] of this.secrets) {
+    for (const [_userId, secretData] of this.secrets) {
       if (secretData.isEnabled) {
         stats.enabledUsers++;
       }
     }
 
-    for (const [userId, backupData] of this.backupCodes) {
+    for (const [_userId, backupData] of this.backupCodes) {
       stats.totalBackupCodes += backupData.codes.length;
       stats.usedBackupCodes += backupData.usedCodes.size;
     }
 
-    for (const [userId, attemptData] of this.attempts) {
+    for (const [_userId, attemptData] of this.attempts) {
       stats.totalAttempts += attemptData.failedAttempts.length + attemptData.successfulAttempts.length;
       stats.failedAttempts += attemptData.failedAttempts.length;
     }

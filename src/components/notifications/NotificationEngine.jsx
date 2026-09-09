@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { NotificationTemplate, NotificationDelivery, Task, Service } from '@/api/entities';
 import { notificationDispatcher } from '@/api/functions';
 
 /**
@@ -9,7 +8,7 @@ import { notificationDispatcher } from '@/api/functions';
  */
 export default function NotificationEngine() {
   const { user } = useSession();
-  const [isActive, setIsActive] = useState(false);
+  const [_isActive, setIsActive] = useState(false);
 
   useEffect(() => {
     if (!user?.data?.agencyId) return;

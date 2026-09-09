@@ -385,8 +385,8 @@ export class IntegrationSystem extends EventEmitter {
       throw new Error(`Conexão não encontrada: ${connectionId}`);
     }
 
-    const integration = this.integrations.get(connection.integrationId);
-    const credentials = this.credentials.get(connectionId);
+    const _integration = this.integrations.get(connection.integrationId);
+    const _credentials = this.credentials.get(connectionId);
 
     try {
       // Simular teste de conexão
@@ -477,7 +477,7 @@ export class IntegrationSystem extends EventEmitter {
   /**
    * Executa sincronização
    */
-  async performSync(integration, credentials, syncType, options) {
+  async performSync(_integration, _credentials, _syncType, _options) {
     // Simular sincronização baseada no tipo
     await new Promise(resolve => setTimeout(resolve, 3000));
     

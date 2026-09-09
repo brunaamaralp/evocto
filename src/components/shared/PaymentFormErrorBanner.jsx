@@ -1,5 +1,4 @@
 import '../../styles/payment-modal-feedback.css';
-import React from 'react';
 
 /** Erro de API/submit persistente no topo de modais de pagamento. */
 export default function PaymentFormErrorBanner({ message, className = '' }) {

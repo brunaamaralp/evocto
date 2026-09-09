@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Service } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";

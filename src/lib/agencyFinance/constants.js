@@ -1,9 +1,15 @@
 /** Constantes do Financeiro Agência (billing enxuto). */
 
 export const CHARGE_TYPES = {
-  retainer: 'Retainer',
+  recorrente: 'Recorrente',
   project: 'Projeto',
   one_off: 'Avulso',
+};
+
+/** Labels de exibição (inclui tipo legado `retainer`). */
+export const CHARGE_TYPE_LABELS = {
+  ...CHARGE_TYPES,
+  retainer: 'Recorrente',
 };
 
 export const CHARGE_STATUSES = {

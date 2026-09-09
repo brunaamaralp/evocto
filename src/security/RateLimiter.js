@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { useState, useCallback } from 'react';
 
 /**
  * Sistema de Rate Limiting
@@ -172,7 +173,7 @@ export class RateLimiter extends EventEmitter {
       blockedRequests: 0
     };
 
-    for (const [key, windowData] of this.windows) {
+    for (const [_key, windowData] of this.windows) {
       const now = Date.now();
       const windowStart = now - windowData.window;
       const validRequests = windowData.requests.filter(
@@ -231,7 +232,7 @@ export function createRateLimitMiddleware(rateLimiter, options = {}) {
     window = 60000, // 1 minuto
     limit = 100, // 100 requests por minuto
     keyGenerator = (req) => req.ip,
-    skipSuccessfulRequests = false,
+    _skipSuccessfulRequests = false,
     skipFailedRequests = false,
     onLimitReached = null
   } = options;

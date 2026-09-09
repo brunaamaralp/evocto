@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 /**
  * Componente para auditar e migrar navegação para SPA
@@ -47,7 +47,7 @@ export default function NavigationGuard({ children }) {
         }
         
         // Permitir a navegação normal
-        return originalLocationHref.set.call(this, url);
+        originalLocationHref.set.call(this, url);
       }
     });
 

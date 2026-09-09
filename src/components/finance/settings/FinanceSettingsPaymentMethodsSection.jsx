@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Circle, Search } from 'lucide-react';
 import { listBankAccountLabels } from '../../../lib/bankAccounts.js';

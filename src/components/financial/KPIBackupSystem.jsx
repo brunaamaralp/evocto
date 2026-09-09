@@ -1,32 +1,21 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { 
   Database,
   Download,
-  Upload,
   RefreshCw,
   Shield,
-  Clock,
   Archive,
   RotateCcw,
-  HardDrive,
-  CheckCircle2,
-  AlertTriangle,
-  Calendar,
   FileArchive
 } from 'lucide-react';
-import { FinancialKPI } from '@/api/entities';
-import { KPIFormulaDefinition } from '@/api/entities';
 
 const BACKUP_FREQUENCIES = [
   { value: 'daily', label: 'Diário', description: 'Backup automático todo dia' },
@@ -43,8 +32,8 @@ const RETENTION_POLICIES = [
 ];
 
 export default function KPIBackupSystem({ 
-  clientId, 
-  serviceId,
+  _clientId, 
+  _serviceId,
   onBackupComplete,
   onRestoreComplete,
   className = "" 
@@ -60,12 +49,12 @@ export default function KPIBackupSystem({
   });
 
   const [backupHistory, setBackupHistory] = useState([]);
-  const [restorePoints, setRestorePoints] = useState([]);
+  const [_restorePoints, setRestorePoints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [selectedRestore, setSelectedRestore] = useState(null);
+  const [_selectedRestore, _setSelectedRestore] = useState(null);
 
   const loadBackupData = useCallback(async () => {
     try {
@@ -184,7 +173,7 @@ export default function KPIBackupSystem({
     }
   };
 
-  const formatFileSize = (bytes) => {
+  const _formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];

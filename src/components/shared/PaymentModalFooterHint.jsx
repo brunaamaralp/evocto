@@ -1,5 +1,4 @@
 import '../../styles/payment-modal-feedback.css';
-import React from 'react';
 
 /**
  * Hint no rodapé de modais de pagamento (botão desabilitado, validação).

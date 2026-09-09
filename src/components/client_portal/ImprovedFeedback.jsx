@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   CheckCircle, XCircle, AlertTriangle, Info,
-  Loader2, Wifi, WifiOff, Clock, Zap
+  Loader2, Wifi, WifiOff, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -285,7 +283,7 @@ export function StepProgress({
         {steps.map((step, index) => {
           const isCompleted = completedSteps.includes(index);
           const isCurrent = index === currentStep;
-          const isUpcoming = index > currentStep;
+          const _isUpcoming = index > currentStep;
 
           return (
             <div

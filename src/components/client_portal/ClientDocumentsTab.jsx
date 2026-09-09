@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { ClientDocument } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, Download, Eye, Calendar, Search, 
-  Filter, Folder, Star, Clock, CheckCircle
+  Filter, Folder, Clock, CheckCircle
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -148,7 +148,7 @@ export default function ClientDocumentsTab({ clientId, serviceId }) {
     }
   };
 
-  const handleView = async (document) => {
+  const handleView = async (_document) => {
     try {
       // TODO: Implementar visualização
       toast.info('Abrindo documento...');

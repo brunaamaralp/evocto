@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 let toastId = 0;
 
-export const useUiStore = create((set, get) => ({
+export const useUiStore = create((set, _get) => ({
   toasts: [],
   addToast: (toast) => {
     const id = ++toastId;

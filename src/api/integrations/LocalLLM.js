@@ -19,14 +19,13 @@ class OpenAILLM {
       //   apiKey: this.config.apiKey
       // });
       throw new Error('OpenAI não disponível - biblioteca não instalada');
-      console.log('✅ OpenAI inicializado');
     } catch (error) {
       console.error('❌ Erro ao inicializar OpenAI:', error);
       throw error;
     }
   }
 
-  async invokeLLM(prompt, options = {}) {
+  async invokeLLM(prompt, _options = {}) {
     try {
       // OpenAI não disponível - biblioteca não instalada
       // const response = await this.openai.chat.completions.create({
@@ -46,7 +45,7 @@ class OpenAILLM {
     }
   }
 
-  async generateJSON(prompt, schema) {
+  async generateJSON(_prompt, _schema) {
     try {
       // OpenAI não disponível - biblioteca não instalada
       // const response = await this.openai.chat.completions.create({
@@ -154,14 +153,13 @@ class AnthropicLLM {
       //   apiKey: this.config.apiKey
       // });
       throw new Error('Anthropic não disponível - biblioteca não instalada');
-      console.log('✅ Anthropic inicializado');
     } catch (error) {
       console.error('❌ Erro ao inicializar Anthropic:', error);
       throw error;
     }
   }
 
-  async invokeLLM(prompt, options = {}) {
+  async invokeLLM(prompt, _options = {}) {
     try {
       // Anthropic não disponível - biblioteca não instalada
       // const response = await this.anthropic.messages.create({
@@ -257,7 +255,7 @@ class MockLLM {
     console.log('✅ LLM Mock inicializado');
   }
 
-  async invokeLLM(prompt, options = {}) {
+  async invokeLLM(prompt, _options = {}) {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
@@ -313,7 +311,7 @@ class MockLLM {
     return {};
   }
 
-  async generateTasksFromBriefing(briefingData) {
+  async generateTasksFromBriefing(_briefingData) {
     // Simular delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
