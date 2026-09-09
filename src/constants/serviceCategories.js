@@ -51,7 +51,7 @@ export const SERVICE_OFFERING_TYPES = {
   },
   ciclo_mensal_4_semanas: {
     key: 'ciclo_mensal_4_semanas',
-    label: 'Ciclo Mensal 4 Semanas',
+    label: 'Ciclo Mensal de Campanhas',
     category: 'marketing_digital',
     legacyKeys: [],
   },

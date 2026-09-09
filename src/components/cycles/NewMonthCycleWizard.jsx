@@ -32,7 +32,8 @@ function todayYmd() {
 }
 
 /**
- * Wizard: Novo ciclo do mês a partir do template Ciclo Mensal 4 Semanas.
+ * Wizard: cria o ciclo operacional do mês a partir do template editável
+ * "Ciclo Mensal de Campanhas".
  */
 export default function NewMonthCycleWizard({
   open,
@@ -174,8 +175,8 @@ export default function NewMonthCycleWizard({
             Novo ciclo do mês
           </DialogTitle>
           <DialogDescription>
-            Cria as 4 semanas (ROTEIROS → PRODUÇÃO → REVISÃO → PUBLICAÇÃO) a partir do
-            template padrão.
+            Instancia o template editável do ciclo mensal de campanhas com 4 fases:
+            PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.
           </DialogDescription>
         </DialogHeader>
 
@@ -228,12 +229,12 @@ export default function NewMonthCycleWizard({
                       onChange={(e) => setServiceName(e.target.value)}
                       placeholder={
                         selectedClient
-                          ? `${selectedClient.name || selectedClient.company_name} — Ciclo Mensal`
-                          : 'Ciclo Mensal'
+                          ? `${selectedClient.name || selectedClient.company_name} — Ciclo Mensal de Campanhas`
+                          : 'Ciclo Mensal de Campanhas'
                       }
                     />
                     <p className="text-xs text-slate-500 mt-1">
-                      Template: Ciclo Mensal 4 Semanas
+                      Template base: Ciclo Mensal de Campanhas
                     </p>
                   </div>
                 ) : (

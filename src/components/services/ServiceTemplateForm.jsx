@@ -14,6 +14,7 @@ import { Service } from '@/api/entities';
 import { Agency } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
+import { CYCLE_PHASES, CYCLE_ROLES } from '@/templates/cicloMensal4SemanasTemplate';
 
 const KPI_CATEGORIES = {
   performance: 'Performance',
@@ -23,6 +24,60 @@ const KPI_CATEGORIES = {
   engajamento: 'Engajamento',
   crescimento: 'Crescimento',
 };
+
+const TASK_TYPE_OPTIONS = [
+  { value: 'analise_documentos', label: 'Análise de Documentos' },
+  { value: 'briefing', label: 'Briefing' },
+  { value: 'reuniao', label: 'Reunião' },
+  { value: 'producao', label: 'Produção' },
+  { value: 'revisao', label: 'Revisão' },
+  { value: 'aprovacao', label: 'Aprovação' },
+  { value: 'midia', label: 'Mídia' },
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'relatorio', label: 'Relatório' },
+];
+
+function normalizeDeliverablesForForm(deliverables = []) {
+  return (Array.isArray(deliverables) ? deliverables : []).map((deliverable) => {
+    const tasks = Array.isArray(deliverable.tasks)
+      ? deliverable.tasks
+      : Array.isArray(deliverable.task_templates)
+        ? deliverable.task_templates
+        : [];
+
+    return {
+      ...deliverable,
+      tasks: tasks.map((task) => ({
+        ...task,
+        responsavel: task.responsavel || 'bruna',
+        bloqueador: task.bloqueador || '',
+        notificacao: task.notificacao || '',
+        duracao_dias: task.duracao_dias ?? 1,
+        checklist: Array.isArray(task.checklist) ? task.checklist : [],
+      })),
+    };
+  });
+}
+
+function buildTemplateDeliverables(deliverables = []) {
+  return (Array.isArray(deliverables) ? deliverables : []).map((deliverable, index) => {
+    const tasks = (Array.isArray(deliverable.tasks) ? deliverable.tasks : []).map((task) => ({
+      ...task,
+      responsavel: task.responsavel || 'bruna',
+      bloqueador: task.bloqueador || null,
+      notificacao: task.notificacao || null,
+      duracao_dias: Number(task.duracao_dias) || 1,
+      checklist: Array.isArray(task.checklist) ? task.checklist : [],
+    }));
+
+    return {
+      ...deliverable,
+      order: deliverable.order ?? index + 1,
+      tasks,
+      task_templates: tasks.map((task) => ({ ...task })),
+    };
+  });
+}
 
 export default function ServiceTemplateForm({ 
   isOpen, 
@@ -77,7 +132,7 @@ export default function ServiceTemplateForm({
           name: template.name || '',
           description: template.description || '',
           category: template.category || (agencyCategories[0]?.id || DEFAULT_SERVICE_CATEGORY),
-          deliverables: template.deliverables || [],
+          deliverables: normalizeDeliverablesForForm(template.deliverables || []),
           default_kpis: template.default_kpis || [],
           is_active: template.is_active !== undefined ? template.is_active : true
         });
@@ -171,6 +226,10 @@ export default function ServiceTemplateForm({
       estimated_hours: 4,
       type: 'analise_documentos',
       priority: 'medium',
+      responsavel: 'bruna',
+      bloqueador: '',
+      notificacao: '',
+      duracao_dias: 1,
       checklist: [
         {
           id: `checklist_${Date.now()}_1`,
@@ -338,12 +397,14 @@ export default function ServiceTemplateForm({
     setLoading(true);
 
     try {
+      const deliverables = buildTemplateDeliverables(formData.deliverables);
       const templateData = {
         ...formData,
         agencyId,
         is_template: true,
         name: formData.name.trim(),
-        description: formData.description.trim()
+        description: formData.description.trim(),
+        deliverables,
       };
 
       if (template) {
@@ -456,14 +517,34 @@ export default function ServiceTemplateForm({
                             />
                             <div className="grid grid-cols-2 gap-4">
                               <div>
+                                <Label>Fase</Label>
+                                <select
+                                  value={deliverable.phase || ''}
+                                  onChange={(e) => updateDeliverable(index, 'phase', e.target.value)}
+                                  className="w-full p-2 border rounded-md"
+                                >
+                                  {CYCLE_PHASES.map((phase) => (
+                                    <option key={phase.key} value={phase.key}>
+                                      {phase.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
                                 <Label>Duração (dias)</Label>
                                 <Input
                                   type="number"
-                                  value={deliverable.duration_days}
-                                  onChange={(e) => updateDeliverable(index, 'duration_days', parseInt(e.target.value))}
+                                  value={deliverable.duration_days ?? deliverable.duration_business_days ?? 5}
+                                  onChange={(e) => {
+                                    const value = parseInt(e.target.value, 10) || 1;
+                                    updateDeliverable(index, 'duration_days', value);
+                                    updateDeliverable(index, 'duration_business_days', value);
+                                  }}
                                   min="1"
                                 />
                               </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <Label>Horas Estimadas</Label>
                                 <Input
@@ -518,6 +599,80 @@ export default function ServiceTemplateForm({
                                       placeholder="Descrição da tarefa..."
                                       rows={2}
                                     />
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                      <div>
+                                        <Label className="text-sm">Responsável</Label>
+                                        <select
+                                          value={task.responsavel || 'bruna'}
+                                          onChange={(e) => updateTask(index, taskIndex, 'responsavel', e.target.value)}
+                                          className="w-full p-2 border rounded-md"
+                                        >
+                                          {CYCLE_ROLES.map((role) => (
+                                            <option key={role.value} value={role.value}>
+                                              {role.label}
+                                            </option>
+                                          ))}
+                                          <option value="bruna,duda">Bruna + Duda</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm">Tipo</Label>
+                                        <select
+                                          value={task.type || 'analise_documentos'}
+                                          onChange={(e) => updateTask(index, taskIndex, 'type', e.target.value)}
+                                          className="w-full p-2 border rounded-md"
+                                        >
+                                          {TASK_TYPE_OPTIONS.map((type) => (
+                                            <option key={type.value} value={type.value}>
+                                              {type.label}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm">Duração (dias)</Label>
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          value={task.duracao_dias ?? 1}
+                                          onChange={(e) =>
+                                            updateTask(index, taskIndex, 'duracao_dias', parseInt(e.target.value, 10) || 0)
+                                          }
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm">Horas</Label>
+                                        <Input
+                                          type="number"
+                                          min="1"
+                                          value={task.estimated_hours}
+                                          onChange={(e) =>
+                                            updateTask(index, taskIndex, 'estimated_hours', parseInt(e.target.value, 10) || 1)
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div>
+                                        <Label className="text-sm">Bloqueador</Label>
+                                        <Input
+                                          value={task.bloqueador || ''}
+                                          onChange={(e) => updateTask(index, taskIndex, 'bloqueador', e.target.value)}
+                                          placeholder="id da tarefa anterior"
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm">Notificação</Label>
+                                        <select
+                                          value={task.notificacao || ''}
+                                          onChange={(e) => updateTask(index, taskIndex, 'notificacao', e.target.value)}
+                                          className="w-full p-2 border rounded-md"
+                                        >
+                                          <option value="">Sem notificação</option>
+                                          <option value="segunda-feira">Segunda-feira</option>
+                                        </select>
+                                      </div>
+                                    </div>
                                   </div>
                                   <Button 
                                     type="button" 

@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { getCategoryLabel } from '@/constants/serviceCategories';
+import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 
 // Componente para card de serviço
 const ServiceCard = ({ service, client, cycles, onServiceClick }) => {
@@ -253,15 +254,34 @@ function ServicesOverviewPage() {
       setLoading(true);
       setError(null);
 
-      const [servicesData, templatesData, clientsData, cyclesData] = await Promise.all([
+      let seeded = null;
+      try {
+        seeded = await ensureCicloMensalTemplate(agencyId);
+      } catch (seedErr) {
+        console.warn('[services-overview] seed template:', seedErr);
+        toast.error(seedErr?.message || 'Não foi possível instalar o template padrão');
+      }
+
+      const [servicesData, templatesDataRaw, clientsData, cyclesData] = await Promise.all([
         Service.filter({ agencyId, is_template: false }),
         Service.filter({ agencyId, is_template: true }),
         Client.filter({ agencyId }),
         CyclePlan.filter({ agencyId })
       ]);
 
+      let templatesData = Array.isArray(templatesDataRaw) ? templatesDataRaw : [];
+      if (templatesData.length === 0) {
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        templatesData = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+      }
+      if (seeded?.id && !templatesData.some((t) => t.id === seeded.id)) {
+        templatesData = [seeded, ...templatesData];
+      }
+
       setServices(servicesData || []);
-      setTemplates(templatesData || []);
+      setTemplates(templatesData);
       setClients(clientsData || []);
       setCycles(cyclesData || []);
 

@@ -1,9 +1,11 @@
-import { CyclePlan, Service, Task } from '@/api/entities';
+import { CyclePlan, Service, Task, Profile } from '@/api/entities';
 import { scheduleDeliverablesFs } from '@/lib/deliverableScheduleCore';
 import { buildTaskPayloadFromTemplate } from '@/lib/startDeliverableStage';
 import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 import { wirePhaseFinishToStartDependencies } from '@/lib/wirePhaseDependencies';
 import { dueDateForTaskTemplate } from '@/lib/taskDueFromTemplate';
+import { wireTaskTemplateDependencies } from '@/lib/wireTaskTemplateDependencies';
+import { resolveResponsavelAssignee } from '@/lib/resolveResponsavelAssignee';
 
 function formatCyclePeriod(startDate) {
   try {
@@ -56,6 +58,8 @@ export async function duplicateCycleForMonth(opts = {}) {
 
   let service = await Service.get(serviceId);
   if (!service) throw new Error('Serviço do ciclo não encontrado');
+
+  const profiles = await Profile.filter({ agencyId }).catch(() => []);
 
   const rawDeliverables = normalizeDeliverableTaskShapes(service.deliverables || []);
   if (rawDeliverables.length === 0) {
@@ -130,11 +134,23 @@ export async function duplicateCycleForMonth(opts = {}) {
         payload.dueDate =
           dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
         payload.deliverableName = deliverable.name;
-        const assignee = ownerId || source.ownerId;
-        if (assignee) {
-          payload.assignedTo = assignee;
-          payload.assigneeId = assignee;
+
+        const resolved = resolveResponsavelAssignee(
+          profiles,
+          taskTemplate?.responsavel || taskTemplate?.assignee_role || ''
+        );
+        if (resolved) {
+          payload.assigneeId = resolved.assigneeId;
+          payload.assignedTo = resolved.assigneeId;
+          payload.assigneeName = resolved.assigneeName;
+        } else {
+          const assigneeFallback = ownerId || source.ownerId;
+          if (assigneeFallback) {
+            payload.assignedTo = assigneeFallback;
+            payload.assigneeId = assigneeFallback;
+          }
         }
+
         const created = await Task.create(payload);
         tasks.push(created);
         tasksCreated += 1;
@@ -142,6 +158,7 @@ export async function duplicateCycleForMonth(opts = {}) {
     }
 
     await wirePhaseFinishToStartDependencies(tasks, scheduled).catch(() => {});
+    await wireTaskTemplateDependencies(tasks, scheduled).catch(() => {});
 
     await CyclePlan.update(cyclePlan.id, { status: 'in_execution' }).catch(() => {});
   }

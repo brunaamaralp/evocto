@@ -1,10 +1,12 @@
-import { CyclePlan, Service, Task, Client } from '@/api/entities';
+import { CyclePlan, Service, Task, Client, Profile } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
 import { scheduleDeliverablesFs } from '@/lib/deliverableScheduleCore';
 import { buildTaskPayloadFromTemplate } from '@/lib/startDeliverableStage';
 import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 import { wirePhaseFinishToStartDependencies } from '@/lib/wirePhaseDependencies';
 import { dueDateForTaskTemplate } from '@/lib/taskDueFromTemplate';
+import { wireTaskTemplateDependencies } from '@/lib/wireTaskTemplateDependencies';
+import { resolveResponsavelAssignee } from '@/lib/resolveResponsavelAssignee';
 import { ensureCicloMensalTemplate } from './ensureCicloMensalTemplate';
 
 function formatCyclePeriod(startDate) {
@@ -23,7 +25,8 @@ function addCalendarDays(ymd, days) {
 }
 
 /**
- * Cria um ciclo mensal a partir do template canônico (ou templateId informado).
+ * Cria um ciclo mensal a partir do template canônico editável (ou templateId informado).
+ * O ciclo operacional é sempre uma instância de serviço derivada do template.
  *
  * @param {{
  *   agencyId: string,
@@ -55,6 +58,8 @@ export async function createMonthCycle(opts = {}) {
   const client = await Client.get(clientId).catch(() => null);
   if (!client) throw new Error('Cliente não encontrado');
 
+  const profiles = await Profile.filter({ agencyId }).catch(() => []);
+
   let templateServiceId = templateId;
   if (!templateServiceId && !serviceId) {
     const seeded = await ensureCicloMensalTemplate(agencyId);
@@ -73,7 +78,7 @@ export async function createMonthCycle(opts = {}) {
       customizations: {
         name:
           serviceName ||
-          `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal`,
+          `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`,
         start_date: String(startDate).slice(0, 10),
       },
     });
@@ -139,10 +144,22 @@ export async function createMonthCycle(opts = {}) {
         payload.dueDate =
           dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
         payload.deliverableName = deliverable.name;
-        if (ownerId) {
+
+        // Responsável do template -> assignee na tarefa
+        const resolved = resolveResponsavelAssignee(
+          profiles,
+          taskTemplate?.responsavel || taskTemplate?.assignee_role || ''
+        );
+        if (resolved) {
+          payload.assigneeId = resolved.assigneeId;
+          payload.assignedTo = resolved.assigneeId;
+          payload.assigneeName = resolved.assigneeName;
+        } else if (ownerId) {
+          // Fallback: se não resolveu responsavel, atribui ao ownerId do ciclo (se existir)
           payload.assignedTo = ownerId;
           payload.assigneeId = ownerId;
         }
+
         const created = await Task.create(payload);
         tasks.push(created);
         tasksCreated += 1;
@@ -150,6 +167,7 @@ export async function createMonthCycle(opts = {}) {
     }
 
     await wirePhaseFinishToStartDependencies(tasks, scheduled).catch(() => {});
+    await wireTaskTemplateDependencies(tasks, scheduled).catch(() => {});
 
     await CyclePlan.update(cyclePlan.id, { status: 'in_execution' }).catch(() => {});
   }

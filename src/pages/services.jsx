@@ -23,6 +23,8 @@ import ServiceCard from '@/components/services/ServiceCard';
 import ServiceModal from '@/components/services/ServiceModal';
 import ServiceTemplateWizard from '@/components/services/ServiceTemplateWizard';
 import { useDebounce } from '@/components/hooks/useDebounce';
+import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { toast } from 'sonner';
 
 // P2: Cache manager para templates
 class ServiceCache {
@@ -122,33 +124,55 @@ export default function ServicesPage() {
   const loadTemplates = useCallback(async (forceRefresh = false) => {
     if (!agencyId) return;
 
-    // Verificar cache antes de fazer query
+    // Cache só se já houver templates (evita travar empty state sem seed)
     if (!forceRefresh && !serviceCache.shouldRefresh('templates')) {
-      console.log('📦 Templates carregados do cache');
-      setTemplates(serviceCache.getTemplates());
-      return;
+      const cached = serviceCache.getTemplates();
+      if (cached.length > 0) {
+        console.log('📦 Templates carregados do cache');
+        setTemplates(cached);
+        return;
+      }
     }
 
     setLoadingState(prev => ({ ...prev, templates: true }));
 
     try {
-      console.log('🔍 Buscando templates no banco...');
+      console.log('🔍 Garantindo template padrão e buscando no banco...');
 
-      // P2: Query otimizada - APENAS templates
-      const templatesData = await Service.filter(
+      let seeded = null;
+      try {
+        seeded = await ensureCicloMensalTemplate(agencyId);
+      } catch (seedErr) {
+        console.warn('Falha ao garantir template Ciclo Mensal:', seedErr);
+        toast.error(seedErr?.message || 'Não foi possível instalar o template padrão');
+      }
+
+      let templatesData = await Service.filter(
         {
           agencyId,
           is_template: true
         },
-        '-updated_date', // Mais recentes primeiro
-        50, // Limite para performance
-        ['id', 'name', 'description', 'category', 'deliverables', 'default_kpis', 'template_metadata', 'pricing'] // Campos específicos
+        '-updated_date',
+        50
       );
 
-      console.log(`✅ ${templatesData.length} templates carregados`);
+      if (!Array.isArray(templatesData) || templatesData.length === 0) {
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        templatesData = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+      }
 
-      serviceCache.setTemplates(templatesData);
-      setTemplates(templatesData);
+      // Se o seed criou/retornou o template mas o filter ainda não enxerga (perms),
+      // injeta na lista para a UI não ficar vazia.
+      if (seeded?.id && !(templatesData || []).some((t) => t.id === seeded.id)) {
+        templatesData = [seeded, ...(templatesData || [])];
+      }
+
+      console.log(`✅ ${(templatesData || []).length} templates carregados`);
+
+      serviceCache.setTemplates(templatesData || []);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
 
     } catch (error) {
       console.error('Erro ao carregar templates:', error);
@@ -442,7 +466,8 @@ export default function ServicesPage() {
             ) : (
               <EmptyServicesState
                 type="templates"
-                onCreateTemplate={handleCreateTemplate} // CORREÇÃO: Usando o handler correto
+                onCreateTemplate={handleCreateTemplate}
+                onInstallDefault={handleRefresh}
                 hasSearchTerm={!!debouncedSearchTerm}
               />
             )}
@@ -525,7 +550,7 @@ function ServicesLoadingSkeleton({ count = 6 }) {
 }
 
 // P2: Empty states component
-function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, hasSearchTerm }) {
+function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstallDefault, hasSearchTerm }) {
   if (hasSearchTerm) {
     return (
       <Card className="border-dashed">
@@ -551,12 +576,21 @@ function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, hasSearc
             Nenhum template encontrado
           </h3>
           <p className="text-gray-600 mb-4">
-            Crie templates reutilizáveis para padronizar seus serviços
+            O template padrão <strong>Ciclo Mensal de Campanhas</strong> deve
+            instalar ao abrir esta página. Se a lista continuar vazia, reinstale abaixo.
           </p>
-          <Button onClick={onCreateTemplate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Criar Primeiro Template
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {onInstallDefault && (
+              <Button variant="outline" onClick={onInstallDefault}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Instalar template padrão
+              </Button>
+            )}
+            <Button onClick={onCreateTemplate}>
+              <Plus className="w-4 h-4 mr-2" />
+              Criar template
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );

@@ -114,14 +114,8 @@ function mergeRow(row) {
 
 async function rowPermissions(agencyId, extra = []) {
   const perms = [...extra];
-  if (agencyId) {
-    perms.push(
-      Permission.read(Role.team(agencyId)),
-      Permission.update(Role.team(agencyId)),
-      Permission.delete(Role.team(agencyId)),
-    );
-    return perms;
-  }
+  // Sempre incluir o criador: se o membership do team falhar/atrasar,
+  // Role.team(agencyId) sozinho deixa a linha invisível no list/filter.
   try {
     const user = await getAccount().get();
     perms.push(
@@ -131,6 +125,13 @@ async function rowPermissions(agencyId, extra = []) {
     );
   } catch {
     // anonymous create not supported in phase 1
+  }
+  if (agencyId) {
+    perms.push(
+      Permission.read(Role.team(agencyId)),
+      Permission.update(Role.team(agencyId)),
+      Permission.delete(Role.team(agencyId)),
+    );
   }
   return perms;
 }

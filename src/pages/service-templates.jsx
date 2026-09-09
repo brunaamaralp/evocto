@@ -47,16 +47,32 @@ export default function ServiceTemplatesPage() {
   const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
-      await ensureCicloMensalTemplate(agencyId).catch((err) => {
+      let seeded = null;
+      try {
+        seeded = await ensureCicloMensalTemplate(agencyId);
+      } catch (err) {
         console.warn('Falha ao garantir template Ciclo Mensal:', err);
+        toast.error(err?.message || 'Não foi possível instalar o template padrão');
+      }
+
+      let templatesData = await Service.filter({
+        agencyId,
+        is_template: true
       });
-      const templatesData = await Service.filter({ 
-        agencyId, 
-        is_template: true 
-      });
-      
-      console.log('📋 Templates carregados:', templatesData.length);
-      setTemplates(templatesData);
+
+      if (!Array.isArray(templatesData) || templatesData.length === 0) {
+        const all = await Service.filter({ agencyId }, '-updated_date', 100);
+        templatesData = (Array.isArray(all) ? all : []).filter(
+          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
+        );
+      }
+
+      if (seeded?.id && !(templatesData || []).some((t) => t.id === seeded.id)) {
+        templatesData = [seeded, ...(templatesData || [])];
+      }
+
+      console.log('📋 Templates carregados:', templatesData?.length || 0);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
     } catch (error) {
       console.error('❌ Erro ao carregar templates:', error);
       toast.error('Erro ao carregar templates');
@@ -298,14 +314,19 @@ export default function ServiceTemplatesPage() {
           <p className="text-gray-600 mb-4">
             {searchTerm || categoryFilter !== 'all' 
               ? 'Tente ajustar os filtros de busca'
-              : 'Crie seu primeiro template para começar'
+              : 'O template padrão Ciclo Mensal de Campanhas deve instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
             }
           </p>
           {!searchTerm && categoryFilter === 'all' && (
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Template
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button variant="outline" onClick={loadTemplates}>
+                Instalar template padrão
+              </Button>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Primeiro Template
+              </Button>
+            </div>
           )}
         </div>
       )}
