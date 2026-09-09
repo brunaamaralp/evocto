@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
+import { BRAND } from '@/lib/brandAssets';
+import { createPageUrl } from '@/utils';
 
 /**
  * Soft UI rail: dark brand (global) vs teal (cliente).
@@ -206,36 +209,42 @@ export default function ContextualSidebar({
     >
       <div className={`p-4 border-b ${theme.sidebarBorder}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'}`}>
-          <div
-            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-              isClientMode ? 'bg-teal-600' : GLOBAL_SHELL.logoBg
-            }`}
-          >
-            <span className="text-white font-bold text-sm">
-              {isClientMode ? (client?.name?.[0] || 'C') : 'E'}
-            </span>
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              {isClientMode && (
-                <p
-                  className={`text-[10px] uppercase tracking-wider font-semibold ${CLIENT_CONTEXT.sidebarMuted}`}
-                >
-                  {CLIENT_CONTEXT.label}
-                </p>
+          {isClientMode ? (
+            <>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-teal-600">
+                <span className="text-white font-bold text-sm">
+                  {client?.name?.[0] || 'C'}
+                </span>
+              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p
+                    className={`text-[10px] uppercase tracking-wider font-semibold ${CLIENT_CONTEXT.sidebarMuted}`}
+                  >
+                    {CLIENT_CONTEXT.label}
+                  </p>
+                  <h2 className={`font-semibold truncate text-sm ${theme.sidebarText}`}>
+                    {client?.name || 'Cliente'}
+                  </h2>
+                  <p className={`text-xs truncate ${theme.sidebarMuted}`}>
+                    {client?.sector || 'Cliente'}
+                  </p>
+                </div>
               )}
-              <h2 className={`font-semibold truncate text-sm ${theme.sidebarText}`}>
-                {client ? client.name : 'Evocto'}
-              </h2>
-              {client && (
-                <p className={`text-xs truncate ${theme.sidebarMuted}`}>
-                  {client.sector || 'Cliente'}
-                </p>
+            </>
+          ) : (
+            <Link
+              to={createPageUrl('dashboard')}
+              className={`flex items-center min-w-0 ${collapsed ? '' : 'w-full'}`}
+              aria-label={BRAND.name}
+              onClick={onClose}
+            >
+              {collapsed ? (
+                <NaviBrandLockup variant="mark" height={32} />
+              ) : (
+                <NaviBrandLockup height={26} className="max-w-[168px]" />
               )}
-              {!isClientMode && !client && (
-                <p className={`text-xs ${theme.sidebarMuted}`}>Agency OS</p>
-              )}
-            </div>
+            </Link>
           )}
         </div>
       </div>

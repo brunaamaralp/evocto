@@ -2,6 +2,8 @@
 export const BRAND = {
   name: 'Evocto',
   wordmark: '/brand/logo-wordmark.png',
+  /** Letra “e” estilizada — sidebar colapsado / avatar de marca */
+  logoMark: '/brand/logo-mark.png',
   mascot: '/brand/mascot.png',
   mark: '/brand/mascot-mark.png',
   head: '/brand/mascot-head.png',
