@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 
 // Ícones por tipo de notificação
 const NOTIFICATION_ICONS = {
+  meeting_reminder: Calendar,
   task_assigned: User,
   task_due_soon: Clock,
   task_overdue: AlertTriangle,
@@ -231,8 +232,13 @@ export const NotificationBell = () => {
     
     // Recarregar a cada 30 segundos
     const interval = setInterval(loadNotifications, 30000);
+    const onRefresh = () => loadNotifications();
+    window.addEventListener('notifications:refresh', onRefresh);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notifications:refresh', onRefresh);
+    };
   }, [loadNotifications]);
 
   return (

@@ -64,6 +64,7 @@ export default function ServiceTemplatesViewer() {
       diagnostico_comunicacao: 'bg-blue-100 text-blue-800',
       estrategia_conteudo: 'bg-green-100 text-green-800',
       marketing_360: 'bg-purple-100 text-purple-800',
+      ciclo_mensal_4_semanas: 'bg-teal-100 text-teal-800',
       comunicacao: 'bg-blue-100 text-blue-800',
       conteudo: 'bg-green-100 text-green-800',
       marketing_digital: 'bg-purple-100 text-purple-800',
@@ -150,7 +151,7 @@ export default function ServiceTemplatesViewer() {
       </div>
 
       {/* Template Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(SERVICE_OFFERING_TYPES).map(([key, offering]) => {
           const offeringTemplate = DEFAULT_SERVICE_TEMPLATES[key];
           if (!offeringTemplate) return null;

@@ -10,20 +10,24 @@ import {
   Plus, 
   Eye, 
   Edit, 
-  Send,
   Clock,
   CheckCircle,
   AlertTriangle,
   Link as LinkIcon,
-  Mail
+  Building2,
+  Loader2,
 } from 'lucide-react';
 import { Brief } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { PublicBriefingToken } from '@/api/entities';
 import { createPageUrl } from '@/utils';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
+import { getEmpresaByClientId } from '@/lib/empresaConfig';
+import { generatePublicBriefingToken, syncClientFromPublicBriefing } from '@/api/functions';
+import { toast } from 'sonner';
 
 /**
  * Página principal de briefings do cliente
@@ -35,12 +39,16 @@ export default function ClientBriefingPage() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
+  const briefingId = urlParams.get('briefingId');
   
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
   const [briefings, setBriefings] = useState([]);
   const [briefingTokens, setBriefingTokens] = useState([]);
   const [error, setError] = useState(null);
+  const [empresa, setEmpresa] = useState(null);
+  const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   const loadClientBriefings = useCallback(async () => {
     try {
@@ -58,19 +66,33 @@ export default function ClientBriefingPage() {
       }
       setClient(clientData);
 
-      // Buscar briefings do cliente (por projectId que equivale a clientId)
-      const clientBriefings = await Brief.filter({
-        agencyId,
-        projectId: clientId
-      });
-      setBriefings(clientBriefings);
+      const empresaData = await getEmpresaByClientId(clientId, agencyId).catch(() => null);
+      setEmpresa(empresaData);
+
+      // Briefings: clientId e/ou projectId (= clientId no legado)
+      const [byClient, byProject] = await Promise.all([
+        Brief.filter({ agencyId, clientId }).catch(() => []),
+        Brief.filter({ agencyId, projectId: clientId }).catch(() => []),
+      ]);
+      const map = new Map();
+      for (const b of [...(byClient || []), ...(byProject || [])]) {
+        if (b?.id) map.set(b.id, b);
+      }
+      setBriefings(Array.from(map.values()));
 
       // Buscar tokens de briefing público
       const tokens = await PublicBriefingToken.filter({
         agencyId,
         clientId
-      });
-      setBriefingTokens(tokens);
+      }).catch(() => []);
+      setBriefingTokens(tokens || []);
+
+      // Sincroniza cadastro a partir de envios públicos pendentes
+      for (const t of tokens || []) {
+        if (t.pending_client_sync && t.briefId) {
+          await syncClientFromPublicBriefing(t.briefId).catch(() => null);
+        }
+      }
 
     } catch (err) {
       console.error('Erro ao carregar briefings:', err);
@@ -83,6 +105,12 @@ export default function ClientBriefingPage() {
   useEffect(() => {
     loadClientBriefings();
   }, [loadClientBriefings]); // useEffect now depends on the memoized function
+
+  useEffect(() => {
+    if (loading || !briefingId) return;
+    const el = document.getElementById(`briefing-${briefingId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [loading, briefingId, briefings]);
 
   const getStatusBadge = (brief) => {
     const statusMap = {
@@ -113,6 +141,10 @@ export default function ClientBriefingPage() {
   };
 
   const handleCreateBriefing = () => {
+    navigate(`${createPageUrl('briefing-campanha')}?clientId=${clientId}`);
+  };
+
+  const handleCreateBriefingLegacy = () => {
     navigate(`${createPageUrl('briefing-editor')}?clientId=${clientId}`);
   };
 
@@ -121,20 +153,36 @@ export default function ClientBriefingPage() {
   };
 
   const handleGenerateToken = async () => {
+    if (!empresa) {
+      toast.error('Configure a empresa antes de gerar o link');
+      setEmpresaModalOpen(true);
+      return;
+    }
     try {
-      const { generatePublicBriefingToken } = await import('@/api/functions');
-      
-      await generatePublicBriefingToken({
+      setGeneratingLink(true);
+      const result = await generatePublicBriefingToken({
         clientId,
         language: 'pt',
-        expiresInHours: 168 // 7 dias
+        expiresInHours: 168,
+        reuseIfActiveExists: true,
+        agencyId,
       });
-      
-      // Recarregar tokens
+      const url = result.publicUrl || result.data?.publicUrl;
+      if (url && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      toast.success(
+        result.reused
+          ? 'Link ativo copiado (já existia)'
+          : 'Link gerado e copiado para a área de transferência'
+      );
       await loadClientBriefings();
     } catch (err) {
       console.error('Erro ao gerar token:', err);
+      toast.error(err.message || 'Erro ao gerar link público');
       setError('Erro ao gerar link público');
+    } finally {
+      setGeneratingLink(false);
     }
   };
 
@@ -170,13 +218,24 @@ export default function ClientBriefingPage() {
           </div>
           
           <div className="flex gap-2">
-            <Button onClick={handleGenerateToken} variant="outline">
-              <LinkIcon className="w-4 h-4 mr-2" />
+            <Button variant="outline" onClick={() => setEmpresaModalOpen(true)}>
+              <Building2 className="w-4 h-4 mr-2" />
+              {empresa ? 'Empresa' : 'Configurar Empresa'}
+            </Button>
+            <Button onClick={handleGenerateToken} variant="outline" disabled={generatingLink}>
+              {generatingLink ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <LinkIcon className="w-4 h-4 mr-2" />
+              )}
               Gerar Link Público
+            </Button>
+            <Button variant="outline" onClick={handleCreateBriefingLegacy}>
+              Briefing completo
             </Button>
             <Button onClick={handleCreateBriefing}>
               <Plus className="w-4 h-4 mr-2" />
-              Criar Briefing
+              Novo Briefing
             </Button>
           </div>
         </div>
@@ -210,13 +269,19 @@ export default function ClientBriefingPage() {
                 {briefings.map((brief) => (
                   <div
                     key={brief.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    id={`briefing-${brief.id}`}
+                    className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 ${
+                      briefingId === brief.id ? 'ring-2 ring-blue-500 border-blue-300' : ''
+                    }`}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-medium text-gray-900">
-                          Briefing Mestre
+                          {brief.nome_campanha || brief.title || 'Briefing'}
                         </h3>
+                        {brief.brief_kind === 'campanha_mensal' && (
+                          <Badge variant="secondary">Campanha</Badge>
+                        )}
                         {getStatusBadge(brief)}
                         {brief.completion_score !== undefined && (
                           <Badge variant="outline">
@@ -230,9 +295,9 @@ export default function ClientBriefingPage() {
                           <span> • Atualizado em {new Date(brief.updated_date).toLocaleDateString('pt-BR')}</span>
                         )}
                       </p>
-                      {brief.business_context && (
+                      {(brief.objetivo || brief.business_context) && (
                         <p className="text-sm text-gray-700 mt-1 line-clamp-2">
-                          {brief.business_context}
+                          {brief.objetivo || brief.business_context}
                         </p>
                       )}
                     </div>
@@ -320,6 +385,15 @@ export default function ClientBriefingPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfigurarEmpresaModal
+        open={empresaModalOpen}
+        onOpenChange={setEmpresaModalOpen}
+        clientId={clientId}
+        clientName={client?.name}
+        empresa={empresa}
+        onSaved={(saved) => setEmpresa(saved)}
+      />
     </ErrorBoundary>
   );
 }

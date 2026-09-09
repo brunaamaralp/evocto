@@ -1,117 +1,62 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   ArrowLeft,
-  Building, 
-  Plus, 
-  Zap, 
-  FileText, 
-  BarChart3,
+  Plus,
+  Zap,
+  FileText,
   CheckCircle,
   Circle,
   AlertCircle,
   Loader2,
   Target,
   Calendar,
-  Users,
-  Database
+  AlertTriangle,
+  Clock,
+  Database,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Client } from '@/api/entities';
-import { Service } from '@/api/entities';
-import { Link } from 'react-router-dom';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
+import useClientHubData from '@/hooks/useClientHubData';
+import ClientContextSidebar from '@/components/layout/ClientContextSidebar';
+import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
+import ClientExecutionPanel from '@/components/client/ClientExecutionPanel';
+import ClientKnowledgeSummary from '@/components/client/ClientKnowledgeSummary';
+import InviteClientModal from '@/components/client/InviteClientModal';
 
 export default function ClientDetailPage() {
-  const { user, agencyId, isAuthenticated } = useSession();
-  const [client, setClient] = useState(null);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { agencyId, isAuthenticated } = useSession();
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-  // CORREÇÃO: Leitura correta do parâmetro clientId da URL
-  const getClientIdFromUrl = () => {
+  const clientId = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const clientId = getUrlSearchParam(urlParams, 'clientId', 'id');
-    console.log('🔍 Debug URL params:', {
-      fullUrl: window.location.href,
-      search: window.location.search,
-      clientIdFromUrl: clientId,
-      allParams: Object.fromEntries(urlParams.entries())
-    });
-    return clientId;
-  };
-
-  const clientId = getClientIdFromUrl();
-
-  const loadClientData = useCallback(async () => {
-    if (!clientId || !agencyId) {
-      console.log('❌ Parâmetros faltando:', { clientId, agencyId });
-      setError(!clientId ? 'ID do cliente não encontrado na URL' : 'Agency ID não encontrado');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log('🔄 Carregando dados do cliente:', { clientId, agencyId });
-
-      // Carregar cliente
-      const clientData = await Client.get(clientId);
-      
-      if (!clientData) {
-        console.log('❌ Cliente não encontrado no banco:', clientId);
-        setError('Cliente não encontrado');
-        setLoading(false);
-        setClient(null); // Explicitly set client to null if not found
-        return;
-      }
-      
-      if (clientData.agencyId !== agencyId) {
-        console.log('❌ Cliente pertence a outra agência:', {
-          clientAgency: clientData.agencyId,
-          userAgency: agencyId
-        });
-        setError('Cliente não encontrado ou sem permissão de acesso');
-        setLoading(false);
-        setClient(null); // Explicitly set client to null if no permission
-        return;
-      }
-
-      console.log('✅ Cliente carregado:', clientData.name);
-      setClient(clientData);
-
-      // Carregar serviços do cliente
-      const clientServices = await Service.filter({
-        agencyId,
-        clientId,
-        is_template: false
-      });
-      
-      console.log('✅ Serviços carregados:', clientServices.length);
-      setServices(clientServices);
-
-    } catch (error) {
-      console.error('❌ Erro ao carregar dados do cliente:', error);
-      setError(`Erro ao carregar cliente: ${error.message}`);
-      setClient(null); // Ensure client is null on error
-    } finally {
-      setLoading(false);
-    }
-  }, [clientId, agencyId]);
+    return getUrlSearchParam(urlParams, 'clientId', 'id');
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated && agencyId) {
-      loadClientData();
-    } else {
-      console.log('⏳ Aguardando autenticação:', { isAuthenticated, agencyId });
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('open') === 'invite') {
+      setInviteModalOpen(true);
     }
-  }, [isAuthenticated, agencyId, loadClientData]);
+  }, []);
+
+  const {
+    client,
+    briefs,
+    documents,
+    learnings,
+    evolutionEvents,
+    loading,
+    error,
+    reload,
+    activeServices,
+    activeCycles,
+    attentionItems,
+    counts,
+  } = useClientHubData(clientId, agencyId);
 
   if (!isAuthenticated) {
     return (
@@ -126,18 +71,16 @@ export default function ClientDetailPage() {
 
   if (!clientId) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen p-6">
         <div className="text-center max-w-md">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">ID do cliente não encontrado</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            ID do cliente não encontrado
+          </h2>
           <p className="text-gray-600 mb-4">
-            Verifique se o link está correto ou se o cliente foi selecionado corretamente.
+            Abra o perfil a partir da lista de clientes.
           </p>
-          <div className="bg-gray-100 p-3 rounded text-xs text-left mb-4">
-            <p><strong>URL atual:</strong> {window.location.href}</p>
-            <p><strong>Parâmetros:</strong> {window.location.search}</p>
-          </div>
-          <Button asChild className="mt-4">
+          <Button asChild variant="outline">
             <Link to={createPageUrl('clients')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar aos Clientes
@@ -152,309 +95,276 @@ export default function ClientDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando dados do cliente...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Carregando perfil do cliente...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !client) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen p-6">
         <div className="text-center max-w-md">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao Carregar Cliente</h2>
-          <p className="text-red-600 mb-4">{error}</p>
-          
-          <div className="bg-gray-100 p-3 rounded text-xs text-left mb-4">
-            <p><strong>Debug Info:</strong></p>
-            <p>Client ID: {clientId || 'N/A'}</p>
-            <p>Agency ID: {agencyId || 'N/A'}</p>
-            <p>URL: {window.location.href}</p>
-            <p>Auth: {isAuthenticated ? 'Yes' : 'No'}</p>
-          </div>
-          
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Erro ao Carregar Cliente
+          </h2>
+          <p className="text-red-600 mb-4">{error || 'Cliente não encontrado'}</p>
           <div className="flex gap-2 justify-center">
             <Button asChild variant="outline">
               <Link to={createPageUrl('clients')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar aos Clientes
+                Clientes
               </Link>
             </Button>
-            <Button onClick={() => window.location.reload()}>
-              Tentar Novamente
-            </Button>
+            <Button onClick={reload}>Tentar novamente</Button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!client) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Cliente não encontrado</p>
-          <Button asChild className="mt-4" variant="outline">
-            <Link to={createPageUrl('clients')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar aos Clientes
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Setup checklist para clientes novos
+  const hasServices = activeServices.length > 0;
   const setupChecklist = [
     {
       id: 'services',
       title: 'Criar primeiro serviço',
       description: 'Defina qual serviço será prestado para este cliente',
-      completed: services.length > 0,
+      completed: hasServices,
       action: 'Criar Serviço',
-      href: createPageUrl(`services?action=new&clientId=${clientId}`)
+      href: createPageUrl(`services?action=new&clientId=${clientId}`),
     },
     {
       id: 'briefing',
       title: 'Preencher briefing',
       description: 'Colete informações detalhadas sobre o negócio do cliente',
-      completed: false, // TODO: verificar se tem briefing
+      completed: briefs.length > 0,
       action: 'Preencher Briefing',
-      href: createPageUrl(`briefing-editor?clientId=${clientId}`)
+      href: createPageUrl(`briefing-campanha?clientId=${clientId}`),
     },
     {
-      id: 'team',
+      id: 'invite',
       title: 'Convidar cliente para o portal',
       description: 'Permita que o cliente acesse seu portal exclusivo',
-      completed: false, // TODO: verificar se cliente tem acesso
+      completed: Boolean(client.portal_enabled || client.has_portal_access),
       action: 'Enviar Convite',
-      href: createPageUrl(`invites?action=invite-client&clientId=${clientId}`)
+      onClick: () => setInviteModalOpen(true),
     },
-    {
-      id: 'kpis',
-      title: 'Configurar KPIs',
-      description: 'Defina indicadores de performance para acompanhar',
-      completed: false, // TODO: verificar se tem KPIs
-      action: 'Configurar KPIs',
-      href: createPageUrl(`performance-kpis?clientId=${clientId}`)
-    }
   ];
 
-  const completedSteps = setupChecklist.filter(step => step.completed).length;
-  const isSetupComplete = completedSteps === setupChecklist.length;
+  const showSetup = !hasServices;
+  const completedSteps = setupChecklist.filter((step) => step.completed).length;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" size="sm">
-            <Link to={createPageUrl('clients')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Clientes
-            </Link>
-          </Button>
+    <div className="flex min-h-screen bg-gray-50">
+      <ClientContextSidebar
+        clientId={clientId}
+        client={client}
+        serviceCount={counts.services}
+      />
+
+      <main className="flex-1 min-w-0 p-6 space-y-6 overflow-auto">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
+            <p className="text-sm text-gray-500 mb-1">Perfil do cliente</p>
             <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
-            <p className="text-gray-600">{client.legal_name}</p>
+            {(client.legal_name || client.email) && (
+              <p className="text-gray-600">{client.legal_name || client.email}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={client.status === 'ativo' ? 'default' : 'secondary'}>
+              {client.status || '—'}
+            </Badge>
+            {counts.attention > 0 && (
+              <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                {counts.attention} atenção
+              </Badge>
+            )}
+            <Button asChild size="sm">
+              <Link to={createPageUrl(`services?action=new&clientId=${clientId}`)}>
+                <Plus className="w-4 h-4 mr-1" />
+                Novo serviço
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
+                <FileText className="w-4 h-4 mr-1" />
+                Novo briefing
+              </Link>
+            </Button>
           </div>
         </div>
-        <Badge variant={client.status === 'ativo' ? 'default' : 'secondary'}>
-          {client.status}
-        </Badge>
-      </div>
 
-      {/* Setup Guide (se não está completo) */}
-      {!isSetupComplete && (
-        <Card className="border-blue-200 bg-blue-50">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Serviços</p>
+                <p className="text-2xl font-bold">{counts.services}</p>
+              </div>
+              <Target className="h-7 w-7 text-blue-600" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Ciclos ativos</p>
+                <p className="text-2xl font-bold">{counts.cyclesActive}</p>
+              </div>
+              <Calendar className="h-7 w-7 text-green-600" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Aprovações</p>
+                <p className="text-2xl font-bold">{counts.approvalsPending}</p>
+              </div>
+              <Clock className="h-7 w-7 text-amber-600" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Merece atenção</p>
+                <p className="text-2xl font-bold">{counts.attention}</p>
+              </div>
+              <AlertTriangle className="h-7 w-7 text-red-500" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {showSetup && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900 text-base">
+                <Zap className="w-5 h-5" />
+                Configuração inicial ({completedSteps}/{setupChecklist.length})
+              </CardTitle>
+              <p className="text-blue-700 text-sm">
+                Complete estas etapas para começar a operar com {client.name}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {setupChecklist.map((step) => (
+                  <div
+                    key={step.id}
+                    className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                  >
+                    <div className="flex items-center gap-3">
+                      {step.completed ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-gray-400" />
+                      )}
+                      <div>
+                        <h4 className="font-medium text-gray-900">{step.title}</h4>
+                        <p className="text-sm text-gray-600">{step.description}</p>
+                      </div>
+                    </div>
+                    {!step.completed && (
+                      step.onClick ? (
+                        <Button size="sm" onClick={step.onClick}>
+                          <Plus className="w-4 h-4 mr-1" />
+                          {step.action}
+                        </Button>
+                      ) : (
+                        <Button asChild size="sm">
+                          <Link to={step.href}>
+                            <Plus className="w-4 h-4 mr-1" />
+                            {step.action}
+                          </Link>
+                        </Button>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <ClientAttentionPanel items={attentionItems} />
+          <ClientExecutionPanel
+            clientId={clientId}
+            activeServices={activeServices}
+            activeCycles={activeCycles}
+          />
+        </div>
+
+        <ClientKnowledgeSummary
+          clientId={clientId}
+          briefs={briefs}
+          learnings={learnings}
+          evolutionEvents={evolutionEvents}
+          documents={documents}
+          kpisCount={counts.kpis}
+        />
+
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-900">
-              <Zap className="w-5 h-5" />
-              Configuração Inicial ({completedSteps}/{setupChecklist.length})
-            </CardTitle>
-            <p className="text-blue-700 text-sm">
-              Complete estas etapas para começar a trabalhar com {client.name}
-            </p>
+            <CardTitle className="text-base">Ações rápidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {setupChecklist.map((step) => (
-                <div key={step.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+                <Link to={createPageUrl(`client-services?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    {step.completed ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-400" />
-                    )}
-                    <div>
-                      <h4 className="font-medium text-gray-900">{step.title}</h4>
-                      <p className="text-sm text-gray-600">{step.description}</p>
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Target className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Serviços</div>
+                      <div className="text-sm text-gray-500">Operação e ciclos</div>
                     </div>
                   </div>
-                  {!step.completed && (
-                    <Button asChild size="sm">
-                      <Link to={step.href}>
-                        <Plus className="w-4 h-4 mr-1" />
-                        {step.action}
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              ))}
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+                <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <FileText className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Briefing</div>
+                      <div className="text-sm text-gray-500">Contexto do negócio</div>
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 justify-start">
+                <Link to={createPageUrl(`client-learnings?clientId=${clientId}`)}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Database className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Aprendizados</div>
+                      <div className="text-sm text-gray-500">Base de conhecimento</div>
+                    </div>
+                  </div>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
-      )}
+      </main>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Serviços</p>
-                <p className="text-3xl font-bold">{services.length}</p>
-              </div>
-              <Target className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ciclos Ativos</p>
-                <p className="text-3xl font-bold">0</p>
-              </div>
-              <Calendar className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">KPIs</p>
-                <p className="text-3xl font-bold">0</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Documentos</p>
-                <p className="text-3xl font-bold">0</p>
-              </div>
-              <FileText className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button asChild variant="outline" className="h-auto p-4 justify-start">
-              <Link to={createPageUrl(`services?action=new&clientId=${clientId}`)}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Target className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">Novo Serviço</div>
-                    <div className="text-sm text-gray-500">Criar contrato de serviço</div>
-                  </div>
-                </div>
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="h-auto p-4 justify-start">
-              <Link to={createPageUrl(`briefing-editor?clientId=${clientId}`)}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <FileText className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">Briefing</div>
-                    <div className="text-sm text-gray-500">Coletar informações</div>
-                  </div>
-                </div>
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="h-auto p-4 justify-start">
-              <Link to={createPageUrl(`performance-kpis?clientId=${clientId}`)}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Database className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">KPIs</div>
-                    <div className="text-sm text-gray-500">Definir indicadores</div>
-                  </div>
-                </div>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Serviços */}
-      {services.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Serviços Ativos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {services.map((service) => (
-                <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{service.name}</h4>
-                    <p className="text-sm text-gray-600">{service.description}</p>
-                  </div>
-                  <Badge variant="outline">{service.service_status}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Empty State para Serviços */}
-      {services.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenhum serviço configurado
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Para começar a trabalhar com {client.name}, crie o primeiro serviço.
-            </p>
-            <Button asChild>
-              <Link to={createPageUrl(`services?action=new&clientId=${clientId}`)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeiro Serviço
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      <InviteClientModal
+        isOpen={inviteModalOpen}
+        onClose={() => {
+          setInviteModalOpen(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('open');
+          window.history.replaceState({}, '', url.toString());
+        }}
+        client={client}
+      />
     </div>
   );
 }

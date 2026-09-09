@@ -11,11 +11,27 @@ export const TABLE_MAP = {
   ApprovalRequest: 'approval_requests',
   Invite: 'invites',
   Profile: 'profiles',
+  // Perfil Vivo / conhecimento do cliente
+  ClientDocument: 'client_documents',
+  LearningEntry: 'learning_entries',
+  EvolutionEvent: 'evolution_events',
+  FinancialKPI: 'financial_kpis',
+  // Configuração padrão da empresa (campanhas mensais)
+  Empresa: 'empresas',
+  Notification: 'notifications',
+  AuditLog: 'audit_logs',
+  PublicBriefingToken: 'public_briefing_tokens',
+  PublicBriefingResponse: 'public_briefing_responses',
 };
 
 export const PHASE1_TABLES = Object.values(TABLE_MAP);
 
-/** Indexed / typed columns per table. Everything else goes into `payload` JSON. */
+/**
+ * Indexed / typed columns per table. Everything else goes into `payload` JSON.
+ *
+ * LearningEntry: código legado filtra por `projectId` (= clientId).
+ * Mantemos `projectId` e `clientId` indexados para alinhar schema novo e queries antigas.
+ */
 export const TABLE_COLUMNS = {
   profiles: ['agencyId', 'role', 'clientId', 'name', 'email', 'full_name', 'status'],
   agencies: ['agencyName', 'name', 'contactPhone', 'ownerEmail', 'status'],
@@ -32,10 +48,50 @@ export const TABLE_COLUMNS = {
     'startedAt',
   ],
   cycle_plans: ['agencyId', 'clientId', 'serviceId', 'status', 'title'],
-  briefs: ['agencyId', 'clientId', 'projectId', 'status', 'title'],
+  briefs: ['agencyId', 'clientId', 'projectId', 'empresaId', 'status', 'title'],
   briefing_templates: ['agencyId', 'name', 'isActive'],
+  empresas: ['agencyId', 'clientId', 'nome'],
+  notifications: ['agencyId', 'userId', 'type', 'subject', 'title'],
+  audit_logs: ['agencyId', 'entity_type', 'entity_id', 'action', 'actor_id'],
+  public_briefing_tokens: ['agencyId', 'clientId', 'serviceId', 'token', 'status', 'expiresAt'],
+  public_briefing_responses: ['agencyId', 'clientId', 'tokenId', 'briefId', 'status'],
   approval_requests: ['agencyId', 'clientId', 'status', 'token'],
   invites: ['agencyId', 'email', 'role', 'status'],
+  client_documents: [
+    'agencyId',
+    'clientId',
+    'serviceId',
+    'title',
+    'group',
+    'status',
+    'visibility',
+  ],
+  learning_entries: [
+    'agencyId',
+    'clientId',
+    'projectId',
+    'title',
+    'status',
+    'reviewed',
+    'confidence_score',
+  ],
+  evolution_events: [
+    'agencyId',
+    'clientId',
+    'serviceId',
+    'title',
+    'type',
+    'impact',
+    'date',
+  ],
+  financial_kpis: [
+    'agencyId',
+    'clientId',
+    'serviceId',
+    'name',
+    'status',
+    'is_current',
+  ],
 };
 
 export const BOOLEAN_COLUMNS = new Set([
@@ -46,6 +102,8 @@ export const BOOLEAN_COLUMNS = new Set([
   'is_recurrence_template',
   'reconciled',
   'financial_tx_sync_pending',
+  'reviewed',
+  'is_current',
 ]);
 
 export const DATETIME_COLUMNS = new Set([
@@ -59,4 +117,6 @@ export const DATETIME_COLUMNS = new Set([
   'paid_at',
   'issued_at',
   'imported_at',
+  'date',
+  'expiresAt',
 ]);

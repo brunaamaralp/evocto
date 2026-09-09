@@ -50,7 +50,7 @@ const STATUS_LABELS = {
   archived: 'Arquivado'
 };
 
-const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete }) => {
+const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highlighted = false }) => {
   const getFileIcon = (fileType) => {
     if (fileType?.includes('pdf')) return <File className="w-5 h-5 text-red-500" />;
     if (fileType?.includes('image')) return <Image className="w-5 h-5 text-blue-500" />;
@@ -67,7 +67,12 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete }) => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card
+      id={`document-${document.id}`}
+      className={`hover:shadow-lg transition-shadow ${
+        highlighted ? 'ring-2 ring-blue-500 border-blue-300' : ''
+      }`}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start gap-3 flex-1">
@@ -160,6 +165,7 @@ export default function ClientDocumentsPage() {
   const { user, agencyId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
+  const documentId = urlParams.get('documentId');
 
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
@@ -202,6 +208,14 @@ export default function ClientDocumentsPage() {
 
     loadData();
   }, [clientId, agencyId]);
+
+  useEffect(() => {
+    if (loading || !documentId) return;
+    const el = window.document.getElementById(`document-${documentId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [loading, documentId, documents]);
 
   const handleViewDocument = async (document) => {
     // TODO: Implementar visualização do documento
@@ -418,6 +432,7 @@ export default function ClientDocumentsPage() {
               <DocumentCard
                 key={document.id}
                 document={document}
+                highlighted={documentId === document.id}
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onEdit={handleEditDocument}

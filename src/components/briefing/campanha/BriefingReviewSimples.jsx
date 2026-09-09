@@ -1,0 +1,221 @@
+import React, { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Pencil, AlertTriangle, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession } from '@/components/auth/SessionManager';
+import EmpresaConfigResumo from './EmpresaConfigResumo';
+import EditarConfigCampanhaModal from './EditarConfigCampanhaModal';
+import CampoEditModal from './CampoEditModal';
+import { configFromEmpresa } from '@/lib/empresaConfig';
+import {
+  isCampanhaFormComplete,
+  notifyNovoBriefing,
+  saveCampanhaBriefing,
+} from '@/lib/campanhaBriefing';
+
+function ConfidenceBar({ value }) {
+  const pct = Math.max(0, Math.min(100, Number(value) || 0));
+  const color =
+    pct > 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-400' : 'bg-red-500';
+  const warn = pct < 70;
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="h-2 w-28 rounded-full bg-slate-200 overflow-hidden">
+        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs text-slate-600">{pct}%</span>
+      {warn ? (
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+      ) : (
+        <Check className="w-3.5 h-3.5 text-emerald-600" />
+      )}
+    </div>
+  );
+}
+
+const DETECT_FIELDS = [
+  { key: 'nome_campanha', parseKey: 'nome', label: '1. Nome da Campanha' },
+  { key: 'objetivo', parseKey: 'objetivo', label: '2. Objetivo Comercial' },
+  {
+    key: 'acoes_comerciais',
+    parseKey: 'acoes_comerciais',
+    label: '3. Ações Comerciais',
+  },
+  {
+    key: 'talento_locacao',
+    parseKey: 'talento_locacao',
+    label: '4. Quem Aparece / Locação',
+  },
+];
+
+/**
+ * Review dos 5 campos detectados + config automática.
+ */
+export default function BriefingReviewSimples({
+  clientId,
+  empresa,
+  parsed,
+  initialForm,
+  textoLivre,
+  onBack,
+  onSuccess,
+}) {
+  const { user, agencyId } = useSession();
+  const [form, setForm] = useState(() => ({ ...initialForm }));
+  const [configOverride, setConfigOverride] = useState(null);
+  const [editMesOpen, setEditMesOpen] = useState(false);
+  const [editField, setEditField] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const baseConfig = useMemo(() => configFromEmpresa(empresa), [empresa]);
+  const effectiveConfig = configOverride || baseConfig;
+  const canConfirm = isCampanhaFormComplete(form) && Boolean(empresa) && !saving;
+
+  const handleConfirm = async () => {
+    try {
+      setSaving(true);
+      const briefing = await saveCampanhaBriefing({
+        agencyId,
+        clientId,
+        empresa,
+        campanhaForm: form,
+        configOverride,
+        modo_criacao: 'texto_livre',
+        userId: user?.id || user?.$id || null,
+        texto_livre: textoLivre,
+      });
+      await notifyNovoBriefing({
+        agencyId,
+        briefing,
+        empresaNome: empresa?.nome,
+        actorUserId: user?.id || user?.$id,
+      });
+      toast.success('Briefing confirmado');
+      onSuccess?.(briefing);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao salvar. Tente novamente');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <EmpresaConfigResumo
+        config={effectiveConfig}
+        onEditMes={() => setEditMesOpen(true)}
+      />
+
+      <div>
+        <h3 className="text-sm font-semibold mb-4">Campos detectados</h3>
+        <div className="space-y-4">
+          {DETECT_FIELDS.map((field) => {
+            const detected = parsed?.[field.parseKey];
+            const low = (detected?.confianca || 0) < 70;
+            return (
+              <div key={field.key} className="rounded-lg border p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{field.label}</p>
+                    <Input
+                      className="mt-2"
+                      value={form[field.key] || ''}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, [field.key]: e.target.value }))
+                      }
+                    />
+                    {detected ? (
+                      <ConfidenceBar value={detected.confianca} />
+                    ) : (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Não detectado — preencha manualmente
+                      </p>
+                    )}
+                    {low && detected && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        Confiança baixa — revise antes de confirmar
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditField(field.key)}
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1" />
+                    {low || !detected ? 'Revisar' : 'Editar'}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="rounded-lg border p-3 space-y-3">
+            <p className="text-sm font-medium">5. Data de Gravação</p>
+            {parsed?.data && <ConfidenceBar value={parsed.data.confianca} />}
+            {parsed?.data?.valor && (
+              <p className="text-xs text-slate-500">Detectado: {parsed.data.valor}</p>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Início</Label>
+                <Input
+                  type="date"
+                  value={form.data_gravacao_inicio || ''}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, data_gravacao_inicio: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Fim</Label>
+                <Input
+                  type="date"
+                  value={form.data_gravacao_fim || ''}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, data_gravacao_fim: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button disabled={!canConfirm} onClick={handleConfirm}>
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          Confirmar Briefing
+        </Button>
+        <Button type="button" variant="outline" onClick={onBack}>
+          ← Voltar
+        </Button>
+      </div>
+
+      <EditarConfigCampanhaModal
+        open={editMesOpen}
+        onOpenChange={setEditMesOpen}
+        value={effectiveConfig}
+        onSave={setConfigOverride}
+      />
+
+      <CampoEditModal
+        open={Boolean(editField)}
+        onOpenChange={(o) => !o && setEditField(null)}
+        fieldKey={editField || 'nome_campanha'}
+        detectedValue={
+          DETECT_FIELDS.find((f) => f.key === editField)
+            ? parsed?.[DETECT_FIELDS.find((f) => f.key === editField).parseKey]?.valor
+            : ''
+        }
+        currentValue={editField ? form[editField] : ''}
+        onSave={(val) => setForm((p) => ({ ...p, [editField]: val }))}
+      />
+    </div>
+  );
+}

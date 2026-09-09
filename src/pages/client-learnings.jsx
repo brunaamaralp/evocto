@@ -35,13 +35,19 @@ export default function ClientLearningsPage() {
       try {
         setLoading(true);
         
-        const [clientData, learningsData] = await Promise.all([
+        const [clientData, learningsByProject, learningsByClient] = await Promise.all([
           Client.get(clientId),
-          LearningEntry.filter({ agencyId, projectId: clientId }, '-created_date')
+          LearningEntry.filter({ agencyId, projectId: clientId }, '-created_date').catch(() => []),
+          LearningEntry.filter({ agencyId, clientId }, '-created_date').catch(() => []),
         ]);
 
+        const map = new Map();
+        for (const item of [...(learningsByProject || []), ...(learningsByClient || [])]) {
+          if (item?.id) map.set(item.id, item);
+        }
+
         setClient(clientData);
-        setLearnings(learningsData || []);
+        setLearnings(Array.from(map.values()));
         
       } catch (error) {
         console.error('Erro ao carregar dados:', error);

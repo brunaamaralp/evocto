@@ -28,12 +28,17 @@ import {
   Loader2, Calendar, Paperclip, CheckSquare, X, Send, 
   User as UserIcon, AlertCircle, MessageCircle, Clock,
   Flag, Eye, Hash, AtSign, Check, Save, ExternalLink,
-  Building2, ArrowRight, Zap, MoreVertical, Edit, Trash2, Plus
+  Building2, ArrowRight, Zap, MoreVertical, Edit, Trash2, Plus, Link2, History
 } from "lucide-react";
 // import ReactQuill from "react-quill"; // Removido - não instalado
 import { toast } from "sonner";
 import TaskTimerButton from "@/components/tasks/TaskTimerButton";
 import TaskTimeSessionsPanel from "@/components/tasks/TaskTimeSessionsPanel";
+import TaskDependencies from "@/components/tasks/TaskDependencies";
+import TaskHistory from "@/components/tasks/TaskHistory";
+import { transitionTaskStatus } from "@/lib/taskStatusTransition";
+import { appendAssignmentHistoryEntry } from "@/lib/taskActivityHistory";
+import TaskNotificationService from "@/components/notifications/TaskNotificationService";
 
 // Status mapping para o Kanban
 const STATUS_CONFIG = {
@@ -195,22 +200,18 @@ export default function TaskDrawer() {
     setError("");
     
     try {
-      const payload = { 
-        status: newStatus,
-        kanbanColumn: newStatus
-      };
-      
-      if (newStatus === 'completed') {
-        payload.completedAt = new Date().toISOString();
-        payload.actualHours = task.actualHours || task.estimatedHours || 0;
-        payload.progress = 100;
-      } else if (task.status === 'completed' && newStatus !== 'completed') {
-        payload.completedAt = null;
-        payload.actualHours = null;
-        payload.progress = 0;
+      const result = await transitionTaskStatus(task, newStatus, {
+        agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+        user,
+      });
+
+      if (!result.success) {
+        toast.error(result.message || 'Não é possível alterar o status');
+        setError(result.message || 'Dependências não resolvidas');
+        return;
       }
 
-      const updated = await Task.update(task.id, payload);
+      const updated = result.task;
       setTask(updated);
       setCurrentStatus(newStatus);
       setHasUnsavedChanges(false);
@@ -259,13 +260,23 @@ export default function TaskDrawer() {
     setError("");
     
     try {
+      const previousAssignee = task.assignedTo || task.assigneeId || null;
       const payload = {
         description: descHTML,
         assignedTo: assignee || null,
+        assigneeId: assignee || null,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         priority: priority || "medium",
         status: currentStatus
       };
+
+      if (String(previousAssignee || '') !== String(assignee || '')) {
+        payload.statusHistory = appendAssignmentHistoryEntry(task, {
+          assigneeId: assignee || null,
+          previousAssigneeId: previousAssignee,
+          user,
+        });
+      }
       
       const updated = await Task.update(task.id, payload);
       setTask(updated);
@@ -277,10 +288,14 @@ export default function TaskDrawer() {
       });
 
       const changes = [];
-      if (task.assignedTo !== assignee) {
+      if (String(previousAssignee || '') !== String(assignee || '')) {
         const newUser = users.find(u => u.id === assignee);
-        const oldUser = users.find(u => u.id === task.assignedTo);
+        const oldUser = users.find(u => u.id === previousAssignee);
         changes.push(`Responsável: ${oldUser?.full_name || 'Sem responsável'} → ${newUser?.full_name || 'Sem responsável'}`);
+        await TaskNotificationService.createTaskAssignedNotification(
+          { ...updated, assignedTo: assignee },
+          user
+        ).catch(() => {});
       }
       if (task.priority !== priority) {
         changes.push(`Prioridade: ${PRIORITY_CONFIG[task.priority]?.label || task.priority} → ${PRIORITY_CONFIG[priority]?.label || priority}`);
@@ -771,7 +786,7 @@ export default function TaskDrawer() {
           <>
             <div className="flex-1 overflow-hidden px-6 pt-4">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsList className="grid w-full grid-cols-5 mb-4">
                   <TabsTrigger value="details" className="flex items-center gap-2">
                     <Eye className="w-4 h-4" />
                     <span className="hidden sm:inline">Detalhes</span>
@@ -784,6 +799,19 @@ export default function TaskDrawer() {
                         {progressChecklist}%
                       </Badge>
                     )}
+                  </TabsTrigger>
+                  <TabsTrigger value="dependencies" className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Deps</span>
+                    {task.dependencies?.length > 0 && (
+                      <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
+                        {task.dependencies.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    <span className="hidden sm:inline">Histórico</span>
                   </TabsTrigger>
                   <TabsTrigger value="comments" className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
@@ -1068,6 +1096,24 @@ export default function TaskDrawer() {
                         </div>
                       )}
                     </div>
+                  </TabsContent>
+
+                  <TabsContent value="dependencies" className="space-y-4 pb-4">
+                    <TaskDependencies
+                      task={task}
+                      onUpdate={async (updatedTask) => {
+                        if (updatedTask?.id) {
+                          setTask(updatedTask);
+                          return;
+                        }
+                        const refreshed = await Task.get(task.id);
+                        setTask(refreshed);
+                      }}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="history" className="space-y-4 pb-4">
+                    <TaskHistory task={task} />
                   </TabsContent>
 
                   {/* Comentários Tab */}

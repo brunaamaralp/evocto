@@ -126,9 +126,15 @@ export const proposeBriefingUpdates = notMigrated('proposeBriefingUpdates');
 export const fixClientAgencyIds = notMigrated('fixClientAgencyIds');
 export const exportLearningsToCSV = notMigrated('exportLearningsToCSV');
 export const validateBriefingResponse = notMigrated('validateBriefingResponse');
-export const generatePublicBriefingToken = notMigrated('generatePublicBriefingToken');
-export const validatePublicBriefingToken = notMigrated('validatePublicBriefingToken');
-export const savePublicBriefingResponse = notMigrated('savePublicBriefingResponse');
+
+export {
+  generatePublicBriefingToken,
+  validatePublicBriefingToken,
+  savePublicBriefingResponse,
+  revokePublicBriefingToken,
+  syncClientFromPublicBriefing,
+} from '../functions/publicBriefing.js';
+
 export const sendInvite = notMigrated('sendInvite');
 export const acceptInvite = notMigrated('acceptInvite');
 export const analyzeSentiment = notMigrated('analyzeSentiment');
@@ -187,7 +193,6 @@ export const createDefaultServiceTemplates = notMigrated('createDefaultServiceTe
 export const workflowEngine = notMigrated('workflowEngine');
 export const workflowOrchestrator = notMigrated('workflowOrchestrator');
 export const workflowTriggers = notMigrated('workflowTriggers');
-export const revokePublicBriefingToken = notMigrated('revokePublicBriefingToken');
 export const testBriefingFlow = notMigrated('testBriefingFlow');
 export const calculateKPIs = notMigrated('calculateKPIs');
 export const validateKPIFormula = notMigrated('validateKPIFormula');

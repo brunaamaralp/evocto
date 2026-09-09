@@ -31,13 +31,18 @@ export default function DeliveryWorkspaceSchedule({ service, tasks = [], onServi
   }, [service?.id, service?.deliverables, service?.start_date]);
 
   const rows = useMemo(() => {
-    return localDeliverables.map((d) => {
+    return localDeliverables.map((d, index) => {
       const stageTasks = tasks.filter((t) => String(t.deliverableId) === String(d.id));
       const done = stageTasks.filter((t) => t.status === 'completed').length;
       const pct = stageTasks.length ? Math.round((done / stageTasks.length) * 100) : 0;
+      const weekNum =
+        (String(d.description || '').match(/semana\s*(\d)/i) || [])[1] ||
+        String(index + 1);
       return {
         id: d.id,
         name: d.name,
+        weekLabel: `S${weekNum}`,
+        phase: d.phase || null,
         planned_start: d.planned_start,
         planned_end: d.planned_end,
         duration_business_days: d.duration_business_days || 7,

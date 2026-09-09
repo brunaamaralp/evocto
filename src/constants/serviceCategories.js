@@ -49,6 +49,12 @@ export const SERVICE_OFFERING_TYPES = {
     category: 'marketing_digital',
     legacyKeys: ['gestao_360', 'gestao_financeira_360'],
   },
+  ciclo_mensal_4_semanas: {
+    key: 'ciclo_mensal_4_semanas',
+    label: 'Ciclo Mensal 4 Semanas',
+    category: 'marketing_digital',
+    legacyKeys: [],
+  },
 };
 
 export const SERVICE_OFFERING_KEYS = Object.keys(SERVICE_OFFERING_TYPES);

@@ -54,6 +54,11 @@ const tables = new TablesDB(client);
 const storage = new Storage(client);
 
 const tablePerms = [Permission.create(Role.users())];
+const publicTablePerms = [
+  Permission.create(Role.users()),
+  Permission.read(Role.any()),
+  Permission.update(Role.any()),
+];
 
 const TABLES = [
   {
@@ -163,11 +168,78 @@ const TABLES = [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'clientId', type: 'varchar', size: 36 },
       { key: 'projectId', type: 'varchar', size: 36 },
+      { key: 'empresaId', type: 'varchar', size: 36 },
       { key: 'status', type: 'varchar', size: 32 },
       { key: 'title', type: 'varchar', size: 255 },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'status'],
+    indexes: ['agencyId', 'clientId', 'empresaId', 'status'],
+  },
+  {
+    id: 'empresas',
+    name: 'Empresas',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'nome', type: 'varchar', size: 255 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'nome'],
+  },
+  {
+    id: 'notifications',
+    name: 'Notifications',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'userId', type: 'varchar', size: 64 },
+      { key: 'type', type: 'varchar', size: 64 },
+      { key: 'subject', type: 'varchar', size: 255 },
+      { key: 'title', type: 'varchar', size: 255 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'userId', 'type'],
+  },
+  {
+    id: 'audit_logs',
+    name: 'Audit Logs',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'entity_type', type: 'varchar', size: 64 },
+      { key: 'entity_id', type: 'varchar', size: 36 },
+      { key: 'action', type: 'varchar', size: 64 },
+      { key: 'actor_id', type: 'varchar', size: 64 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'entity_type', 'entity_id', 'action', 'actor_id'],
+  },
+  {
+    id: 'public_briefing_tokens',
+    name: 'Public Briefing Tokens',
+    permissions: 'public',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'token', type: 'varchar', size: 128 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'expiresAt', type: 'datetime' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'token', 'status'],
+  },
+  {
+    id: 'public_briefing_responses',
+    name: 'Public Briefing Responses',
+    permissions: 'public',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'tokenId', type: 'varchar', size: 36 },
+      { key: 'briefId', type: 'varchar', size: 36 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'tokenId', 'briefId', 'status'],
   },
   {
     id: 'briefing_templates',
@@ -203,6 +275,66 @@ const TABLES = [
       { key: 'payload', type: 'mediumtext' },
     ],
     indexes: ['agencyId', 'email', 'status'],
+  },
+  {
+    id: 'client_documents',
+    name: 'Client Documents',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'title', type: 'varchar', size: 255 },
+      { key: 'group', type: 'varchar', size: 64 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'visibility', type: 'varchar', size: 32 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'serviceId', 'group', 'status'],
+  },
+  {
+    id: 'learning_entries',
+    name: 'Learning Entries',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      // Legado: projectId === clientId em várias telas do hub
+      { key: 'projectId', type: 'varchar', size: 36 },
+      { key: 'title', type: 'varchar', size: 255 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'reviewed', type: 'boolean' },
+      { key: 'confidence_score', type: 'varchar', size: 16 },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'projectId', 'reviewed', 'status'],
+  },
+  {
+    id: 'evolution_events',
+    name: 'Evolution Events',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'title', type: 'varchar', size: 255 },
+      { key: 'type', type: 'varchar', size: 64 },
+      { key: 'impact', type: 'varchar', size: 32 },
+      { key: 'date', type: 'datetime' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'type', 'date'],
+  },
+  {
+    id: 'financial_kpis',
+    name: 'Financial KPIs',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'name', type: 'varchar', size: 255 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'is_current', type: 'boolean' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'serviceId', 'is_current'],
   },
 ];
 
@@ -335,18 +467,31 @@ async function main() {
   DATABASE_ID = await resolveDatabaseId();
 
   for (const table of TABLES) {
+    const perms = table.permissions === 'public' ? publicTablePerms : tablePerms;
     try {
       await tables.createTable({
         databaseId: DATABASE_ID,
         tableId: table.id,
         name: table.name,
-        permissions: tablePerms,
+        permissions: perms,
         rowSecurity: true,
       });
       console.log(`Tabela ${table.id} criada`);
     } catch (error) {
       if (!isConflict(error)) throw error;
       console.log(`Tabela ${table.id} já existe`);
+      try {
+        await tables.updateTable({
+          databaseId: DATABASE_ID,
+          tableId: table.id,
+          name: table.name,
+          permissions: perms,
+          rowSecurity: true,
+        });
+        console.log(`  permissões atualizadas (${table.permissions === 'public' ? 'public' : 'users'})`);
+      } catch (updErr) {
+        console.warn(`  não atualizou permissões:`, updErr.message);
+      }
     }
 
     for (const col of table.columns) {

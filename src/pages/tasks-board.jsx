@@ -1,17 +1,19 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Task } from "@/api/entities";
 import { Client } from "@/api/entities";
-import { CyclePlan } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TaskFilters from "@/components/tasks/TaskFilters";
 import TimeTracker from "@/components/tasks/TimeTracker";
 import { Input } from "@/components/ui/input";
-// import { DndContext } from "@hello-pangea/dnd";
-// import { arrayMove, SortableContext, verticalListSortingStrategy } from "@hello-pangea/dnd";
 import { GripVertical, Plus, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/components/auth/SessionManager";
+import {
+  EMPTY_TASK_FILTERS,
+  applyTaskFilters,
+} from "@/lib/taskFilterPresets";
 
 const STATUSES = ["backlog", "todo", "in_progress", "in_review", "completed"];
 
@@ -52,33 +54,28 @@ function TaskCard({ task, onUpdateTitle }) {
 }
 
 export default function TasksBoardPage() {
+  const { user, agencyId } = useSession();
+  const currentUserId = user?.id || user?.data?.id;
   const [tasks, setTasks] = useState([]);
   const [assignees, setAssignees] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [cycles, setCycles] = useState([]);
-  const [filters, setFilters] = useState({ q: "", assignedTo: "all", clientId: "all", cycleId: "all" });
+  const [filters, setFilters] = useState({ ...EMPTY_TASK_FILTERS });
   const [columns, setColumns] = useState(() => {
     const init = {};
     STATUSES.forEach(s => { init[s] = []; });
     return init;
   });
 
-  // const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-
   const load = useCallback(async () => {
-    const [ts, cls, cyc, us] = await Promise.all([
-      Task.filter({}, "-updated_date", 200),
+    const [ts, cls, us] = await Promise.all([
+      Task.filter(agencyId ? { agencyId } : {}, "-updated_date", 200),
       Client.list("-updated_date", 200),
-      CyclePlan.list("-updated_date", 200),
-      User.filter({})
+      User.filter(agencyId ? { agencyId } : {})
     ]);
-    const clientMap = new Map(cls.map(c => [c.id, c]));
+    const clientMap = new Map((cls || []).map(c => [c.id, c]));
     const enhanced = (ts || []).map(t => ({ ...t, client: clientMap.get(t.clientId) || null }));
     setTasks(enhanced);
     setAssignees(us || []);
-    setClients(cls || []);
-    setCycles(cyc || []);
-  }, []);
+  }, [agencyId]);
 
   useEffect(() => {
     load();
@@ -87,16 +84,9 @@ export default function TasksBoardPage() {
     return () => window.removeEventListener("task:refresh", handler);
   }, [load]);
 
-  // Filter tasks
   const filtered = useMemo(() => {
-    return tasks.filter(t => {
-      if (filters.q && !t.title.toLowerCase().includes(filters.q.toLowerCase())) return false;
-      if (filters.assignedTo !== "all" && (t.assignedTo || t.assigneeId || "") !== filters.assignedTo) return false;
-      if (filters.clientId !== "all" && (t.clientId || "") !== filters.clientId) return false;
-      if (filters.cycleId !== "all" && (t.cycleId || "") !== filters.cycleId) return false;
-      return true;
-    });
-  }, [tasks, filters]);
+    return tasks.filter((t) => applyTaskFilters(t, filters, { userId: currentUserId }));
+  }, [tasks, filters, currentUserId]);
 
   // Build columns
   useEffect(() => {
@@ -139,11 +129,11 @@ export default function TasksBoardPage() {
       </div>
 
       <TaskFilters
-        assignees={assignees}
-        clients={clients}
-        cycles={cycles}
         filters={filters}
-        onChange={setFilters}
+        onFiltersChange={setFilters}
+        tasks={tasks}
+        users={assignees}
+        currentUserId={currentUserId}
       />
 
       {/* <DndContext onDragEnd={onDragEnd}> */}

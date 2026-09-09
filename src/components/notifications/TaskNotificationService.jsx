@@ -13,24 +13,22 @@ export class TaskNotificationService {
    * Criar notificação quando tarefa é atribuída
    */
   static async createTaskAssignedNotification(task, assignedByUser) {
-    if (!task.assignedTo || task.assignedTo === assignedByUser.id) return;
+    const assigneeId = task.assignedTo || task.assigneeId;
+    if (!assigneeId || assigneeId === assignedByUser?.id) return;
 
     try {
       const client = await Client.get(task.clientId);
       
       await Notification.create({
         agencyId: task.agencyId,
-        userId: task.assignedTo,
+        userId: task.assignedTo || task.assigneeId,
         type: 'task_assigned',
-        subject: {
-          type: 'task',
-          id: task.id
-        },
+        subject: `task:${task.id}`,
         title: 'Nova tarefa atribuída',
         context: `${task.title} - ${client?.name || 'Cliente'}`,
         href: `/tasks-manager?task=${task.id}`,
         severity: task.priority === 'urgent' ? 'critical' : task.priority === 'high' ? 'warn' : 'info',
-        dedupKey: `task_assigned_${task.id}_${task.assignedTo}`,
+        dedupKey: `task_assigned_${task.id}_${task.assignedTo || task.assigneeId}`,
         metadata: {
           taskId: task.id,
           taskTitle: task.title,

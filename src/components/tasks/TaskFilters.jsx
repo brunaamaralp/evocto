@@ -1,76 +1,118 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   X,
   User,
-  Calendar,
   Flag,
-  Layers
+  Layers,
+  Calendar,
 } from 'lucide-react';
+import {
+  EMPTY_TASK_FILTERS,
+  TASK_FILTER_PRESETS,
+  buildAssigneeOptions,
+  buildPhaseOptions,
+} from '@/lib/taskFilterPresets';
 
 /**
  * Componente de filtros unificados para todas as visualizações
  */
-export default function TaskFilters({ filters, onFiltersChange, tasks }) {
-  // Extrair opções únicas dos dados
-  const assignees = [...new Set(tasks.map(t => t.assigneeName).filter(Boolean))];
-  const phases = [...new Set(tasks.map(t => t.deliverableName).filter(Boolean))];
-  const statuses = [...new Set(tasks.map(t => t.status))];
-  const priorities = [...new Set(tasks.map(t => t.priority))];
+export default function TaskFilters({
+  filters,
+  onFiltersChange,
+  tasks = [],
+  users = [],
+  currentUserId,
+}) {
+  const assigneeOptions = useMemo(
+    () => buildAssigneeOptions(tasks, users),
+    [tasks, users]
+  );
+  const phaseOptions = useMemo(() => buildPhaseOptions(tasks), [tasks]);
+  const statuses = [...new Set(tasks.map((t) => t.status).filter(Boolean))];
+  const priorities = [...new Set(tasks.map((t) => t.priority).filter(Boolean))];
 
   const handleFilterChange = (key, value) => {
-    onFiltersChange(prev => ({
+    onFiltersChange((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
+      preset: null,
     }));
   };
 
   const clearFilters = () => {
-    onFiltersChange({
-      status: 'all',
-      assignee: 'all',
-      phase: 'all',
-      priority: 'all',
-      search: ''
-    });
+    onFiltersChange({ ...EMPTY_TASK_FILTERS });
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => 
-    value !== 'all' && value !== ''
-  );
+  const applyPreset = (preset) => {
+    const next = preset.apply({ userId: currentUserId });
+    onFiltersChange(next);
+  };
+
+  const hasActiveFilters = Object.entries(filters || {}).some(([key, value]) => {
+    if (key === 'preset') return Boolean(value);
+    return value !== 'all' && value !== '' && value != null;
+  });
+
+  const assigneeLabel =
+    filters.assignee === 'unassigned'
+      ? 'Sem responsável'
+      : assigneeOptions.find((a) => a.id === filters.assignee)?.label || filters.assignee;
+
+  const phaseLabel =
+    phaseOptions.find((p) => p.id === filters.phase)?.label || filters.phase;
 
   return (
     <Card className="mx-4 sm:mx-0">
-      <CardContent className="p-3 sm:p-4">
-        {/* Busca - Sempre visível */}
-        <div className="mb-3 sm:mb-0 sm:flex-1 sm:min-w-[200px]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Buscar tarefas..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="pl-10 w-full"
-            />
-          </div>
+      <CardContent className="p-3 sm:p-4 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {TASK_FILTER_PRESETS.map((preset) => {
+            const disabled = preset.id.startsWith('my_') && !currentUserId;
+            const active = filters.preset === preset.id;
+            return (
+              <Button
+                key={preset.id}
+                type="button"
+                size="sm"
+                variant={active ? 'default' : 'outline'}
+                disabled={disabled}
+                onClick={() => applyPreset(preset)}
+                className="text-xs"
+              >
+                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                {preset.label}
+              </Button>
+            );
+          })}
         </div>
 
-        {/* Filtros em Grid Responsivo */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar tarefas..."
+            value={filters.search || ''}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
+
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-4">
-          {/* Filtro de Status */}
-          <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+          <Select
+            value={filters.status || 'all'}
+            onValueChange={(value) => handleFilterChange('status', value)}
+          >
             <SelectTrigger className="w-full sm:w-[140px] text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              {statuses.map(status => (
+              {statuses.map((status) => (
                 <SelectItem key={status} value={status}>
                   {getStatusLabel(status)}
                 </SelectItem>
@@ -78,44 +120,51 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
             </SelectContent>
           </Select>
 
-          {/* Filtro de Responsável */}
-          <Select value={filters.assignee} onValueChange={(value) => handleFilterChange('assignee', value)}>
+          <Select
+            value={filters.assignee || 'all'}
+            onValueChange={(value) => handleFilterChange('assignee', value)}
+          >
             <SelectTrigger className="w-full sm:w-[160px] text-sm">
               <SelectValue placeholder="Responsável" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              {assignees.map(assignee => (
-                <SelectItem key={assignee} value={assignee}>
-                  {assignee}
+              <SelectItem value="unassigned">Sem responsável</SelectItem>
+              {assigneeOptions.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          {/* Filtro de Fase */}
-          <Select value={filters.phase} onValueChange={(value) => handleFilterChange('phase', value)}>
+          <Select
+            value={filters.phase || 'all'}
+            onValueChange={(value) => handleFilterChange('phase', value)}
+          >
             <SelectTrigger className="w-full sm:w-[140px] text-sm">
               <SelectValue placeholder="Fase" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              {phases.map(phase => (
-                <SelectItem key={phase} value={phase}>
-                  {phase}
+              {phaseOptions.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          {/* Filtro de Prioridade */}
-          <Select value={filters.priority} onValueChange={(value) => handleFilterChange('priority', value)}>
+          <Select
+            value={filters.priority || 'all'}
+            onValueChange={(value) => handleFilterChange('priority', value)}
+          >
             <SelectTrigger className="w-full sm:w-[140px] text-sm">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              {priorities.map(priority => (
+              {priorities.map((priority) => (
                 <SelectItem key={priority} value={priority}>
                   {getPriorityLabel(priority)}
                 </SelectItem>
@@ -123,11 +172,23 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
             </SelectContent>
           </Select>
 
-          {/* Botão Limpar Filtros */}
+          <Select
+            value={filters.dueRange || 'all'}
+            onValueChange={(value) => handleFilterChange('dueRange', value)}
+          >
+            <SelectTrigger className="w-full sm:w-[150px] text-sm">
+              <SelectValue placeholder="Vencimento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Qualquer data</SelectItem>
+              <SelectItem value="this_week">Esta semana</SelectItem>
+            </SelectContent>
+          </Select>
+
           {hasActiveFilters && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={clearFilters}
               className="col-span-2 sm:col-span-1 w-full sm:w-auto"
             >
@@ -137,9 +198,14 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
           )}
         </div>
 
-        {/* Indicadores de Filtros Ativos */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2">
+            {filters.preset && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {TASK_FILTER_PRESETS.find((p) => p.id === filters.preset)?.label || filters.preset}
+              </Badge>
+            )}
             {filters.status !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Filter className="w-3 h-3" />
@@ -149,13 +215,13 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
             {filters.assignee !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <User className="w-3 h-3" />
-                Responsável: {filters.assignee}
+                Responsável: {assigneeLabel}
               </Badge>
             )}
             {filters.phase !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Layers className="w-3 h-3" />
-                Fase: {filters.phase}
+                Fase: {phaseLabel}
               </Badge>
             )}
             {filters.priority !== 'all' && (
@@ -164,10 +230,16 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
                 Prioridade: {getPriorityLabel(filters.priority)}
               </Badge>
             )}
+            {filters.dueRange === 'this_week' && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                Esta semana
+              </Badge>
+            )}
             {filters.search && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Search className="w-3 h-3" />
-                Busca: "{filters.search}"
+                Busca: &quot;{filters.search}&quot;
               </Badge>
             )}
           </div>
@@ -177,26 +249,25 @@ export default function TaskFilters({ filters, onFiltersChange, tasks }) {
   );
 }
 
-// Funções auxiliares
 function getStatusLabel(status) {
   const labels = {
-    'backlog': 'Backlog',
-    'todo': 'A Fazer',
-    'in_progress': 'Em Progresso',
-    'in_review': 'Em Revisão',
-    'completed': 'Concluído',
-    'cancelled': 'Cancelado',
-    'blocked': 'Bloqueado'
+    backlog: 'Backlog',
+    todo: 'A Fazer',
+    in_progress: 'Em Progresso',
+    in_review: 'Em Revisão',
+    completed: 'Concluído',
+    cancelled: 'Cancelado',
+    blocked: 'Bloqueado',
   };
   return labels[status] || status;
 }
 
 function getPriorityLabel(priority) {
   const labels = {
-    'low': 'Baixa',
-    'medium': 'Média',
-    'high': 'Alta',
-    'urgent': 'Urgente'
+    low: 'Baixa',
+    medium: 'Média',
+    high: 'Alta',
+    urgent: 'Urgente',
   };
   return labels[priority] || priority;
 }

@@ -19,14 +19,17 @@ import {
   Trash2,
   Download,
   Upload,
-  Settings
+  Settings,
+  CalendarPlus
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Service } from '@/api/entities';
 import { toast } from 'sonner';
 import ServiceTemplateForm from '@/components/services/ServiceTemplateForm';
 import ImportTemplateModal from '@/components/services/ImportTemplateModal';
+import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
+import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
@@ -38,11 +41,15 @@ export default function ServiceTemplatesPage() {
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showNewCycleWizard, setShowNewCycleWizard] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
 
   const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
+      await ensureCicloMensalTemplate(agencyId).catch((err) => {
+        console.warn('Falha ao garantir template Ciclo Mensal:', err);
+      });
       const templatesData = await Service.filter({ 
         agencyId, 
         is_template: true 
@@ -169,7 +176,15 @@ export default function ServiceTemplatesPage() {
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setShowNewCycleWizard(true)}
+            className="flex items-center"
+          >
+            <CalendarPlus className="w-4 h-4 mr-2" />
+            Novo ciclo do mês
+          </Button>
           <Button 
             variant="outline" 
             onClick={handleExport}
@@ -318,6 +333,12 @@ export default function ServiceTemplatesPage() {
           loadTemplates();
           setShowImportModal(false);
         }}
+      />
+
+      <NewMonthCycleWizard
+        open={showNewCycleWizard}
+        onOpenChange={setShowNewCycleWizard}
+        onSuccess={() => loadTemplates()}
       />
     </div>
   );

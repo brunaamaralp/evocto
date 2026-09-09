@@ -29,6 +29,12 @@ import TaskPhaseView from './TaskPhaseView';
 import TaskCalendarView from './TaskCalendarView';
 import TaskFilters from './TaskFilters';
 import TaskForm from './TaskForm';
+import WorkloadByPersonPanel from './WorkloadByPersonPanel';
+import {
+  EMPTY_TASK_FILTERS,
+  applyTaskFilters,
+} from '@/lib/taskFilterPresets';
+import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 
 /**
  * Componente principal de tarefas com 4 visualizações
@@ -41,13 +47,9 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
   const [activeView, setActiveView] = useState(getDefaultView(userRole));
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [filters, setFilters] = useState({
-    status: 'all',
-    assignee: 'all',
-    phase: 'all',
-    priority: 'all',
-    search: ''
-  });
+  const [filters, setFilters] = useState({ ...EMPTY_TASK_FILTERS });
+
+  const currentUserId = user?.id || user?.data?.id;
 
   // Definir visão padrão por perfil
   function getDefaultView(role) {
@@ -86,35 +88,10 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
 
   // Aplicar filtros
   const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
-      // Filtro de status
-      if (filters.status !== 'all' && task.status !== filters.status) {
-        return false;
-      }
-
-      // Filtro de responsável
-      if (filters.assignee !== 'all' && task.assigneeId !== filters.assignee) {
-        return false;
-      }
-
-      // Filtro de fase/entregável
-      if (filters.phase !== 'all' && task.deliverableId !== filters.phase) {
-        return false;
-      }
-
-      // Filtro de prioridade
-      if (filters.priority !== 'all' && task.priority !== filters.priority) {
-        return false;
-      }
-
-      // Filtro de busca
-      if (filters.search && !task.title.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [tasks, filters]);
+    return tasks.filter((task) =>
+      applyTaskFilters(task, filters, { userId: currentUserId })
+    );
+  }, [tasks, filters, currentUserId]);
 
   // Estatísticas das tarefas
   const taskStats = useMemo(() => {
@@ -166,6 +143,22 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
 
   const handleTaskUpdate = async (taskId, updates) => {
     try {
+      if (updates?.status) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+          const result = await transitionTaskStatus(task, updates.status, {
+            agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+            user,
+          });
+          if (!result.success) {
+            toast.error(result.message || 'Não é possível alterar o status');
+            return;
+          }
+          await loadTasks();
+          toast.success('Tarefa atualizada!');
+          return;
+        }
+      }
       await Task.update(taskId, updates);
       await loadTasks();
       toast.success('Tarefa atualizada!');
@@ -304,6 +297,18 @@ export default function TaskManager({ clientId, serviceId, userRole = 'consultor
         filters={filters}
         onFiltersChange={setFilters}
         tasks={tasks}
+        currentUserId={currentUserId}
+      />
+
+      <WorkloadByPersonPanel
+        tasks={tasks}
+        onSelectAssignee={(assigneeId) =>
+          setFilters((prev) => ({
+            ...prev,
+            assignee: assigneeId,
+            preset: null,
+          }))
+        }
       />
 
       {/* Abas de Visualização - Mobile Optimized */}

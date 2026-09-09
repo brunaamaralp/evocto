@@ -71,9 +71,10 @@ export default function TaskDependencies({
 
   const loadAvailableTasks = useCallback(async () => {
     try {
+      const agencyId = user?.agencyId || user?.data?.agencyId;
       // Buscar tarefas do mesmo cliente, excluindo a atual e suas dependências existentes
       const allTasks = await Task.filter({
-        agencyId: user.data?.agencyId,
+        ...(agencyId ? { agencyId } : {}),
         clientId: task.clientId
       });
 

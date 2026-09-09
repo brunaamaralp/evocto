@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { assigneeColorStyle } from '@/lib/assigneeColors';
+import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 
 const KANBAN_COLUMNS = [
   { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
@@ -76,6 +78,7 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
   const renderTask = (task) => {
     const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
     const hasSpecialFlags = task.impactsKPI || task.generatesLearning || task.requiresApproval;
+    const assigneeStyle = assigneeColorStyle(getTaskAssigneeId(task));
 
     return (
       <Draggable key={task.id} draggableId={task.id} index={tasksByStatus[task.status]?.indexOf(task) || 0}>
@@ -86,9 +89,12 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
             {...provided.dragHandleProps}
             className={`mb-3 ${snapshot.isDragging ? 'opacity-50' : ''}`}
           >
-            <Card className={`hover:shadow-md transition-all cursor-pointer ${
+            <Card
+              className={`hover:shadow-md transition-all cursor-pointer overflow-hidden ${
               isOverdue ? 'border-red-200 bg-red-50' : ''
-            } ${hasSpecialFlags ? 'ring-2 ring-blue-200' : ''}`}>
+            } ${hasSpecialFlags ? 'ring-2 ring-blue-200' : ''}`}
+              style={isOverdue ? undefined : assigneeStyle}
+            >
               <CardContent className="p-4">
                 {/* Header da Tarefa */}
                 <div className="flex items-start justify-between mb-3">

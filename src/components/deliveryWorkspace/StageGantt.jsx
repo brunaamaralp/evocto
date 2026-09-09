@@ -117,7 +117,12 @@ export default function StageGantt({ rows = [], onMove }) {
               className="px-2 flex flex-col justify-center border-b border-slate-100"
               style={{ height: ROW_H }}
             >
-              <span className="text-xs font-medium text-slate-800 truncate">{r.name}</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                {r.weekLabel && (
+                  <span className="text-[10px] font-bold text-teal-700 shrink-0">{r.weekLabel}</span>
+                )}
+                <span className="text-xs font-medium text-slate-800 truncate">{r.name}</span>
+              </div>
               <span className="text-[10px] text-slate-500">
                 {r.duration_business_days}d úteis
                 {typeof r.pct === 'number' ? ` · ${r.pct}%` : ''}
@@ -128,6 +133,31 @@ export default function StageGantt({ rows = [], onMove }) {
 
         <div className="flex-1 overflow-x-auto" ref={trackRef}>
           <div style={{ width: days.length * DAY_PX, position: 'relative' }}>
+            {/* Faixas de semana (S1–S4) quando as etapas têm weekLabel */}
+            {rows.some((r) => r.weekLabel && r.planned_start && r.planned_end) && (
+              <div className="h-6 border-b border-slate-200 relative sticky top-0 bg-slate-50 z-20">
+                {rows.map((r) => {
+                  if (!r.planned_start || !r.planned_end) return null;
+                  const left = xForYmd(r.planned_start);
+                  const startIdx = days.indexOf(r.planned_start);
+                  const endIdx = days.indexOf(r.planned_end);
+                  const width =
+                    startIdx >= 0 && endIdx >= 0
+                      ? Math.max(DAY_PX, (endIdx - startIdx + 1) * DAY_PX)
+                      : DAY_PX;
+                  return (
+                    <div
+                      key={`weekband-${r.id}`}
+                      className="absolute h-6 flex items-center justify-center text-[10px] font-semibold text-teal-800 bg-teal-50 border-r border-teal-100"
+                      style={{ left, width }}
+                      title={`${r.weekLabel} · ${r.name}`}
+                    >
+                      {r.weekLabel}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             <div className="h-8 border-b border-slate-200 flex sticky top-0 bg-white z-10">
               {days.map((ymd) => {
                 const d = new Date(`${ymd}T12:00:00`);

@@ -82,6 +82,20 @@ export default function TaskHistory({ task }) {
     // Eventos de mudança de status
     if (task.statusHistory) {
       task.statusHistory.forEach((status, index) => {
+        if (status.type === 'assignment') {
+          events.push({
+            id: `assign_${index}`,
+            type: 'assignment',
+            timestamp: status.changedAt,
+            actor: status.changedBy,
+            actorName: status.changedByName || 'Sistema',
+            description: status.reason || 'Responsável alterado',
+            icon: UserPlus,
+            color: 'bg-green-100 text-green-700',
+            metadata: status
+          });
+          return;
+        }
         const StatusIcon = STATUS_ICONS[status.status] || ArrowRight;
         events.push({
           id: `status_${index}`,

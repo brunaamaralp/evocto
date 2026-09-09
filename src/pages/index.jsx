@@ -198,6 +198,8 @@ import spaTestDashboard from "./spa-test-dashboard";
 
 import clientbriefing from "./client-briefing";
 
+import briefingCampanha from "./briefing-campanha";
+
 import clientservices from "./client-services";
 
 import deliveryWorkspace from "./delivery-workspace";
@@ -427,6 +429,8 @@ const PAGES = {
     "spa-test-dashboard": spaTestDashboard,
     
     "client-briefing": clientbriefing,
+
+    "briefing-campanha": briefingCampanha,
     
     "client-services": clientservices,
 
@@ -685,6 +689,8 @@ function PagesContent() {
                 <Route path="/spa-test-dashboard" element={createElement(spaTestDashboard)} />
                 
                 <Route path="/client-briefing" element={createElement(clientbriefing)} />
+
+                <Route path="/briefing-campanha" element={createElement(briefingCampanha)} />
                 
                 <Route path="/client-services" element={createElement(clientservices)} />
 

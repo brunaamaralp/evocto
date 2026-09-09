@@ -5,7 +5,20 @@
  * 1. Diagnóstico de Comunicação e Marca (avulso)
  * 2. Estratégia de Conteúdo e Posicionamento
  * 3. Marketing Operacional 360 (retainer)
+ * 4. Ciclo Mensal 4 Semanas (pipeline operacional)
  */
+
+import {
+  CICLO_MENSAL_4_SEMANAS_TEMPLATE,
+  CICLO_MENSAL_TEMPLATE_KEY,
+} from './cicloMensal4SemanasTemplate.js';
+
+export {
+  CICLO_MENSAL_4_SEMANAS_TEMPLATE,
+  CICLO_MENSAL_TEMPLATE_KEY,
+  CICLO_MENSAL_TEMPLATE_SLUG,
+  normalizeDeliverableTaskShapes,
+} from './cicloMensal4SemanasTemplate.js';
 
 export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
   id: 'diagnostico_comunicacao_template',
@@ -685,6 +698,7 @@ export const DEFAULT_SERVICE_TEMPLATES = {
   diagnostico_comunicacao: DIAGNOSTICO_COMUNICACAO_TEMPLATE,
   estrategia_conteudo: ESTRATEGIA_CONTEUDO_TEMPLATE,
   marketing_360: MARKETING_360_TEMPLATE,
+  [CICLO_MENSAL_TEMPLATE_KEY]: CICLO_MENSAL_4_SEMANAS_TEMPLATE,
   // legado (mesmo objeto)
   diagnostico_financeiro: DIAGNOSTICO_COMUNICACAO_TEMPLATE,
   mentoria_precificacao: ESTRATEGIA_CONTEUDO_TEMPLATE,

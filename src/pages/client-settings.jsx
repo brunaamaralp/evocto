@@ -17,6 +17,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
+import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
+import { getEmpresaByClientId, configFromEmpresa } from '@/lib/empresaConfig';
+import EmpresaConfigResumo from '@/components/briefing/campanha/EmpresaConfigResumo';
 
 export default function ClientSettingsPage() {
   const { user, isAuthenticated, agencyId } = useSession();
@@ -27,6 +30,8 @@ export default function ClientSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
+  const [empresa, setEmpresa] = useState(null);
+  const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
 
   // Extrair clientId da URL
   useEffect(() => {
@@ -50,9 +55,10 @@ export default function ClientSettingsPage() {
         setLoading(true);
         setError(null);
 
-        const [clientData, servicesData] = await Promise.all([
+        const [clientData, servicesData, empresaData] = await Promise.all([
           Client.get(clientId),
-          Service.filter({ clientId, agencyId })
+          Service.filter({ clientId, agencyId }),
+          getEmpresaByClientId(clientId, agencyId),
         ]);
 
         if (!clientData) {
@@ -65,6 +71,7 @@ export default function ClientSettingsPage() {
 
         setClient(clientData);
         setServices(servicesData);
+        setEmpresa(empresaData);
         setFormData({
           name: clientData.name || '',
           legal_name: clientData.legal_name || '',
@@ -180,6 +187,32 @@ export default function ClientSettingsPage() {
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="w-5 h-5" />
+                  Configuração de Campanha (padrão)
+                </CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEmpresaModalOpen(true)}
+                >
+                  {empresa ? 'Editar' : 'Configurar Empresa'}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {empresa ? (
+                  <EmpresaConfigResumo config={configFromEmpresa(empresa)} />
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    Defina público-alvo, formato, orçamento e tom uma vez — todos os briefings mensais herdam esses dados.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -399,6 +432,15 @@ export default function ClientSettingsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <ConfigurarEmpresaModal
+          open={empresaModalOpen}
+          onOpenChange={setEmpresaModalOpen}
+          clientId={clientId}
+          clientName={client?.name}
+          empresa={empresa}
+          onSaved={(saved) => setEmpresa(saved)}
+        />
       </div>
     </div>
   );

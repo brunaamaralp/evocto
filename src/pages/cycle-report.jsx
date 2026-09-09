@@ -26,6 +26,10 @@ import { createPageUrl } from '@/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import {
+  openPrintableReport,
+  buildCycleReportPrintDoc,
+} from '@/lib/printableReport';
 
 const MetricCard = ({ label, value, suffix = "", trend, icon: Icon, color = "blue" }) => (
   <Card className="relative overflow-hidden">
@@ -159,13 +163,17 @@ export default function CycleReport() {
   const handleExportPDF = async () => {
     setExporting(true);
     try {
-      // Aqui você implementaria a geração do PDF
-      // Por ora, vamos simular
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success("PDF exportado com sucesso!");
+      const doc = buildCycleReportPrintDoc({
+        cycle,
+        client,
+        service,
+        learnings,
+      });
+      openPrintableReport(doc);
+      toast.success('Janela de impressão aberta — escolha “Salvar como PDF”');
     } catch (error) {
       console.error("Erro ao exportar PDF:", error);
-      toast.error("Falha ao exportar PDF");
+      toast.error(error?.message || "Falha ao exportar PDF");
     } finally {
       setExporting(false);
     }

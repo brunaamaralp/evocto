@@ -1,8 +1,23 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle, ListTodo, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2, Circle, ListTodo, Clock, CalendarPlus, Copy, ClipboardCopy, FileText } from 'lucide-react';
+import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
+import DuplicateCycleWizard from '@/components/cycles/DuplicateCycleWizard';
+import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
+import { buildDeliveryWeeklyStatusCopy } from '@/lib/deliveryWeeklyStatusCopy';
+import {
+  collectClientHistoryEntries,
+  clientHistoryToMarkdown,
+  downloadTextFile,
+} from '@/lib/clientHistoryExport';
+import {
+  openPrintableReport,
+  buildClientHistoryPrintDoc,
+} from '@/lib/printableReport';
+import { toast } from 'sonner';
 
 function deliverableProgress(deliverables = [], tasks = []) {
   if (!deliverables.length) return 0;
@@ -14,9 +29,48 @@ function deliverableProgress(deliverables = [], tasks = []) {
 
 export default function DeliveryWorkspaceOverview({
   service,
+  client,
   tasks = [],
   onGoSection,
+  onCycleCreated,
 }) {
+  const [showNewCycle, setShowNewCycle] = useState(false);
+  const [showDuplicate, setShowDuplicate] = useState(false);
+
+  const handleCopyWeeklyStatus = async () => {
+    const text = buildDeliveryWeeklyStatusCopy({ service, client, tasks });
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Status copiado — cole no WhatsApp ou e-mail');
+    } catch {
+      toast.error('Não foi possível copiar.');
+    }
+  };
+
+  const handleExportClientHistory = (asPdf = false) => {
+    const entries = collectClientHistoryEntries(tasks);
+    const clientName = client?.name || service?.clientName || 'Cliente';
+    if (asPdf) {
+      try {
+        openPrintableReport(
+          buildClientHistoryPrintDoc({
+            client: client || { name: clientName },
+            periodLabel: service?.name || 'Histórico do serviço',
+            entries,
+          })
+        );
+        toast.success('Histórico aberto — Salvar como PDF');
+      } catch (err) {
+        toast.error(err?.message || 'Falha ao exportar histórico');
+      }
+      return;
+    }
+    const md = clientHistoryToMarkdown(clientName, entries);
+    const slug = String(clientName).replace(/\s+/g, '_').toLowerCase();
+    downloadTextFile(`historico_${slug}.md`, md, 'text/markdown;charset=utf-8');
+    toast.success('Histórico baixado (.md)');
+  };
+
   const deliverables = service?.deliverables || [];
   const progress = useMemo(
     () => deliverableProgress(deliverables, tasks),
@@ -30,6 +84,48 @@ export default function DeliveryWorkspaceOverview({
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowNewCycle(true)}
+        >
+          <CalendarPlus className="w-4 h-4 mr-2" />
+          Novo ciclo do mês
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDuplicate(true)}
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          Duplicar ciclo / novo mês
+        </Button>
+        <Button type="button" size="sm" onClick={handleCopyWeeklyStatus}>
+          <ClipboardCopy className="w-4 h-4 mr-2" />
+          Copiar status da semana
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleExportClientHistory(false)}
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          Exportar histórico
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleExportClientHistory(true)}
+        >
+          Histórico PDF
+        </Button>
+      </div>
+
       <Card className="border-slate-200 shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Progresso da entrega</CardTitle>
@@ -91,6 +187,8 @@ export default function DeliveryWorkspaceOverview({
         </div>
       </div>
 
+      <WorkloadByPersonPanel tasks={tasks} />
+
       <Card className="border-slate-200 shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Etapas</CardTitle>
@@ -100,9 +198,13 @@ export default function DeliveryWorkspaceOverview({
             <p className="text-sm text-slate-500">Nenhuma etapa configurada neste serviço.</p>
           ) : (
             <ul className="space-y-2">
-              {deliverables.map((d) => {
+              {deliverables.map((d, index) => {
                 const done = ['completed', 'approved'].includes(String(d.status || '').toLowerCase());
                 const active = String(d.status || '') === 'in_progress';
+                const weekLabel =
+                  d.description && /semana\s*\d/i.test(d.description)
+                    ? `S${(String(d.description).match(/semana\s*(\d)/i) || [])[1] || index + 1}`
+                    : `S${index + 1}`;
                 return (
                   <li
                     key={d.id}
@@ -114,6 +216,7 @@ export default function DeliveryWorkspaceOverview({
                       ) : (
                         <Circle className={`w-4 h-4 shrink-0 ${active ? 'text-blue-600' : 'text-slate-300'}`} />
                       )}
+                      <span className="text-[10px] font-semibold text-slate-500 shrink-0">{weekLabel}</span>
                       <span className="text-sm text-slate-800 truncate">{d.name}</span>
                     </div>
                     <Badge variant="outline" className="shrink-0 text-xs">
@@ -126,6 +229,20 @@ export default function DeliveryWorkspaceOverview({
           )}
         </CardContent>
       </Card>
+
+      <NewMonthCycleWizard
+        open={showNewCycle}
+        onOpenChange={setShowNewCycle}
+        defaultClientId={service?.clientId || ''}
+        defaultServiceId={service?.id || ''}
+        onSuccess={onCycleCreated}
+      />
+      <DuplicateCycleWizard
+        open={showDuplicate}
+        onOpenChange={setShowDuplicate}
+        serviceId={service?.id}
+        onSuccess={onCycleCreated}
+      />
     </div>
   );
 }

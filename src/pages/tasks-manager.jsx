@@ -23,6 +23,10 @@ import {
   Flag
 } from 'lucide-react';
 import { toast } from 'sonner';
+import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
+import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
+import { transitionTaskStatus } from '@/lib/taskStatusTransition';
+import { assigneeColorStyle } from '@/lib/assigneeColors';
 
 // Configurações das colunas do Kanban
 const KANBAN_COLUMNS = [
@@ -87,11 +91,15 @@ function TaskCard({ task, users, clients }) {
     }
   };
 
-  const assignedUser = getAssignedUser(task.assignedTo);
+  const assignedUser = getAssignedUser(task.assignedTo || task.assigneeId);
   const client = getClient(task.clientId);
+  const colorStyle = assigneeColorStyle(getTaskAssigneeId(task));
 
   return (
-    <Card className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
+    <Card
+      className="mb-3 cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+      style={colorStyle}
+    >
       <CardContent className="p-3">
         <div className="space-y-2">
           <h4 className="font-medium text-sm line-clamp-2">{task.title}</h4>
@@ -270,8 +278,13 @@ export default function TasksManagerPage() {
       }
 
       // Filtro por responsável
-      if (selectedUser !== 'all' && task.assignedTo !== selectedUser) {
-        return false;
+      if (selectedUser !== 'all') {
+        const assigneeId = getTaskAssigneeId(task);
+        if (selectedUser === 'unassigned') {
+          if (assigneeId) return false;
+        } else if (String(assigneeId || '') !== String(selectedUser)) {
+          return false;
+        }
       }
 
       // Filtro por status
@@ -315,25 +328,37 @@ export default function TasksManagerPage() {
 
     const taskId = draggableId;
     const newStatus = destination.droppableId;
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const previousStatus = task.status;
     
     try {
-      // Atualizar localmente primeiro para responsividade
+      // Optimistic UI
       setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId ? { ...task, status: newStatus } : task
+        prevTasks.map(t => 
+          t.id === taskId ? { ...t, status: newStatus } : t
         )
       );
 
-      // Atualizar no backend
-      await Task.update(taskId, { 
-        status: newStatus,
-        kanbanColumn: newStatus
+      const transition = await transitionTaskStatus(task, newStatus, {
+        agencyId: task.agencyId || agencyId,
+        user,
       });
+
+      if (!transition.success) {
+        setTasks(prevTasks =>
+          prevTasks.map((t) =>
+            t.id === taskId ? { ...t, status: previousStatus } : t
+          )
+        );
+        toast.error(transition.message || 'Não é possível mover a tarefa');
+        return;
+      }
 
       const statusLabel = KANBAN_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
       toast.success(`Tarefa movida para "${statusLabel}"`);
       
-      // Disparar evento para atualizar outros componentes
       window.dispatchEvent(new CustomEvent('task:updated', { 
         detail: { taskId, status: newStatus } 
       }));
@@ -341,11 +366,9 @@ export default function TasksManagerPage() {
     } catch (error) {
       console.error('Erro ao mover tarefa:', error);
       toast.error('Erro ao mover tarefa');
-      
-      // Revert change local
       loadData(false);
     }
-  }, [loadData]);
+  }, [tasks, agencyId, loadData, user]);
 
   // Limpar filtros
   const clearFilters = useCallback(() => {
@@ -503,6 +526,14 @@ export default function TasksManagerPage() {
           )}
         </CardContent>
       </Card>
+
+      <div className="mb-6 max-w-xl">
+        <WorkloadByPersonPanel
+          tasks={filteredTasks}
+          users={users}
+          onSelectAssignee={(id) => setSelectedUser(id)}
+        />
+      </div>
 
       {/* Quadro Kanban com Barra de Rolagem Horizontal Melhorada */}
       <div className="bg-gray-50 rounded-lg p-4">

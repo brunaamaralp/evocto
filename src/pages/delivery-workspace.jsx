@@ -153,8 +153,10 @@ export default function DeliveryWorkspacePage() {
       sectionNode = (
         <DeliveryWorkspaceOverview
           service={service}
+          client={client}
           tasks={tasks}
           onGoSection={setSection}
+          onCycleCreated={handleServiceUpdated}
         />
       );
       break;
