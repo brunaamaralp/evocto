@@ -89,8 +89,8 @@ export default function ClientBriefingPage() {
 
       // Sincroniza cadastro a partir de envios públicos pendentes
       for (const t of tokens || []) {
-        if (t.pending_client_sync && t.briefId) {
-          await syncClientFromPublicBriefing(t.briefId).catch(() => null);
+        if ((t.pending_client_sync || t.pending_brief_sync) && t.briefId) {
+          await syncClientFromPublicBriefing(t.briefId, t).catch(() => null);
         }
       }
 

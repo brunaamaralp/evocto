@@ -1,4 +1,5 @@
 import { Empresa, AuditLog } from '@/api/entities';
+import { normalizeProdutosLinhas } from '@/lib/campanhaAnualSchema';
 
 export const EMPTY_FORMATO = {
   num_videos: 5,
@@ -12,6 +13,8 @@ export const EMPTY_EMPRESA_FORM = {
   formato_padrao: { ...EMPTY_FORMATO },
   orcamento_padrao_mensal: '',
   tom_brand: '',
+  restricoes_criativas: '',
+  produtos_linhas: [],
   brand_guidelines: null,
 };
 
@@ -29,6 +32,7 @@ export function empresaToForm(empresa, clientName = '') {
       ...EMPTY_EMPRESA_FORM,
       nome: clientName || '',
       formato_padrao: { ...EMPTY_FORMATO },
+      produtos_linhas: [],
     };
   }
   return {
@@ -38,6 +42,8 @@ export function empresaToForm(empresa, clientName = '') {
     orcamento_padrao_mensal:
       empresa.orcamento_padrao_mensal != null ? Number(empresa.orcamento_padrao_mensal) : '',
     tom_brand: empresa.tom_brand || '',
+    restricoes_criativas: empresa.restricoes_criativas || '',
+    produtos_linhas: normalizeProdutosLinhas(empresa.produtos_linhas),
     brand_guidelines: empresa.brand_guidelines || null,
   };
 }
@@ -90,6 +96,8 @@ export function configFromEmpresa(empresa) {
     formato: normalizeFormato(empresa.formato_padrao || EMPTY_FORMATO),
     orcamento: Number(empresa.orcamento_padrao_mensal) || 0,
     tom_brand: empresa.tom_brand || '',
+    restricoes_criativas: empresa.restricoes_criativas || '',
+    produtos_linhas: normalizeProdutosLinhas(empresa.produtos_linhas),
   };
 }
 
@@ -149,6 +157,8 @@ export async function saveEmpresa({
     formato_padrao: normalizeFormato(form.formato_padrao),
     orcamento_padrao_mensal: Number(form.orcamento_padrao_mensal),
     tom_brand: String(form.tom_brand).trim(),
+    restricoes_criativas: String(form.restricoes_criativas || '').trim(),
+    produtos_linhas: normalizeProdutosLinhas(form.produtos_linhas),
     brand_guidelines: form.brand_guidelines || null,
   };
 
