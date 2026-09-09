@@ -18,10 +18,11 @@ import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
+import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 /**
  * Navegação de contexto do cliente (nav única do hub).
- * Rotas inexistentes (relatórios/equipe) ficam ocultas.
+ * Visual teal — distinto do menu global azul/branco.
  */
 export default function ClientContextSidebar({
   clientId,
@@ -125,9 +126,19 @@ export default function ClientContextSidebar({
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0 shrink-0">
-      <div className="p-4 border-b border-gray-200">
-        <Button asChild variant="ghost" size="sm" className="w-full justify-start mb-3">
+    <div
+      className={`w-64 ${CLIENT_CONTEXT.sidebarBg} border-r ${CLIENT_CONTEXT.sidebarBorder} flex flex-col h-screen sticky top-0 shrink-0`}
+    >
+      <div className={`p-4 border-b ${CLIENT_CONTEXT.sidebarBorder}`}>
+        <p className={`text-[10px] uppercase tracking-wider font-semibold mb-2 ${CLIENT_CONTEXT.sidebarMuted}`}>
+          {CLIENT_CONTEXT.label}
+        </p>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className={`w-full justify-start mb-3 ${CLIENT_CONTEXT.sidebarMuted} ${CLIENT_CONTEXT.sidebarHover}`}
+        >
           <Link to={createPageUrl('clients')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para Clientes
@@ -136,19 +147,26 @@ export default function ClientContextSidebar({
 
         {loading ? (
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-gray-200 rounded w-1/2" />
+            <div className="h-4 bg-teal-800 rounded w-3/4 mb-2" />
+            <div className="h-3 bg-teal-800 rounded w-1/2" />
           </div>
         ) : client ? (
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Building className="w-4 h-4 text-gray-500" />
-              <h2 className="font-semibold text-gray-900 truncate">{client.name}</h2>
+              <Building className={`w-4 h-4 ${CLIENT_CONTEXT.sidebarMuted}`} />
+              <h2 className={`font-semibold truncate ${CLIENT_CONTEXT.sidebarText}`}>
+                {client.name}
+              </h2>
             </div>
             {client.sector && (
-              <p className="text-xs text-gray-500 truncate">{client.sector}</p>
+              <p className={`text-xs truncate ${CLIENT_CONTEXT.sidebarMuted}`}>
+                {client.sector}
+              </p>
             )}
-            <Badge variant="outline" className="mt-2 text-xs">
+            <Badge
+              variant="outline"
+              className="mt-2 text-xs border-teal-500 text-teal-100 bg-teal-900/50"
+            >
               {client.status === 'ativo'
                 ? 'Cliente Ativo'
                 : client.status === 'prospecto'
@@ -157,7 +175,7 @@ export default function ClientContextSidebar({
             </Badge>
           </div>
         ) : (
-          <div className="text-sm text-red-600">Cliente não encontrado</div>
+          <div className="text-sm text-red-300">Cliente não encontrado</div>
         )}
       </div>
 
@@ -173,8 +191,8 @@ export default function ClientContextSidebar({
                   flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors
                   ${
                     item.active
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? CLIENT_CONTEXT.sidebarActive
+                      : `${CLIENT_CONTEXT.sidebarMuted} ${CLIENT_CONTEXT.sidebarHover}`
                   }
                 `}
               >
@@ -183,7 +201,7 @@ export default function ClientContextSidebar({
                   {item.label}
                 </div>
                 {item.badge ? (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge className="ml-2 text-xs bg-teal-600 text-white hover:bg-teal-600">
                     {item.badge}
                   </Badge>
                 ) : null}
@@ -194,8 +212,8 @@ export default function ClientContextSidebar({
       </nav>
 
       {client && !loading && (
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="text-xs text-gray-600 space-y-1">
+        <div className={`p-4 border-t ${CLIENT_CONTEXT.sidebarFooter}`}>
+          <div className={`text-xs space-y-1 ${CLIENT_CONTEXT.sidebarMuted}`}>
             {resolvedServiceCount > 0 && (
               <div>
                 {resolvedServiceCount} serviço

@@ -21,11 +21,11 @@ import {
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import useClientHubData from '@/hooks/useClientHubData';
-import ClientContextSidebar from '@/components/layout/ClientContextSidebar';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import ClientExecutionPanel from '@/components/client/ClientExecutionPanel';
 import ClientKnowledgeSummary from '@/components/client/ClientKnowledgeSummary';
 import InviteClientModal from '@/components/client/InviteClientModal';
+import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 export default function ClientDetailPage() {
   const { agencyId, isAuthenticated } = useSession();
@@ -157,17 +157,13 @@ export default function ClientDetailPage() {
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <ClientContextSidebar
-        clientId={clientId}
-        client={client}
-        serviceCount={counts.services}
-      />
-
+    <div className={`min-h-full ${CLIENT_CONTEXT.shellBg}`}>
       <main className="flex-1 min-w-0 p-6 space-y-6 overflow-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Perfil do cliente</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 mb-1">
+              {CLIENT_CONTEXT.label}
+            </p>
             <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
             {(client.legal_name || client.email) && (
               <p className="text-gray-600">{client.legal_name || client.email}</p>

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,42 +12,47 @@ import {
   FolderOpen,
   Package,
   ArrowLeft,
-  Building,
   ChevronLeft,
-  Home,
   TrendingUp,
-  Calendar,
-  Wallet
+  Wallet,
+  Lightbulb,
+  Target,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
-import { createPageUrl } from '@/utils';
+import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 /**
- * SIDEBAR LIMPO - Apenas conceitos necessários
+ * Sidebar do layout: global (azul/branco) vs cliente (teal escuro).
  */
 export default function ContextualSidebar({ 
-  user, 
   currentPage, 
   clientId, 
   serviceId, 
-  context,
   isOpen,
   onClose 
 }) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+  useTranslation();
   const [client, setClient] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const isClientMode = Boolean(clientId && !serviceId);
 
-  // Carregar dados do cliente se necessário
   useEffect(() => {
-    if (clientId && !client) {
-      Client.get(clientId).then(setClient).catch(console.error);
+    if (!clientId) {
+      setClient(null);
+      return;
     }
-  }, [clientId, client]);
+    let cancelled = false;
+    Client.get(clientId)
+      .then((data) => {
+        if (!cancelled) setClient(data);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [clientId]);
 
   const getNavigationItems = () => {
-    // 🎯 CONTEXTO CLIENTE: Navegação focada no cliente
     if (clientId && !serviceId) {
       return [
         {
@@ -61,12 +64,12 @@ export default function ContextualSidebar({
         {
           label: 'Visão Geral',
           icon: LayoutDashboard,
-          href: `/client?clientId=${clientId}`,
-          isActive: currentPage === 'client'
+          href: `/client-detail?clientId=${clientId}`,
+          isActive: currentPage === 'client' || currentPage === 'client-detail'
         },
         {
-          label: 'Serviços',
-          icon: Briefcase,
+          label: 'Serviços & Ciclos',
+          icon: Target,
           href: `/client-services?clientId=${clientId}`,
           isActive: currentPage === 'client-services'
         },
@@ -89,6 +92,18 @@ export default function ContextualSidebar({
           isActive: currentPage === 'client-documents'
         },
         {
+          label: 'Aprendizados',
+          icon: Lightbulb,
+          href: `/client-learnings?clientId=${clientId}`,
+          isActive: currentPage === 'client-learnings'
+        },
+        {
+          label: 'Evolução',
+          icon: BookOpen,
+          href: `/client-evolution?clientId=${clientId}`,
+          isActive: currentPage === 'client-evolution'
+        },
+        {
           label: 'Relatórios',
           icon: TrendingUp,
           href: `/custom-reports?clientId=${clientId}`,
@@ -97,13 +112,12 @@ export default function ContextualSidebar({
       ];
     }
 
-    // 🎯 CONTEXTO SERVIÇO: Navegação focada no serviço
     if (serviceId) {
       return [
         {
           label: 'Voltar para Cliente',
           icon: ArrowLeft,
-          href: clientId ? `/client?clientId=${clientId}` : '/clients',
+          href: clientId ? `/client-detail?clientId=${clientId}` : '/clients',
           isBack: true
         },
         {
@@ -133,7 +147,6 @@ export default function ContextualSidebar({
       ];
     }
 
-    // 🎯 NAVEGAÇÃO GLOBAL: Conceitos principais apenas
     return [
       {
         label: 'Dashboard',
@@ -183,48 +196,71 @@ export default function ContextualSidebar({
   const navigationItems = getNavigationItems();
 
   return (
-    <div className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
-      collapsed ? 'w-16' : 'w-64'
-    } ${isOpen ? 'fixed inset-y-0 left-0 z-50 lg:relative' : 'hidden lg:flex'}`}>
-      
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+    <div
+      className={`border-r flex flex-col transition-all duration-300 ${
+        collapsed ? 'w-16' : 'w-64'
+      } ${isOpen ? 'fixed inset-y-0 left-0 z-50 lg:relative' : 'hidden lg:flex'} ${
+        isClientMode
+          ? `${CLIENT_CONTEXT.sidebarBg} ${CLIENT_CONTEXT.sidebarBorder}`
+          : 'bg-white border-gray-200'
+      }`}
+    >
+      <div className={`p-4 border-b ${isClientMode ? CLIENT_CONTEXT.sidebarBorder : 'border-gray-200'}`}>
         {!collapsed && (
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                isClientMode ? 'bg-teal-600' : 'bg-blue-600'
+              }`}
+            >
+              <span className="text-white font-bold text-sm">
+                {isClientMode ? 'C' : 'E'}
+              </span>
             </div>
-            <div>
-              <h2 className="font-semibold text-gray-900">
+            <div className="min-w-0">
+              {isClientMode && (
+                <p className={`text-[10px] uppercase tracking-wider font-semibold ${CLIENT_CONTEXT.sidebarMuted}`}>
+                  {CLIENT_CONTEXT.label}
+                </p>
+              )}
+              <h2 className={`font-semibold truncate ${isClientMode ? CLIENT_CONTEXT.sidebarText : 'text-gray-900'}`}>
                 {client ? client.name : 'Evocto'}
               </h2>
               {client && (
-                <p className="text-xs text-gray-500">
+                <p className={`text-xs truncate ${isClientMode ? CLIENT_CONTEXT.sidebarMuted : 'text-gray-500'}`}>
                   {client.sector || 'Cliente'}
                 </p>
+              )}
+              {!isClientMode && !client && (
+                <p className="text-xs text-gray-500">Sistema</p>
               )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {navigationItems.map((item, index) => {
           const ItemIcon = item.icon;
           const isBack = item.isBack;
-          
+
           return (
             <Link
               key={index}
               to={item.href}
               onClick={onClose}
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                item.isActive 
-                  ? 'bg-blue-50 text-blue-700 font-medium' 
+                item.isActive
+                  ? (isClientMode
+                      ? CLIENT_CONTEXT.sidebarActive
+                      : 'bg-blue-50 text-blue-700 font-medium')
                   : isBack
-                  ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  ? (isClientMode
+                      ? `${CLIENT_CONTEXT.sidebarMuted} ${CLIENT_CONTEXT.sidebarHover}`
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')
+                  : (isClientMode
+                      ? `${CLIENT_CONTEXT.sidebarMuted} ${CLIENT_CONTEXT.sidebarHover}`
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50')
               }`}
             >
               <ItemIcon className={`w-5 h-5 ${collapsed ? 'mx-auto' : ''}`} />
@@ -236,23 +272,31 @@ export default function ContextualSidebar({
         })}
       </nav>
 
-      {/* Settings */}
-      <div className="p-4 border-t border-gray-200">
+      <div className={`p-4 border-t ${isClientMode ? CLIENT_CONTEXT.sidebarBorder : 'border-gray-200'}`}>
         <Link
-          to="/settings"
-          className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+          to={isClientMode && clientId ? `/client-settings?clientId=${clientId}` : '/settings'}
+          className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+            isClientMode
+              ? `${CLIENT_CONTEXT.sidebarMuted} ${CLIENT_CONTEXT.sidebarHover}`
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+          }`}
         >
           <Settings className={`w-5 h-5 ${collapsed ? 'mx-auto' : ''}`} />
           {!collapsed && <span>Configurações</span>}
         </Link>
       </div>
 
-      {/* Collapse Toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:block p-2 m-2 rounded-lg hover:bg-gray-100 transition-colors"
+        className={`hidden lg:block p-2 m-2 rounded-lg transition-colors ${
+          isClientMode ? CLIENT_CONTEXT.sidebarHover : 'hover:bg-gray-100'
+        }`}
       >
-        <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+        <ChevronLeft
+          className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''} ${
+            isClientMode ? CLIENT_CONTEXT.sidebarMuted : ''
+          }`}
+        />
       </button>
     </div>
   );

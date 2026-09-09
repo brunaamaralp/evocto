@@ -53,7 +53,7 @@ export const useLeadStore = create(
 
         set({
           userId,
-          academyId,
+          academyId: agencyId,
           academyList: list,
           modules: { finance: true, ...(agency?.modules || {}) },
         });
