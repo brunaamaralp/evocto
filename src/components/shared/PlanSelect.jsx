@@ -1,0 +1,112 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { buildPlanSelectOptions } from '../../lib/academyPlans.js';
+import { EMPRESA_FINANCE_CONFIG_PATH } from '../../lib/financeiroHubTabs.js';
+import { pickFinanceConfigForPayments } from '../../lib/financeConfigForPayments.js';
+import { loadMergedFinanceConfigForAcademy } from '../../lib/prefetchFinanceConfig.js';
+import { useLeadStore } from '../../store/useLeadStore';
+import SearchableSelect from './SearchableSelect.jsx';
+
+function PlanSelectInner({
+  academyId,
+  financeConfig,
+  fetchedConfig,
+  loadingPlans,
+  value,
+  onChange,
+  onPlanPick,
+  id,
+  className = '',
+  style,
+  disabled = false,
+  emptyLabel = 'Selecione o plano…',
+  emptyMessage = 'Nenhum plano encontrado para essa busca.',
+  showConfigHint = true,
+  ...rest
+}) {
+  const storeFinanceConfig = useLeadStore((s) => s.financeConfig);
+  const storeFinanceAcademyId = useLeadStore((s) => s.financeConfigAcademyId);
+  const storeMatch =
+    storeFinanceAcademyId === academyId && storeFinanceConfig ? storeFinanceConfig : null;
+
+  const resolvedFinanceConfig = useMemo(
+    () => pickFinanceConfigForPayments(fetchedConfig, storeMatch, financeConfig),
+    [fetchedConfig, storeMatch, financeConfig]
+  );
+
+  const options = buildPlanSelectOptions(resolvedFinanceConfig, value);
+  const hasConfigured = (resolvedFinanceConfig?.plans || []).some((p) =>
+    String(p?.name || '').trim()
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
+      <SearchableSelect
+        id={id}
+        className={className}
+        disabled={disabled || loadingPlans}
+        value={value || ''}
+        options={options.map((o) => ({ value: o.value, label: o.label }))}
+        placeholder={loadingPlans ? 'Carregando planos…' : emptyLabel}
+        emptyMessage={loadingPlans ? 'Carregando planos…' : emptyMessage}
+        onChange={(next) => {
+          onChange(next);
+          if (onPlanPick) {
+            const opt = options.find((o) => o.value === next);
+            onPlanPick(opt?.plan || null);
+          }
+        }}
+        {...rest}
+      />
+      {showConfigHint && !hasConfigured && !loadingPlans ? (
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          Nenhum plano cadastrado. Configure em{' '}
+          <Link to={EMPRESA_FINANCE_CONFIG_PATH} className="edit-link">
+            Minha academia → Financeiro
+          </Link>
+          .
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function PlanSelectWithFetch({ academyId, ...rest }) {
+  const setFinanceConfig = useLeadStore((s) => s.setFinanceConfig);
+  const [fetchedConfig, setFetchedConfig] = useState(null);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadMergedFinanceConfigForAcademy(academyId, { force: true })
+      .then((cfg) => {
+        if (cancelled || !cfg) return;
+        setFetchedConfig(cfg);
+        if (useLeadStore.getState().academyId === academyId) {
+          setFinanceConfig(cfg, academyId);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPlans(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [academyId, setFinanceConfig]);
+
+  return (
+    <PlanSelectInner
+      academyId={academyId}
+      fetchedConfig={fetchedConfig}
+      loadingPlans={loadingPlans}
+      {...rest}
+    />
+  );
+}
+
+export default function PlanSelect({ academyId, ...rest }) {
+  if (!academyId) {
+    return <PlanSelectInner academyId={academyId} fetchedConfig={null} loadingPlans={false} {...rest} />;
+  }
+  return <PlanSelectWithFetch key={academyId} academyId={academyId} {...rest} />;
+}

@@ -18,6 +18,7 @@ export class RouteRegistry {
     clientServiceCycle: '/clients/:clientId/services/:serviceId/cycles/:cycleId',
     clientServiceCyclePlan: '/clients/:clientId/services/:serviceId/cycles/:cycleId/plan',
     clientServiceCycleClose: '/clients/:clientId/services/:serviceId/cycles/:cycleId/close',
+    deliveryWorkspace: '/delivery-workspace',
     
     // Global Routes
     briefings: '/briefings',
@@ -81,6 +82,12 @@ export class RouteRegistry {
     clientService: (clientId, serviceId) => {
       if (!clientId || !serviceId) throw new Error('clientId and serviceId are required');
       return `/clients/${clientId}/services/${serviceId}`;
+    },
+
+    deliveryWorkspace: (serviceId, params = {}) => {
+      if (!serviceId) throw new Error('serviceId is required');
+      const qs = new URLSearchParams({ serviceId, ...params });
+      return `/delivery-workspace?${qs.toString()}`;
     },
     
     clientServiceCycle: (clientId, serviceId, cycleId) => {

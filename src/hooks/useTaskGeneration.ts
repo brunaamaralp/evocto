@@ -12,6 +12,11 @@ import { toast } from 'sonner';
 import { useMandatoryBriefing } from './useMandatoryBriefing';
 import { useTriggerSystem } from './useTriggerSystem';
 import { useTaskSanitization } from './useTaskSanitization';
+import {
+  buildTaskPayloadFromTemplate,
+  canStartDeliverable,
+  markDeliverableStarted,
+} from '@/lib/startDeliverableStage';
 
 // Tipos para geração de tarefas
 export interface TaskTemplate {
@@ -512,6 +517,135 @@ export function useTaskGeneration() {
     }
   }, [user, validateServiceTemplate, processTaskChecklist, checkTaskExists, generateTaskHash, sanitizeTaskData, validateSanitizedData]);
 
+  /**
+   * Inicia uma etapa (deliverable): marca in_progress e materializa task_templates.
+   * Lifecycle separado do timer de horas.
+   */
+  const startDeliverableAndGenerateTasks = useCallback(async (
+    serviceId: string,
+    deliverableId: string,
+    options: { skipExisting?: boolean; startDate?: string } = {}
+  ): Promise<TaskGenerationResult & { service?: any }> => {
+    setState(prev => ({
+      ...prev,
+      isGenerating: true,
+      progress: 0,
+      currentStep: 'Iniciando etapa...',
+      error: null,
+    }));
+
+    try {
+      const agencyId = user?.data?.agencyId || (user as any)?.agencyId;
+      if (!agencyId) {
+        throw new Error('Usuário sem agência associada');
+      }
+
+      const service = await Service.get(serviceId);
+      if (!service || service.agencyId !== agencyId) {
+        throw new Error('Serviço não encontrado ou sem permissão');
+      }
+      if (service.is_template) {
+        throw new Error('Não é possível iniciar etapa em um template');
+      }
+
+      const deliverable = (service.deliverables || []).find(
+        (d: Deliverable) => String(d.id) === String(deliverableId)
+      );
+      if (!deliverable) {
+        throw new Error('Etapa não encontrada neste serviço');
+      }
+      if (!canStartDeliverable(deliverable)) {
+        throw new Error('Esta etapa não pode ser iniciada (já concluída ou sem templates)');
+      }
+
+      const startDate = options.startDate || service.start_date || new Date().toISOString().slice(0, 10);
+      const updatedDeliverables = markDeliverableStarted(service.deliverables || [], deliverableId);
+      await Service.update(serviceId, {
+        deliverables: updatedDeliverables,
+        service_status: service.service_status === 'setup' || service.service_status === 'briefing_pending'
+          ? 'in_execution'
+          : service.service_status,
+      });
+
+      setState(prev => ({ ...prev, progress: 30, currentStep: 'Gerando tarefas da etapa...' }));
+
+      let tasksCreated = 0;
+      let tasksSkipped = 0;
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      const generatedTasks: any[] = [];
+      const templates = deliverable.task_templates || [];
+
+      if (templates.length === 0) {
+        warnings.push(`Etapa "${deliverable.name}" iniciada sem templates de tarefa`);
+      }
+
+      for (const taskTemplate of templates) {
+        try {
+          if (options.skipExisting !== false) {
+            const duplicateCheck = await checkTaskExists(taskTemplate, deliverable.id, serviceId);
+            if (duplicateCheck.exists) {
+              tasksSkipped++;
+              continue;
+            }
+          }
+
+          const rawTaskData = buildTaskPayloadFromTemplate(taskTemplate, deliverable, service, {
+            agencyId,
+            startDate,
+          });
+          const taskData = sanitizeTaskData(rawTaskData);
+          const validation = validateSanitizedData(taskData);
+          if (!validation.isValid) {
+            warnings.push(`Tarefa "${taskTemplate.title}" inválida: ${validation.errors.join(', ')}`);
+            continue;
+          }
+
+          const createdTask = await Task.create(taskData);
+          tasksCreated++;
+          generatedTasks.push(createdTask);
+        } catch (taskError: any) {
+          errors.push(`Erro ao criar "${taskTemplate.title}": ${taskError.message}`);
+        }
+      }
+
+      const refreshed = await Service.get(serviceId);
+      const result: TaskGenerationResult & { service?: any } = {
+        success: errors.length === 0 || tasksCreated > 0 || templates.length === 0,
+        tasksCreated,
+        tasksSkipped,
+        errors,
+        warnings,
+        generatedTasks,
+        service: refreshed,
+      };
+
+      setState(prev => ({
+        ...prev,
+        isGenerating: false,
+        progress: 100,
+        currentStep: 'Concluído',
+        lastResult: result,
+      }));
+
+      return result;
+    } catch (error: any) {
+      const errorMessage = error.message || 'Erro ao iniciar etapa';
+      setState(prev => ({
+        ...prev,
+        isGenerating: false,
+        error: errorMessage,
+      }));
+      return {
+        success: false,
+        tasksCreated: 0,
+        tasksSkipped: 0,
+        errors: [errorMessage],
+        warnings: [],
+      };
+    }
+  }, [user, checkTaskExists, sanitizeTaskData, validateSanitizedData]);
+
   // Ativar serviço e gerar tarefas com validação completa
   const activateServiceAndGenerateTasks = useCallback(async (serviceId: string, options: {
     autoAssign?: boolean;
@@ -893,6 +1027,7 @@ export function useTaskGeneration() {
     generateTasksFromServiceInstance,
     generateTasksWithFeedback,
     activateServiceAndGenerateTasks,
+    startDeliverableAndGenerateTasks,
     generateTasksFromBriefing,
     generateTasksUsingAPI,
     

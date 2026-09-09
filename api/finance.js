@@ -1,0 +1,85 @@
+// Módulo financeiro da academia: mensalidades de alunos
+// (student_payments) e lançamentos do caixa (financial_tx).
+// Não tem relação com a assinatura do Nave — ver api/billing.js.
+/**
+ * Hub financeiro (Vercel Hobby: uma função para tx, mensalidades, resumos, previsão e conciliação).
+ * Rotas: ?route=tx | student-payments | summary | closing | forecast | bank-balances | overview | dre | dfc | cascade
+ * Conciliação: ?finance_hub=bank-reconciliation&route=list|detail|import|…
+ * Rewrites: /api/student-payments, /api/finance-tx, /api/finance/*, /api/bank-reconciliation
+ */
+import financeSummaryHandler from '../lib/server/financeSummaryHandler.js';
+import financeClosingHandler from '../lib/server/financeClosingHandler.js';
+import financeForecastHandler from '../lib/server/financeForecastHandler.js';
+import financeTxHandler from '../lib/server/financeTxHandler.js';
+import studentPaymentsHandler from '../lib/server/studentPaymentsHandler.js';
+import bankReconciliationHandler from '../lib/server/bankReconciliationHandler.js';
+import financeBankBalancesHandler from '../lib/server/financeBankBalancesHandler.js';
+import studentPaymentReconcileHandler from '../lib/server/studentPaymentReconcileHandler.js';
+import financeReceivablesHandler from '../lib/server/financeReceivablesHandler.js';
+import financeOverviewHandler from '../lib/server/financeOverviewHandler.js';
+import collectionQueueHandler from '../lib/server/collectionQueueHandler.js';
+import payablesHandler from '../lib/server/payablesHandler.js';
+import financeAnticipationHandler from '../lib/server/financeAnticipationHandler.js';
+import { financeDreHandler, financeDfcHandler, financeCascadeHandler } from '../lib/server/financeStatementsHandler.js';
+
+export const config = {
+  maxDuration: 60,
+};
+
+export default async function handler(req, res) {
+  const financeHub = String(req.query.finance_hub || '').trim();
+  if (financeHub === 'bank-reconciliation' || financeHub === 'bank_reconciliation') {
+    return bankReconciliationHandler(req, res);
+  }
+
+  const route = String(req.query.route || req.query.action || '').trim();
+  if (route === 'student-payments') {
+    return studentPaymentsHandler(req, res);
+  }
+  if (route === 'tx' || route === 'finance-tx') {
+    return financeTxHandler(req, res);
+  }
+  if (route === 'summary' || req.url?.includes('/summary')) {
+    return financeSummaryHandler(req, res);
+  }
+  if (route === 'closing' || req.url?.includes('/closing')) {
+    return financeClosingHandler(req, res);
+  }
+  if (route === 'forecast' || req.url?.includes('/forecast')) {
+    return financeForecastHandler(req, res);
+  }
+  if (route === 'bank-balances' || route === 'bank_balances') {
+    return financeBankBalancesHandler(req, res);
+  }
+  if (route === 'payment-reconcile' || route === 'payment_reconcile') {
+    return studentPaymentReconcileHandler(req, res);
+  }
+  if (route === 'receivables' || route === 'a-receber') {
+    return financeReceivablesHandler(req, res);
+  }
+  if (route === 'overview' || route === 'visao-geral') {
+    return financeOverviewHandler(req, res);
+  }
+  if (route === 'collection-queue' || route === 'collection_queue') {
+    return collectionQueueHandler(req, res);
+  }
+  if (route === 'payables' || route === 'a-pagar') {
+    return payablesHandler(req, res);
+  }
+  if (route === 'anticipate' || route === 'anticipation') {
+    return financeAnticipationHandler(req, res);
+  }
+  if (route === 'dre') {
+    return financeDreHandler(req, res);
+  }
+  if (route === 'dfc') {
+    return financeDfcHandler(req, res);
+  }
+  if (route === 'cascade') {
+    return financeCascadeHandler(req, res);
+  }
+  if (req.method === 'GET' && !route) {
+    return financeSummaryHandler(req, res);
+  }
+  res.status(404).json({ ok: false, error: 'route_not_found' });
+}

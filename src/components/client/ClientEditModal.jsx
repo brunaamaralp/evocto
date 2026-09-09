@@ -2,85 +2,164 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { toast } from 'sonner';
+import ClientBillingSection from '@/components/clients/ClientBillingSection';
+import {
+  buildClientPayerAliases,
+  isClientBillingEnabled,
+} from '@/lib/financeDomain';
+import { serializePayerAliases } from '@/lib/studentPayerAliases';
+import { useStudentStore } from '@/store/useStudentStore';
+import { loadMergedFinanceConfigForAcademy } from '@/lib/prefetchFinanceConfig';
+
+const EMPTY_FORM = {
+  name: '',
+  legal_name: '',
+  cnpj: '',
+  email: '',
+  phone: '',
+  sector: '',
+  company_size: 'pequena',
+  status: 'ativo',
+  timezone: 'America/Sao_Paulo',
+  billing_enabled: false,
+  plan: '',
+  plan_price: '',
+  due_day: 10,
+  discount_amount: '',
+  billing_contact_name: '',
+  preferred_payment_method: '',
+  preferred_payment_account: '',
+};
+
+function clientToForm(client) {
+  if (!client) return { ...EMPTY_FORM };
+  return {
+    name: client.name || '',
+    legal_name: client.legal_name || '',
+    cnpj: client.cnpj || '',
+    email: client.email || '',
+    phone: client.phone || '',
+    sector: client.sector || '',
+    company_size: client.company_size || 'pequena',
+    status: client.status || 'ativo',
+    timezone: client.timezone || 'America/Sao_Paulo',
+    billing_enabled: isClientBillingEnabled(client),
+    plan: client.plan || client.billing_plan || client.service_plan || '',
+    plan_price:
+      client.plan_price != null && client.plan_price !== ''
+        ? Number(client.plan_price)
+        : client.retainer_value != null
+          ? Number(client.retainer_value)
+          : '',
+    due_day: Number(client.due_day ?? client.billing_due_day ?? 10) || 10,
+    discount_amount:
+      client.discount_amount != null && client.discount_amount !== ''
+        ? Number(client.discount_amount)
+        : '',
+    billing_contact_name: client.billing_contact_name || '',
+    preferred_payment_method: client.preferred_payment_method || '',
+    preferred_payment_account: client.preferred_payment_account || '',
+  };
+}
+
+function buildSavePayload(formData, agencyId) {
+  const billing_enabled = Boolean(formData.billing_enabled);
+  const payload = {
+    name: formData.name.trim(),
+    legal_name: formData.legal_name.trim(),
+    cnpj: formData.cnpj.trim(),
+    email: formData.email.trim(),
+    phone: formData.phone.trim(),
+    sector: formData.sector.trim(),
+    company_size: formData.company_size,
+    status: formData.status,
+    timezone: formData.timezone,
+    agencyId,
+    billing_enabled,
+  };
+
+  if (billing_enabled) {
+    const plan_price = Number(formData.plan_price);
+    const discount_amount = Number(formData.discount_amount);
+    const due_day = Number(formData.due_day);
+    payload.plan = String(formData.plan || '').trim();
+    payload.plan_price =
+      Number.isFinite(plan_price) && plan_price >= 0 ? Math.round(plan_price * 100) / 100 : 0;
+    payload.due_day =
+      Number.isFinite(due_day) && due_day >= 1 && due_day <= 31 ? Math.trunc(due_day) : 10;
+    payload.discount_amount =
+      Number.isFinite(discount_amount) && discount_amount >= 0
+        ? Math.round(discount_amount * 100) / 100
+        : 0;
+    payload.billing_contact_name = String(formData.billing_contact_name || '').trim();
+    payload.preferred_payment_method = String(formData.preferred_payment_method || '').trim();
+    payload.preferred_payment_account = String(formData.preferred_payment_account || '')
+      .trim()
+      .slice(0, 128);
+    payload.payer_aliases_json = serializePayerAliases(buildClientPayerAliases(payload));
+  } else {
+    payload.plan = String(formData.plan || '').trim();
+    payload.plan_price =
+      formData.plan_price === '' || formData.plan_price == null
+        ? undefined
+        : Number(formData.plan_price) || 0;
+    payload.due_day = Number(formData.due_day) || 10;
+    payload.discount_amount =
+      formData.discount_amount === '' || formData.discount_amount == null
+        ? 0
+        : Number(formData.discount_amount) || 0;
+    payload.billing_contact_name = String(formData.billing_contact_name || '').trim();
+    payload.preferred_payment_method = String(formData.preferred_payment_method || '').trim();
+    payload.preferred_payment_account = String(formData.preferred_payment_account || '').trim();
+  }
+
+  // Remove undefined so merge does not wipe accidentally
+  Object.keys(payload).forEach((k) => {
+    if (payload[k] === undefined) delete payload[k];
+  });
+
+  return payload;
+}
 
 export default function ClientEditModal({ isOpen, onClose, onSuccess, client = null }) {
   const { agencyId } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // Estado do formulário
-  const [formData, setFormData] = useState({
-    name: '',
-    legal_name: '',
-    cnpj: '',
-    email: '',
-    phone: '',
-    sector: '',
-    company_size: 'pequena',
-    status: 'ativo',
-    timezone: 'America/Sao_Paulo'
-  });
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
 
-  // Inicializar formulário quando o modal abrir ou cliente mudar
   useEffect(() => {
-    if (isOpen) {
-      if (client) {
-        // Modo edição - preencher com dados do cliente
-        setFormData({
-          name: client.name || '',
-          legal_name: client.legal_name || '',
-          cnpj: client.cnpj || '',
-          email: client.email || '',
-          phone: client.phone || '',
-          sector: client.sector || '',
-          company_size: client.company_size || 'pequena',
-          status: client.status || 'ativo',
-          timezone: client.timezone || 'America/Sao_Paulo'
-        });
-      } else {
-        // Modo criação - valores padrão
-        setFormData({
-          name: '',
-          legal_name: '',
-          cnpj: '',
-          email: '',
-          phone: '',
-          sector: '',
-          company_size: 'pequena',
-          status: 'ativo',
-          timezone: 'America/Sao_Paulo'
-        });
-      }
-      setError('');
+    if (!isOpen) return;
+    setFormData(clientToForm(client));
+    setError('');
+    if (agencyId) {
+      void loadMergedFinanceConfigForAcademy(agencyId);
     }
-  }, [isOpen, client]);
+  }, [isOpen, client, agencyId]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    // Limpar erro quando usuário começar a digitar
     if (error) setError('');
   };
 
@@ -97,12 +176,29 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
       setError('Email é obrigatório');
       return false;
     }
-    
-    // Validar formato de email básico
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Por favor, insira um email válido');
       return false;
+    }
+
+    if (formData.billing_enabled) {
+      if (!String(formData.plan || '').trim()) {
+        setError('Selecione o pacote de serviço para ativar a cobrança');
+        return false;
+      }
+      const due = Number(formData.due_day);
+      if (!Number.isFinite(due) || due < 1 || due > 31) {
+        setError('Dia de vencimento deve ser entre 1 e 31');
+        return false;
+      }
+      const price = Number(formData.plan_price);
+      const discount = Number(formData.discount_amount) || 0;
+      if (Number.isFinite(price) && price > 0 && discount >= price) {
+        setError('O desconto não pode ser maior ou igual ao valor do pacote');
+        return false;
+      }
     }
 
     return true;
@@ -110,7 +206,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -119,32 +215,30 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
     setError('');
 
     try {
-      const clientData = {
-        ...formData,
-        agencyId
-      };
+      const clientData = buildSavePayload(formData, agencyId);
 
       if (client) {
-        // Editar cliente existente
-        console.log('✏️ Editando cliente:', client.id, clientData);
         await Client.update(client.id, clientData);
         toast.success('Cliente atualizado com sucesso!');
       } else {
-        // Criar novo cliente
-        console.log('➕ Criando novo cliente:', clientData);
         await Client.create(clientData);
         toast.success('Cliente criado com sucesso!');
       }
 
+      try {
+        await useStudentStore.getState().fetchStudents({ reset: true });
+      } catch {
+        // roster refresh is best-effort
+      }
+
       onSuccess?.();
       onClose();
-    } catch (error) {
-      console.error('❌ Erro ao salvar cliente:', error);
-      
-      // Tratar diferentes tipos de erro
-      if (error.message?.includes('duplicate') || error.message?.includes('unique')) {
+    } catch (err) {
+      console.error('Erro ao salvar cliente:', err);
+
+      if (err.message?.includes('duplicate') || err.message?.includes('unique')) {
         setError('Já existe um cliente com este CNPJ ou email');
-      } else if (error.message?.includes('validation')) {
+      } else if (err.message?.includes('validation')) {
         setError('Dados inválidos. Verifique as informações preenchidas');
       } else {
         setError('Erro ao salvar cliente. Tente novamente');
@@ -162,11 +256,9 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {client ? 'Editar Cliente' : 'Novo Cliente'}
-          </DialogTitle>
+          <DialogTitle>{client ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
         </DialogHeader>
 
         {error && (
@@ -293,22 +385,27 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
             </div>
           </div>
 
+          <ClientBillingSection
+            formData={formData}
+            onChange={handleInputChange}
+            agencyId={agencyId}
+            disabled={loading}
+          />
+
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={loading || !formData.name.trim() || !formData.legal_name.trim() || !formData.email.trim()}
+              disabled={
+                loading ||
+                !formData.name.trim() ||
+                !formData.legal_name.trim() ||
+                !formData.email.trim()
+              }
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               {client ? 'Salvar Alterações' : 'Criar Cliente'}
             </Button>
           </DialogFooter>

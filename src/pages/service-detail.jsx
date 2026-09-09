@@ -66,6 +66,15 @@ export default function ServiceDetailPage() {
     }
   };
 
+  const handleOpenWorkspace = () => {
+    if (!service?.id || service.is_template) return;
+    const clientQs = service.clientId || context.client?.id
+      ? `&clientId=${service.clientId || context.client.id}`
+      : '';
+    window.location.href =
+      createPageUrl('delivery-workspace') + `?serviceId=${service.id}${clientQs}&section=tasks`;
+  };
+
   const handleViewClient = () => {
     if (context.client) {
       window.location.href = createPageUrl('client-detail') + `?clientId=${context.client.id}`;
@@ -232,7 +241,13 @@ export default function ServiceDetailPage() {
 
               {/* Ações */}
               <div className="flex items-center gap-2">
-                <Button onClick={handleEditService} className="gap-2">
+                {!service.is_template && (
+                  <Button variant="default" onClick={handleOpenWorkspace} className="gap-2">
+                    <Target className="w-4 h-4" />
+                    Workspace
+                  </Button>
+                )}
+                <Button onClick={handleEditService} variant="outline" className="gap-2">
                   <Settings className="w-4 h-4" />
                   Editar Serviço
                 </Button>

@@ -18,7 +18,8 @@ import {
   ChevronLeft,
   Home,
   TrendingUp,
-  Calendar
+  Calendar,
+  Wallet
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
@@ -169,6 +170,12 @@ export default function ContextualSidebar({
         icon: TrendingUp,
         href: '/custom-reports',
         isActive: currentPage === 'custom-reports'
+      },
+      {
+        label: 'Financeiro',
+        icon: Wallet,
+        href: '/financeiro',
+        isActive: currentPage === 'financeiro' || currentPage === 'caixa'
       }
     ];
   };

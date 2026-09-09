@@ -40,8 +40,19 @@ function splitPayload(tableId, data = {}) {
   const known = new Set(TABLE_COLUMNS[tableId] || []);
   const row = {};
   const extra = {};
+  const input = { ...data };
 
-  for (const [key, value] of Object.entries(data)) {
+  // D4: UI legado usa assignedTo; coluna tipada é assigneeId
+  if (tableId === 'tasks') {
+    if (input.assigneeId == null && input.assignedTo != null) {
+      input.assigneeId = input.assignedTo === '' ? null : input.assignedTo;
+    }
+    if (input.assignedTo == null && input.assigneeId != null) {
+      input.assignedTo = input.assigneeId;
+    }
+  }
+
+  for (const [key, value] of Object.entries(input)) {
     if (SYSTEM_KEYS.has(key) || value === undefined) continue;
     if (known.has(key)) {
       const coerced = coerceValue(key, value);
@@ -82,13 +93,23 @@ function mergeRow(row) {
     ...rest
   } = row;
 
-  return {
+  const merged = {
     ...extra,
     ...rest,
     id: $id,
     created_date: $createdAt,
     updated_date: $updatedAt,
   };
+
+  // Compat UI: garantir assignedTo a partir de assigneeId
+  if (merged.assigneeId && !merged.assignedTo) {
+    merged.assignedTo = merged.assigneeId;
+  }
+  if (merged.assignedTo && !merged.assigneeId) {
+    merged.assigneeId = merged.assignedTo;
+  }
+
+  return merged;
 }
 
 async function rowPermissions(agencyId, extra = []) {

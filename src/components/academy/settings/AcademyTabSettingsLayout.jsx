@@ -1,0 +1,54 @@
+import React from 'react';
+import FinanceSettingsDetailHeader from '../../finance/settings/FinanceSettingsDetailHeader.jsx';
+import '../../finance/finance.css';
+
+/**
+ * Layout two-column (sidebar + conteúdo) — config financeira da agência.
+ */
+export default function AcademyTabSettingsLayout({
+  navLabel,
+  items,
+  activeId,
+  onSelect,
+  title,
+  subtitle,
+  onBack,
+  backLabel,
+  children,
+  className = '',
+}) {
+  return (
+    <div className={`finance-settings-layout academy-tab-settings-layout ${className}`.trim()}>
+      <nav className="finance-settings-sidenav" aria-label={navLabel}>
+        {(items || []).map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`finance-settings-sidenav__item${activeId === item.id ? ' finance-settings-sidenav__item--active' : ''}`}
+            onClick={() => onSelect(item.id)}
+            aria-current={activeId === item.id ? 'page' : undefined}
+            title={item.label}
+          >
+            <span className="finance-settings-sidenav__label finance-settings-sidenav__label--long">
+              {item.label}
+            </span>
+            <span className="finance-settings-sidenav__label finance-settings-sidenav__label--short">
+              {item.shortLabel || item.label}
+            </span>
+          </button>
+        ))}
+      </nav>
+      <div className="finance-settings-layout__content">
+        {title ? (
+          <FinanceSettingsDetailHeader
+            title={title}
+            subtitle={subtitle}
+            onBack={onBack}
+            backLabel={backLabel}
+          />
+        ) : null}
+        {children}
+      </div>
+    </div>
+  );
+}

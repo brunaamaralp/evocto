@@ -66,6 +66,7 @@ export default function TaskQuickEdit({ task, open, onOpenChange, onSaved }) {
         status: form.status,
         priority: form.priority,
         assignedTo: form.assignedTo || "",
+        assigneeId: form.assignedTo || "",
         dueDate: form.dueDate || "",
       };
       const updated = await Task.update(task.id, payload);

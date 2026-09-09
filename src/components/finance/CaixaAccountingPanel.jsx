@@ -1,0 +1,205 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import './finance.css';
+import { ID, Query } from 'appwrite';
+import { useLeadStore } from '../../store/useLeadStore';
+import { useAccountingStore } from '../../store/useAccountingStore';
+import { useUiStore } from '../../store/useUiStore';
+import { databases, DB_ID, ACCOUNTS_COL, ACADEMIES_COL } from '../../lib/appwrite';
+import { loadMergedFinanceConfigForAcademy } from '../../lib/prefetchFinanceConfig.js';
+import AccountsTab from './AccountsTab.jsx';
+import ImportFinanceModal from './ImportFinanceModal.jsx';
+import { useTerms } from '../../lib/terminology.js';
+import { exportAccountsCsv } from '../../lib/exportAccountsCsv.js';
+import EmptyState from '../shared/EmptyState.jsx';
+
+const defaultFinanceConfig = () => ({
+  cardFees: {
+    pix: { percent: 0, fixed: 0 },
+    debito: { percent: 0, fixed: 0 },
+    credito_avista: { percent: 0, fixed: 0 },
+    credito_parcelado: { '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 },
+  },
+  bankAccounts: [],
+  plans: [],
+});
+
+const mapAccountDoc = (d) => ({
+  id: d.$id,
+  code: d.code || '',
+  name: d.name || '',
+  type: d.type || 'ativo',
+  nature: d.nature || 'devedora',
+  dreGrupo: d.dreGrupo || '',
+  dfcClasse: d.dfcClasse || '',
+  dfcSubclasse: d.dfcSubclasse || '',
+  cashFlowClass: d.cashFlowClass || '',
+  cash: Boolean(d.cash),
+});
+
+/** Painel do plano de contas (Minha agência → Financeiro → Plano de contas). */
+export default function CaixaAccountingPanel({ isOwner = true }) {
+  const terms = useTerms();
+  const addToast = useUiStore((s) => s.addToast);
+  const academyId = useLeadStore((s) => s.academyId);
+
+  const accounts = useAccountingStore((s) => s.accounts);
+  const setAccounts = useAccountingStore((s) => s.setAccounts);
+  const addAccount = useAccountingStore((s) => s.addAccount);
+  const updateAccount = useAccountingStore((s) => s.updateAccount);
+  const deleteAccount = useAccountingStore((s) => s.deleteAccount);
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [financeConfig, setFinanceConfig] = useState(defaultFinanceConfig);
+  const [hasAccountsInDb, setHasAccountsInDb] = useState(false);
+
+  const academyName = useMemo(() => {
+    const list = useLeadStore.getState().academyList || [];
+    const cur = list.find((a) => a.id === academyId);
+    return String(cur?.name || '').trim();
+  }, [academyId]);
+
+  useEffect(() => {
+    if (academyId) useAccountingStore.getState().loadByAcademy(academyId);
+  }, [academyId]);
+
+  useEffect(() => {
+    if (!academyId) return;
+    let active = true;
+    void loadMergedFinanceConfigForAcademy(academyId).then((cfg) => {
+      if (!active || !cfg || academyId !== useLeadStore.getState().academyId) return;
+      setFinanceConfig({ ...defaultFinanceConfig(), ...cfg });
+    });
+
+    if (ACCOUNTS_COL) {
+      databases
+        .listDocuments(DB_ID, ACCOUNTS_COL, [Query.equal('academyId', academyId), Query.limit(1)])
+        .then((res) => {
+          if (active) setHasAccountsInDb((res.documents || []).length > 0);
+        })
+        .catch(() => {
+          if (active) setHasAccountsInDb(false);
+        });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [academyId]);
+
+  const hasExistingData =
+    hasAccountsInDb || (financeConfig.plans?.length || 0) > 0 || (financeConfig.bankAccounts?.length || 0) > 0;
+
+  const handleImportFinance = useCallback(
+    async ({ accounts: newAccounts, plans: newPlans, bankAccounts: newBankAccounts, mode }) => {
+      if (!academyId) throw new Error(`Selecione uma ${terms.workspaceNoun} para importar.`);
+      const accountsList = Array.isArray(newAccounts) ? newAccounts : [];
+      const plansList = Array.isArray(newPlans) ? newPlans : [];
+      const banksList = Array.isArray(newBankAccounts) ? newBankAccounts : [];
+
+      if (accountsList.length > 0 && ACCOUNTS_COL) {
+        if (mode === 'replace') {
+          const existing = await databases.listDocuments(DB_ID, ACCOUNTS_COL, [
+            Query.equal('academyId', academyId),
+            Query.limit(500),
+          ]);
+          await Promise.allSettled(
+            (existing.documents || []).map((d) => databases.deleteDocument(DB_ID, ACCOUNTS_COL, d.$id))
+          );
+        }
+        await Promise.allSettled(
+          accountsList.map((account) =>
+            databases.createDocument(DB_ID, ACCOUNTS_COL, ID.unique(), {
+              academyId,
+              code: String(account?.code || '').trim(),
+              name: String(account?.name || '').trim(),
+              type: String(account?.type || 'ativo').trim().toLowerCase(),
+              nature: String(account?.nature || 'devedora').trim().toLowerCase(),
+              dreGrupo: String(account?.dreGrupo || '').trim(),
+              dfcClasse: String(account?.dfcClasse || '').trim(),
+              dfcSubclasse: String(account?.dfcSubclasse || '').trim(),
+              cash: Boolean(account?.cash),
+            })
+          )
+        );
+        const refreshed = await databases.listDocuments(DB_ID, ACCOUNTS_COL, [
+          Query.equal('academyId', academyId),
+          Query.limit(500),
+          Query.orderAsc('code'),
+        ]);
+        setAccounts((refreshed.documents || []).map(mapAccountDoc));
+        setHasAccountsInDb((refreshed.documents || []).length > 0);
+      }
+
+      if (plansList.length > 0 || banksList.length > 0) {
+        const updatedConfig = { ...financeConfig };
+        if (plansList.length > 0) {
+          updatedConfig.plans = mode === 'replace' ? plansList : [...(financeConfig.plans || []), ...plansList];
+        }
+        if (banksList.length > 0) {
+          updatedConfig.bankAccounts =
+            mode === 'replace' ? banksList : [...(financeConfig.bankAccounts || []), ...banksList];
+        }
+        await databases.updateDocument(DB_ID, ACADEMIES_COL, academyId, {
+          financeConfig: JSON.stringify(updatedConfig),
+        });
+        setFinanceConfig(updatedConfig);
+        useLeadStore.getState().setFinanceConfig(updatedConfig);
+      }
+
+      addToast({ type: 'success', message: 'Dados importados com sucesso.' });
+    },
+    [academyId, financeConfig, setAccounts, addToast, terms.workspaceNoun]
+  );
+
+  if (!String(academyId || '').trim()) {
+    return (
+      <EmptyState
+        variant="compact"
+        title={`Selecione uma ${terms.workspaceNoun}`}
+        description="Escolha uma agência para configurar o plano de contas."
+      />
+    );
+  }
+
+  if (!isOwner) return null;
+
+  return (
+    <>
+      <section id="finance-plano-contas" className="finance-config-section finance-config-section--accounting">
+        <AccountsTab
+          academyId={academyId}
+          accounts={accounts}
+          setAccounts={setAccounts}
+          addAccount={addAccount}
+          updateAccount={updateAccount}
+          deleteAccount={deleteAccount}
+          embedded
+          headingActions={
+            <>
+              <button
+                type="button"
+                className="btn-action-ghost"
+                disabled={!accounts?.length}
+                onClick={() => exportAccountsCsv(accounts)}
+              >
+                ↓ Exportar plano
+              </button>
+              <button type="button" className="btn-action-ghost" onClick={() => setShowImportModal(true)}>
+                ↑ Importar planilha
+              </button>
+            </>
+          }
+        />
+        <hr className="finance-config-section__divider" aria-hidden />
+      </section>
+      <ImportFinanceModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onConfirm={handleImportFinance}
+        academyId={academyId}
+        academyName={academyName}
+        hasExistingData={hasExistingData}
+      />
+    </>
+  );
+}

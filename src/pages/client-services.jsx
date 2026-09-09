@@ -164,7 +164,9 @@ export default function ClientServicesPage() {
   };
 
   const handleViewService = (serviceId) => {
-    navigate(`${createPageUrl('service-detail')}?serviceId=${serviceId}&clientId=${clientId}`);
+    navigate(
+      `${createPageUrl('delivery-workspace')}?serviceId=${serviceId}&clientId=${clientId}&section=tasks`
+    );
   };
 
   const breadcrumbItems = [

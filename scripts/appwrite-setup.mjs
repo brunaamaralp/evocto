@@ -126,7 +126,22 @@ const TABLES = [
       { key: 'assigneeId', type: 'varchar', size: 36 },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'serviceId', 'status'],
+    indexes: ['agencyId', 'clientId', 'serviceId', 'status', 'assigneeId'],
+  },
+  {
+    id: 'time_entries',
+    name: 'Time Entries',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'userId', type: 'varchar', size: 64 },
+      { key: 'taskId', type: 'varchar', size: 36 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'deliverableId', type: 'varchar', size: 64 },
+      { key: 'status', type: 'varchar', size: 16 },
+      { key: 'startedAt', type: 'datetime' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'userId', 'taskId', 'serviceId', 'status', 'startedAt'],
   },
   {
     id: 'cycle_plans',
@@ -343,21 +358,36 @@ async function main() {
   }
 
   try {
-    await storage.createBucket({
-      bucketId: BUCKET_ID,
-      name: 'Evocto Files',
-      permissions: [
-        Permission.create(Role.users()),
-        Permission.read(Role.users()),
-        Permission.update(Role.users()),
-        Permission.delete(Role.users()),
-      ],
-      fileSecurity: true,
-    });
-    console.log(`Bucket ${BUCKET_ID} criado`);
-  } catch (error) {
-    if (!isConflict(error)) throw error;
+    await storage.getBucket({ bucketId: BUCKET_ID });
     console.log(`Bucket ${BUCKET_ID} já existe`);
+  } catch {
+    try {
+      await storage.createBucket({
+        bucketId: BUCKET_ID,
+        name: 'Evocto Files',
+        permissions: [
+          Permission.create(Role.users()),
+          Permission.read(Role.users()),
+          Permission.update(Role.users()),
+          Permission.delete(Role.users()),
+        ],
+        fileSecurity: true,
+      });
+      console.log(`Bucket ${BUCKET_ID} criado`);
+    } catch (error) {
+      if (isConflict(error)) {
+        console.log(`Bucket ${BUCKET_ID} já existe`);
+      } else if (
+        error?.type === 'additional_resource_not_allowed' ||
+        String(error?.message || '').toLowerCase().includes('maximum number of buckets')
+      ) {
+        console.warn(
+          `Limite de buckets atingido; assumindo bucket existente id=${BUCKET_ID} (não recriado).`
+        );
+      } else {
+        throw error;
+      }
+    }
   }
 
   console.log(`\nSetup concluído. Database ID em uso: ${DATABASE_ID}`);

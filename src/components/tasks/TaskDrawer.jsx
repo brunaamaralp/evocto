@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 // import ReactQuill from "react-quill"; // Removido - não instalado
 import { toast } from "sonner";
+import TaskTimerButton from "@/components/tasks/TaskTimerButton";
+import TaskTimeSessionsPanel from "@/components/tasks/TaskTimeSessionsPanel";
 
 // Status mapping para o Kanban
 const STATUS_CONFIG = {
@@ -697,6 +699,8 @@ export default function TaskDrawer() {
                     Concluir
                   </Button>
                 )}
+
+                {task ? <TaskTimerButton task={task} /> : null}
               </div>
             </div>
 
@@ -855,6 +859,12 @@ export default function TaskDrawer() {
                         </Select>
                       </div>
                     </div>
+
+                    {task?.id ? (
+                      <div className="pt-2 border-t border-slate-100">
+                        <TaskTimeSessionsPanel taskId={task.id} />
+                      </div>
+                    ) : null}
                   </TabsContent>
 
                   {/* Checklist Avançado */}

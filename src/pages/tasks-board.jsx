@@ -91,7 +91,7 @@ export default function TasksBoardPage() {
   const filtered = useMemo(() => {
     return tasks.filter(t => {
       if (filters.q && !t.title.toLowerCase().includes(filters.q.toLowerCase())) return false;
-      if (filters.assignedTo !== "all" && (t.assignedTo || "") !== filters.assignedTo) return false;
+      if (filters.assignedTo !== "all" && (t.assignedTo || t.assigneeId || "") !== filters.assignedTo) return false;
       if (filters.clientId !== "all" && (t.clientId || "") !== filters.clientId) return false;
       if (filters.cycleId !== "all" && (t.cycleId || "") !== filters.cycleId) return false;
       return true;

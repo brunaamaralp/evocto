@@ -4,7 +4,8 @@
  * Consolida todas as configurações em uma única página com abas
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Agency } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,14 +26,42 @@ import {
   AlertTriangle,
   Zap,
   Save,
-  Loader2
+  Loader2,
+  Wallet
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLeadStore } from '@/store/useLeadStore';
+
+const FinanceiroConfigTab = lazy(() => import('@/components/finance/FinanceiroConfigTab.jsx'));
 
 export default function SettingsPage() {
-  const { user, agency, isOwner, isAdmin } = useSession();
-  const [activeTab, setActiveTab] = useState('profile');
+  const session = useSession();
+  const { user, agency, isOwner, isAdmin } = session;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = String(searchParams.get('tab') || 'profile').trim() || 'profile';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    useLeadStore.getState().syncFromSession(session);
+  }, [session?.agencyId, session?.userId, session?.agency]);
+
+  useEffect(() => {
+    if (tabFromUrl && tabFromUrl !== activeTab) setActiveTab(tabFromUrl);
+  }, [tabFromUrl]);
+
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', value);
+        if (value !== 'financeiro') next.delete('section');
+        return next;
+      },
+      { replace: true }
+    );
+  };
   
   // Estados para diferentes configurações
   const [profileData, setProfileData] = useState({
@@ -149,8 +178,8 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 h-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             Perfil
@@ -158,6 +187,10 @@ export default function SettingsPage() {
           <TabsTrigger value="agency" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             Agência
+          </TabsTrigger>
+          <TabsTrigger value="financeiro" className="flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Financeiro
           </TabsTrigger>
           <TabsTrigger value="policies" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
@@ -545,6 +578,30 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="financeiro">
+          {canEditAgency ? (
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Carregando configuração financeira…
+                </div>
+              }
+            >
+              <FinanceiroConfigTab
+                academyId={session?.agencyId || agency?.id}
+                isOwner={Boolean(isOwner?.())}
+              />
+            </Suspense>
+          ) : (
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                Apenas administradores podem editar as configurações financeiras.
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -14,7 +14,8 @@ import {
   FileText,
   Target,
   TrendingUp,
-  Bell
+  Bell,
+  Clock
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useSession } from '@/components/auth/SessionManager';
@@ -61,6 +62,12 @@ export default function ModernSidebar({ user }) {
       icon: CheckSquare,
       href: createPageUrl('tasks'),
       active: location.pathname.includes('/tasks')
+    },
+    {
+      label: 'Hub de horas',
+      icon: Clock,
+      href: createPageUrl('hours-hub'),
+      active: location.pathname.includes('/hours-hub')
     },
     {
       label: 'Ciclos Ativos',

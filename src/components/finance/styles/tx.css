@@ -1,0 +1,140 @@
+/* Lançamentos (Caixa) — mobile/desktop toggle, toolbar, saldo do período */
+
+.finance-tx-section {
+  --finance-table-max-height: calc(100vh - 140px);
+}
+
+.finance-regime-toggle--inline {
+  flex: 0 0 auto;
+  align-items: center;
+  margin: 0;
+}
+
+.finance-tx-period-balance-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-surface);
+  border: 0.5px solid color-mix(in srgb, var(--color-primary) 18%, var(--border-light));
+  min-width: 0;
+}
+
+.finance-tx-period-balance-inline__label {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.finance-tx-period-balance-inline__value {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary, var(--text));
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .finance-tx-section .finance-desktop-table-wrap {
+    display: none !important;
+  }
+
+  .finance-tx-section .finance-mobile-list {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 768px) {
+  .finance-tx-section .finance-mobile-list {
+    display: none !important;
+  }
+}
+
+.finance-tx-toolbar__overflow {
+  display: none;
+}
+
+.finance-tx-toolbar__cta--desktop-only {
+  display: inline-flex;
+}
+
+@media (max-width: 767px) {
+  .finance-tx-toolbar__overflow {
+    display: inline-flex;
+  }
+
+  .finance-tx-toolbar__cta--desktop-only {
+    display: none;
+  }
+
+  .finance-tx-section .finance-tx-table-toolbar {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-period-balance__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .finance-period-balance__hint {
+    max-width: none;
+  }
+
+  .finance-tx-period-balance-inline {
+    margin-left: 0;
+    width: 100%;
+    align-items: flex-start;
+  }
+}
+
+.finance-tx-actions-cell {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 2px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.finance-tx-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.finance-tx-icon-btn:hover:not(:disabled) {
+  background: var(--v50);
+  color: var(--text);
+}
+
+.finance-tx-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.finance-tx-icon-btn--danger {
+  color: var(--color-danger, #c53030);
+}
+
+.finance-tx-icon-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger, #c53030) 12%, transparent);
+  color: var(--color-danger, #c53030);
+}
+
+.finance-mobile-card__actions .finance-tx-actions-cell {
+  justify-content: flex-start;
+}

@@ -37,6 +37,7 @@ export const SentimentAnalysis = entity('SentimentAnalysis');
 export const SmartRecommendation = entity('SmartRecommendation');
 export const ApprovalRequest = entity('ApprovalRequest');
 export const Task = entity('Task');
+export const TimeEntry = entity('TimeEntry');
 export const UserStory = entity('UserStory');
 export const UserFeedback = entity('UserFeedback');
 export const SurveyResponse = entity('SurveyResponse');

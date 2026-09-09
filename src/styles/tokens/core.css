@@ -1,0 +1,88 @@
+:root {
+  /* Primária */
+  --color-primary: #6C47D8;
+  --color-primary-light: #AFA9EC;
+  --color-primary-surface: #EDE9FB;
+  --color-primary-dark: #4A2FA3;
+
+  /* Accent — verde mais vibrante, próximo do logo */
+  --color-accent: #22C98A;
+  --color-accent-light: #80E8C4;
+  --color-accent-surface: #D0F7EC;
+  --color-accent-dark: #085041;
+
+  /* Highlight — fluor pontual (metas, badges de energia, notificações) */
+  --color-highlight: #B2F100;
+  --color-highlight-surface: #F0FFB8;
+
+  --color-success: var(--color-accent);
+  --color-success-surface: var(--color-accent-surface);
+  --color-danger: #E24B4A;
+  --color-warning: #C47A00;
+  --color-text-heading: #18162A;
+  --color-border: #E8E5F5;
+  --color-white: #FFFFFF;
+  --color-surface: var(--color-card-bg);
+  --color-surface-canvas: var(--color-content-bg);
+
+  /* Sidebar / Topbar */
+  --color-sidebar-bg: #13111F;
+  --color-topbar-bg: #13111F;
+  --color-sidebar-text: #7A7595;
+  --color-sidebar-active-bg: rgba(108, 71, 216, 0.22);
+  --color-sidebar-active-text: #C4B4F5;
+  --color-sidebar-active-icon: #AFA9EC;
+  --color-sidebar-section: #6E6A88;
+  --color-sidebar-border: rgba(255, 255, 255, 0.06);
+  --color-sidebar-avatar-bg: #2A2640;
+  --color-sidebar-avatar-text: #AFA9EC;
+
+  /* Conteúdo */
+  --color-content-bg: #FFFFFF;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #E8E5F5;
+
+  /* Tipografia — escala rem (base 16px) */
+  --font-2xs:  0.625rem;   /* 10px */
+  --font-xs:   0.6875rem;  /* 11px */
+  --font-sm:   0.75rem;    /* 12px */
+  --font-base: 0.8125rem;  /* 13px */
+  --font-md:   0.875rem;   /* 14px */
+  --font-lg:   0.9375rem;  /* 15px */
+  --font-xl:   1rem;       /* 16px */
+  --font-2xl:  1.125rem;   /* 18px */
+  --font-3xl:  1.25rem;    /* 20px */
+  --font-4xl:  1.5rem;     /* 24px */
+  --font-5xl:  2rem;       /* 32px */
+
+  /* Espaçamento global */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Camadas globais */
+  --z-base: 1;
+  --z-dropdown: 1200;
+  --z-sticky: 1300;
+  --z-overlay: 9000;
+  --z-chat-widget: 8000;
+  --z-modal: 9999;
+  --z-toast: 11000;
+  --z-sheet: 12000;
+  --z-elevated: 13000;
+
+  /* Motion */
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 320ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:      cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+}

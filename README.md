@@ -43,13 +43,27 @@ Abra `http://127.0.0.1:5173/welcome`, crie uma conta e entre em `/login`.
 ## Fase 1 — o que está no Appwrite
 
 - Auth email/senha
-- Tabelas: agencies, profiles, clients, services, tasks, cycle_plans, briefs, briefing_templates, approval_requests, invites
-- Upload de arquivos (Storage)
+- Tabelas: agencies, profiles, clients, services, tasks, **time_entries**, cycle_plans, briefs, briefing_templates, approval_requests, invites
+- Upload de arquivos (Storage bucket `files`)
 - `createAgency` e `createServiceInstance`
 
 Entidades e functions ainda não migradas falham de forma explícita (`not migrated yet`) ou devolvem lista vazia.
 
 O client Base44 permanece em `src/api/base44Client.js` apenas como referência; o app usa Appwrite.
+
+## Financeiro (Appwrite)
+
+Após o setup da Fase 1, provisione o schema financeiro:
+
+```bash
+npm run appwrite:setup-finance
+```
+
+Tabelas: `financial_tx`, `client_billings`, `finance_accounts`, `finance_journal`, `bank_statements`, `bank_statement_items`, `financial_audit_log`.
+
+O hub (`/financeiro`, Caixa, Mensalidades) e Settings→Plano de contas usam **Appwrite TablesDB** (`financeTxApi` / `financeAppwriteBackend`). O script atualiza `.env.local` com os IDs das coleções.
+
+Spec de alinhamento: `docs/SPEC_CORRECAO_APPWRITE_SCHEMA.md`.
 
 ## Build
 

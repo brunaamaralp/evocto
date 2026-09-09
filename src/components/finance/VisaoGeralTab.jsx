@@ -1,0 +1,592 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowRight,
+  BarChart2,
+  RefreshCw,
+  Wallet,
+} from 'lucide-react';
+import { useLeadStore } from '../../store/useLeadStore';
+import {
+  fetchFinanceOverviewCached,
+} from '../../lib/financeTxApi.js';
+import { invalidateFinanceHubCache } from '../../lib/financeHubCache.js';
+import './visao-geral.css';
+import { getFinanceRegime, financeRegimeLabel, FINANCE_REGIME } from '../../lib/financeCompetence.js';
+import { FINANCE_TERM_HINTS } from '../../lib/financeTermHints.js';
+import FinanceLabelWithHint from './FinanceLabelWithHint.jsx';
+import FinanceTabShell from './FinanceTabShell.jsx';
+import EmptyState from '../shared/EmptyState.jsx';
+import { buildReceivablesPath, RECEIVABLES_SECTIONS } from '../../lib/financeiroReceivablesSections.js';
+import {
+  buildMovimentacoesPeriodPath,
+  formatBalanceDelta,
+  formatMonthTitleCapitalized,
+  monthEndYmd,
+  overviewPeriodContext,
+  previousMonthYm,
+} from '../../lib/financeiroOverview.js';
+import PageSkeleton from '../shared/PageSkeleton.jsx';
+import ErrorBanner from '../shared/ErrorBanner.jsx';
+
+const EMPTY_MENSAL_KPIS = {
+  activeWithPlan: 0,
+  expectedTotal: 0,
+  receivedTotal: 0,
+  overdueCount: 0,
+  overdueOpen: 0,
+};
+import StatusBanner from '../shared/StatusBanner.jsx';
+import FinanceBankAccountsSetupBanner from './FinanceBankAccountsSetupBanner.jsx';
+import BankBalancesOverview from './BankBalancesOverview.jsx';
+import ReceivablesOverviewCard from './ReceivablesOverviewCard.jsx';
+import PayablesOverviewCard from './PayablesOverviewCard.jsx';
+import { buildPayablesPath, PAYABLES_SECTIONS } from '../../lib/financeiroPayablesSections.js';
+import BalanceDeltaBadge from './BalanceDeltaBadge.jsx';
+import PeriodFlowMiniChart from './PeriodFlowMiniChart.jsx';
+
+function fmtMoney(v) {
+  try {
+    return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  } catch {
+    return `R$ ${Number(v || 0).toFixed(2)}`;
+  }
+}
+
+function fmtMoneyOrUnavailable(value, failed) {
+  if (failed) return '—';
+  if (value == null || Number.isNaN(Number(value))) return '—';
+  return fmtMoney(value);
+}
+
+function fmtDateBr(ymd) {
+  const p = String(ymd || '').slice(0, 10).split('-');
+  if (p.length !== 3) return ymd || '—';
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+function OverviewCard({ title, eyebrow, children, className = '' }) {
+  return (
+    <section className={`card financeiro-overview-card ${className}`.trim()}>
+      {eyebrow ? <p className="navi-eyebrow financeiro-overview-card__eyebrow">{eyebrow}</p> : null}
+      <h2 className="navi-section-heading financeiro-overview-card__title">{title}</h2>
+      <div className="financeiro-overview-card__body">{children}</div>
+    </section>
+  );
+}
+
+function MetricRow({ label, value, hint, labelHint }) {
+  return (
+    <div className="financeiro-overview-metric">
+      <span className="financeiro-overview-metric__label">
+        {labelHint ? <FinanceLabelWithHint hint={labelHint}>{label}</FinanceLabelWithHint> : label}
+      </span>
+      <span className="financeiro-overview-metric__value">{value}</span>
+      {hint ? <span className="text-small text-muted">{hint}</span> : null}
+    </div>
+  );
+}
+
+function CardLoadError({ message }) {
+  return <ErrorBanner message={message} className="financeiro-overview-card__error" />;
+}
+
+export default function VisaoGeralTab({
+  academyId,
+  financeModule,
+  modules,
+  isOwner = false,
+  showPayablesPreview = false,
+  referenceMonth,
+  onMonthConferred,
+  onPayablesSummaryChange,
+}) {
+  const financeConfig = useLeadStore((s) => s.financeConfig);
+
+  const ym = String(referenceMonth || '').trim();
+  const periodCtx = useMemo(() => overviewPeriodContext(ym), [ym]);
+  const prevMonth = useMemo(() => previousMonthYm(ym), [ym]);
+  const bankCompareAsOf = useMemo(() => monthEndYmd(prevMonth), [prevMonth]);
+  const movimentacoesPeriodPath = useMemo(
+    () => buildMovimentacoesPeriodPath({ from: periodCtx.from, to: periodCtx.to }),
+    [periodCtx.from, periodCtx.to]
+  );
+  const movimentacoesPendingPath = useMemo(
+    () =>
+      buildMovimentacoesPeriodPath({
+        from: periodCtx.from,
+        to: periodCtx.to,
+        status: 'pending',
+      }),
+    [periodCtx.from, periodCtx.to]
+  );
+
+  const [loading, setLoading] = useState(true);
+  const [loadedOnce, setLoadedOnce] = useState(false);
+  const [error, setError] = useState('');
+  const [summaryFailed, setSummaryFailed] = useState(false);
+  const [paymentsFailed, setPaymentsFailed] = useState(false);
+  const [forecastFailed, setForecastFailed] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [summaryPrev, setSummaryPrev] = useState(null);
+  const [forecastPreview, setForecastPreview] = useState(null);
+  const [pendingTxCount, setPendingTxCount] = useState(0);
+  const [contractsAwaiting, setContractsAwaiting] = useState(0);
+  const [closingDivergences, setClosingDivergences] = useState(0);
+  const [mensalKpis, setMensalKpis] = useState(EMPTY_MENSAL_KPIS);
+  const [receivables, setReceivables] = useState(null);
+  const [receivablesFailed, setReceivablesFailed] = useState(false);
+  const [payables, setPayables] = useState(null);
+  const [payablesFailed, setPayablesFailed] = useState(false);
+  const [bankBalancesData, setBankBalancesData] = useState(null);
+  const [bankBalancesCompare, setBankBalancesCompare] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const regime = useMemo(
+    () => (academyId ? getFinanceRegime(academyId) : 'cash'),
+    [academyId]
+  );
+
+  const load = useCallback(async (forceRefresh = false) => {
+    if (!academyId) return;
+    setLoading(true);
+    setError('');
+    setSummaryFailed(false);
+    setPaymentsFailed(false);
+    setForecastFailed(false);
+    setReceivablesFailed(false);
+    setPayablesFailed(false);
+    try {
+      const regimeVal = getFinanceRegime(academyId);
+
+      const overview = await fetchFinanceOverviewCached({
+        academyId,
+        month: ym,
+        regime: regimeVal,
+        includeForecast: financeModule,
+        includeContracts: Boolean(modules?.finance),
+        includePayables: showPayablesPreview,
+        bankCompareAsOf,
+        force: forceRefresh || refreshToken > 0,
+      });
+
+      setSummary(overview.summary ?? null);
+      setSummaryFailed(!overview.summary);
+      setSummaryPrev(overview.summaryPrev ?? null);
+
+      setPaymentsFailed(!overview.mensalKpis);
+
+      if (overview.receivables) {
+        setReceivables(overview.receivables);
+        setReceivablesFailed(false);
+      } else {
+        setReceivables(null);
+        setReceivablesFailed(true);
+      }
+
+      if (showPayablesPreview) {
+        if (overview.payablesPreview) {
+          setPayables(overview.payablesPreview);
+          setPayablesFailed(false);
+          onPayablesSummaryChange?.(Number(overview.payablesPreview.summary?.overdueCount) || 0);
+        } else {
+          setPayables(null);
+          setPayablesFailed(true);
+          onPayablesSummaryChange?.(0);
+        }
+      } else {
+        setPayables(null);
+        setPayablesFailed(false);
+      }
+
+      if (financeModule) {
+        if (overview.forecastPreview) {
+          setForecastPreview(overview.forecastPreview);
+          setForecastFailed(false);
+        } else {
+          setForecastPreview(null);
+          setForecastFailed(true);
+        }
+      } else {
+        setForecastPreview(null);
+        setForecastFailed(false);
+      }
+
+      setMensalKpis(overview.mensalKpis ?? EMPTY_MENSAL_KPIS);
+      setClosingDivergences(Number(overview.closingDivergenceCount) || 0);
+      setContractsAwaiting(Number(overview.contractsAwaitingCount) || 0);
+      onMonthConferred?.(ym, Boolean(overview.isMonthConferred));
+      setPendingTxCount(
+        Number(overview.pendingInMonth ?? overview.summary?.countPending) || 0
+      );
+
+      setBankBalancesData(overview.bankBalances ?? null);
+      setBankBalancesCompare(overview.bankBalancesCompare ?? null);
+    } catch (e) {
+      console.error('[VisaoGeralTab]', e);
+      setError('Não foi possível carregar o resumo financeiro.');
+    } finally {
+      setLoading(false);
+      setLoadedOnce(true);
+    }
+  }, [
+    academyId,
+    ym,
+    financeModule,
+    bankCompareAsOf,
+    modules?.finance,
+    showPayablesPreview,
+    onPayablesSummaryChange,
+    onMonthConferred,
+    refreshToken,
+  ]);
+
+  const handleRefresh = useCallback(() => {
+    if (academyId) invalidateFinanceHubCache(academyId);
+    setRefreshToken((t) => t + 1);
+  }, [academyId]);
+
+  useEffect(() => {
+    void load(refreshToken > 0);
+  }, [load, refreshToken]);
+
+  useEffect(() => {
+    const bump = () => setRefreshToken((t) => t + 1);
+    window.addEventListener('navi-student-payment-updated', bump);
+    window.addEventListener('navi-financial-tx-settled', bump);
+    return () => {
+      window.removeEventListener('navi-student-payment-updated', bump);
+      window.removeEventListener('navi-financial-tx-settled', bump);
+    };
+  }, []);
+
+  const forecastInflowTotal = forecastPreview?.inflowTotal ?? 0;
+  const forecastTop = forecastPreview?.topItems ?? [];
+  const receivablesTop = receivables?.topItems ?? [];
+  const payablesTop = payables?.topItems ?? [];
+  const payablesOverdueCount = payables?.summary?.overdueCount ?? 0;
+  const payablesTotalOpen = payables?.summary?.totalOpen ?? 0;
+
+  const balanceDelta = useMemo(
+    () => formatBalanceDelta(summary?.periodBalance, summaryPrev?.periodBalance),
+    [summary, summaryPrev]
+  );
+
+  const monthLabel = useMemo(() => formatMonthTitleCapitalized(ym), [ym]);
+
+  const receivablesTotal = receivables?.summary?.total ?? 0;
+  const receivablesSectionPath = buildReceivablesPath({
+    section:
+      mensalKpis.overdueCount > 0
+        ? RECEIVABLES_SECTIONS.COBRANCA
+        : RECEIVABLES_SECTIONS.MENSALIDADES,
+  });
+  const receivablesPendingPath = buildReceivablesPath({
+    section: RECEIVABLES_SECTIONS.MENSALIDADES,
+    filtro: 'pending',
+  });
+
+  const hasAlerts =
+    mensalKpis.overdueCount > 0 ||
+    pendingTxCount > 0 ||
+    receivablesTotal > 0 ||
+    payablesOverdueCount > 0 ||
+    (showPayablesPreview && payablesTotalOpen > 0) ||
+    (modules?.finance && contractsAwaiting > 0) ||
+    (financeModule && closingDivergences > 0);
+
+  if (!academyId) {
+    return (
+      <EmptyState
+        variant="compact"
+        title="Selecione uma academia"
+        description="Escolha uma agência para ver o resumo financeiro."
+      />
+    );
+  }
+
+  if (loading && !loadedOnce) {
+    return (
+      <div className="mt-2">
+        <PageSkeleton variant="cards" rows={4} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-2">
+        <ErrorBanner message={error} onRetry={handleRefresh} />
+      </div>
+    );
+  }
+
+  const refreshBtn = (
+    <button
+      type="button"
+      className="btn-outline btn-sm financeiro-overview-refresh"
+      onClick={handleRefresh}
+      disabled={loading}
+      aria-busy={loading}
+      aria-label="Atualizar resumo"
+    >
+      <RefreshCw size={14} className={loading ? 'navi-async-btn__spin' : ''} aria-hidden />
+      <span className="financeiro-overview-refresh__label">Atualizar</span>
+    </button>
+  );
+
+  const regimeBadge = (
+    <p className="text-small text-muted financeiro-overview__regime" role="status">
+      <FinanceLabelWithHint
+        hint={
+          regime === FINANCE_REGIME.COMPETENCE
+            ? FINANCE_TERM_HINTS.regimeCompetence
+            : FINANCE_TERM_HINTS.regimeCaixa
+        }
+      >
+        Régime {financeRegimeLabel(regime)}
+      </FinanceLabelWithHint>
+    </p>
+  );
+
+  return (
+    <FinanceTabShell
+      panelClassName={`financeiro-overview${loading && loadedOnce ? ' financeiro-overview--refreshing' : ''}`}
+      badge={regimeBadge}
+      actions={refreshBtn}
+      intro={
+        <FinanceBankAccountsSetupBanner
+          financeConfig={financeConfig}
+          canConfigure={isOwner}
+          className="finance-tab-intro"
+        />
+      }
+    >
+
+      {summary?.truncated ? (
+        <StatusBanner variant="warning" className="mb-3">
+          Período com mais de 2.500 lançamentos — totais podem estar incompletos. Reduza o intervalo de datas.
+        </StatusBanner>
+      ) : null}
+
+      <div className="financeiro-overview-grid financeiro-overview-grid--dashboard">
+        <OverviewCard
+          title="Saldo e movimentações"
+          eyebrow={`Caixa · ${periodCtx.monthTitle}`}
+          className="financeiro-overview-card--period"
+        >
+          {summaryFailed ? (
+            <CardLoadError message="Não foi possível carregar o saldo. Tente atualizar." />
+          ) : null}
+          <div className="financeiro-overview-hero">
+            <Wallet size={22} aria-hidden />
+            <div>
+              <p className="financeiro-overview-hero__label">
+                <FinanceLabelWithHint hint={FINANCE_TERM_HINTS.saldoPeriodoVisaoGeral}>
+                  Saldo do período
+                </FinanceLabelWithHint>
+              </p>
+              <p className="financeiro-overview-hero__value">
+                {fmtMoneyOrUnavailable(summary?.periodBalance, summaryFailed)}
+              </p>
+              {!summaryFailed ? (
+                <BalanceDeltaBadge delta={balanceDelta} className="financeiro-overview-trend" />
+              ) : null}
+            </div>
+          </div>
+          <PeriodFlowMiniChart
+            inflow={summary?.settledIn}
+            outflow={summary?.settledOut}
+            failed={summaryFailed}
+          />
+          <Link to={movimentacoesPeriodPath} className="btn-outline btn-sm financeiro-overview-cta">
+            Ver lançamentos <ArrowRight size={14} />
+          </Link>
+        </OverviewCard>
+
+        <OverviewCard
+          title="Saldos por conta"
+          eyebrow={`Posição em ${periodCtx.labelFromToBr.split(' (')[0]}`}
+          className="financeiro-overview-card--banks"
+        >
+          <BankBalancesOverview
+            academyId={academyId}
+            embedded
+            compactLayout
+            accountLinks
+            refreshKey={refreshToken}
+            compareAsOf={bankCompareAsOf}
+            showTotalDelta
+            periodFrom={periodCtx.from}
+            periodTo={periodCtx.to}
+            periodLabel={periodCtx.labelFromToBr}
+            prefetchedData={bankBalancesData}
+            prefetchedCompareData={bankBalancesCompare}
+          />
+        </OverviewCard>
+
+        <ReceivablesOverviewCard
+          summary={receivables?.summary}
+          topItems={receivablesTop}
+          failed={receivablesFailed}
+          loading={loading}
+        />
+
+        {showPayablesPreview ? (
+          <PayablesOverviewCard
+            summary={payables?.summary}
+            topItems={payablesTop}
+            failed={payablesFailed}
+            loading={loading}
+          />
+        ) : null}
+
+        <OverviewCard title="Mensalidades" eyebrow={`Referência ${monthLabel}`} className="financeiro-overview-card--pair">
+          {paymentsFailed ? (
+            <CardLoadError message="Não foi possível carregar as mensalidades. Tente atualizar." />
+          ) : null}
+          <div className="financeiro-overview-metrics">
+            <MetricRow
+              label="Alunos ativos com plano"
+              value={paymentsFailed ? '—' : String(mensalKpis.activeWithPlan)}
+            />
+            <MetricRow
+              label="Valor esperado no mês"
+              value={fmtMoneyOrUnavailable(mensalKpis.expectedTotal, paymentsFailed)}
+            />
+            <MetricRow
+              label="Recebido até hoje"
+              value={fmtMoneyOrUnavailable(mensalKpis.receivedTotal, paymentsFailed)}
+            />
+            <MetricRow
+              label="Inadimplentes"
+              labelHint={FINANCE_TERM_HINTS.inadimplentes}
+              value={
+                paymentsFailed
+                  ? '—'
+                  : `${mensalKpis.overdueCount} · ${fmtMoney(mensalKpis.overdueOpen)} em aberto`
+              }
+            />
+          </div>
+          <Link
+            to={receivablesSectionPath}
+            className="btn-primary btn-sm financeiro-overview-cta"
+          >
+            Ver Mensalidades <ArrowRight size={14} />
+          </Link>
+        </OverviewCard>
+
+        <OverviewCard title="Alertas" eyebrow="Atenção" className="financeiro-overview-card--pair">
+          <ul className="financeiro-overview-alerts financeiro-overview-alerts--inline">
+            {!receivablesFailed && (mensalKpis.overdueCount > 0 || receivablesTotal > 0) ? (
+              <li>
+                <AlertCircle size={16} aria-hidden />
+                <span>
+                  {mensalKpis.overdueCount > 0 ? (
+                    <>
+                      <strong>{mensalKpis.overdueCount}</strong> aluno(s) em atraso ·{' '}
+                    </>
+                  ) : null}
+                  <strong>{fmtMoney(receivablesTotal)}</strong> a receber nesta referência
+                </span>
+                <Link to={receivablesPendingPath}>Ver</Link>
+              </li>
+            ) : null}
+            {pendingTxCount > 0 ? (
+              <li>
+                <AlertCircle size={16} aria-hidden />
+                <span>
+                  <strong>{pendingTxCount}</strong> lançamento(s) pendente(s)
+                </span>
+                <Link to={movimentacoesPendingPath}>Ver</Link>
+              </li>
+            ) : null}
+            {showPayablesPreview && !payablesFailed && payablesOverdueCount > 0 ? (
+              <li>
+                <AlertCircle size={16} aria-hidden />
+                <span>
+                  <strong>{payablesOverdueCount}</strong> conta(s) a pagar vencida(s)
+                </span>
+                <Link to={buildPayablesPath({ section: PAYABLES_SECTIONS.VENCIDAS })}>Ver</Link>
+              </li>
+            ) : null}
+            {modules?.finance && contractsAwaiting > 0 ? (
+              <li>
+                <AlertCircle size={16} aria-hidden />
+                <span>
+                  <strong>{contractsAwaiting}</strong> contrato(s) aguardando assinatura
+                </span>
+                <Link to="/clients?tab=contratos">Ver</Link>
+              </li>
+            ) : null}
+            {financeModule && closingDivergences > 0 ? (
+              <li>
+                <AlertCircle size={16} aria-hidden />
+                <span>
+                  <strong>{closingDivergences}</strong> divergência(s) em {monthLabel}
+                </span>
+                <Link to="/financeiro?tab=fechamento">Conferir</Link>
+              </li>
+            ) : null}
+            {!hasAlerts ? (
+              <li className="financeiro-overview-alerts--ok">Nenhum alerta no momento.</li>
+            ) : null}
+          </ul>
+        </OverviewCard>
+
+        {financeModule ? (
+          <OverviewCard title="Previsão · 30 dias" eyebrow="Próximos 30 dias · independente do mês" className="financeiro-overview-card--pair">
+            {forecastFailed ? (
+              <CardLoadError message="Não foi possível carregar a previsão. Tente atualizar." />
+            ) : null}
+            <p className="financeiro-overview-forecast-total">
+              Total previsto (entradas):{' '}
+              <strong>{fmtMoneyOrUnavailable(forecastInflowTotal, forecastFailed)}</strong>
+            </p>
+            {!forecastFailed && forecastTop.length > 0 ? (
+              <ul className="financeiro-overview-list">
+                {forecastTop.map((item, idx) => (
+                  <li key={`${item.due_date}-${idx}`}>
+                    <span className="financeiro-overview-list__label">
+                      {item.student_name || item.label || 'Lançamento'}
+                    </span>
+                    <span className="financeiro-overview-list__meta">
+                      {fmtDateBr(item.due_date)} · {fmtMoney(item.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : !forecastFailed ? (
+              <EmptyState variant="embedded" title="Nenhuma entrada prevista no período" />
+            ) : null}
+            <Link to="/financeiro?tab=previsao" className="btn-outline btn-sm financeiro-overview-cta">
+              Ver Previsão <ArrowRight size={14} />
+            </Link>
+          </OverviewCard>
+        ) : (
+          <OverviewCard title="Previsão de caixa" eyebrow="Módulo financeiro" className="financeiro-overview-card--pair">
+            <EmptyState
+              variant="embedded"
+              title="Previsão indisponível"
+              description="Ative o módulo financeiro para ver a previsão de caixa."
+            />
+          </OverviewCard>
+        )}
+      </div>
+
+      {isOwner ? (
+        <Link to="/reports?tab=financeiro" className="financeiro-overview-reports-card card">
+          <BarChart2 size={22} className="financeiro-overview-reports-card__icon" aria-hidden />
+          <div className="financeiro-overview-reports-card__body">
+            <p className="financeiro-overview-reports-card__title">Relatórios financeiros</p>
+            <p className="text-small text-muted financeiro-overview-reports-card__desc">
+              Resumo de caixa por período e breakdown por forma de pagamento
+            </p>
+          </div>
+          <ArrowRight size={18} className="financeiro-overview-reports-card__arrow" aria-hidden />
+        </Link>
+      ) : null}
+    </FinanceTabShell>
+  );
+}

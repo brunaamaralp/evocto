@@ -1,0 +1,113 @@
+/* A receber — estilos específicos (shell em shell.css) */
+
+.receivables-tab__subnav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--finance-space-3);
+  width: 100%;
+}
+
+.receivables-tab__subnav-tabs {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.receivables-tab__subnav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--finance-space-2);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.receivables-tab__refresh {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.receivables-tab__subnav-actions .receivables-tab__refresh {
+  margin-left: 0;
+}
+
+.receivables-tab__refresh-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .receivables-tab__refresh-label {
+    display: inline;
+  }
+}
+
+.receivables-tab__total-kpi {
+  max-width: 420px;
+}
+
+.payables-tab .receivables-tab__total-kpi {
+  max-width: 420px;
+}
+
+.receivables-tab__table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.receivables-tab__col-amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.receivables-tab__load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--finance-space-3);
+}
+
+.receivables-tab__load-more-wrap .btn-outline {
+  min-width: 10rem;
+}
+
+.receivables-tab__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.receivables-tab__action:hover {
+  text-decoration: underline;
+}
+
+.receivables-tab__action-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .receivables-tab__subnav-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .receivables-tab__subnav-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .receivables-tab__refresh {
+    margin-left: 0;
+  }
+
+  .receivables-tab__total-kpi,
+  .payables-tab .receivables-tab__total-kpi {
+    max-width: none;
+  }
+}

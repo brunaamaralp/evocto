@@ -1,0 +1,603 @@
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { databases, DB_ID, ACADEMIES_COL } from '../lib/appwrite';
+import { getAcademyDocument } from '../lib/getAcademyDocument.js';
+import { useLeadStore } from '../store/useLeadStore';
+import { useUiStore } from '../store/useUiStore';
+import { friendlyError } from '../lib/errorMessages';
+import {
+  readExceptionStatusLabels,
+  mergeExceptionLabelsIntoFinanceConfig,
+} from '../lib/paymentExceptions.js';
+import { useContractTemplates } from '../features/contracts/queries.js';
+import { CONTRACT_TEMPLATE_PURPOSE_LABELS } from '../lib/contractPlanTemplates.js';
+import { useEnsureAcademyContractSetup } from '../features/contracts/queries.js';
+import {
+  serializeCollectionRules,
+  parseOverdueLabel,
+  DEFAULT_COLLECTION_RULES,
+  readCollectionSettingsFromFinanceConfig,
+  readCollectionSettingsFromAcademy,
+  mergeCollectionIntoFinanceConfig,
+} from '../lib/collectionRules.js';
+import { filterBankAccountsWithBank } from '../lib/bankAccounts.js';
+import { normalizeDefaultAccountByMethodMap, readDefaultAccountByMethod } from '../lib/paymentMethodBankDefaults.js';
+import {
+  digestPaymentMethodSettings,
+  normalizePaymentMethodSettings,
+} from '../lib/paymentMethodSettings.js';
+import { digestCaptureMethods, readCaptureMethods } from '../lib/captureMethods.js';
+import { digestFeeReceivers } from '../lib/feeReceivers.js';
+import {
+  defaultWhatsappRemindersConfig,
+  digestWhatsappReminders,
+  mergeWhatsappRemindersIntoFinanceConfig,
+} from '../lib/financeWhatsappReminders.js';
+import {
+  FinanceConfigTooLargeError,
+  mergeFinanceConfigFromAcademyDoc,
+  persistAcademyFinanceConfig,
+} from '../lib/financeConfigStorage.js';
+import { DEFAULT_ENROLLMENT_DISCOUNT_PRESETS } from '../lib/enrollmentDiscountPresets.js';
+import { normalizeFinanceVendors } from '../lib/financeVendors.js';
+import { normalizeEnrollmentDiscountPresets } from '../lib/enrollmentDiscountPresets.js';
+import { defaultAcquirerFees } from '../lib/acquirerFees.js';
+import {
+  formatFinanceConfigSaveError,
+  validateFinanceConfigBeforeSave,
+  firstFinanceConfigIssueSection,
+} from '../lib/financeConfigValidation.js';
+
+export const INSTALLMENT_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+export const defaultFinanceConfig = () => ({
+  cardFees: {
+    pix: { percent: 0, fixed: 0 },
+    debito: { percent: 0, fixed: 0 },
+    credito_avista: { percent: 0, fixed: 0 },
+    credito_parcelado: {
+      '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0, '12': 0,
+    },
+  },
+  acquirerFees: defaultAcquirerFees(),
+  acquirerFeePolicy: 'absorb',
+  bankAccounts: [],
+  defaultAccountByMethod: {},
+  paymentMethodSettings: {},
+  plans: [],
+  vendors: [],
+  enrollmentDiscountPresets: [...DEFAULT_ENROLLMENT_DISCOUNT_PRESETS],
+  whatsappReminders: defaultWhatsappRemindersConfig(),
+});
+
+export function digestBankAccounts(accounts, financeConfig = null) {
+  if (!financeConfig) return JSON.stringify(accounts || []);
+  return JSON.stringify({
+    accounts: accounts || [],
+    paymentMethods: digestPaymentMethodSettings(financeConfig),
+    captureMethods: digestCaptureMethods(financeConfig),
+  });
+}
+
+export function digestCardFees(cardFees) {
+  return JSON.stringify(cardFees || {});
+}
+
+/** Repasse ao aluno + recebedores / taxas da maquininha. */
+export function digestFeesSection(financeConfig) {
+  return JSON.stringify({
+    cardFees: financeConfig?.cardFees || {},
+    maquininha: digestFeeReceivers(financeConfig),
+    acquirerFeePolicy: financeConfig?.acquirerFeePolicy || 'absorb',
+  });
+}
+
+export function digestPlans(plans) {
+  return JSON.stringify(plans || []);
+}
+
+export function digestDiscountPresets(presets) {
+  return JSON.stringify(Array.isArray(presets) ? presets : []);
+}
+
+export function digestVendors(vendors) {
+  return JSON.stringify(normalizeFinanceVendors(vendors));
+}
+
+function digestCollection(rules, overdueLabel) {
+  return JSON.stringify({
+    rules: serializeCollectionRules(rules),
+    overdue: parseOverdueLabel(overdueLabel),
+  });
+}
+
+function digestExceptionLabels(labels) {
+  return JSON.stringify(readExceptionStatusLabels({ exceptionStatusLabels: labels }));
+}
+
+export function installmentSummary(parcelado) {
+  const active = INSTALLMENT_COUNTS.filter((n) => Number(parcelado?.[String(n)] ?? 0) > 0);
+  if (active.length === 0) return 'Nenhuma taxa de parcelamento';
+  const min = Math.min(...active);
+  const max = Math.max(...active);
+  if (min === max) return `Parcelamento ${min}x`;
+  return `Parcelamento ${min}x–${max}x`;
+}
+
+export function useFinanceConfigState(academyId, { isOwner = true } = {}) {
+  const addToast = useUiStore((s) => s.addToast);
+  const { data: contractTemplatesData, isSuccess: contractTemplatesReady } = useContractTemplates(true);
+  const contractTemplates = useMemo(
+    () => contractTemplatesData?.templates || [],
+    [contractTemplatesData?.templates]
+  );
+  const contractTemplatesConfigured =
+    contractTemplatesReady && contractTemplatesData?.configured !== false;
+  const ensureContractSetup = useEnsureAcademyContractSetup();
+  const { mutateAsync: mutateEnsureContractSetup } = ensureContractSetup;
+  const ensureSetupEffectStartedRef = useRef(false);
+
+  const [loading, setLoading] = useState(Boolean(academyId));
+  const [saving, setSaving] = useState(false);
+  const [financeConfig, setFinanceConfig] = useState(defaultFinanceConfig);
+  const [collectionRules, setCollectionRules] = useState(() => DEFAULT_COLLECTION_RULES.map((r) => ({ ...r })));
+  const [overdueLabel, setOverdueLabel] = useState('Inadimplente');
+  const [exceptionLabels, setExceptionLabels] = useState(() => readExceptionStatusLabels(null));
+  const [pendingRemovePlan, setPendingRemovePlan] = useState(null);
+  const [pendingRemoveBank, setPendingRemoveBank] = useState(null);
+  const [pendingRemoveVendor, setPendingRemoveVendor] = useState(null);
+
+  const [savedDigests, setSavedDigests] = useState({
+    accounts: digestBankAccounts([], defaultFinanceConfig()),
+    fees: digestFeesSection(defaultFinanceConfig()),
+    plans: digestPlans([]),
+    collection: digestCollection(DEFAULT_COLLECTION_RULES, 'Inadimplente'),
+    exceptions: digestExceptionLabels(readExceptionStatusLabels(null)),
+    whatsapp: digestWhatsappReminders(defaultWhatsappRemindersConfig()),
+    vendors: digestVendors([]),
+    paymentMethods: digestPaymentMethodSettings(defaultFinanceConfig()),
+    presets: digestDiscountPresets(defaultFinanceConfig().enrollmentDiscountPresets),
+  });
+
+  const applyLoadedState = useCallback((mergedCfg, coll) => {
+    const cfg = mergeWhatsappRemindersIntoFinanceConfig({
+      ...mergedCfg,
+      bankAccounts: filterBankAccountsWithBank(mergedCfg.bankAccounts),
+    });
+    setFinanceConfig(cfg);
+    setCollectionRules(coll.collectionRules);
+    setOverdueLabel(coll.overdueLabel);
+    const labels = readExceptionStatusLabels(mergedCfg);
+    setExceptionLabels(labels);
+    setSavedDigests({
+      accounts: digestBankAccounts(cfg.bankAccounts, cfg),
+      fees: digestFeesSection(cfg),
+      plans: digestPlans(cfg.plans),
+      collection: digestCollection(coll.collectionRules, coll.overdueLabel),
+      exceptions: digestExceptionLabels(labels),
+      whatsapp: digestWhatsappReminders(cfg.whatsappReminders),
+      vendors: digestVendors(cfg.vendors),
+      paymentMethods: digestPaymentMethodSettings(cfg),
+      presets: digestDiscountPresets(cfg.enrollmentDiscountPresets),
+    });
+  }, []);
+
+  const reloadFromServer = useCallback(async (opts = {}) => {
+    const showLoading = opts.showLoading !== false;
+    const forceFetch = opts.forceFetch !== false;
+    if (!academyId) return;
+    if (showLoading) setLoading(true);
+    try {
+      const doc = await getAcademyDocument(academyId, { force: forceFetch, allowClientFallback: false });
+      let cfg = mergeFinanceConfigFromAcademyDoc(doc);
+      if (!cfg || Object.keys(cfg).length === 0) {
+        cfg = defaultFinanceConfig();
+      }
+      if (!(cfg.plans?.length || cfg.bankAccounts?.length || cfg.cardFees)) {
+        if (
+          typeof doc.debitPercentage !== 'undefined' ||
+          typeof doc.creditPercentage !== 'undefined' ||
+          typeof doc.creditInstallmentPercentage !== 'undefined'
+        ) {
+          const deb = Number(doc.debitPercentage ?? 0) || 0;
+          const cre = Number(doc.creditPercentage ?? 0) || 0;
+          const crePar = Number(doc.creditInstallmentPercentage ?? 0) || 0;
+          const parcelasMap = {};
+          for (let i = 2; i <= 12; i++) parcelasMap[String(i)] = crePar;
+          cfg.cardFees = {
+            pix: { percent: 0, fixed: 0 },
+            debito: { percent: deb, fixed: 0 },
+            credito_avista: { percent: cre, fixed: 0 },
+            credito_parcelado: parcelasMap,
+          };
+        }
+      }
+      const coll = readCollectionSettingsFromAcademy(doc);
+      const mergedCfg = mergeCollectionIntoFinanceConfig(cfg, coll);
+      applyLoadedState(mergedCfg, coll);
+      useLeadStore.getState().setFinanceConfig(mergedCfg, academyId);
+    } catch (e) {
+      console.error(e);
+      addToast({ type: 'error', message: friendlyError(e, 'action') });
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [academyId, applyLoadedState, addToast]);
+
+  useEffect(() => {
+    if (!academyId) {
+      setLoading(false);
+      return;
+    }
+    const st = useLeadStore.getState();
+    const cachedForAcademy =
+      st.financeConfig != null && st.financeConfigAcademyId === academyId;
+
+    if (cachedForAcademy) {
+      const coll = readCollectionSettingsFromFinanceConfig(st.financeConfig);
+      applyLoadedState(st.financeConfig, coll);
+      setLoading(false);
+      void reloadFromServer({ showLoading: false });
+      return;
+    }
+    void reloadFromServer();
+  }, [academyId, applyLoadedState, reloadFromServer]);
+
+  const applyEnsureSetupResult = useCallback(
+    (result) => {
+      if (!result?.summary?.financeConfigUpdated) return;
+      void reloadFromServer({ showLoading: false });
+    },
+    [reloadFromServer]
+  );
+
+  const applyEnsureSetupResultRef = useRef(applyEnsureSetupResult);
+  applyEnsureSetupResultRef.current = applyEnsureSetupResult;
+
+  const runEnsureContractSetup = useCallback(
+    async ({ showToast = true } = {}) => {
+      if (!academyId || !isOwner || !contractTemplatesConfigured) return null;
+      try {
+        const result = await mutateEnsureContractSetup();
+        applyEnsureSetupResult(result);
+        if (showToast) {
+          const parts = [];
+          if (result.summary.templatesCreated?.length) {
+            parts.push(
+              result.summary.templatesCreated
+                .map((p) => CONTRACT_TEMPLATE_PURPOSE_LABELS[p] || p)
+                .join(' e ')
+            );
+          }
+          if (result.summary.plansLinked > 0) {
+            parts.push(`${result.summary.plansLinked} plano(s) vinculado(s)`);
+          }
+          const detail = parts.length ? parts.join(' · ') : 'Nada pendente — já estava configurado.';
+          addToast({
+            type: result.summary.financeConfigUpdated || result.summary.templatesCreated?.length
+              ? 'success'
+              : 'info',
+            message: `Contratos: ${detail}`,
+          });
+        }
+        return result;
+      } catch (e) {
+        console.error(e);
+        if (showToast) addToast({ type: 'error', message: friendlyError(e, 'action') });
+        return null;
+      }
+    },
+    [academyId, isOwner, contractTemplatesConfigured, mutateEnsureContractSetup, applyEnsureSetupResult, addToast]
+  );
+
+  useEffect(() => {
+    ensureSetupEffectStartedRef.current = false;
+  }, [academyId]);
+
+  useEffect(() => {
+    if (!isOwner || !academyId || !contractTemplatesConfigured) return;
+    const key = `contractSetupEnsured:${academyId}`;
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(key)) return;
+    if (ensureSetupEffectStartedRef.current) return;
+    ensureSetupEffectStartedRef.current = true;
+
+    void (async () => {
+      let result = null;
+      try {
+        result = await mutateEnsureContractSetup();
+        applyEnsureSetupResultRef.current(result);
+        const parts = [];
+        if (result.summary.templatesCreated?.length) {
+          parts.push(
+            result.summary.templatesCreated
+              .map((p) => CONTRACT_TEMPLATE_PURPOSE_LABELS[p] || p)
+              .join(' e ')
+          );
+        }
+        if (result.summary.plansLinked > 0) {
+          parts.push(`${result.summary.plansLinked} plano(s) vinculado(s)`);
+        }
+        const detail = parts.length ? parts.join(' · ') : 'Nada pendente — já estava configurado.';
+        addToast({
+          type: result.summary.financeConfigUpdated || result.summary.templatesCreated?.length
+            ? 'success'
+            : 'info',
+          message: `Contratos: ${detail}`,
+        });
+      } catch (e) {
+        console.error(e);
+        addToast({ type: 'error', message: friendlyError(e, 'action') });
+      } finally {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(key, result ? '1' : '0');
+        }
+      }
+    })();
+  }, [isOwner, academyId, contractTemplatesConfigured, mutateEnsureContractSetup, addToast]);
+
+  const dirty = useMemo(
+    () => ({
+      accounts:
+        digestBankAccounts(financeConfig.bankAccounts, financeConfig) !== savedDigests.accounts,
+      fees: digestFeesSection(financeConfig) !== savedDigests.fees,
+      plans: digestPlans(financeConfig.plans) !== savedDigests.plans,
+      collection: digestCollection(collectionRules, overdueLabel) !== savedDigests.collection,
+      exceptions: digestExceptionLabels(exceptionLabels) !== savedDigests.exceptions,
+      whatsapp: digestWhatsappReminders(financeConfig.whatsappReminders) !== savedDigests.whatsapp,
+      vendors: digestVendors(financeConfig.vendors) !== savedDigests.vendors,
+      presets:
+        digestDiscountPresets(financeConfig.enrollmentDiscountPresets) !== savedDigests.presets,
+    }),
+    [financeConfig, collectionRules, overdueLabel, exceptionLabels, savedDigests]
+  );
+
+  const hasDirty = Object.values(dirty).some(Boolean);
+
+  const saveValidation = useMemo(
+    () => validateFinanceConfigBeforeSave({ financeConfig, isOwner }),
+    [financeConfig, isOwner]
+  );
+
+  const saveValidationHint = useMemo(() => {
+    if (saveValidation.ok || !hasDirty) return '';
+    return formatFinanceConfigSaveError(saveValidation.issues);
+  }, [saveValidation, hasDirty]);
+
+  const saveValidationSection = useMemo(() => {
+    if (saveValidation.ok || !hasDirty) return null;
+    return firstFinanceConfigIssueSection(saveValidation.issues);
+  }, [saveValidation, hasDirty]);
+
+  const buildMergedConfig = useCallback(
+    (baseFinanceConfig = financeConfig) => {
+      let mergedCfg = mergeCollectionIntoFinanceConfig(baseFinanceConfig, {
+        collectionRules,
+        overdueLabel,
+      });
+      mergedCfg = mergeExceptionLabelsIntoFinanceConfig(mergedCfg, exceptionLabels);
+      mergedCfg = mergeWhatsappRemindersIntoFinanceConfig({
+        ...mergedCfg,
+        bankAccounts: filterBankAccountsWithBank(mergedCfg.bankAccounts),
+      });
+      mergedCfg = {
+        ...mergedCfg,
+        paymentMethodSettings: normalizePaymentMethodSettings(mergedCfg),
+        captureMethods: readCaptureMethods(mergedCfg),
+        defaultAccountByMethod: normalizeDefaultAccountByMethodMap(
+          readDefaultAccountByMethod(mergedCfg),
+          mergedCfg
+        ),
+        vendors: normalizeFinanceVendors(mergedCfg.vendors),
+        enrollmentDiscountPresets: normalizeEnrollmentDiscountPresets(
+          mergedCfg.enrollmentDiscountPresets
+        ),
+      };
+      return mergedCfg;
+    },
+    [financeConfig, collectionRules, overdueLabel, exceptionLabels]
+  );
+
+  const persistAll = useCallback(
+    async (options = {}) => {
+    if (!academyId) return false;
+
+    const baseFinanceConfig = options.financeConfigOverride ?? financeConfig;
+    const validation = validateFinanceConfigBeforeSave({ financeConfig: baseFinanceConfig, isOwner });
+    if (!validation.ok) {
+      const message = formatFinanceConfigSaveError(validation.issues);
+      addToast({ type: 'error', message });
+      return false;
+    }
+
+    setSaving(true);
+    try {
+      const mergedCfg = buildMergedConfig(baseFinanceConfig);
+      const savedCfg = await persistAcademyFinanceConfig(academyId, mergedCfg, {
+        databases,
+        DB_ID,
+        ACADEMIES_COL,
+      });
+      setFinanceConfig(savedCfg);
+      useLeadStore.getState().setFinanceConfig(savedCfg, academyId);
+      const coll = readCollectionSettingsFromFinanceConfig(savedCfg);
+      const labels = readExceptionStatusLabels(savedCfg);
+      setSavedDigests({
+        accounts: digestBankAccounts(savedCfg.bankAccounts, savedCfg),
+        fees: digestFeesSection(savedCfg),
+        plans: digestPlans(savedCfg.plans),
+        collection: digestCollection(coll.collectionRules, coll.overdueLabel),
+        exceptions: digestExceptionLabels(labels),
+        whatsapp: digestWhatsappReminders(savedCfg.whatsappReminders),
+      vendors: digestVendors(savedCfg.vendors),
+      paymentMethods: digestPaymentMethodSettings(savedCfg),
+      presets: digestDiscountPresets(savedCfg.enrollmentDiscountPresets),
+    });
+      addToast({ type: 'success', message: 'Configurações financeiras salvas.' });
+      return true;
+    } catch (e) {
+      console.error(e);
+      if (e instanceof FinanceConfigTooLargeError) {
+        addToast({
+          type: 'error',
+          message:
+            'A configuração financeira ficou grande demais para salvar. Tente encurtar descrições dos planos, textos da régua de cobrança ou simplificar recebedores com muitas taxas por bandeira. Se persistir, peça ao suporte para ampliar o limite no Appwrite (npm run provision:academy-attrs).',
+        });
+      } else {
+        addToast({ type: 'error', message: friendlyError(e, 'save') });
+      }
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  },
+    [academyId, financeConfig, isOwner, buildMergedConfig, addToast]
+  );
+
+  const discardChanges = useCallback(() => {
+    void reloadFromServer();
+  }, [reloadFromServer]);
+
+  const updatePlan = useCallback((idx, patch) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.plans || [])];
+      arr[idx] = { ...(arr[idx] || {}), ...patch };
+      return { ...prev, plans: arr };
+    });
+  }, []);
+
+  const addPlan = useCallback(() => {
+    setFinanceConfig((prev) => ({
+      ...prev,
+      plans: [
+        ...(prev.plans || []),
+        {
+          name: '',
+          price: 0,
+          description: '',
+          applyCardFee: true,
+          isExempt: false,
+        },
+      ],
+    }));
+  }, []);
+
+  const removePlan = useCallback((idx) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.plans || [])];
+      arr.splice(idx, 1);
+      return { ...prev, plans: arr };
+    });
+  }, []);
+
+  const setEnrollmentDiscountPresets = useCallback((presets) => {
+    setFinanceConfig((prev) => ({
+      ...prev,
+      enrollmentDiscountPresets: Array.isArray(presets) ? presets : [],
+    }));
+  }, []);
+
+  const updateBankAccount = useCallback((idx, patch) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.bankAccounts || [])];
+      arr[idx] = { ...(arr[idx] || {}), ...patch };
+      return { ...prev, bankAccounts: arr };
+    });
+  }, []);
+
+  const addBankAccount = useCallback(() => {
+    setFinanceConfig((prev) => ({
+      ...prev,
+      bankAccounts: [
+        ...(prev.bankAccounts || []),
+        {
+          bankName: '',
+          branch: '',
+          account: '',
+          accountName: '',
+          pixKey: '',
+          openingBalance: 0,
+          openingBalanceDate: '',
+        },
+      ],
+    }));
+  }, []);
+
+  const removeBankAccount = useCallback((idx) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.bankAccounts || [])];
+      arr.splice(idx, 1);
+      return { ...prev, bankAccounts: arr };
+    });
+  }, []);
+
+  const updateVendor = useCallback((idx, patch) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.vendors || [])];
+      arr[idx] = { ...(arr[idx] || {}), ...patch };
+      return { ...prev, vendors: arr };
+    });
+  }, []);
+
+  const addVendor = useCallback(() => {
+    setFinanceConfig((prev) => ({
+      ...prev,
+      vendors: [
+        ...(prev.vendors || []),
+        {
+          id:
+            typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `v_${Date.now()}`,
+          name: '',
+          active: true,
+        },
+      ],
+    }));
+  }, []);
+
+  const removeVendor = useCallback((idx) => {
+    setFinanceConfig((prev) => {
+      const arr = [...(prev.vendors || [])];
+      arr.splice(idx, 1);
+      return { ...prev, vendors: arr };
+    });
+  }, []);
+
+  return {
+    loading,
+    saving,
+    financeConfig,
+    setFinanceConfig,
+    collectionRules,
+    setCollectionRules,
+    overdueLabel,
+    setOverdueLabel,
+    exceptionLabels,
+    setExceptionLabels,
+    dirty,
+    hasDirty,
+    saveValidationHint,
+    saveValidationSection,
+    persistAll,
+    discardChanges,
+    updatePlan,
+    addPlan,
+    removePlan,
+    setEnrollmentDiscountPresets,
+    updateBankAccount,
+    addBankAccount,
+    removeBankAccount,
+    pendingRemovePlan,
+    setPendingRemovePlan,
+    pendingRemoveBank,
+    setPendingRemoveBank,
+    pendingRemoveVendor,
+    setPendingRemoveVendor,
+    updateVendor,
+    addVendor,
+    removeVendor,
+    contractTemplates,
+    contractTemplatesConfigured,
+    runEnsureContractSetup,
+    ensureContractSetup,
+  };
+}

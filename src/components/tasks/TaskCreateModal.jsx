@@ -136,6 +136,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
         priority: taskData.priority || "medium",
         type: taskData.type || "analise_documentos",
         assignedTo: taskData.assignedTo || null,
+        assigneeId: taskData.assignedTo || null,
         assignedBy: user?.id || null,
         dueDate: taskData.dueDate ? new Date(taskData.dueDate).toISOString() : null,
         startDate: new Date().toISOString(),

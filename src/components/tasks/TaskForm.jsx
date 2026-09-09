@@ -435,8 +435,8 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
         cycleId: cycleId || formData.cycleId,
         serviceId: serviceId || formData.serviceId,
         estimatedHours: formData.estimatedHours ? parseFloat(formData.estimatedHours) : null,
-        // Ensure assignedTo is null or a valid ID, convert "" to null for backend if necessary
         assignedTo: formData.assignedTo === "" ? null : formData.assignedTo,
+        assigneeId: formData.assignedTo === "" ? null : formData.assignedTo,
         checklist: formData.checklist.map(item => ({
           ...item,
           id: item.id || `checklist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`

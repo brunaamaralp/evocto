@@ -134,6 +134,8 @@ import automationdashboard from "./automation-dashboard";
 
 import financialkpis from "./financial-kpis";
 
+import financeiro from "./financeiro";
+
 import supportlibrary from "./support-library";
 
 import clientdiagnostic from "./client-diagnostic";
@@ -197,6 +199,10 @@ import spaTestDashboard from "./spa-test-dashboard";
 import clientbriefing from "./client-briefing";
 
 import clientservices from "./client-services";
+
+import deliveryWorkspace from "./delivery-workspace";
+
+import hoursHub from "./hours-hub";
 
 import e2eGoldenPath from "./e2e-golden-path";
 
@@ -356,6 +362,8 @@ const PAGES = {
     "financial-kpis": financialkpis,
 
     "performance-kpis": financialkpis,
+
+    financeiro: financeiro,
     
     "support-library": supportlibrary,
     
@@ -421,6 +429,10 @@ const PAGES = {
     "client-briefing": clientbriefing,
     
     "client-services": clientservices,
+
+    "delivery-workspace": deliveryWorkspace,
+
+    "hours-hub": hoursHub,
     
     "e2e-golden-path": e2eGoldenPath,
     
@@ -606,6 +618,10 @@ function PagesContent() {
                 <Route path="/financial-kpis" element={createElement(financialkpis)} />
 
                 <Route path="/performance-kpis" element={createElement(financialkpis)} />
+
+                <Route path="/financeiro" element={createElement(financeiro)} />
+                <Route path="/caixa" element={createElement(financeiro)} />
+                <Route path="/mensalidades" element={createElement(financeiro)} />
                 
                 <Route path="/support-library" element={createElement(supportlibrary)} />
                 
@@ -671,6 +687,10 @@ function PagesContent() {
                 <Route path="/client-briefing" element={createElement(clientbriefing)} />
                 
                 <Route path="/client-services" element={createElement(clientservices)} />
+
+                <Route path="/delivery-workspace" element={createElement(deliveryWorkspace)} />
+                <Route path="/clients/:clientId/services/:serviceId" element={createElement(deliveryWorkspace)} />
+                <Route path="/hours-hub" element={createElement(hoursHub)} />
                 
                 <Route path="/e2e-golden-path" element={createElement(e2eGoldenPath)} />
                 
