@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,9 @@ import { getEmpresaByClientId } from '@/lib/empresaConfig';
 import {
   DEFAULT_CICLOS_COMERCIAIS,
   buildBriefingsMesSeeds,
+  countTemasEscolhidos,
   normalizeCiclosComerciais,
+  normalizeTemasSugeridos,
   validateCiclosComerciais,
   validateProdutosLinhas,
 } from '@/lib/campanhaAnualSchema';
@@ -33,22 +35,28 @@ import {
   getCampanhaAnualById,
   saveCampanhaAnualBriefing,
 } from '@/lib/campanhaAnual';
-import { gerarESalvarCampanhaAnual } from '@/lib/campanhaAnualIa';
+import {
+  gerarESalvarCampanhaAnual,
+  gerarESalvarTemas,
+  salvarTemasEscolhidos,
+} from '@/lib/campanhaAnualIa';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import CiclosComerciaisPicker from '@/components/briefing/anual/CiclosComerciaisPicker';
 import BriefingsMesSeedsEditor from '@/components/briefing/anual/BriefingsMesSeedsEditor';
+import TemasAnualPicker from '@/components/briefing/anual/TemasAnualPicker';
 import CampanhasAnualReview from '@/components/briefing/anual/CampanhasAnualReview';
 
 const STEPS = [
   { id: 'empresa', label: 'Empresa' },
   { id: 'ciclos', label: 'Ciclos' },
   { id: 'seeds', label: 'Seeds' },
+  { id: 'temas', label: 'Temas' },
   { id: 'revisao', label: 'Revisão' },
   { id: 'campanhas', label: 'Campanhas' },
 ];
 
 /**
- * Wizard plano anual — P0 input + P1 geração IA (9 dimensões).
+ * Wizard plano anual — input → temas IA → geração 9 dimensões.
  */
 export default function BriefingCampanhaAnualPage() {
   const { user, agencyId, isAuthenticated } = useSession();
@@ -60,6 +68,7 @@ export default function BriefingCampanhaAnualPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [suggestingTemas, setSuggestingTemas] = useState(false);
   const [error, setError] = useState(null);
   const [client, setClient] = useState(null);
   const [empresa, setEmpresa] = useState(null);
@@ -73,6 +82,9 @@ export default function BriefingCampanhaAnualPage() {
   const [seeds, setSeeds] = useState(() =>
     buildBriefingsMesSeeds(DEFAULT_CICLOS_COMERCIAIS)
   );
+  const [temas, setTemas] = useState(() =>
+    normalizeTemasSugeridos([], DEFAULT_CICLOS_COMERCIAIS)
+  );
   const [existingPayload, setExistingPayload] = useState(null);
   const [saved, setSaved] = useState(null);
 
@@ -84,6 +96,8 @@ export default function BriefingCampanhaAnualPage() {
     () => validateCiclosComerciais(ciclos, { requireFullYear: true }).valid,
     [ciclos]
   );
+  const temasInfo = useMemo(() => countTemasEscolhidos(temas), [temas]);
+  const hasTemas = Boolean(existingPayload?.temas_gerados) || temasInfo.escolhidos > 0;
   const hasCampanhas = (existingPayload?.campanhas || []).some(
     (c) => c?.nome_campanha || c?.resumo_executivo
   );
@@ -111,11 +125,14 @@ export default function BriefingCampanhaAnualPage() {
         setSeeds(
           buildBriefingsMesSeeds(anual.ciclos_comerciais, anual.briefings_mes)
         );
+        setTemas(normalizeTemasSugeridos(anual.temas_sugeridos, anual.ciclos_comerciais));
         setExistingPayload(anual);
         const filled = (anual.campanhas || []).some(
           (c) => c?.nome_campanha || c?.resumo_executivo
         );
-        setStep(filled ? 'campanhas' : 'revisao');
+        if (filled) setStep('campanhas');
+        else if (anual.temas_gerados) setStep('temas');
+        else setStep('revisao');
       }
     } catch (err) {
       setError(err.message || 'Erro ao carregar');
@@ -130,6 +147,7 @@ export default function BriefingCampanhaAnualPage() {
 
   useEffect(() => {
     setSeeds((prev) => buildBriefingsMesSeeds(ciclos, prev));
+    setTemas((prev) => normalizeTemasSugeridos(prev, ciclos));
   }, [ciclos]);
 
   const backToList = () => {
@@ -145,6 +163,10 @@ export default function BriefingCampanhaAnualPage() {
     }
     if (step === 'ciclos' && !ciclosOk) {
       toast.error('Atribua um ciclo a cada mês do ano');
+      return;
+    }
+    if (step === 'temas' && !temasInfo.complete) {
+      toast.error('Escolha um tema para cada mês (ou peça sugestão da IA)');
       return;
     }
     if (step === 'revisao') {
@@ -171,12 +193,16 @@ export default function BriefingCampanhaAnualPage() {
         ciclos_comerciais: ciclos,
         briefings_mes: seeds,
         userId: user?.id || user?.$id || null,
-        existing: existingPayload,
+        existing: {
+          ...(existingPayload || {}),
+          temas_sugeridos: temas,
+          temas_gerados: existingPayload?.temas_gerados || false,
+        },
       });
       setBriefingId(result.id);
       setExistingPayload(result);
       setSaved(result);
-      toast.success('Plano anual salvo (input_pronto)');
+      toast.success('Plano anual salvo');
       return result;
     } catch (err) {
       console.error(err);
@@ -187,33 +213,90 @@ export default function BriefingCampanhaAnualPage() {
     }
   };
 
-  const handleGenerate = async () => {
-    try {
-      setGenerating(true);
-      let id = briefingId;
-      let payload = existingPayload;
-      if (!id) {
-        const savedBrief = await handleSave();
-        if (!savedBrief?.id) return;
-        id = savedBrief.id;
-        payload = savedBrief;
-      } else {
-        // Garante input atualizado antes da IA
-        const savedBrief = await handleSave();
-        if (savedBrief) {
-          id = savedBrief.id;
-          payload = savedBrief;
-        }
-      }
+  const ensureSaved = async () => {
+    let id = briefingId;
+    let payload = existingPayload;
+    const savedBrief = await handleSave();
+    if (savedBrief?.id) {
+      id = savedBrief.id;
+      payload = savedBrief;
+    }
+    if (!id) return null;
+    return { id, payload };
+  };
 
-      toast.message('Gerando 12 campanhas (3 lotes)…');
-      const { brief, payload: next, geracao_valid } = await gerarESalvarCampanhaAnual({
-        briefingId: id,
+  const handleSuggestTemas = async () => {
+    try {
+      setSuggestingTemas(true);
+      const savedRef = await ensureSaved();
+      if (!savedRef) return;
+
+      toast.message('Sugerindo temas com IA…');
+      const { brief, payload } = await gerarESalvarTemas({
+        briefingId: savedRef.id,
         empresa,
         ano,
         ciclos_comerciais: ciclos,
         briefings_mes: seeds,
-        existingPayload: payload,
+        existingPayload: savedRef.payload,
+      });
+      setBriefingId(brief.id);
+      setExistingPayload(payload);
+      setTemas(normalizeTemasSugeridos(payload.temas_sugeridos, ciclos));
+      setStep('temas');
+      toast.success('Temas sugeridos — escolha e ajuste');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Falha ao sugerir temas');
+    } finally {
+      setSuggestingTemas(false);
+    }
+  };
+
+  const handleSaveTemas = async () => {
+    try {
+      setSaving(true);
+      const savedRef = await ensureSaved();
+      if (!savedRef) return null;
+      const { brief, payload } = await salvarTemasEscolhidos({
+        briefingId: savedRef.id,
+        temas_sugeridos: temas,
+        existingPayload: { ...savedRef.payload, temas_sugeridos: temas },
+        ano,
+      });
+      setBriefingId(brief.id);
+      setExistingPayload(payload);
+      toast.success('Temas salvos');
+      return payload;
+    } catch (err) {
+      toast.error(err.message || 'Erro ao salvar temas');
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!temasInfo.complete) {
+      toast.error('Escolha 12 temas antes de gerar as campanhas');
+      setStep('temas');
+      return;
+    }
+    try {
+      setGenerating(true);
+      await handleSaveTemas();
+      const savedRef = await ensureSaved();
+      if (!savedRef) return;
+
+      toast.message('Gerando 12 campanhas (3 lotes)…');
+      const { brief, payload: next, geracao_valid } = await gerarESalvarCampanhaAnual({
+        briefingId: savedRef.id,
+        empresa,
+        ano,
+        ciclos_comerciais: ciclos,
+        briefings_mes: seeds,
+        temas_sugeridos: temas,
+        existingPayload: { ...savedRef.payload, temas_sugeridos: temas },
         onBatchProgress: ({ batch, total, meses }) => {
           toast.message(`Gerando lote ${batch}/${total} (meses ${meses.join(', ')})…`);
         },
@@ -281,27 +364,38 @@ export default function BriefingCampanhaAnualPage() {
           </p>
         </div>
         <Badge variant="outline">
-          {hasCampanhas ? existingPayload?.status_anual || 'ia_gerou' : 'P0+P1'}
+          {hasCampanhas
+            ? existingPayload?.status_anual || 'ia_gerou'
+            : hasTemas
+              ? 'temas'
+              : 'input'}
         </Badge>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1">
         {STEPS.map((s, i) => {
           const currentIdx = STEPS.findIndex((x) => x.id === step);
           const done = i < currentIdx;
           const active = s.id === step;
-          const locked = s.id === 'campanhas' && !hasCampanhas && step !== 'campanhas';
+          const locked =
+            (s.id === 'campanhas' && !hasCampanhas && step !== 'campanhas') ||
+            (s.id === 'temas' && !hasTemas && step !== 'temas' && currentIdx < i);
           return (
             <button
               key={s.id}
               type="button"
-              disabled={locked}
+              disabled={locked && !done && !active}
               onClick={() => {
-                if (done || active || (s.id === 'campanhas' && hasCampanhas)) {
+                if (
+                  done ||
+                  active ||
+                  (s.id === 'campanhas' && hasCampanhas) ||
+                  (s.id === 'temas' && hasTemas)
+                ) {
                   setStep(s.id);
                 }
               }}
-              className={`rounded-full px-3 py-1 text-sm border ${
+              className={`rounded-full px-2.5 sm:px-3 py-1 text-xs sm:text-sm border whitespace-nowrap ${
                 active
                   ? 'bg-slate-900 text-white border-slate-900'
                   : done || (s.id === 'campanhas' && hasCampanhas)
@@ -396,10 +490,56 @@ export default function BriefingCampanhaAnualPage() {
         </Card>
       )}
 
+      {step === 'temas' && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+            <CardTitle className="text-lg">Sugestão de temas</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={suggestingTemas || !produtosOk || !ciclosOk}
+              onClick={handleSuggestTemas}
+            >
+              {suggestingTemas ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              {hasTemas ? 'Regenerar temas' : 'Sugerir com IA'}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {!hasTemas ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-slate-600 space-y-3">
+                <p>
+                  Peça à IA uma sugestão de tema (principal + alternativa) para cada mês.
+                  Depois escolha e ajuste antes de gerar as campanhas.
+                </p>
+                <Button
+                  type="button"
+                  disabled={suggestingTemas || !produtosOk || !ciclosOk}
+                  onClick={handleSuggestTemas}
+                >
+                  {suggestingTemas ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Sugerir temas com IA
+                </Button>
+              </div>
+            ) : (
+              <TemasAnualPicker value={temas} onChange={setTemas} ciclos={ciclos} />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {step === 'revisao' && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Revisão do input</CardTitle>
+            <CardTitle className="text-lg">Revisão</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="rounded-lg border bg-slate-50 p-4 space-y-1">
@@ -412,6 +552,9 @@ export default function BriefingCampanhaAnualPage() {
               <div>
                 <strong>Produtos:</strong>{' '}
                 {(empresa?.produtos_linhas || []).map((p) => p.nome).join(', ')}
+              </div>
+              <div>
+                <strong>Temas escolhidos:</strong> {temasInfo.escolhidos}/12
               </div>
               {briefingId && (
                 <div>
@@ -434,15 +577,15 @@ export default function BriefingCampanhaAnualPage() {
             <div className="rounded-md border border-slate-200 bg-white p-3 text-slate-600 flex gap-2 items-start">
               <Sparkles className="w-4 h-4 mt-0.5 shrink-0" />
               <span>
-                Salve o input e gere as 12 campanhas (9 dimensões) com IA. Em DEV sem API,
-                usa mock local automaticamente.
+                Fluxo: sugerir temas → escolher → gerar as 12 campanhas (9 dimensões). Em DEV
+                sem API, usa mock local.
               </span>
             </div>
 
             {saved && !hasCampanhas && (
               <div className="flex items-center gap-2 text-emerald-700 text-sm">
                 <CheckCircle2 className="w-4 h-4" />
-                Input salvo. Pronto para gerar.
+                Input salvo.
               </div>
             )}
           </CardContent>
@@ -457,7 +600,7 @@ export default function BriefingCampanhaAnualPage() {
               type="button"
               variant="outline"
               size="sm"
-              disabled={generating || !produtosOk || !ciclosOk}
+              disabled={generating || !produtosOk || !ciclosOk || !temasInfo.complete}
               onClick={handleGenerate}
             >
               {generating ? (
@@ -473,6 +616,13 @@ export default function BriefingCampanhaAnualPage() {
             avisos={existingPayload?.avisos || []}
             sugestoes={existingPayload?.sugestoes || []}
             validacoes={existingPayload?.validacoes}
+            briefingId={briefingId}
+            clientId={clientId}
+            agencyId={agencyId}
+            ano={ano}
+            empresa={empresa}
+            existingPayload={existingPayload}
+            onMaterialized={(nextPayload) => setExistingPayload(nextPayload)}
           />
         </div>
       )}
@@ -482,13 +632,34 @@ export default function BriefingCampanhaAnualPage() {
           type="button"
           variant="outline"
           onClick={goPrev}
-          disabled={step === 'empresa' || generating}
+          disabled={step === 'empresa' || generating || suggestingTemas}
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Voltar
         </Button>
 
         <div className="flex flex-wrap gap-2">
+          {step === 'temas' && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveTemas}
+                disabled={saving || suggestingTemas || !temasInfo.complete}
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Salvar temas
+              </Button>
+              <Button type="button" onClick={goNext} disabled={!temasInfo.complete}>
+                Continuar
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </>
+          )}
           {step === 'revisao' && (
             <>
               <Button
@@ -504,21 +675,28 @@ export default function BriefingCampanhaAnualPage() {
                 )}
                 Salvar input
               </Button>
-              <Button
-                type="button"
-                onClick={handleGenerate}
-                disabled={saving || generating || !produtosOk || !ciclosOk}
-              >
-                {generating ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
+              {!temasInfo.complete ? (
+                <Button type="button" onClick={() => setStep('temas')}>
                   <Sparkles className="w-4 h-4 mr-2" />
-                )}
-                Gerar campanhas com IA
-              </Button>
+                  Ir para temas
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={saving || generating || !produtosOk || !ciclosOk}
+                >
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Gerar campanhas com IA
+                </Button>
+              )}
             </>
           )}
-          {step !== 'revisao' && step !== 'campanhas' && (
+          {step !== 'revisao' && step !== 'campanhas' && step !== 'temas' && (
             <Button type="button" onClick={goNext}>
               Continuar
               <ArrowRight className="w-4 h-4 ml-1" />

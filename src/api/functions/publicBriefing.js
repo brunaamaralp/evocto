@@ -8,12 +8,24 @@ import {
 } from '@/api/appwriteClient';
 import { TABLE_COLUMNS, BOOLEAN_COLUMNS, DATETIME_COLUMNS } from '@/api/appwrite/tableMap';
 import { Client, Brief, PublicBriefingToken, PublicBriefingResponse } from '@/api/entities';
-import { getEmpresaByClientId, configFromEmpresa } from '@/lib/empresaConfig';
 import {
-  buildCampanhaBriefPayload,
-  EMPTY_CAMPANHA_FORM,
-  validateCampanhaForm,
-} from '@/lib/campanhaBriefing';
+  getEmpresaByClientId,
+  configFromEmpresa,
+  saveEmpresa,
+  normalizeFormato,
+} from '@/lib/empresaConfig';
+import {
+  BRIEF_KIND_INICIAL,
+  buildAnualPayloadFromInicial,
+  emptyBriefingInicialForm,
+  normalizeBriefingInicialForm,
+  validateBriefingInicialForm,
+  countInicialProgress,
+} from '@/lib/briefingInicial';
+import {
+  BRIEF_KIND_ANUAL,
+  normalizeCampanhaAnualPayload,
+} from '@/lib/campanhaAnualSchema';
 
 const SYSTEM_KEYS = new Set([
   'id',
@@ -154,12 +166,17 @@ function hoursFromArgs({ expiresInHours, expiryDays } = {}) {
   if (Number.isFinite(Number(expiryDays)) && Number(expiryDays) > 0) {
     return Number(expiryDays) * 24;
   }
-  return 168; // 7 dias
+  return 168;
+}
+
+function isInicialToken(t) {
+  const kind = t?.metadata?.briefKind;
+  return !kind || kind === BRIEF_KIND_INICIAL;
 }
 
 /**
- * Gera link público do briefing de campanha.
- * Pré-cria draft do Brief + Response com update público (Role.any).
+ * Gera link público do briefing inicial (Empresa + insumos do plano anual).
+ * Máximo 1 token ativo de briefing_inicial por cliente.
  */
 export async function generatePublicBriefingToken({
   clientId,
@@ -169,8 +186,16 @@ export async function generatePublicBriefingToken({
   expiryDays,
   reuseIfActiveExists = true,
   agencyId: agencyIdArg = null,
+  briefKind = BRIEF_KIND_INICIAL,
 } = {}) {
   if (!clientId) throw new Error('clientId é obrigatório');
+
+  const kind = briefKind || BRIEF_KIND_INICIAL;
+  if (kind !== BRIEF_KIND_INICIAL) {
+    throw new Error(
+      'Links públicos só são permitidos para o briefing inicial da empresa'
+    );
+  }
 
   const account = getAccount();
   const user = await account.get();
@@ -180,36 +205,52 @@ export async function generatePublicBriefingToken({
   const agencyId = agencyIdArg || client.agencyId;
   if (!agencyId) throw new Error('agencyId ausente');
 
-  if (reuseIfActiveExists) {
-    const existing = await PublicBriefingToken.filter({
-      agencyId,
-      clientId,
-      status: 'active',
-    }).catch(() => []);
-    const alive = (existing || []).find(
-      (t) =>
-        t.metadata?.briefKind === 'campanha_mensal' &&
-        t.expiresAt &&
-        new Date(t.expiresAt) > new Date()
-    );
-    if (alive?.token) {
-      return {
+  const existing = await PublicBriefingToken.filter({
+    agencyId,
+    clientId,
+    status: 'active',
+  }).catch(() => []);
+
+  const aliveInicial = (existing || []).find(
+    (t) =>
+      isInicialToken(t) &&
+      t.expiresAt &&
+      new Date(t.expiresAt) > new Date() &&
+      !t.last_submission
+  );
+
+  if (reuseIfActiveExists && aliveInicial?.token) {
+    return {
+      success: true,
+      reused: true,
+      token: aliveInicial.token,
+      publicUrl: aliveInicial.publicUrl || publicUrlForToken(aliveInicial.token),
+      data: {
         success: true,
+        token: aliveInicial.token,
+        publicUrl: aliveInicial.publicUrl || publicUrlForToken(aliveInicial.token),
         reused: true,
-        token: alive.token,
-        publicUrl: alive.publicUrl || publicUrlForToken(alive.token),
-        data: {
-          success: true,
-          token: alive.token,
-          publicUrl: alive.publicUrl || publicUrlForToken(alive.token),
-          reused: true,
-          tokenRecord: alive,
-        },
-      };
+        tokenRecord: aliveInicial,
+      },
+    };
+  }
+
+  // Revoga outros tokens iniciais ativos ao regenerar
+  for (const t of existing || []) {
+    if (isInicialToken(t) && t.status === 'active' && (t.id || t.token)) {
+      try {
+        await PublicBriefingToken.update(t.id || t.token, {
+          status: 'revoked',
+          revokedAt: new Date().toISOString(),
+          revokeReason: 'replaced_by_new_inicial',
+        });
+      } catch {
+        /* ignore */
+      }
     }
   }
 
-  const empresa = await getEmpresaByClientId(clientId, agencyId);
+  const empresa = await getEmpresaByClientId(clientId, agencyId).catch(() => null);
   const empresaConfig = configFromEmpresa(empresa);
   const hours = hoursFromArgs({ expiresInHours, expiryDays });
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
@@ -217,28 +258,43 @@ export async function generatePublicBriefingToken({
   const briefId = ID.unique();
   const responseId = ID.unique();
 
-  const draftPayload = buildCampanhaBriefPayload({
+  const emptyForm = emptyBriefingInicialForm(client.name || '');
+  if (empresa) {
+    emptyForm.empresa = {
+      ...emptyForm.empresa,
+      nome: empresa.nome || client.name || '',
+      publico_alvo: empresa.publico_alvo || '',
+      formato_padrao: normalizeFormato(empresa.formato_padrao),
+      orcamento_padrao_mensal: empresa.orcamento_padrao_mensal ?? '',
+      tom_brand: empresa.tom_brand || '',
+      restricoes_criativas: empresa.restricoes_criativas || '',
+      produtos_linhas: empresa.produtos_linhas || [],
+      brand_guidelines: empresa.brand_guidelines || null,
+    };
+  }
+
+  const draftAnual = {
     agencyId,
     clientId,
-    empresa,
-    campanhaForm: { ...EMPTY_CAMPANHA_FORM },
-    modo_criacao: 'formulario',
-    userId: user.$id,
-  });
+    projectId: clientId,
+    empresaId: empresa?.id || null,
+    brief_kind: BRIEF_KIND_ANUAL,
+    title: `Plano anual ${emptyForm.ano} — aguardando cliente`,
+    status: 'DRAFT',
+    status_anual: 'rascunho',
+    ano: emptyForm.ano,
+    ciclos_comerciais: emptyForm.ciclos_comerciais,
+    briefings_mes: emptyForm.briefings_mes,
+    campanhas: [],
+    completion_score: 0,
+    is_public_briefing: true,
+    origem_briefing_inicial: true,
+    public_token: token,
+  };
 
   await createPublicRow(
     'briefs',
-    {
-      ...draftPayload,
-      id: briefId,
-      status: 'DRAFT',
-      title: 'Briefing (aguardando cliente)',
-      nome_campanha: '',
-      completion_score: 0,
-      status_campanha: 'rápido',
-      is_public_briefing: true,
-      public_token: token,
-    },
+    { ...draftAnual, id: briefId },
     teamAndPublicPerms(agencyId, { allowPublicUpdate: true })
   );
 
@@ -251,10 +307,10 @@ export async function generatePublicBriefingToken({
       tokenId: token,
       briefId,
       status: 'draft',
-      responses: {},
-      progressData: { totalSteps: 5, completedCount: 0 },
+      responses: emptyForm,
+      progressData: { totalSteps: 6, completedCount: 0 },
       lastSavedAt: new Date().toISOString(),
-      metadata: { language, briefKind: 'campanha_mensal' },
+      metadata: { language, briefKind: BRIEF_KIND_INICIAL },
     },
     teamAndPublicPerms(agencyId, { allowPublicUpdate: true })
   );
@@ -281,7 +337,7 @@ export async function generatePublicBriefingToken({
       },
       metadata: {
         language,
-        briefKind: 'campanha_mensal',
+        briefKind: BRIEF_KIND_INICIAL,
         createdBy: user.$id,
       },
     },
@@ -365,12 +421,17 @@ export async function validatePublicBriefingToken({ token } = {}) {
     brief = null;
   }
 
+  const briefKind =
+    record.metadata?.briefKind ||
+    response?.metadata?.briefKind ||
+    BRIEF_KIND_INICIAL;
+
   const alreadySubmitted =
+    Boolean(record.last_submission) ||
     response?.status === 'submitted' ||
     response?.status === 'completed' ||
-    brief?.status === 'READY';
+    (brief?.status === 'READY' && brief?.origem_briefing_inicial);
 
-  // bump access (best-effort)
   try {
     await updatePublicRow('public_briefing_tokens', token, {
       accessCount: Number(record.accessCount || 0) + 1,
@@ -381,15 +442,17 @@ export async function validatePublicBriefingToken({ token } = {}) {
   }
 
   const fromResponse = response?.responses || {};
-  const draftForm = {
-    nome_campanha: fromResponse.nome_campanha || brief?.nome_campanha || '',
-    objetivo: fromResponse.objetivo || brief?.objetivo || '',
-    acoes_comerciais: fromResponse.acoes_comerciais || brief?.acoes_comerciais || '',
-    talento_locacao: fromResponse.talento_locacao || brief?.talento_locacao || '',
-    data_gravacao_inicio:
-      fromResponse.data_gravacao_inicio || brief?.data_gravacao_inicio || '',
-    data_gravacao_fim: fromResponse.data_gravacao_fim || brief?.data_gravacao_fim || '',
-  };
+  const draftForm = normalizeBriefingInicialForm(
+    fromResponse.empresa || fromResponse.ciclos_comerciais
+      ? fromResponse
+      : {
+          empresa: fromResponse,
+          ano: brief?.ano,
+          ciclos_comerciais: brief?.ciclos_comerciais,
+          briefings_mes: brief?.briefings_mes,
+        },
+    record.clientSnapshot?.name || ''
+  );
 
   return {
     success: true,
@@ -405,7 +468,7 @@ export async function validatePublicBriefingToken({ token } = {}) {
       clientName: record.clientSnapshot?.name || 'Cliente',
       empresaConfig: record.empresaSnapshot || null,
       empresaId: record.empresaId || null,
-      briefKind: record.metadata?.briefKind || 'campanha_mensal',
+      briefKind,
       draftForm,
       responseStatus: response?.status || 'draft',
     },
@@ -413,10 +476,11 @@ export async function validatePublicBriefingToken({ token } = {}) {
 }
 
 /**
- * Salva respostas do cliente no Response (público) e tenta atualizar Brief/Client.
+ * Salva respostas do briefing inicial (Empresa + ciclos/seeds → plano anual).
  */
 export async function savePublicBriefingResponse({
   token,
+  inicialForm,
   campanhaForm,
   draft = false,
 } = {}) {
@@ -431,9 +495,22 @@ export async function savePublicBriefingResponse({
     throw err;
   }
 
-  const form = { ...EMPTY_CAMPANHA_FORM, ...(campanhaForm || {}) };
+  // Legacy callers passing campanhaForm are rejected for new tokens
+  if (campanhaForm && !inicialForm && ctx.briefKind === BRIEF_KIND_INICIAL) {
+    const err = new Error(
+      'Este link é do briefing inicial. Envie empresa + insumos do plano anual.'
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  const form = normalizeBriefingInicialForm(
+    inicialForm || campanhaForm || {},
+    ctx.clientName
+  );
+
   if (!draft) {
-    const { valid, errors } = validateCampanhaForm(form);
+    const { valid, errors } = validateBriefingInicialForm(form);
     if (!valid) {
       const err = new Error('Preencha todos os campos obrigatórios');
       err.errors = errors;
@@ -442,90 +519,122 @@ export async function savePublicBriefingResponse({
     }
   }
 
+  const progress = countInicialProgress(form);
+
   const response = await updatePublicRow('public_briefing_responses', ctx.responseId, {
     status: draft ? 'in_progress' : 'submitted',
-    responses: {
-      nome_campanha: form.nome_campanha,
-      objetivo: form.objetivo,
-      acoes_comerciais: form.acoes_comerciais,
-      talento_locacao: form.talento_locacao,
-      data_gravacao_inicio: form.data_gravacao_inicio,
-      data_gravacao_fim: form.data_gravacao_fim,
-    },
+    responses: form,
     progressData: {
-      totalSteps: 5,
-      completedCount: Object.values(form).filter((v) => String(v || '').trim()).length,
+      totalSteps: progress.total,
+      completedCount: progress.done,
     },
     lastSavedAt: new Date().toISOString(),
     submittedAt: draft ? null : new Date().toISOString(),
+    metadata: { briefKind: BRIEF_KIND_INICIAL },
   });
 
-  const empresaLike = {
-    id: ctx.empresaId,
-    publico_alvo: ctx.empresaConfig?.publico_alvo,
-    formato_padrao: ctx.empresaConfig?.formato,
-    orcamento_padrao_mensal: ctx.empresaConfig?.orcamento,
-    tom_brand: ctx.empresaConfig?.tom_brand,
-  };
-
-  const briefPatch = buildCampanhaBriefPayload({
-    agencyId: ctx.agencyId,
-    clientId: ctx.clientId,
-    empresa: empresaLike,
-    campanhaForm: form,
-    modo_criacao: 'formulario',
-    userId: null,
-  });
-  briefPatch.status = draft ? 'DRAFT' : 'READY';
-  briefPatch.completion_score = draft ? 40 : 100;
-  briefPatch.title = form.nome_campanha || briefPatch.title || 'Briefing campanha';
-  briefPatch.is_public_briefing = true;
-  briefPatch.public_submitted_at = draft ? null : new Date().toISOString();
-  briefPatch.editado_em = new Date().toISOString();
-  briefPatch.public_token = token;
-
+  let empresa = null;
   let brief = null;
   let briefUpdated = false;
-  try {
-    brief = await updatePublicRow('briefs', ctx.briefId, briefPatch);
-    briefUpdated = true;
-  } catch (err) {
-    console.warn('Guest não atualizou brief (ok):', err?.message || err);
-  }
-
+  let empresaUpdated = false;
   let clientUpdated = false;
+
+  // Com sessão (agência): grava Empresa + Brief direto
   try {
     await getAccount().get();
-    if (!briefUpdated) {
-      brief = await Brief.update(ctx.briefId, briefPatch);
-      briefUpdated = true;
-    }
-    await Client.update(ctx.clientId, {
-      ultimo_briefing_id: ctx.briefId,
-      ultimo_briefing_campanha: form.nome_campanha || null,
-      ultimo_briefing_em: new Date().toISOString(),
-      ultimo_briefing_objetivo: form.objetivo || null,
+    empresa = await saveEmpresa({
+      empresaId: ctx.empresaId || null,
+      agencyId: ctx.agencyId,
+      clientId: ctx.clientId,
+      form: form.empresa,
+      userId: null,
     });
-    clientUpdated = true;
+    empresaUpdated = true;
+
+    const existingBrief = await Brief.get(ctx.briefId).catch(() => null);
+    const anualPayload = buildAnualPayloadFromInicial({
+      agencyId: ctx.agencyId,
+      clientId: ctx.clientId,
+      empresa,
+      form,
+      existing: existingBrief,
+    });
+    anualPayload.is_public_briefing = true;
+    anualPayload.origem_briefing_inicial = true;
+    anualPayload.public_token = token;
+    anualPayload.public_submitted_at = draft ? null : new Date().toISOString();
+    anualPayload.status = draft ? 'DRAFT' : anualPayload.status;
+    anualPayload.completion_score = draft ? 30 : anualPayload.completion_score;
+
+    brief = await Brief.update(ctx.briefId, anualPayload);
+    briefUpdated = true;
+
+    if (!draft) {
+      await Client.update(ctx.clientId, {
+        ultimo_briefing_id: ctx.briefId,
+        ultimo_briefing_campanha: `Plano anual ${form.ano}`,
+        ultimo_briefing_em: new Date().toISOString(),
+        ultimo_briefing_objetivo: 'Briefing inicial da empresa',
+      });
+      clientUpdated = true;
+    }
   } catch {
-    /* guest / sem sessão */
+    // Guest: tenta patch público do brief + API admin
+    try {
+      const patch = {
+        brief_kind: BRIEF_KIND_ANUAL,
+        title: `Plano anual ${form.ano} — ${form.empresa.nome || 'Campanhas'}`,
+        status: draft ? 'DRAFT' : 'DRAFT',
+        status_anual: draft ? 'rascunho' : 'input_pronto',
+        ano: form.ano,
+        ciclos_comerciais: form.ciclos_comerciais,
+        briefings_mes: form.briefings_mes,
+        produtos_snapshot: form.empresa.produtos_linhas,
+        is_public_briefing: true,
+        origem_briefing_inicial: true,
+        public_token: token,
+        public_submitted_at: draft ? null : new Date().toISOString(),
+        completion_score: draft ? 30 : 60,
+        editado_em: new Date().toISOString(),
+        // snapshot empresa no brief até apply-client criar Empresa
+        _empresa_form: form.empresa,
+      };
+      brief = await updatePublicRow('briefs', ctx.briefId, patch);
+      briefUpdated = true;
+    } catch (err) {
+      console.warn('Guest não atualizou brief (ok):', err?.message || err);
+    }
   }
 
   await updatePublicRow('public_briefing_tokens', token, {
     pending_brief_sync: !briefUpdated,
     pending_client_sync: !draft && !clientUpdated,
+    empresaId: empresa?.id || ctx.empresaId || null,
+    empresaSnapshot: empresa ? configFromEmpresa(empresa) : {
+      publico_alvo: form.empresa.publico_alvo,
+      formato: normalizeFormato(form.empresa.formato_padrao),
+      orcamento: Number(form.empresa.orcamento_padrao_mensal) || 0,
+      tom_brand: form.empresa.tom_brand,
+      restricoes_criativas: form.empresa.restricoes_criativas,
+      produtos_linhas: form.empresa.produtos_linhas,
+    },
     last_submission: draft
       ? undefined
       : {
-          nome_campanha: form.nome_campanha,
-          objetivo: form.objetivo,
+          tipo: BRIEF_KIND_INICIAL,
+          ano: form.ano,
+          empresa_nome: form.empresa.nome,
           briefId: ctx.briefId,
           responseId: ctx.responseId,
           at: new Date().toISOString(),
         },
+    metadata: {
+      ...(typeof ctx === 'object' ? {} : {}),
+      briefKind: BRIEF_KIND_INICIAL,
+      submittedAt: draft ? undefined : new Date().toISOString(),
+    },
   });
 
-  // Produção: aplica Brief + Client com API key
   if (!draft && typeof fetch !== 'undefined') {
     try {
       const res = await fetch('/api/public-briefing?route=apply-client', {
@@ -537,7 +646,9 @@ export async function savePublicBriefingResponse({
         const json = await res.json().catch(() => ({}));
         briefUpdated = true;
         clientUpdated = true;
+        empresaUpdated = true;
         if (json.brief) brief = json.brief;
+        if (json.empresa) empresa = json.empresa;
       }
     } catch {
       /* vite local sem /api */
@@ -549,8 +660,10 @@ export async function savePublicBriefingResponse({
     data: {
       brief,
       response,
+      empresa,
       clientUpdated,
       briefUpdated,
+      empresaUpdated,
       draft,
     },
   };
@@ -567,7 +680,8 @@ export async function revokePublicBriefingToken({
   let targetId = tokenId;
   if (!targetId && clientId) {
     const rows = await PublicBriefingToken.filter({ clientId, status: 'active' });
-    targetId = rows?.[0]?.id || rows?.[0]?.token;
+    const inicial = (rows || []).find((t) => isInicialToken(t));
+    targetId = inicial?.id || inicial?.token || rows?.[0]?.id || rows?.[0]?.token;
   }
   if (!targetId) throw new Error('tokenId não encontrado');
 
@@ -582,7 +696,7 @@ export async function revokePublicBriefingToken({
 }
 
 /**
- * Sincroniza Brief + Client a partir da resposta pública (chamado pela agência).
+ * Sincroniza Empresa + plano anual a partir da resposta pública (agência).
  */
 export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   if (!briefId && !tokenHint) return null;
@@ -590,8 +704,9 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   let tokenRecord = null;
   if (tokenHint) {
     tokenRecord =
-      (await PublicBriefingToken.get(tokenHint).catch(() => null)) ||
-      tokenHint;
+      (await PublicBriefingToken.get(
+        typeof tokenHint === 'string' ? tokenHint : tokenHint.id || tokenHint.token
+      ).catch(() => null)) || tokenHint;
     if (tokenRecord && !tokenRecord.briefId && typeof tokenHint === 'object') {
       tokenRecord = tokenHint;
     }
@@ -612,37 +727,49 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   }
 
   const responseId = tokenRecord?.responseId;
-  let form = { ...EMPTY_CAMPANHA_FORM };
+  let form = emptyBriefingInicialForm();
   if (responseId) {
     const response = await PublicBriefingResponse.get(responseId).catch(() => null);
     if (response?.responses) {
-      form = { ...form, ...response.responses };
+      form = normalizeBriefingInicialForm(response.responses);
     }
   }
 
-  const empresa = await getEmpresaByClientId(brief.clientId, brief.agencyId);
-  const hasAnswers = Object.values(form).some((v) => String(v || '').trim());
-  if (hasAnswers) {
-    const patch = buildCampanhaBriefPayload({
+  const { valid } = validateBriefingInicialForm(form);
+  if (!valid && !brief._empresa_form) {
+    return brief;
+  }
+
+  let empresa = await getEmpresaByClientId(brief.clientId, brief.agencyId);
+  if (valid) {
+    empresa = await saveEmpresa({
+      empresaId: empresa?.id || brief.empresaId || null,
+      agencyId: brief.agencyId,
+      clientId: brief.clientId,
+      form: form.empresa,
+      userId: null,
+    });
+  }
+
+  if (empresa) {
+    const payload = buildAnualPayloadFromInicial({
       agencyId: brief.agencyId,
       clientId: brief.clientId,
       empresa,
-      campanhaForm: form,
-      modo_criacao: 'formulario',
-      userId: null,
+      form,
+      existing: normalizeCampanhaAnualPayload(brief),
     });
-    patch.status = 'READY';
-    patch.completion_score = 100;
-    patch.is_public_briefing = true;
-    patch.public_submitted_at = new Date().toISOString();
-    brief = await Brief.update(resolvedBriefId, patch);
+    payload.is_public_briefing = true;
+    payload.origem_briefing_inicial = true;
+    payload.public_submitted_at = new Date().toISOString();
+    brief = await Brief.update(resolvedBriefId, payload);
   }
 
   await Client.update(brief.clientId, {
     ultimo_briefing_id: resolvedBriefId,
-    ultimo_briefing_campanha: form.nome_campanha || brief.nome_campanha || brief.title || null,
+    ultimo_briefing_campanha: `Plano anual ${form.ano || brief.ano || ''}`,
     ultimo_briefing_em: new Date().toISOString(),
-    ultimo_briefing_objetivo: form.objetivo || brief.objetivo || null,
+    ultimo_briefing_objetivo: 'Briefing inicial da empresa',
   });
 
   if (tokenRecord?.id || tokenRecord?.token) {
@@ -650,6 +777,7 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
       await PublicBriefingToken.update(tokenRecord.id || tokenRecord.token, {
         pending_client_sync: false,
         pending_brief_sync: false,
+        empresaId: empresa?.id || null,
       });
     } catch {
       /* ignore */

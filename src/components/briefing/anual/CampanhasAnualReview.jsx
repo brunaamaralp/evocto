@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +8,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, AlertTriangle, Lightbulb } from 'lucide-react';
+import { ChevronDown, AlertTriangle, Lightbulb, ExternalLink, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Brief } from '@/api/entities';
+import { createPageUrl } from '@/utils';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
-import { DIMENSAO_KEYS, normalizeCampanhaMesGerada } from '@/lib/campanhaAnualSchema';
+import {
+  DIMENSAO_KEYS,
+  mapAnualMesToCampanhaMensalForm,
+  normalizeCampanhaAnualPayload,
+  normalizeCampanhaMesGerada,
+  summarizeAnualProgress,
+} from '@/lib/campanhaAnualSchema';
+import { saveCampanhaBriefing } from '@/lib/campanhaBriefing';
+import { useSession } from '@/components/auth/SessionManager';
 
 const DIM_LABELS = {
   '01_estrategia': 'Estratégia',
@@ -45,16 +57,93 @@ function DimBlock({ dimKey, data }) {
 }
 
 /**
- * Review das 12 campanhas geradas (9 dimensões).
+ * Review das 12 campanhas geradas (9 dimensões) + materializar mês.
  */
 export default function CampanhasAnualReview({
   campanhas = [],
   avisos = [],
   sugestoes = [],
   validacoes = null,
+  briefingId = null,
+  clientId = null,
+  agencyId = null,
+  ano = null,
+  empresa = null,
+  existingPayload = null,
+  onMaterialized,
 }) {
+  const navigate = useNavigate();
+  const { user } = useSession();
   const [openMes, setOpenMes] = useState(null);
+  const [busyMes, setBusyMes] = useState(null);
   const list = (campanhas || []).map((c) => normalizeCampanhaMesGerada(c));
+
+  const handleMaterializar = async (campanhaMes) => {
+    if (!briefingId || !clientId || !agencyId || !empresa?.id) {
+      toast.error('Salve o plano e configure a empresa antes de abrir o briefing do mês');
+      return;
+    }
+    const c = normalizeCampanhaMesGerada(campanhaMes);
+    if (c.brief_mensal_id) {
+      navigate(
+        `${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${c.brief_mensal_id}`
+      );
+      return;
+    }
+    try {
+      setBusyMes(c.mes);
+      const form = mapAnualMesToCampanhaMensalForm(c, { ano });
+      // ensure dates fallback if parse failed
+      if (!form.data_gravacao_inicio || !form.data_gravacao_fim) {
+        const y = Number(ano) || new Date().getFullYear();
+        const m = String(c.mes).padStart(2, '0');
+        form.data_gravacao_inicio = `${y}-${m}-01`;
+        form.data_gravacao_fim = `${y}-${m}-10`;
+      }
+      if (!form.talento_locacao) form.talento_locacao = 'A definir';
+
+      const created = await saveCampanhaBriefing({
+        agencyId,
+        clientId,
+        empresa,
+        campanhaForm: form,
+        modo_criacao: 'materializado_anual',
+        userId: user?.id || user?.$id || null,
+      });
+
+      const base = normalizeCampanhaAnualPayload(existingPayload || { campanhas: list });
+      const nextCampanhas = (base.campanhas || list).map((item) => {
+        const n = normalizeCampanhaMesGerada(item);
+        if (n.mes !== c.mes) return n;
+        return {
+          ...n,
+          status_mes: 'materializado',
+          brief_mensal_id: created.id,
+        };
+      });
+      const progress = summarizeAnualProgress({ ...base, campanhas: nextCampanhas });
+      const status_anual =
+        progress.materializado >= 12 ? 'aprovado' : 'aprovado_parcial';
+
+      const updated = await Brief.update(briefingId, {
+        ...base,
+        campanhas: nextCampanhas,
+        status_anual,
+        editado_em: new Date().toISOString(),
+      });
+      const payload = normalizeCampanhaAnualPayload(updated);
+      onMaterialized?.(payload);
+      toast.success(`Briefing de ${MES_LABELS[c.mes]} criado`);
+      navigate(
+        `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${created.id}`
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Não foi possível criar o briefing do mês');
+    } finally {
+      setBusyMes(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -129,39 +218,63 @@ export default function CampanhasAnualReview({
             >
               <Card>
                 <CardHeader className="py-3 px-4">
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full justify-between h-auto py-2 px-1 hover:bg-transparent"
-                    >
-                      <div className="text-left space-y-1">
-                        <CardTitle className="text-base font-semibold flex flex-wrap items-center gap-2">
-                          <span>
-                            {MES_LABELS[c.mes]} — {c.nome_campanha || 'Sem nome'}
-                          </span>
-                          {c.ciclo_comercial && (
-                            <Badge variant="secondary">
-                              {CICLO_LABELS[c.ciclo_comercial] || c.ciclo_comercial}
-                            </Badge>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="flex-1 justify-between h-auto py-2 px-1 hover:bg-transparent"
+                      >
+                        <div className="text-left space-y-1">
+                          <CardTitle className="text-base font-semibold flex flex-wrap items-center gap-2">
+                            <span>
+                              {MES_LABELS[c.mes]} — {c.nome_campanha || 'Sem nome'}
+                            </span>
+                            {c.ciclo_comercial && (
+                              <Badge variant="secondary">
+                                {CICLO_LABELS[c.ciclo_comercial] || c.ciclo_comercial}
+                              </Badge>
+                            )}
+                            {c.produto_focal && (
+                              <Badge variant="outline">{c.produto_focal}</Badge>
+                            )}
+                            {c.status_mes === 'materializado' && (
+                              <Badge className="bg-emerald-100 text-emerald-800">
+                                Briefing aberto
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          {c.resumo_executivo && (
+                            <p className="text-sm text-slate-600 font-normal line-clamp-2">
+                              {c.resumo_executivo}
+                            </p>
                           )}
-                          {c.produto_focal && (
-                            <Badge variant="outline">{c.produto_focal}</Badge>
-                          )}
-                        </CardTitle>
-                        {c.resumo_executivo && (
-                          <p className="text-sm text-slate-600 font-normal line-clamp-2">
-                            {c.resumo_executivo}
-                          </p>
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 shrink-0 transition-transform ${
+                            open ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    {briefingId && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 w-full sm:w-auto sm:mt-1"
+                        disabled={busyMes === c.mes}
+                        onClick={() => handleMaterializar(c)}
+                      >
+                        {busyMes === c.mes ? (
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        ) : (
+                          <ExternalLink className="w-4 h-4 mr-1" />
                         )}
-                      </div>
-                      <ChevronDown
-                        className={`w-4 h-4 shrink-0 transition-transform ${
-                          open ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </Button>
-                  </CollapsibleTrigger>
+                        {c.brief_mensal_id ? 'Abrir briefing' : 'Abrir briefing do mês'}
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="pt-0 space-y-2 pb-4">

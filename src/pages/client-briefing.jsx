@@ -1,21 +1,20 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
+import {
   CalendarRange,
-  FileText, 
-  Plus, 
-  Eye, 
-  Edit, 
+  FileText,
+  Plus,
+  Eye,
+  Edit,
   Clock,
   CheckCircle,
   AlertTriangle,
   Link as LinkIcon,
-  Building2,
   Loader2,
 } from 'lucide-react';
 import { Brief } from '@/api/entities';
@@ -25,31 +24,29 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
-import { getEmpresaByClientId } from '@/lib/empresaConfig';
 import { isCampanhaAnual } from '@/lib/campanhaAnual';
+import { BRIEF_KIND_INICIAL } from '@/lib/briefingInicial';
 import { generatePublicBriefingToken, syncClientFromPublicBriefing } from '@/api/functions';
 import { toast } from 'sonner';
 
 /**
- * Página principal de briefings do cliente
- * Lista briefings existentes e permite criar novos
+ * Hub de briefings do cliente:
+ * - Link público só para briefing inicial (Empresa + insumos do plano anual)
+ * - Plano anual e campanhas mensais são internos
  */
 export default function ClientBriefingPage() {
-  const { user, agencyId } = useSession();
+  const { _user, agencyId } = useSession();
   const navigate = useNavigate();
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
   const briefingId = urlParams.get('briefingId');
-  
+
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
   const [briefings, setBriefings] = useState([]);
   const [briefingTokens, setBriefingTokens] = useState([]);
   const [error, setError] = useState(null);
-  const [empresa, setEmpresa] = useState(null);
-  const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
 
   const loadClientBriefings = useCallback(async () => {
@@ -61,17 +58,12 @@ export default function ClientBriefingPage() {
         throw new Error('ID do cliente não fornecido');
       }
 
-      // Carregar cliente
       const clientData = await Client.get(clientId);
       if (!clientData || clientData.agencyId !== agencyId) {
         throw new Error('Cliente não encontrado ou sem permissão');
       }
       setClient(clientData);
 
-      const empresaData = await getEmpresaByClientId(clientId, agencyId).catch(() => null);
-      setEmpresa(empresaData);
-
-      // Briefings: clientId e/ou projectId (= clientId no legado)
       const [byClient, byProject] = await Promise.all([
         Brief.filter({ agencyId, clientId }).catch(() => []),
         Brief.filter({ agencyId, projectId: clientId }).catch(() => []),
@@ -82,31 +74,28 @@ export default function ClientBriefingPage() {
       }
       setBriefings(Array.from(map.values()));
 
-      // Buscar tokens de briefing público
       const tokens = await PublicBriefingToken.filter({
         agencyId,
-        clientId
+        clientId,
       }).catch(() => []);
       setBriefingTokens(tokens || []);
 
-      // Sincroniza cadastro a partir de envios públicos pendentes
       for (const t of tokens || []) {
         if ((t.pending_client_sync || t.pending_brief_sync) && t.briefId) {
           await syncClientFromPublicBriefing(t.briefId, t).catch(() => null);
         }
       }
-
     } catch (err) {
       console.error('Erro ao carregar briefings:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [clientId, agencyId]); // Dependencies for useCallback
+  }, [clientId, agencyId]);
 
   useEffect(() => {
     loadClientBriefings();
-  }, [loadClientBriefings]); // useEffect now depends on the memoized function
+  }, [loadClientBriefings]);
 
   useEffect(() => {
     if (loading || !briefingId) return;
@@ -114,16 +103,59 @@ export default function ClientBriefingPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [loading, briefingId, briefings]);
 
+  const inicialTokens = useMemo(
+    () =>
+      (briefingTokens || []).filter(
+        (t) => (t.metadata?.briefKind || BRIEF_KIND_INICIAL) === BRIEF_KIND_INICIAL
+      ),
+    [briefingTokens]
+  );
+
+  const hasSubmittedInicial = useMemo(
+    () =>
+      inicialTokens.some(
+        (t) =>
+          t.last_submission ||
+          t.metadata?.submittedAt ||
+          t.status === 'used' ||
+          t.status === 'completed'
+      ),
+    [inicialTokens]
+  );
+
+  const planosAnuais = useMemo(
+    () => (briefings || []).filter((b) => isCampanhaAnual(b) || b.brief_kind === 'campanha_anual'),
+    [briefings]
+  );
+
+  const campanhas = useMemo(
+    () => (briefings || []).filter((b) => b.brief_kind === 'campanha_mensal'),
+    [briefings]
+  );
+
+  const statusAnualLabel = (status) =>
+    ({
+      rascunho: 'Rascunho',
+      input_pronto: 'Pronto para temas',
+      temas_prontos: 'Temas escolhidos',
+      gerando: 'Gerando…',
+      ia_gerou: 'Campanhas geradas',
+      revisao: 'Em revisão',
+      aprovado_parcial: 'Parcialmente materializado',
+      aprovado: 'Aprovado',
+      erro: 'Erro na geração',
+    })[status] || status;
+
   const getStatusBadge = (brief) => {
     const statusMap = {
       DRAFT: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Rascunho' },
       IN_REVIEW: { color: 'bg-yellow-100 text-yellow-800', icon: Eye, label: 'Em Revisão' },
-      READY: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Finalizado' }
+      READY: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Finalizado' },
     };
-    
+
     const config = statusMap[brief.status] || statusMap.DRAFT;
     const StatusIcon = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <StatusIcon className="w-3 h-3 mr-1" />
@@ -133,6 +165,9 @@ export default function ClientBriefingPage() {
   };
 
   const getTokenStatusBadge = (token) => {
+    if (token.last_submission || token.metadata?.submittedAt) {
+      return <Badge className="bg-blue-100 text-blue-800">Enviado</Badge>;
+    }
     if (token.status === 'expired' || new Date(token.expiresAt) < new Date()) {
       return <Badge className="bg-red-100 text-red-800">Expirado</Badge>;
     }
@@ -142,34 +177,38 @@ export default function ClientBriefingPage() {
     return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
   };
 
-  const handleCreateBriefing = () => {
+  const handleCreateCampanha = () => {
     navigate(`${createPageUrl('briefing-campanha')}?clientId=${clientId}`);
   };
 
   const handleCreatePlanoAnual = () => {
+    const existing = planosAnuais[0];
+    if (existing?.id) {
+      navigate(
+        `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}&briefingId=${existing.id}`
+      );
+      return;
+    }
     navigate(`${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}`);
   };
 
-  const handleCreateBriefingLegacy = () => {
-    navigate(`${createPageUrl('briefing-editor')}?clientId=${clientId}`);
-  };
-
   const handleEditBriefing = (brief) => {
-    if (isCampanhaAnual(brief)) {
+    if (isCampanhaAnual(brief) || brief.brief_kind === 'campanha_anual') {
       navigate(
         `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}&briefingId=${brief.id}`
       );
       return;
     }
-    navigate(`${createPageUrl('briefing-editor')}?briefingId=${brief.id}`);
-  };
-
-  const handleGenerateToken = async () => {
-    if (!empresa) {
-      toast.error('Configure a empresa antes de gerar o link');
-      setEmpresaModalOpen(true);
+    if (brief.brief_kind === 'campanha_mensal') {
+      navigate(
+        `${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${brief.id}`
+      );
       return;
     }
+    navigate(`${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${brief.id}`);
+  };
+
+  const handleGenerateInicialLink = async () => {
     try {
       setGeneratingLink(true);
       const result = await generatePublicBriefingToken({
@@ -178,6 +217,7 @@ export default function ClientBriefingPage() {
         expiresInHours: 168,
         reuseIfActiveExists: true,
         agencyId,
+        briefKind: BRIEF_KIND_INICIAL,
       });
       const url = result.publicUrl || result.data?.publicUrl;
       if (url && navigator.clipboard?.writeText) {
@@ -185,18 +225,73 @@ export default function ClientBriefingPage() {
       }
       toast.success(
         result.reused
-          ? 'Link ativo copiado (já existia)'
-          : 'Link gerado e copiado para a área de transferência'
+          ? 'Link do briefing inicial copiado (já existia)'
+          : 'Link do briefing inicial gerado e copiado'
       );
       await loadClientBriefings();
     } catch (err) {
       console.error('Erro ao gerar token:', err);
-      toast.error(err.message || 'Erro ao gerar link público');
-      setError('Erro ao gerar link público');
+      toast.error(err.message || 'Erro ao gerar link do briefing inicial');
+      setError('Erro ao gerar link do briefing inicial');
     } finally {
       setGeneratingLink(false);
     }
   };
+
+  const renderBriefRow = (brief) => (
+    <div
+      key={brief.id}
+      id={`briefing-${brief.id}`}
+      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-2xl hover:bg-[#F5F2FC] ${
+        briefingId === brief.id ? 'ring-2 ring-[#6C47D8] border-[#D4CBF5] bg-[#F5F2FC]' : ''
+      }`}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <h3 className="font-medium text-[#18162A] truncate">
+            {brief.nome_campanha || brief.title || 'Briefing'}
+          </h3>
+          {brief.brief_kind === 'campanha_mensal' && (
+            <Badge variant="secondary">Campanha</Badge>
+          )}
+          {(brief.brief_kind === 'campanha_anual' || isCampanhaAnual(brief)) && (
+            <Badge className="bg-[#F5F2FC] text-[#6C47D8] border border-[#D4CBF5]">
+              Plano anual {brief.ano ? brief.ano : ''}
+            </Badge>
+          )}
+          {brief.status_anual && brief.brief_kind === 'campanha_anual' && (
+            <Badge variant="outline">{statusAnualLabel(brief.status_anual)}</Badge>
+          )}
+          {getStatusBadge(brief)}
+        </div>
+        <p className="text-sm text-[#7A7595]">
+          Criado em {new Date(brief.created_date).toLocaleDateString('pt-BR')}
+          {brief.updated_date && brief.updated_date !== brief.created_date && (
+            <span>
+              {' '}
+              • Atualizado em {new Date(brief.updated_date).toLocaleDateString('pt-BR')}
+            </span>
+          )}
+        </p>
+        {(brief.objetivo || brief.business_context) && (
+          <p className="text-sm text-gray-700 mt-1 line-clamp-2">
+            {brief.objetivo || brief.business_context}
+          </p>
+        )}
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="shrink-0 self-start sm:self-center"
+        onClick={() => handleEditBriefing(brief)}
+      >
+        <Edit className="w-4 h-4 mr-1" />
+        {isCampanhaAnual(brief) || brief.brief_kind === 'campanha_anual'
+          ? 'Abrir plano'
+          : 'Editar'}
+      </Button>
+    </div>
+  );
 
   if (loading) {
     return <LoadingState message="Carregando briefings..." />;
@@ -207,217 +302,244 @@ export default function ClientBriefingPage() {
       <div>
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            {error}
-          </AlertDescription>
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
         </Alert>
       </div>
     );
   }
 
+  const journeySteps = [
+    {
+      id: 'inicial',
+      label: 'Briefing inicial',
+      done: hasSubmittedInicial || planosAnuais.length > 0,
+    },
+    {
+      id: 'anual',
+      label: 'Plano anual',
+      done: planosAnuais.some(
+        (b) =>
+          b.status_anual === 'ia_gerou' ||
+          b.status_anual === 'temas_prontos' ||
+          b.status_anual === 'aprovado' ||
+          b.status_anual === 'aprovado_parcial'
+      ),
+    },
+    {
+      id: 'campanhas',
+      label: 'Campanhas',
+      done: campanhas.length > 0,
+    },
+  ];
+
   return (
     <ErrorBoundary>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+      <div className="max-w-6xl mx-auto space-y-6 px-1">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-between sm:items-start">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-              Briefings - {client?.name}
+              Briefings — {client?.name}
             </h1>
-            <p className="text-[#7A7595] mt-1">
-              Gerencie briefings e formulários de coleta de informações
+            <p className="text-[#7A7595] mt-1 max-w-xl">
+              Comece pelo link do cliente, monte o plano do ano com IA e abra campanhas mês a mês.
             </p>
           </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setEmpresaModalOpen(true)}>
-              <Building2 className="w-4 h-4 mr-2" />
-              {empresa ? 'Empresa' : 'Configurar Empresa'}
-            </Button>
-            <Button onClick={handleGenerateToken} variant="outline" disabled={generatingLink}>
-              {generatingLink ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <LinkIcon className="w-4 h-4 mr-2" />
-              )}
-              Gerar Link Público
-            </Button>
-            <Button variant="outline" onClick={handleCreateBriefingLegacy}>
-              Briefing completo
-            </Button>
+
+          <div className="flex flex-wrap gap-2">
+            {!hasSubmittedInicial && (
+              <Button
+                onClick={handleGenerateInicialLink}
+                className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+                disabled={generatingLink}
+              >
+                {generatingLink ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                )}
+                Link do briefing inicial
+              </Button>
+            )}
             <Button variant="outline" onClick={handleCreatePlanoAnual}>
               <CalendarRange className="w-4 h-4 mr-2" />
               Plano anual
             </Button>
-            <Button onClick={handleCreateBriefing}>
+            <Button variant="outline" onClick={handleCreateCampanha}>
               <Plus className="w-4 h-4 mr-2" />
-              Novo Briefing
+              Nova campanha
             </Button>
           </div>
         </div>
 
-        {/* Briefings Internos */}
-        <Card className="rounded-2xl border-transparent shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Briefings Internos
-              <Badge variant="outline">{briefings.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {briefings.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-[#18162A] mb-2">
-                  Nenhum briefing criado
-                </h3>
-                <p className="text-[#7A7595] mb-4">
-                  Crie um briefing para coletar informações do cliente
-                </p>
-                <Button onClick={handleCreateBriefing}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Primeiro Briefing
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {briefings.map((brief) => (
-                  <div
-                    key={brief.id}
-                    id={`briefing-${brief.id}`}
-                    className={`flex items-center justify-between p-4 border rounded-2xl hover:bg-[#F5F2FC] ${
-                      briefingId === brief.id ? 'ring-2 ring-[#6C47D8] border-[#D4CBF5] bg-[#F5F2FC]' : ''
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-[#18162A]">
-                          {brief.nome_campanha || brief.title || 'Briefing'}
-                        </h3>
-                        {brief.brief_kind === 'campanha_mensal' && (
-                          <Badge variant="secondary">Campanha</Badge>
-                        )}
-                        {brief.brief_kind === 'campanha_anual' && (
-                          <Badge className="bg-violet-100 text-violet-800">
-                            Plano anual {brief.ano ? brief.ano : ''}
-                          </Badge>
-                        )}
-                        {brief.status_anual && brief.brief_kind === 'campanha_anual' && (
-                          <Badge variant="outline">{brief.status_anual}</Badge>
-                        )}
-                        {getStatusBadge(brief)}
-                        {brief.completion_score !== undefined && (
-                          <Badge variant="outline">
-                            {brief.completion_score}% completo
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-[#7A7595]">
-                        Criado em {new Date(brief.created_date).toLocaleDateString('pt-BR')}
-                        {brief.updated_date && brief.updated_date !== brief.created_date && (
-                          <span> • Atualizado em {new Date(brief.updated_date).toLocaleDateString('pt-BR')}</span>
-                        )}
-                      </p>
-                      {(brief.objetivo || brief.business_context) && (
-                        <p className="text-sm text-gray-700 mt-1 line-clamp-2">
-                          {brief.objetivo || brief.business_context}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditBriefing(brief)}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        {isCampanhaAnual(brief) ? 'Abrir plano' : 'Editar'}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-wrap gap-2 rounded-2xl bg-[#F5F2FC] p-3">
+          {journeySteps.map((s, i) => (
+            <div
+              key={s.id}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ${
+                s.done
+                  ? 'bg-white text-[#18162A] border border-[#D4CBF5]'
+                  : 'bg-transparent text-[#7A7595]'
+              }`}
+            >
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                  s.done ? 'bg-[#6C47D8] text-white' : 'bg-white text-[#7A7595]'
+                }`}
+              >
+                {s.done ? '✓' : i + 1}
+              </span>
+              {s.label}
+            </div>
+          ))}
+        </div>
 
-        {/* Links Públicos */}
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LinkIcon className="w-5 h-5" />
-              Links Públicos
-              <Badge variant="outline">{briefingTokens.length}</Badge>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <LinkIcon className="w-5 h-5 text-[#6C47D8]" />
+              Briefing inicial
+              <Badge variant="outline">{inicialTokens.length}</Badge>
             </CardTitle>
+            <p className="text-sm text-[#7A7595] font-normal">
+              Link único para o cliente enviar Empresa + calendário do ano.
+            </p>
           </CardHeader>
           <CardContent>
-            {briefingTokens.length === 0 ? (
+            {inicialTokens.length === 0 ? (
               <div className="text-center py-8">
-                <LinkIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <LinkIcon className="w-10 h-10 text-[#D4CBF5] mx-auto mb-3" />
                 <h3 className="text-lg font-medium text-[#18162A] mb-2">
-                  Nenhum link público gerado
+                  Nenhum link gerado
                 </h3>
-                <p className="text-[#7A7595] mb-4">
-                  Gere um link público para o cliente preencher o briefing
+                <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
+                  Envie um link para o cliente preencher o DNA da empresa e as ideias do ano.
                 </p>
-                <Button onClick={handleGenerateToken} variant="outline">
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  Gerar Primeiro Link
-                </Button>
+                {!hasSubmittedInicial && (
+                  <Button
+                    onClick={handleGenerateInicialLink}
+                    className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+                    disabled={generatingLink}
+                  >
+                    {generatingLink ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <LinkIcon className="w-4 h-4 mr-2" />
+                    )}
+                    Gerar link do briefing inicial
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                {briefingTokens.map((token) => (
+              <div className="space-y-3">
+                {inicialTokens.map((token) => (
                   <div
                     key={token.id}
-                    className="flex items-center justify-between p-4 border rounded-2xl"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-2xl"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-medium text-[#18162A]">
-                          Link Público #{token.id.slice(-8)}
+                          Briefing inicial
                         </h3>
                         {getTokenStatusBadge(token)}
                       </div>
                       <p className="text-sm text-[#7A7595]">
-                        Criado em {new Date(token.created_date).toLocaleDateString('pt-BR')} •
-                        Expira em {new Date(token.expiresAt).toLocaleDateString('pt-BR')} •
+                        Criado em {new Date(token.created_date).toLocaleDateString('pt-BR')}
+                        {' · '}
+                        Expira em {new Date(token.expiresAt).toLocaleDateString('pt-BR')}
+                        {' · '}
                         {token.accessCount || 0} acessos
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      {token.status === 'active' && new Date(token.expiresAt) > new Date() && (
+                    {token.status === 'active' &&
+                      new Date(token.expiresAt) > new Date() &&
+                      !token.last_submission &&
+                      !token.metadata?.submittedAt && (
                         <Button
                           variant="outline"
                           size="sm"
+                          className="shrink-0"
                           onClick={() => {
                             const url = `${window.location.origin}/public-briefing?token=${token.token}`;
                             navigator.clipboard.writeText(url);
-                            alert('Link copiado!');
+                            toast.success('Link copiado');
                           }}
                         >
                           <LinkIcon className="w-4 h-4 mr-1" />
-                          Copiar Link
+                          Copiar link
                         </Button>
                       )}
-                    </div>
                   </div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
-      <ConfigurarEmpresaModal
-        open={empresaModalOpen}
-        onOpenChange={setEmpresaModalOpen}
-        clientId={clientId}
-        clientName={client?.name}
-        empresa={empresa}
-        onSaved={(saved) => setEmpresa(saved)}
-      />
+        <Card className="rounded-2xl border-transparent shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <CalendarRange className="w-5 h-5 text-[#6C47D8]" />
+              Plano anual
+              <Badge variant="outline">{planosAnuais.length}</Badge>
+            </CardTitle>
+            <p className="text-sm text-[#7A7595] font-normal">
+              Temas com IA e campanhas do ano — uso interno da equipe.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {planosAnuais.length === 0 ? (
+              <div className="text-center py-8">
+                <CalendarRange className="w-10 h-10 text-[#D4CBF5] mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-[#18162A] mb-2">
+                  Nenhum plano anual
+                </h3>
+                <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
+                  Depois do briefing inicial, monte o plano aqui e peça sugestão de temas à IA.
+                </p>
+                <Button onClick={handleCreatePlanoAnual}>
+                  <CalendarRange className="w-4 h-4 mr-2" />
+                  Criar plano anual
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">{planosAnuais.map(renderBriefRow)}</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-transparent shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileText className="w-5 h-5 text-[#6C47D8]" />
+              Campanhas
+              <Badge variant="outline">{campanhas.length}</Badge>
+            </CardTitle>
+            <p className="text-sm text-[#7A7595] font-normal">
+              Briefs operacionais do mês — sem link público.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {campanhas.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-10 h-10 text-[#D4CBF5] mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-[#18162A] mb-2">
+                  Nenhuma campanha
+                </h3>
+                <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
+                  No plano anual, use “Abrir briefing do mês” ou crie uma campanha interna.
+                </p>
+                <Button variant="outline" onClick={handleCreateCampanha}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova campanha
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">{campanhas.map(renderBriefRow)}</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </ErrorBoundary>
   );
 }

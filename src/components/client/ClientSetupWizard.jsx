@@ -1,18 +1,16 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   CheckCircle2, 
-  Circle, 
   ArrowRight, 
   FileText, 
   Target, 
   Zap, 
   Users,
-  ExternalLink,
   Loader2
 } from 'lucide-react';
 import { Service } from '@/api/entities';
@@ -57,7 +55,7 @@ export default function ClientSetupWizard({ clientId, serviceId, onComplete }) {
   const [kpis, setKpis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [_currentStep, setCurrentStep] = useState(0);
 
   const loadServiceData = useCallback(async () => {
     if (!serviceId) return;
@@ -157,7 +155,8 @@ export default function ClientSetupWizard({ clientId, serviceId, onComplete }) {
         clientId,
         serviceId,
         language: 'pt',
-        expiryDays: 30
+        expiryDays: 30,
+        briefKind: 'briefing_inicial',
       });
       
       console.log('Token de briefing gerado:', result.data?.token?.publicUrl);
@@ -235,7 +234,7 @@ export default function ClientSetupWizard({ clientId, serviceId, onComplete }) {
 
       {/* Steps */}
       <div className="space-y-4">
-        {SETUP_STEPS.map((step, index) => {
+        {SETUP_STEPS.map((step, _index) => {
           const status = getStepStatus(step.id);
           const isCompleted = status === 'completed';
           const isPending = status === 'pending';

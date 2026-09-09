@@ -2,14 +2,20 @@ import { Brief } from '@/api/entities';
 import { createSessionJwt } from '@/lib/appwrite';
 import {
   applyGeracaoIaToAnual,
+  applyTemasEscolhidosToSeeds,
+  applyTemasIaToAnual,
   buildInputIaFromAnual,
+  countTemasEscolhidos,
   normalizeCampanhaAnualPayload,
   normalizeGeracaoIaOutput,
+  normalizeTemasSugeridos,
   validateGeracaoIaOutput,
 } from '@/lib/campanhaAnualSchema';
 import { buildMockGeracaoFromInput } from '@/lib/campanhaAnualMock';
+import { buildMockTemasFromInput } from '@/lib/campanhaAnualTemasMock';
 
 export { buildMockGeracaoFromInput } from '@/lib/campanhaAnualMock';
+export { buildMockTemasFromInput } from '@/lib/campanhaAnualTemasMock';
 
 export const CAMPANHA_IA_BATCHES = [
   [1, 2, 3, 4],
@@ -134,19 +140,79 @@ export async function requestGeracaoCampanhaAnual(inputIa, { onBatchProgress } =
 }
 
 /**
- * Gera via API, aplica no payload anual e persiste no Brief.
+ * Sugere temas (1 principal + 1 alternativa por mês).
  */
-export async function gerarESalvarCampanhaAnual({
+export async function requestSugestaoTemas(inputIa) {
+  const useMock =
+    String(import.meta.env.VITE_CAMPANHA_IA_MOCK || '').trim() === '1';
+
+  if (useMock) {
+    return {
+      sucesso: true,
+      model: 'mock-local-temas',
+      usage: { input_tokens: 0, output_tokens: 0 },
+      temas_valid: true,
+      ...buildMockTemasFromInput(inputIa),
+    };
+  }
+
+  const jwt = await createSessionJwt();
+  if (!jwt) {
+    const err = new Error('Sessão inválida. Faça login novamente.');
+    err.code = 'unauthorized';
+    throw err;
+  }
+
+  const res = await fetch('/api/campanha-anual-temas', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify({ input: inputIa }),
+  });
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    if (import.meta.env.DEV && (res.status === 404 || res.status === 503)) {
+      console.warn('[campanhaAnualIa] API temas indisponível — mock local', data);
+      return {
+        sucesso: true,
+        model: 'mock-local-temas-fallback',
+        usage: { input_tokens: 0, output_tokens: 0 },
+        temas_valid: true,
+        ...buildMockTemasFromInput(inputIa),
+      };
+    }
+    const msg = data?.message || data?.error || `Erro HTTP ${res.status}`;
+    const err = new Error(typeof msg === 'string' ? msg : 'Falha ao sugerir temas');
+    err.code = data?.error;
+    err.details = data;
+    throw err;
+  }
+
+  return {
+    sucesso: true,
+    model: data.model,
+    usage: data.usage || { input_tokens: 0, output_tokens: 0 },
+    temas_valid: data.temas_valid !== false,
+    temas: normalizeTemasSugeridos(data.temas, inputIa.ciclos_comerciais),
+  };
+}
+
+/**
+ * Sugere temas via API, aplica no payload e persiste.
+ */
+export async function gerarESalvarTemas({
   briefingId,
   empresa,
   ano,
   ciclos_comerciais,
   briefings_mes,
   existingPayload,
-  onBatchProgress,
 }) {
   if (!briefingId) {
-    throw new Error('Salve o plano anual antes de gerar com IA');
+    throw new Error('Salve o plano anual antes de sugerir temas');
   }
 
   const inputIa = buildInputIaFromAnual({
@@ -156,10 +222,107 @@ export async function gerarESalvarCampanhaAnual({
     ano,
   });
 
+  const iaResult = await requestSugestaoTemas(inputIa);
+  const applied = applyTemasIaToAnual(existingPayload || {}, iaResult, {
+    model: iaResult.model,
+  });
+
+  const normalized = normalizeCampanhaAnualPayload(applied);
+  const updated = await Brief.update(briefingId, {
+    ...normalized,
+    status: 'DRAFT',
+    title: existingPayload?.title || `Plano anual ${ano}`,
+    editado_em: new Date().toISOString(),
+    completion_score: 70,
+  });
+
+  return {
+    brief: updated,
+    payload: normalizeCampanhaAnualPayload(updated),
+    iaResult,
+    temas_valid: iaResult.temas_valid !== false,
+  };
+}
+
+/**
+ * Persiste escolha/edição de temas sem nova chamada IA.
+ */
+export async function salvarTemasEscolhidos({
+  briefingId,
+  temas_sugeridos,
+  existingPayload,
+  ano,
+}) {
+  if (!briefingId) throw new Error('briefingId obrigatório');
+  const base = normalizeCampanhaAnualPayload(existingPayload || {});
+  const temas = normalizeTemasSugeridos(temas_sugeridos, base.ciclos_comerciais);
+  const { complete } = countTemasEscolhidos(temas);
+  const next = {
+    ...base,
+    temas_sugeridos: temas,
+    temas_gerados: true,
+    status_anual: complete ? 'temas_prontos' : base.status_anual,
+    editado_em: new Date().toISOString(),
+  };
+  const updated = await Brief.update(briefingId, {
+    ...next,
+    status: 'DRAFT',
+    title: existingPayload?.title || `Plano anual ${ano || base.ano}`,
+    completion_score: complete ? 75 : 65,
+  });
+  return {
+    brief: updated,
+    payload: normalizeCampanhaAnualPayload(updated),
+  };
+}
+
+/**
+ * Gera via API, aplica no payload anual e persiste no Brief.
+ * Se houver temas escolhidos, aplica-os como seeds efetivos.
+ */
+export async function gerarESalvarCampanhaAnual({
+  briefingId,
+  empresa,
+  ano,
+  ciclos_comerciais,
+  briefings_mes,
+  temas_sugeridos = null,
+  existingPayload,
+  onBatchProgress,
+}) {
+  if (!briefingId) {
+    throw new Error('Salve o plano anual antes de gerar com IA');
+  }
+
+  const seedsEfetivos =
+    temas_sugeridos?.length || existingPayload?.temas_sugeridos?.length
+      ? applyTemasEscolhidosToSeeds(
+          temas_sugeridos || existingPayload.temas_sugeridos,
+          ciclos_comerciais,
+          briefings_mes
+        )
+      : briefings_mes;
+
+  const inputIa = buildInputIaFromAnual({
+    empresa,
+    ciclos_comerciais,
+    briefings_mes: seedsEfetivos,
+    ano,
+  });
+
   const iaResult = await requestGeracaoCampanhaAnual(inputIa, { onBatchProgress });
   const applied = applyGeracaoIaToAnual(existingPayload || {}, iaResult, {
     model: iaResult.model,
   });
+
+  applied.briefings_mes = seedsEfetivos;
+  if (temas_sugeridos || existingPayload?.temas_sugeridos) {
+    applied.temas_sugeridos = normalizeTemasSugeridos(
+      temas_sugeridos || existingPayload.temas_sugeridos,
+      ciclos_comerciais
+    );
+    applied.temas_gerados = true;
+  }
 
   applied.geracao = {
     ...applied.geracao,

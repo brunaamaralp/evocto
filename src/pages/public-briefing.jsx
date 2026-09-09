@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,19 +12,23 @@ import {
   Lock,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import EmpresaConfigResumo from '@/components/briefing/campanha/EmpresaConfigResumo';
+import CiclosComerciaisPicker from '@/components/briefing/anual/CiclosComerciaisPicker';
+import BriefingsMesSeedsEditor from '@/components/briefing/anual/BriefingsMesSeedsEditor';
+import ProdutosLinhasEditor from '@/components/briefing/anual/ProdutosLinhasEditor';
 import {
   validatePublicBriefingToken,
   savePublicBriefingResponse,
 } from '@/api/functions';
 import {
-  EMPTY_CAMPANHA_FORM,
-  isCampanhaFormComplete,
-  validateCampanhaForm,
-} from '@/lib/campanhaBriefing';
+  emptyBriefingInicialForm,
+  isBriefingInicialFormComplete,
+  normalizeBriefingInicialForm,
+  validateBriefingInicialForm,
+} from '@/lib/briefingInicial';
+import { buildBriefingsMesSeeds } from '@/lib/campanhaAnualSchema';
 
 /**
- * Formulário público do briefing de campanha (cliente, sem login).
+ * Formulário público do briefing inicial (Empresa + insumos do plano anual).
  */
 export default function PublicBriefingPage() {
   const token = useMemo(() => {
@@ -36,7 +40,7 @@ export default function PublicBriefingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [ctx, setCtx] = useState(null);
-  const [form, setForm] = useState({ ...EMPTY_CAMPANHA_FORM });
+  const [form, setForm] = useState(() => emptyBriefingInicialForm());
   const [errors, setErrors] = useState({});
   const [done, setDone] = useState(false);
 
@@ -53,7 +57,12 @@ export default function PublicBriefingPage() {
         const result = await validatePublicBriefingToken({ token });
         if (cancelled) return;
         setCtx(result.data);
-        setForm({ ...EMPTY_CAMPANHA_FORM, ...(result.data.draftForm || {}) });
+        setForm(
+          normalizeBriefingInicialForm(
+            result.data.draftForm || {},
+            result.data.clientName || ''
+          )
+        );
         if (result.data.alreadySubmitted) {
           setDone(true);
         }
@@ -70,13 +79,37 @@ export default function PublicBriefingPage() {
     };
   }, [token]);
 
-  const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
-  const canSubmit = isCampanhaFormComplete(form) && !saving && !done;
+  const setEmpresaField = (key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      empresa: { ...prev.empresa, [key]: value },
+    }));
+  };
+
+  const setFormato = (key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      empresa: {
+        ...prev.empresa,
+        formato_padrao: { ...prev.empresa.formato_padrao, [key]: value },
+      },
+    }));
+  };
+
+  const setCiclos = (ciclos) => {
+    setForm((prev) => ({
+      ...prev,
+      ciclos_comerciais: ciclos,
+      briefings_mes: buildBriefingsMesSeeds(ciclos, prev.briefings_mes),
+    }));
+  };
+
+  const canSubmit = isBriefingInicialFormComplete(form) && !saving && !done;
 
   const handleSaveDraft = async () => {
     try {
       setSaving(true);
-      await savePublicBriefingResponse({ token, campanhaForm: form, draft: true });
+      await savePublicBriefingResponse({ token, inicialForm: form, draft: true });
       toast.success('Rascunho salvo');
     } catch (err) {
       toast.error(err.message || 'Erro ao salvar rascunho');
@@ -86,21 +119,25 @@ export default function PublicBriefingPage() {
   };
 
   const handleSubmit = async () => {
-    const { valid, errors: next } = validateCampanhaForm(form);
-    setErrors(next);
+    const { valid, errors: nextErrors } = validateBriefingInicialForm(form);
+    setErrors(nextErrors);
     if (!valid) {
-      toast.error('Preencha todos os campos obrigatórios');
+      toast.error('Preencha os campos obrigatórios');
+      const firstKey = Object.keys(nextErrors)[0];
+      const el =
+        document.getElementById(firstKey) ||
+        document.querySelector('[data-section="empresa"]');
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     try {
       setSaving(true);
-      await savePublicBriefingResponse({ token, campanhaForm: form, draft: false });
+      await savePublicBriefingResponse({ token, inicialForm: form, draft: false });
       setDone(true);
-      toast.success('Briefing enviado com sucesso');
+      toast.success('Briefing inicial enviado');
     } catch (err) {
-      console.error(err);
-      if (err?.errors) setErrors(err.errors);
-      toast.error(err.message || 'Erro ao enviar. Tente novamente');
+      if (err.errors) setErrors(err.errors);
+      toast.error(err.message || 'Erro ao enviar');
     } finally {
       setSaving(false);
     }
@@ -108,11 +145,8 @@ export default function PublicBriefingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-slate-700" />
-          <p className="text-slate-600">Validando link...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
       </div>
     );
   }
@@ -120,13 +154,10 @@ export default function PublicBriefingPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-8 pb-8 text-center space-y-3">
-            <Lock className="w-12 h-12 text-slate-400 mx-auto" />
-            <h1 className="text-xl font-semibold">Link indisponível</h1>
-            <p className="text-slate-600 text-sm">{error}</p>
-          </CardContent>
-        </Card>
+        <Alert className="max-w-md border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -136,13 +167,11 @@ export default function PublicBriefingPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
         <Card className="max-w-md w-full">
           <CardContent className="pt-8 pb-8 text-center space-y-3">
-            <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto" />
-            <h1 className="text-2xl font-semibold">Briefing recebido</h1>
-            <p className="text-slate-600">
-              Obrigado! As respostas de <strong>{ctx?.clientName}</strong> já foram registradas.
-            </p>
-            <p className="text-sm text-slate-500">
-              A equipe do estúdio já pode seguir com a campanha.
+            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+            <h1 className="text-xl font-semibold text-slate-900">Enviado com sucesso</h1>
+            <p className="text-slate-600 text-sm">
+              Recebemos o briefing inicial de {ctx?.clientName}. A equipe montará o plano
+              anual a partir dessas informações.
             </p>
           </CardContent>
         </Card>
@@ -150,121 +179,210 @@ export default function PublicBriefingPage() {
     );
   }
 
+  const emp = form.empresa || {};
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-xl mx-auto space-y-4">
+    <div className="min-h-screen bg-[#F8F6FC] py-8 px-4 pb-28">
+      <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <p className="text-sm text-slate-500 mb-1">Briefing de campanha</p>
-          <h1 className="text-2xl font-bold text-slate-900">{ctx?.clientName}</h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Preencha os 5 campos desta campanha. Público, formato, orçamento e tom já vêm configurados.
+          <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
+            <Lock className="w-3.5 h-3.5" />
+            Link seguro · Briefing inicial
+          </div>
+          <h1 className="text-2xl font-semibold text-[#18162A]">
+            {ctx?.clientName || 'Cliente'}
+          </h1>
+          <p className="text-[#7A7595] mt-1">
+            Duas partes: dados da empresa e calendário comercial do ano. Leva poucos minutos.
           </p>
+          <div className="mt-4 flex gap-2 text-sm">
+            <span className="rounded-full bg-white border border-[#D4CBF5] px-3 py-1 text-[#18162A]">
+              1. Empresa
+            </span>
+            <span className="rounded-full bg-white border border-[#E8E4F4] px-3 py-1 text-[#7A7595]">
+              2. Plano do ano
+            </span>
+          </div>
         </div>
 
-        {!ctx?.empresaConfig && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-700" />
-            <AlertDescription className="text-amber-900">
-              Configuração da empresa ainda não foi definida pelo estúdio. Você ainda pode enviar os dados da campanha.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {ctx?.empresaConfig && <EmpresaConfigResumo config={ctx.empresaConfig} />}
-
-        <Card>
+        <Card className="rounded-2xl border-[#E8E4F4] shadow-sm" data-section="empresa">
           <CardHeader>
-            <CardTitle className="text-base">Dados desta campanha</CardTitle>
+            <CardTitle className="text-lg text-[#18162A]">1. Empresa</CardTitle>
+            <p className="text-sm text-[#7A7595] font-normal">
+              Público, tom, formato e produtos — o DNA que se repete nas campanhas.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label>* Nome da Campanha</Label>
+              <Label htmlFor="nome">Nome da empresa</Label>
               <Input
-                value={form.nome_campanha}
-                onChange={(e) => setField('nome_campanha', e.target.value)}
-                placeholder="Outono / Black Friday..."
+                id="nome"
+                value={emp.nome || ''}
+                onChange={(e) => setEmpresaField('nome', e.target.value)}
               />
-              {errors.nome_campanha && (
-                <p className="text-xs text-red-600">{errors.nome_campanha}</p>
-              )}
+              {errors.nome && <p className="text-xs text-red-600">{errors.nome}</p>}
             </div>
-
             <div className="space-y-1.5">
-              <Label>* Objetivo Comercial</Label>
-              <Input
-                value={form.objetivo}
-                onChange={(e) => setField('objetivo', e.target.value)}
-                placeholder="Aumentar vendas"
-              />
-              {errors.objetivo && <p className="text-xs text-red-600">{errors.objetivo}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>* Ações Comerciais</Label>
+              <Label htmlFor="publico">Público-alvo</Label>
               <Textarea
-                value={form.acoes_comerciais}
-                onChange={(e) => setField('acoes_comerciais', e.target.value)}
-                placeholder="Lança linha Gold, desconto 15%"
-                className="min-h-[80px]"
+                id="publico"
+                rows={3}
+                value={emp.publico_alvo || ''}
+                onChange={(e) => setEmpresaField('publico_alvo', e.target.value)}
               />
-              {errors.acoes_comerciais && (
-                <p className="text-xs text-red-600">{errors.acoes_comerciais}</p>
+              {errors.publico_alvo && (
+                <p className="text-xs text-red-600">{errors.publico_alvo}</p>
               )}
             </div>
-
             <div className="space-y-1.5">
-              <Label>* Quem Aparece / Locação</Label>
+              <Label htmlFor="tom">Tom de marca</Label>
               <Input
-                value={form.talento_locacao}
-                onChange={(e) => setField('talento_locacao', e.target.value)}
-                placeholder="Dona, interior da loja"
+                id="tom"
+                value={emp.tom_brand || ''}
+                onChange={(e) => setEmpresaField('tom_brand', e.target.value)}
               />
-              {errors.talento_locacao && (
-                <p className="text-xs text-red-600">{errors.talento_locacao}</p>
+              {errors.tom_brand && (
+                <p className="text-xs text-red-600">{errors.tom_brand}</p>
               )}
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="orcamento">Orçamento mensal padrão (R$)</Label>
+              <Input
+                id="orcamento"
+                type="number"
+                min={0}
+                value={emp.orcamento_padrao_mensal ?? ''}
+                onChange={(e) =>
+                  setEmpresaField('orcamento_padrao_mensal', e.target.value)
+                }
+              />
+              {errors.orcamento_padrao_mensal && (
+                <p className="text-xs text-red-600">{errors.orcamento_padrao_mensal}</p>
+              )}
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label>* Gravação (início)</Label>
+                <Label>Vídeos / mês</Label>
                 <Input
-                  type="date"
-                  value={form.data_gravacao_inicio}
-                  onChange={(e) => setField('data_gravacao_inicio', e.target.value)}
+                  type="number"
+                  min={0}
+                  value={emp.formato_padrao?.num_videos ?? 0}
+                  onChange={(e) => setFormato('num_videos', Number(e.target.value))}
                 />
-                {errors.data_gravacao_inicio && (
-                  <p className="text-xs text-red-600">{errors.data_gravacao_inicio}</p>
-                )}
               </div>
               <div className="space-y-1.5">
-                <Label>* Gravação (fim)</Label>
+                <Label>Designs / mês</Label>
                 <Input
-                  type="date"
-                  value={form.data_gravacao_fim}
-                  onChange={(e) => setField('data_gravacao_fim', e.target.value)}
+                  type="number"
+                  min={0}
+                  value={emp.formato_padrao?.num_designs ?? 0}
+                  onChange={(e) => setFormato('num_designs', Number(e.target.value))}
                 />
-                {errors.data_gravacao_fim && (
-                  <p className="text-xs text-red-600">{errors.data_gravacao_fim}</p>
-                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Duração vídeos</Label>
+                <Input
+                  value={emp.formato_padrao?.duracao_videos || ''}
+                  onChange={(e) => setFormato('duracao_videos', e.target.value)}
+                />
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Button disabled={!canSubmit} onClick={handleSubmit}>
-                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Enviar briefing
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={saving}
-                onClick={handleSaveDraft}
-              >
-                Salvar rascunho
-              </Button>
+            <div className="space-y-1.5">
+              <Label htmlFor="restricoes">Restrições criativas</Label>
+              <Textarea
+                id="restricoes"
+                rows={2}
+                value={emp.restricoes_criativas || ''}
+                onChange={(e) => setEmpresaField('restricoes_criativas', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Produtos / linhas</Label>
+              <ProdutosLinhasEditor
+                value={emp.produtos_linhas || []}
+                onChange={(produtos_linhas) =>
+                  setEmpresaField('produtos_linhas', produtos_linhas)
+                }
+              />
+              {errors.produtos_linhas && (
+                <p className="text-xs text-red-600">{errors.produtos_linhas}</p>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        <Card className="rounded-2xl border-[#E8E4F4] shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg text-[#18162A]">2. Plano do ano</CardTitle>
+            <p className="text-sm text-[#7A7595] font-normal">
+              Marque o ciclo de cada mês. Ideias por mês são opcionais.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5 max-w-[160px]">
+              <Label htmlFor="ano">Ano</Label>
+              <Input
+                id="ano"
+                type="number"
+                min={2020}
+                max={2100}
+                value={form.ano}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    ano: Number(e.target.value) || prev.ano,
+                  }))
+                }
+              />
+              {errors.ano && <p className="text-xs text-red-600">{errors.ano}</p>}
+            </div>
+            <div>
+              <Label className="mb-2 block">Ciclos comerciais</Label>
+              <CiclosComerciaisPicker
+                value={form.ciclos_comerciais}
+                onChange={setCiclos}
+              />
+              {(errors.ciclos_incompletos || errors.meses_faltando) && (
+                <p className="text-xs text-red-600 mt-2">
+                  {errors.ciclos_incompletos || errors.meses_faltando || 'Complete os ciclos'}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label className="mb-2 block">Ideias por mês (opcional)</Label>
+              <BriefingsMesSeedsEditor
+                value={form.briefings_mes}
+                onChange={(briefings_mes) =>
+                  setForm((prev) => ({ ...prev, briefings_mes }))
+                }
+                produtosLinhas={emp.produtos_linhas || []}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="fixed bottom-0 inset-x-0 z-20 border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+          <div className="max-w-3xl mx-auto px-4 py-3 flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Salvar rascunho
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Enviar briefing inicial
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

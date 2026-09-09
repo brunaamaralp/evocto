@@ -28,7 +28,8 @@ export const CICLOS_COMERCIAIS = Object.freeze([
 /** Status do artefato anual no Brief */
 export const STATUS_CAMPANHA_ANUAL = Object.freeze([
   'rascunho', // input incompleto
-  'input_pronto', // pronto para IA
+  'input_pronto', // pronto para IA de temas
+  'temas_prontos', // temas sugeridos e escolhidos
   'gerando', // chamada em andamento
   'ia_gerou', // JSON gerado, pendente review
   'revisao', // usuário editando
@@ -519,7 +520,7 @@ export function emptyValidacoes() {
 }
 
 export function normalizeValidacoes(raw = {}) {
-  const base = emptyValidacoes();
+  const _base = emptyValidacoes();
   const v = raw.variacao_narrativas || {};
   return {
     ciclos_respeitados: Boolean(raw.ciclos_respeitados),
@@ -684,6 +685,111 @@ export function validateInputIa(input) {
 // Brief campanha_anual (persistência)
 // ---------------------------------------------------------------------------
 
+export function emptyTemaMesSugestao(mes = 1, ciclo = '') {
+  return {
+    mes: asNumber(mes, 1),
+    ciclo: normalizeCiclo(ciclo) || '',
+    titulo: '',
+    ideia_central: '',
+    produto_focal: '',
+    selecionado: true,
+    origem: 'humano',
+    opcoes: [
+      { id: 'principal', titulo: '', ideia_central: '', produto_focal: '' },
+      { id: 'alternativa', titulo: '', ideia_central: '', produto_focal: '' },
+    ],
+    selecionado_id: 'principal',
+  };
+}
+
+export function normalizeTemaMesSugestao(raw = {}, mesFallback = 1) {
+  const mes = asNumber(raw.mes, mesFallback);
+  const opcoesRaw = Array.isArray(raw.opcoes) ? raw.opcoes : [];
+  const principal = opcoesRaw.find((o) => o?.id === 'principal') || opcoesRaw[0] || {};
+  const alternativa = opcoesRaw.find((o) => o?.id === 'alternativa') || opcoesRaw[1] || {};
+  const opcoes = [
+    {
+      id: 'principal',
+      titulo: asString(principal.titulo || raw.titulo),
+      ideia_central: asString(principal.ideia_central || raw.ideia_central),
+      produto_focal: asString(principal.produto_focal || raw.produto_focal),
+    },
+    {
+      id: 'alternativa',
+      titulo: asString(alternativa.titulo),
+      ideia_central: asString(alternativa.ideia_central),
+      produto_focal: asString(alternativa.produto_focal),
+    },
+  ];
+  const selecionado_id =
+    asString(raw.selecionado_id) === 'alternativa' ? 'alternativa' : 'principal';
+  const chosen = opcoes.find((o) => o.id === selecionado_id) || opcoes[0];
+  return {
+    mes,
+    ciclo: normalizeCiclo(raw.ciclo) || '',
+    titulo: asString(raw.titulo) || chosen.titulo,
+    ideia_central: asString(raw.ideia_central) || chosen.ideia_central,
+    produto_focal: asString(raw.produto_focal) || chosen.produto_focal,
+    selecionado: raw.selecionado !== false,
+    origem: asString(raw.origem) === 'ia' ? 'ia' : 'humano',
+    opcoes,
+    selecionado_id,
+  };
+}
+
+export function normalizeTemasSugeridos(raw = [], ciclos = null) {
+  const map = mesParaCicloMap(ciclos || emptyCiclosComerciais());
+  const byMes = new Map();
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      const n = normalizeTemaMesSugestao(item);
+      byMes.set(n.mes, n);
+    }
+  }
+  return MESES.map((mes) => {
+    const existing = byMes.get(mes);
+    if (existing) {
+      return {
+        ...existing,
+        ciclo: existing.ciclo || map[mes] || '',
+      };
+    }
+    return emptyTemaMesSugestao(mes, map[mes] || '');
+  });
+}
+
+/** Aplica temas escolhidos como seeds efetivos para a geração 9 dimensões. */
+export function applyTemasEscolhidosToSeeds(temas, ciclos, existingSeeds = []) {
+  const seeds = buildBriefingsMesSeeds(ciclos, existingSeeds);
+  const temasN = normalizeTemasSugeridos(temas, ciclos);
+  return seeds.map((seed) => {
+    const tema = temasN.find((t) => t.mes === seed.mes);
+    if (!tema || !tema.selecionado || !tema.titulo) return seed;
+    return normalizeBriefingMesSeed({
+      ...seed,
+      nome_campanha_sugerido: tema.titulo,
+      '01_estrategia': {
+        ...seed['01_estrategia'],
+        ciclo_comercial: tema.ciclo || seed['01_estrategia']?.ciclo_comercial,
+        produto_focal: tema.produto_focal || seed['01_estrategia']?.produto_focal,
+      },
+      '02_conceito': {
+        ...seed['02_conceito'],
+        nome_sugerido: tema.titulo,
+        ideia_central: tema.ideia_central || seed['02_conceito']?.ideia_central,
+      },
+    });
+  });
+}
+
+export function countTemasEscolhidos(temas) {
+  const list = Array.isArray(temas) ? temas.map((t) => normalizeTemaMesSugestao(t)) : [];
+  const escolhidos = list.filter(
+    (t) => t.selecionado && asString(t.titulo)
+  );
+  return { total: 12, escolhidos: escolhidos.length, complete: escolhidos.length >= 12 };
+}
+
 export function emptyCampanhaAnualPayload() {
   return {
     brief_kind: BRIEF_KIND_ANUAL,
@@ -694,6 +800,8 @@ export function emptyCampanhaAnualPayload() {
     /** Snapshot opcional no momento da geração (desacopla de edits posteriores na Empresa) */
     produtos_snapshot: [],
     briefings_mes: MESES.map((m) => emptyBriefingMesSeed(m)),
+    temas_sugeridos: MESES.map((m) => emptyTemaMesSugestao(m)),
+    temas_gerados: false,
     campanhas: [],
     validacoes: emptyValidacoes(),
     avisos: [],
@@ -736,6 +844,8 @@ export function normalizeCampanhaAnualPayload(raw = {}) {
       raw.produtos_snapshot || raw.produtos_linhas
     ),
     briefings_mes,
+    temas_sugeridos: normalizeTemasSugeridos(raw.temas_sugeridos, ciclos),
+    temas_gerados: Boolean(raw.temas_gerados),
     campanhas,
     validacoes: normalizeValidacoes(raw.validacoes),
     avisos: Array.isArray(raw.avisos) ? raw.avisos.map(normalizeAviso) : [],
@@ -751,6 +861,45 @@ export function normalizeCampanhaAnualPayload(raw = {}) {
     criado_por: raw.criado_por || null,
     criado_em: raw.criado_em || null,
     editado_em: raw.editado_em || null,
+  };
+}
+
+/**
+ * Aplica sugestão de temas IA no payload anual.
+ */
+export function applyTemasIaToAnual(anualPayload, temasOutput, { model } = {}) {
+  const base = normalizeCampanhaAnualPayload(anualPayload);
+  const temas = normalizeTemasSugeridos(
+    temasOutput?.temas || temasOutput?.temas_sugeridos || [],
+    base.ciclos_comerciais
+  ).map((t) => ({ ...t, origem: 'ia' }));
+  const { complete } = countTemasEscolhidos(temas);
+  return {
+    ...base,
+    temas_sugeridos: temas,
+    temas_gerados: true,
+    status_anual: complete ? 'temas_prontos' : 'input_pronto',
+    geracao: {
+      ...base.geracao,
+      model: model || base.geracao.model,
+      processado_em: new Date().toISOString(),
+      erro: null,
+    },
+    editado_em: new Date().toISOString(),
+  };
+}
+
+export function validateTemasIaOutput(raw, ciclos) {
+  const temas = normalizeTemasSugeridos(raw?.temas || raw?.temas_sugeridos || [], ciclos);
+  const errors = {};
+  const withTitle = temas.filter((t) => asString(t.titulo) || asString(t.opcoes?.[0]?.titulo));
+  if (withTitle.length < 12) {
+    errors.temas = `Esperados 12 meses com tema; recebidos ${withTitle.length}`;
+  }
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+    value: { temas },
   };
 }
 
