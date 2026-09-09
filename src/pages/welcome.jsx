@@ -18,6 +18,8 @@ import { User } from '@/api/entities';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import OnboardingMascot from '@/components/onboarding/OnboardingMascot';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
+import { BRAND } from '@/lib/brandAssets';
 
 export default function WelcomePage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -96,18 +98,9 @@ export default function WelcomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
-              {/* Logo Oficial Evocto */}
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">E</span>
-                </div>
-                <div>
-                  <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Evocto
-                  </div>
-                  <div className="text-xs text-gray-500 -mt-1">Marketing Operacional</div>
-                </div>
-              </div>
+              <Link to="/" className="flex items-center" aria-label={BRAND.name}>
+                <NaviBrandLockup height={32} />
+              </Link>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild>
@@ -200,32 +193,17 @@ export default function WelcomePage() {
                 </div>
               </div>
 
-              {/* Mascote Polvo */}
+              {/* Mascote */}
               <div className="flex justify-center lg:justify-end">
                 <div className="relative">
-                  {/* Background decorativo */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl scale-150"></div>
-                  
-                  {/* Mascote */}
-                  <div className="relative bg-white/50 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
-                    <OnboardingMascot 
-                      expression="excited" 
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-purple-400/20 rounded-full blur-3xl scale-150" />
+                  <div className="relative p-4">
+                    <OnboardingMascot
+                      expression="excited"
                       size="large"
                       showSpeechBubble={true}
-                      speechText="Vamos organizar seu marketing! 🚀"
+                      speechText="Vamos organizar seu marketing!"
                     />
-                  </div>
-                  
-                  {/* Elementos flutuantes */}
-                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium animate-bounce">
-                    IA Ativa!
-                  </div>
-                  
-                  <div className="absolute -bottom-4 -left-4 bg-white shadow-lg rounded-lg p-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-gray-700">Sincronizando entregas...</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -340,10 +318,7 @@ export default function WelcomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">E</span>
-            </div>
-            <span className="text-xl font-bold">Evocto</span>
+            <NaviBrandLockup height={28} />
           </div>
           <p className="text-gray-400 mb-4">
             Operação de marketing mais clara para times, agências e clientes

@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { useT } from '@/components/i18n/I18nProvider';
 
-const logoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/2967b924b_IMG_0421.PNG";
+import { BRAND } from '@/lib/brandAssets';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
 
 // Component for individual navigation items
 const NavItem = ({ item, isActive, collapsed }) => {
@@ -84,13 +85,12 @@ export default function Sidebar() {
       {/* Logo and collapse button */}
       <div className={`p-4 border-b border-gray-200 ${collapsed ? 'px-2' : ''}`}>
         <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center">
-            <img 
-              src={logoUrl} 
-              alt="Logo" 
-              className={`${collapsed ? 'w-8 h-8' : 'w-8 h-8 mr-3'} rounded`} 
-            />
-            {!collapsed && <span className="text-lg font-bold text-gray-900">InsightFlow</span>}
+          <Link to="/dashboard" className="flex items-center" aria-label={BRAND.name}>
+            {collapsed ? (
+              <NaviBrandLockup variant="mark" height={32} />
+            ) : (
+              <NaviBrandLockup height={28} />
+            )}
           </Link>
           <button
             onClick={() => setCollapsed(!collapsed)}

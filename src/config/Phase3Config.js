@@ -79,14 +79,14 @@ export class Phase3Config {
             name: 'Evocto Marketplace',
             shortName: 'Evocto',
             description: 'Marketplace de serviços de consultoria',
-            themeColor: '#3b82f6',
+            themeColor: '#6C47D8',
             backgroundColor: '#ffffff',
             display: 'standalone',
             orientation: 'portrait',
             startUrl: '/',
             icons: [
-              { src: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-              { src: '/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+              { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+              { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }
             ]
           }
         },

@@ -2,24 +2,43 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '../i18n/I18nProvider';
+import EvoctoMascot from '@/components/brand/EvoctoMascot';
 
-const polvoEmoji = "🐙";
-
-const OnboardingMascot = ({ 
-  message, 
-  step, 
-  totalSteps, 
+const OnboardingMascot = ({
+  message,
+  step,
+  totalSteps,
   variant = 'default',
-  showProgress = true 
+  showProgress = true,
+  // API usada em welcome.jsx / marketing
+  expression,
+  size = 'md',
+  showSpeechBubble = false,
+  speechText,
 }) => {
   const { t } = useTranslation();
-  
+  const isHero = Boolean(expression || showSpeechBubble || speechText || !message);
+
+  if (isHero && !message) {
+    const heroSize = size === 'large' ? 'large' : size === 'small' ? 'small' : size;
+    return (
+      <div className="relative inline-flex flex-col items-center">
+        <EvoctoMascot size={heroSize} className="drop-shadow-sm" />
+        {showSpeechBubble && speechText ? (
+          <div className="mt-4 max-w-xs rounded-2xl border border-violet-100 bg-white px-4 py-3 text-center text-sm text-slate-700 shadow-sm">
+            {speechText}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'celebration':
         return 'border-green-200 bg-green-50';
       case 'guidance':
-        return 'border-blue-200 bg-blue-50';
+        return 'border-violet-200 bg-violet-50';
       case 'encouragement':
         return 'border-purple-200 bg-purple-50';
       default:
@@ -32,7 +51,7 @@ const OnboardingMascot = ({
       case 'celebration':
         return 'text-green-800';
       case 'guidance':
-        return 'text-blue-800';
+        return 'text-violet-800';
       case 'encouragement':
         return 'text-purple-800';
       default:
@@ -51,9 +70,7 @@ const OnboardingMascot = ({
     <Card className={`${getVariantStyles()} border-2 transition-all duration-300 hover:shadow-md`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <div className="text-3xl animate-pulse">
-            {polvoEmoji}
-          </div>
+          <EvoctoMascot size={56} mark className="shrink-0" />
           <div className="flex-1">
             {showProgress && step && totalSteps && (
               <div className="flex items-center gap-2 mb-2">
@@ -61,16 +78,16 @@ const OnboardingMascot = ({
                   {getStepText()}
                 </Badge>
                 <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                  <div
+                    className="h-full bg-violet-500 rounded-full transition-all duration-500"
                     style={{ width: `${(step / totalSteps) * 100}%` }}
                   />
                 </div>
               </div>
             )}
             <div className={`${getTextColor()} leading-relaxed`}>
-              {typeof message === 'string' && message.startsWith('onboarding.') 
-                ? t(message) 
+              {typeof message === 'string' && message.startsWith('onboarding.')
+                ? t(message)
                 : message}
             </div>
           </div>
@@ -80,7 +97,6 @@ const OnboardingMascot = ({
   );
 };
 
-// Mensagens traduzidas usando chaves
 export const ONBOARDING_MESSAGES = {
   welcome: {
     message: "onboarding.welcome",

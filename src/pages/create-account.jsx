@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Building, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createAgency } from '@/api/functions';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoMascot from '@/components/brand/EvoctoMascot';
 
 export default function CreateAccountPage() {
   const [formData, setFormData] = useState({
@@ -88,8 +90,9 @@ export default function CreateAccountPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building className="w-6 h-6 text-white" />
+              <div className="flex flex-col items-center gap-3 mb-2">
+                <EvoctoMascot mark size={64} />
+                <NaviBrandLockup height={32} variant="auth" />
               </div>
               <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
               <p className="text-gray-600 mt-2">

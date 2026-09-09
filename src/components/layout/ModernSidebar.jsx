@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useSession } from '@/components/auth/SessionManager';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
+import { BRAND } from '@/lib/brandAssets';
 
 export default function ModernSidebar({ user }) {
   const { isAdmin, isOwner } = useSession();
@@ -120,11 +122,8 @@ export default function ModernSidebar({ user }) {
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Logo/Header */}
       <div className="p-4 border-b border-gray-200">
-        <Link to={createPageUrl('dashboard')} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
-          </div>
-          <span className="font-bold text-gray-900">Evocto</span>
+        <Link to={createPageUrl('dashboard')} className="flex items-center" aria-label={BRAND.name}>
+          <NaviBrandLockup height={28} />
         </Link>
       </div>
 

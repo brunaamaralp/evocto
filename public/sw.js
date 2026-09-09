@@ -13,8 +13,12 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icons/favicon.ico',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/brand/logo-wordmark.png',
+  '/brand/mascot.png',
+  '/brand/mascot-mark.png'
 ];
 
 // URLs da API que devem ser cacheadas

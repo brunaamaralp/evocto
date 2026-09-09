@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
+import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoMascot from '@/components/brand/EvoctoMascot';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -57,11 +59,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-slate-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Entrar</CardTitle>
-          <p className="text-sm text-slate-600">Acesse sua agência no Evocto</p>
+        <CardHeader className="text-center space-y-4">
+          <div className="flex flex-col items-center gap-3">
+            <EvoctoMascot mark size={56} />
+            <NaviBrandLockup height={36} variant="auth" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl">Entrar</CardTitle>
+            <p className="text-sm text-slate-600 mt-1">Acesse sua agência no Evocto</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

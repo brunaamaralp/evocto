@@ -144,7 +144,7 @@ export class PWAManager extends EventEmitter {
         '/static/js/bundle.js',
         '/static/css/main.css',
         '/manifest.json',
-        '/favicon.ico'
+        '/icons/favicon.ico'
       ];
 
       await cache.addAll(staticResources);
@@ -211,8 +211,8 @@ export class PWAManager extends EventEmitter {
 
     try {
       const notification = new Notification(title, {
-        icon: '/icon-192x192.png',
-        badge: '/icon-72x72.png',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/favicon-32.png',
         ...options
       });
 
