@@ -10,6 +10,14 @@
 
 export const BRIEF_KIND_ANUAL = 'campanha_anual';
 
+/** Calendário comercial padrão (editável no wizard) */
+export const DEFAULT_CICLOS_COMERCIAIS = Object.freeze({
+  autoridade: [1, 4, 6],
+  vendas: [2, 5, 10, 11, 12],
+  engajamento: [3, 7],
+  reconhecimento: [8, 9],
+});
+
 export const CICLOS_COMERCIAIS = Object.freeze([
   'autoridade',
   'vendas',
@@ -564,6 +572,7 @@ export function normalizeGeracaoIaOutput(raw = {}) {
 
 /**
  * Valida coerência do output com os ciclos atribuídos no input.
+ * Meses sem ciclo esperado e sem conteúdo são ignorados (lotes parciais).
  */
 export function validateGeracaoIaOutput(output, ciclosEsperados) {
   const geracao = normalizeGeracaoIaOutput(output);
@@ -576,6 +585,9 @@ export function validateGeracaoIaOutput(output, ciclosEsperados) {
 
   for (const c of geracao.campanhas) {
     const esperado = map[c.mes];
+    const hasContent = Boolean(c.nome_campanha || c.resumo_executivo);
+    if (!esperado && !hasContent) continue;
+
     if (esperado && c.ciclo_comercial && c.ciclo_comercial !== esperado) {
       ciclosOk = false;
       errors[`mes_${c.mes}_ciclo`] =
@@ -593,7 +605,9 @@ export function validateGeracaoIaOutput(output, ciclosEsperados) {
   }
 
   geracao.validacoes = {
-    ciclos_respeitados: ciclosOk && Object.keys(errors).filter((k) => k.includes('_ciclo')).length === 0,
+    ciclos_respeitados:
+      ciclosOk &&
+      Object.keys(errors).filter((k) => k.includes('_ciclo')).length === 0,
     variacao_narrativas: counts,
     produtos_distribuidos: geracao.validacoes.produtos_distribuidos,
   };

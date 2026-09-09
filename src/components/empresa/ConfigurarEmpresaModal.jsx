@@ -20,6 +20,7 @@ import {
   saveEmpresa,
   validateEmpresaForm,
 } from '@/lib/empresaConfig';
+import ProdutosLinhasEditor from '@/components/briefing/anual/ProdutosLinhasEditor';
 
 /**
  * Modal create/edit da configuração padrão da empresa (cliente).
@@ -116,7 +117,7 @@ export default function ConfigurarEmpresaModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configurar Empresa</DialogTitle>
         </DialogHeader>
@@ -218,6 +219,23 @@ export default function ConfigurarEmpresaModal({
               <p className="text-xs text-red-600">{errors.tom_brand}</p>
             )}
           </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="emp-restricoes">Restrições criativas</Label>
+            <Textarea
+              id="emp-restricoes"
+              value={form.restricoes_criativas || ''}
+              onChange={(e) => setField('restricoes_criativas', e.target.value)}
+              placeholder="Sem atores profissionais, autenticidade, casais reais…"
+              className="min-h-[64px]"
+            />
+          </div>
+
+          <ProdutosLinhasEditor
+            value={form.produtos_linhas || []}
+            onChange={(produtos_linhas) => setField('produtos_linhas', produtos_linhas)}
+            errors={errors}
+          />
 
           <div className="space-y-1.5">
             <Label>Brand Guidelines (opcional)</Label>

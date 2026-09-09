@@ -26,6 +26,13 @@ export default function EmpresaConfigResumo({
     { label: 'Tom', value: config.tom_brand },
   ];
 
+  if (Array.isArray(config.produtos_linhas) && config.produtos_linhas.length) {
+    rows.push({
+      label: 'Linhas',
+      value: config.produtos_linhas.map((p) => p.nome).filter(Boolean).join(', '),
+    });
+  }
+
   return (
     <div className="rounded-lg border bg-slate-50 p-4">
       <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-slate-800">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+  CalendarRange,
   FileText, 
   Plus, 
   Eye, 
@@ -26,6 +27,7 @@ import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
+import { isCampanhaAnual } from '@/lib/campanhaAnual';
 import { generatePublicBriefingToken, syncClientFromPublicBriefing } from '@/api/functions';
 import { toast } from 'sonner';
 
@@ -144,12 +146,22 @@ export default function ClientBriefingPage() {
     navigate(`${createPageUrl('briefing-campanha')}?clientId=${clientId}`);
   };
 
+  const handleCreatePlanoAnual = () => {
+    navigate(`${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}`);
+  };
+
   const handleCreateBriefingLegacy = () => {
     navigate(`${createPageUrl('briefing-editor')}?clientId=${clientId}`);
   };
 
-  const handleEditBriefing = (briefId) => {
-    navigate(`${createPageUrl('briefing-editor')}?briefingId=${briefId}`);
+  const handleEditBriefing = (brief) => {
+    if (isCampanhaAnual(brief)) {
+      navigate(
+        `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}&briefingId=${brief.id}`
+      );
+      return;
+    }
+    navigate(`${createPageUrl('briefing-editor')}?briefingId=${brief.id}`);
   };
 
   const handleGenerateToken = async () => {
@@ -233,6 +245,10 @@ export default function ClientBriefingPage() {
             <Button variant="outline" onClick={handleCreateBriefingLegacy}>
               Briefing completo
             </Button>
+            <Button variant="outline" onClick={handleCreatePlanoAnual}>
+              <CalendarRange className="w-4 h-4 mr-2" />
+              Plano anual
+            </Button>
             <Button onClick={handleCreateBriefing}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Briefing
@@ -282,6 +298,14 @@ export default function ClientBriefingPage() {
                         {brief.brief_kind === 'campanha_mensal' && (
                           <Badge variant="secondary">Campanha</Badge>
                         )}
+                        {brief.brief_kind === 'campanha_anual' && (
+                          <Badge className="bg-violet-100 text-violet-800">
+                            Plano anual {brief.ano ? brief.ano : ''}
+                          </Badge>
+                        )}
+                        {brief.status_anual && brief.brief_kind === 'campanha_anual' && (
+                          <Badge variant="outline">{brief.status_anual}</Badge>
+                        )}
                         {getStatusBadge(brief)}
                         {brief.completion_score !== undefined && (
                           <Badge variant="outline">
@@ -305,10 +329,10 @@ export default function ClientBriefingPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditBriefing(brief.id)}
+                        onClick={() => handleEditBriefing(brief)}
                       >
                         <Edit className="w-4 h-4 mr-1" />
-                        Editar
+                        {isCampanhaAnual(brief) ? 'Abrir plano' : 'Editar'}
                       </Button>
                     </div>
                   </div>
