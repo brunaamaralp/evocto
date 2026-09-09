@@ -160,9 +160,6 @@ export default function ClientDetailPage() {
     <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 mb-1">
-              {CLIENT_CONTEXT.label}
-            </p>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">{client.name}</h1>
             {(client.legal_name || client.email) && (
               <p className="text-[#7A7595]">{client.legal_name || client.email}</p>

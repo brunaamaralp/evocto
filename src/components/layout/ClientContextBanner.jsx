@@ -8,28 +8,17 @@ import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
  * Faixa + chip persistentes: deixa óbvio que o usuário saiu do menu global.
  */
 export default function ClientContextBanner({
-  clientName,
   clientId,
   className = '',
 }) {
-  if (!clientId && !clientName) return null;
+  if (!clientId) return null;
 
   return (
     <div className={`${className}`}>
       <div className={`h-1 w-full ${CLIENT_CONTEXT.topBar}`} aria-hidden />
       <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2.5 bg-teal-50/90 border-b border-teal-100">
         <div className="flex items-center gap-2 min-w-0">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shrink-0 ${CLIENT_CONTEXT.chip}`}
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            {CLIENT_CONTEXT.label}
-          </span>
-          {clientName && (
-            <span className="text-sm font-medium text-teal-950 truncate">
-              {clientName}
-            </span>
-          )}
+          <Building2 className="w-4 h-4 text-teal-900/80 shrink-0" aria-hidden />
         </div>
         <Link
           to={createPageUrl('clients')}

@@ -218,11 +218,6 @@ export default function ContextualSidebar({
               </div>
               {!collapsed && (
                 <div className="min-w-0">
-                  <p
-                    className={`text-[10px] uppercase tracking-wider font-semibold ${CLIENT_CONTEXT.sidebarMuted}`}
-                  >
-                    {CLIENT_CONTEXT.label}
-                  </p>
                   <h2 className={`font-semibold truncate text-sm ${theme.sidebarText}`}>
                     {client?.name || 'Cliente'}
                   </h2>

@@ -130,9 +130,6 @@ export default function ClientContextSidebar({
       className={`w-64 ${CLIENT_CONTEXT.sidebarBg} border-r ${CLIENT_CONTEXT.sidebarBorder} flex flex-col h-screen sticky top-0 shrink-0`}
     >
       <div className={`p-4 border-b ${CLIENT_CONTEXT.sidebarBorder}`}>
-        <p className={`text-[10px] uppercase tracking-wider font-semibold mb-2 ${CLIENT_CONTEXT.sidebarMuted}`}>
-          {CLIENT_CONTEXT.label}
-        </p>
         <Button
           asChild
           variant="ghost"

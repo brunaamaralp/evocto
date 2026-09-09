@@ -169,7 +169,7 @@ export default function BriefingsPage() {
                   <Label>Título/Contexto</Label>
                   <Input
                     className="mt-1"
-                    placeholder="Ex.: Contexto do cliente / produto"
+                    placeholder="Ex.: Contexto / produto"
                     value={newBrief.title}
                     onChange={(e) => setNewBrief((s) => ({ ...s, title: e.target.value }))}
                   />
