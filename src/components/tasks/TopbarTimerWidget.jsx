@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Pause, Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -19,7 +18,6 @@ import {
   assignTimeEntry,
 } from '@/lib/timeEntriesApi';
 import { Task } from '@/api/entities';
-import { createPageUrl } from '@/utils';
 import {
   Dialog,
   DialogContent,
@@ -269,9 +267,6 @@ export default function TopbarTimerWidget() {
             {pendingUnassigned.length} sem tarefa
           </Button>
         ) : null}
-        <Button asChild size="sm" variant="ghost" className="h-8 text-xs hidden md:inline-flex">
-          <Link to={createPageUrl('hours-hub')}>Horas</Link>
-        </Button>
       </div>
 
       <AssignModal

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
@@ -18,13 +19,14 @@ import {
 import { 
   FileText, Download, Calendar, 
   BarChart3, PieChart, TrendingUp,
-  Settings, Clock
+  Settings, Clock, ArrowRight
 } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
 import { toast } from 'sonner';
 import { generateCustomReports } from '@/api/functions';
 import { getModulePastel, getCardPastel } from '@/lib/modulePastels';
+import { createPageUrl } from '@/utils';
 
 const REPORT_TYPES = [
   {
@@ -196,6 +198,28 @@ export default function CustomReportsPage() {
           Gere relatórios personalizados para seus clientes e serviços
         </p>
       </div>
+
+      <Card className="border-transparent bg-[#FFF0E6]">
+        <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-white/80 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-[#E8955A]" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-semibold text-[#18162A]">Hub de horas</h2>
+              <p className="text-sm text-[#7A7595] mt-0.5">
+                Consulte tempo registrado da equipe, por período e por pessoa
+              </p>
+            </div>
+          </div>
+          <Button asChild className="shrink-0">
+            <Link to={createPageUrl('hours-hub')}>
+              Abrir hub
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

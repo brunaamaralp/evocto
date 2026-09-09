@@ -2,9 +2,10 @@ import React from 'react';
 import { BRAND } from '@/lib/brandAssets';
 
 /**
- * Wordmark oficial Evocto (PNG transparente).
+ * Wordmark oficial Evocto (PNG).
  * @param {'full' | 'mark' | 'auth' | 'dark'} variant
  *   mark = letra “e” estilizada (sidebar colapsado)
+ *   dark = wordmark claro para fundos escuros (sidebar / rodapé)
  */
 export default function NaviBrandLockup({
   className = '',
@@ -12,13 +13,21 @@ export default function NaviBrandLockup({
   variant = 'full',
   alt = BRAND.name,
 }) {
-  const src = variant === 'mark' ? BRAND.logoMark : BRAND.wordmark;
+  const src =
+    variant === 'mark'
+      ? BRAND.logoMark
+      : variant === 'dark'
+        ? BRAND.wordmarkOnDark
+        : BRAND.wordmark;
+
   const variantClass =
     variant === 'auth'
       ? 'navi-brand-lockup navi-brand-lockup--auth'
       : variant === 'mark'
         ? 'navi-brand-lockup navi-brand-lockup--mark'
-        : 'navi-brand-lockup';
+        : variant === 'dark'
+          ? 'navi-brand-lockup navi-brand-lockup--dark'
+          : 'navi-brand-lockup';
 
   return (
     <img

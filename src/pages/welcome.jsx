@@ -318,7 +318,7 @@ export default function WelcomePage() {
       <footer className="bg-[#18162A] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <NaviBrandLockup height={28} />
+            <NaviBrandLockup variant="dark" height={28} />
           </div>
           <p className="text-[#7A7595] mb-4">
             Operação de marketing mais clara para times, agências e clientes

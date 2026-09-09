@@ -1,7 +1,10 @@
 /** Paths públicos da identidade visual Evocto. */
 export const BRAND = {
   name: 'Evocto',
+  /** Wordmark para fundos claros */
   wordmark: '/brand/logo-wordmark.png',
+  /** Wordmark claro (lavanda/branco) para sidebar, rodapé e fundos escuros */
+  wordmarkOnDark: '/brand/logo-wordmark-on-dark.png',
   /** Letra “e” estilizada — sidebar colapsado / avatar de marca */
   logoMark: '/brand/logo-mark.png',
   mascot: '/brand/mascot.png',

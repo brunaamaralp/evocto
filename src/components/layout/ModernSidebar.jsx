@@ -15,7 +15,6 @@ import {
   Target,
   TrendingUp,
   Bell,
-  Clock
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useSession } from '@/components/auth/SessionManager';
@@ -66,12 +65,6 @@ export default function ModernSidebar({ user }) {
       active: location.pathname.includes('/tasks')
     },
     {
-      label: 'Hub de horas',
-      icon: Clock,
-      href: createPageUrl('hours-hub'),
-      active: location.pathname.includes('/hours-hub')
-    },
-    {
       label: 'Ciclos Ativos',
       icon: Calendar,
       href: createPageUrl('active-cycles'),
@@ -87,7 +80,7 @@ export default function ModernSidebar({ user }) {
       label: 'Relatórios',
       icon: BarChart3,
       href: createPageUrl('custom-reports'),
-      active: location.pathname.includes('/custom-reports')
+      active: location.pathname.includes('/custom-reports') || location.pathname.includes('/hours-hub')
     }
   ];
 

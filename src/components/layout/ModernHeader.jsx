@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search, User, LogOut, Building2, Menu } from 'lucide-react';
+import { User, LogOut, Building2, Menu } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import GlobalSearch, { GlobalSearchTrigger } from '@/components/search/GlobalSearch';
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
 import { createPageUrl } from '@/utils';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -81,16 +82,7 @@ export default function ModernHeader({
               </div>
             ) : (
               <div className="hidden md:flex items-center flex-1 max-w-md">
-                <div className="relative w-full">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7A7595]" />
-                  <input
-                    type="search"
-                    placeholder="Buscar…"
-                    className="w-full h-10 pl-10 pr-4 rounded-full bg-[#F5F2FC] border border-transparent text-sm text-[#18162A] placeholder:text-[#7A7595] focus:outline-none focus:ring-2 focus:ring-[#6C47D8]/30 focus:border-[#AFA9EC] transition-shadow"
-                    readOnly
-                    aria-label="Buscar"
-                  />
-                </div>
+                <GlobalSearchTrigger />
               </div>
             )}
           </div>
@@ -100,13 +92,11 @@ export default function ModernHeader({
 
             <NotificationBell />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden rounded-full h-9 w-9 p-0"
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+            {!isClientContext && (
+              <div className="md:hidden">
+                <GlobalSearchTrigger compact />
+              </div>
+            )}
 
             <div className="flex items-center gap-2 pl-1">
               <div
@@ -133,6 +123,8 @@ export default function ModernHeader({
           </div>
         </div>
       </div>
+
+      {!isClientContext && <GlobalSearch />}
     </header>
   );
 }
