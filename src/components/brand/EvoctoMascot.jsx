@@ -12,7 +12,8 @@ const SIZES = {
 };
 
 /**
- * Mascote oficial (polvo) para empty states, onboarding e marketing.
+ * Mascote oficial (polvo) — PNG com fundo transparente.
+ * @param {boolean} mark — versão enquadrada (square) para chips/avatar
  */
 export default function EvoctoMascot({
   size = 'md',
@@ -26,9 +27,16 @@ export default function EvoctoMascot({
       src={mark ? BRAND.mark : BRAND.mascot}
       alt={alt}
       width={px}
-      height={px}
+      height={mark ? px : undefined}
       className={className}
-      style={{ width: px, height: 'auto', maxWidth: '100%', objectFit: 'contain', display: 'block' }}
+      style={{
+        width: px,
+        height: mark ? px : 'auto',
+        maxWidth: '100%',
+        objectFit: 'contain',
+        display: 'block',
+        background: 'transparent',
+      }}
       decoding="async"
     />
   );

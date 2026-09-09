@@ -4,9 +4,9 @@
  * Implementa cache estratégico e funcionalidades offline
  */
 
-const CACHE_NAME = 'evocto-v1';
-const STATIC_CACHE = 'evocto-static-v1';
-const DYNAMIC_CACHE = 'evocto-dynamic-v1';
+const CACHE_NAME = 'evocto-v2';
+const STATIC_CACHE = 'evocto-static-v2';
+const DYNAMIC_CACHE = 'evocto-dynamic-v2';
 
 // Recursos para cache estático
 const STATIC_ASSETS = [
