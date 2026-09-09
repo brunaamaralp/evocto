@@ -193,7 +193,7 @@ export default function ContextualSidebar({
         label: 'Financeiro',
         icon: Wallet,
         href: '/financeiro',
-        isActive: currentPage === 'financeiro' || currentPage === 'caixa',
+        isActive: currentPage === 'financeiro',
       },
     ];
   };

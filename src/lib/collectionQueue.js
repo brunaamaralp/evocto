@@ -10,7 +10,6 @@ import {
   isCollectionSnoozed,
   readCollectionSettingsFromFinanceConfig,
 } from './collectionRules.js';
-import { shiftMonthYm } from './financeiroOverview.js';
 import {
   buildPaidBundleCoveredMonthsByLead,
   isMonthCoveredByPaidBundle,
@@ -18,6 +17,16 @@ import {
 import { isStudentOnExemptPlan } from './planBilling.js';
 
 export const COLLECTION_QUEUE_LOOKBACK_MONTHS = 12;
+
+function shiftMonthYm(ym, delta) {
+  if (!ym) {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const [y, m] = String(ym).split('-').map(Number);
+  const d = new Date(y, (m || 1) - 1 + (delta || 0), 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
 
 function monthYmFromDate(d) {
   const x = d instanceof Date ? d : new Date(d);

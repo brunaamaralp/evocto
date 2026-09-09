@@ -134,7 +134,7 @@ import automationdashboard from "./automation-dashboard";
 
 import financialkpis from "./financial-kpis";
 
-import financeiro from "./financeiro";
+import financeiro from "./agency-finance";
 
 import supportlibrary from "./support-library";
 
@@ -223,7 +223,7 @@ import briefingdemo from "./briefing-demo";
 import serviceTemplatesViewer from "./service-templates-viewer";
 
 import { createElement } from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 
 const PAGES = {
     
@@ -628,8 +628,8 @@ function PagesContent() {
                 <Route path="/performance-kpis" element={createElement(financialkpis)} />
 
                 <Route path="/financeiro" element={createElement(financeiro)} />
-                <Route path="/caixa" element={createElement(financeiro)} />
-                <Route path="/mensalidades" element={createElement(financeiro)} />
+                <Route path="/caixa" element={<Navigate to="/financeiro" replace />} />
+                <Route path="/mensalidades" element={<Navigate to="/financeiro" replace />} />
                 
                 <Route path="/support-library" element={createElement(supportlibrary)} />
                 

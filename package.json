@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "appwrite:setup": "node scripts/appwrite-setup.mjs",
     "appwrite:setup-finance": "node scripts/appwrite-setup-finance.mjs",
+    "appwrite:setup-agency-finance": "node scripts/appwrite-setup-agency-finance.mjs",
+    "appwrite:smoke-agency-finance": "node scripts/smoke-agency-finance.mjs",
     "appwrite:smoke": "node scripts/smoke-appwrite-phase1.mjs"
   },
   "dependencies": {
