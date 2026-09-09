@@ -59,7 +59,7 @@ const MetricCard = ({ label, value, suffix = "", trend, icon: Icon, color = "blu
 const StatusIndicator = ({ status, label }) => {
   const config = {
     excellent: { color: 'bg-green-100 text-green-800', icon: CheckCircle2, label: 'Excelente' },
-    good: { color: 'bg-blue-100 text-blue-800', icon: TrendingUp, label: 'Bom' },
+    good: { color: 'bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]', icon: TrendingUp, label: 'Bom' },
     attention: { color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle, label: 'Atenção' },
     poor: { color: 'bg-red-100 text-red-800', icon: AlertTriangle, label: 'Crítico' }
   };
@@ -206,8 +206,8 @@ export default function CycleReport() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Relatório de Ciclo</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Relatório de Ciclo</h1>
+          <p className="text-[#7A7595] mt-1">
             {client?.name} - {service?.name}
           </p>
           <div className="flex items-center gap-3 mt-3">
@@ -256,10 +256,10 @@ export default function CycleReport() {
         animate={{ opacity: 1, y: 0 }}
         className="grid lg:grid-cols-3 gap-6"
       >
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 rounded-2xl border-transparent shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-[#18162A]">
+              <BarChart3 className="w-5 h-5 text-[#6C47D8]" />
               Resumo Executivo
             </CardTitle>
           </CardHeader>
@@ -429,7 +429,7 @@ export default function CycleReport() {
             {learnings.length > 0 ? (
               <div className="space-y-3">
                 {learnings.slice(0, 3).map((learning) => (
-                  <div key={learning.id} className="p-3 bg-slate-50 rounded-lg">
+                  <div key={learning.id} className="p-3 bg-[#F5F2FC] rounded-2xl">
                     <h4 className="font-medium text-sm text-slate-900">{learning.title}</h4>
                     <p className="text-xs text-slate-600 mt-1">{learning.description}</p>
                     <div className="flex justify-between items-center mt-2">

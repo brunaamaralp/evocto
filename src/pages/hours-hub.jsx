@@ -17,9 +17,18 @@ import {
 import { formatYmdBr } from '@/lib/businessDaysCore';
 import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 import { createPageUrl } from '@/utils';
+import { getCardPastel, getModulePastel } from '@/lib/modulePastels';
+
+const STAT_CARD_LABELS = [
+  { label: 'Estimadas', key: 'estimated', suffix: 'h' },
+  { label: 'Registradas', key: 'actual', suffix: 'h' },
+  { label: 'Restantes', key: 'remaining', suffix: 'h' },
+  { label: 'Tarefas abertas', key: 'openCount', suffix: '' },
+];
 
 export default function HoursHubPage() {
   const { agencyId, isAuthenticated, user } = useSession();
+  const pastel = getModulePastel('tasks');
   const [searchParams, setSearchParams] = useSearchParams();
   const periodId = searchParams.get('period') || 'week';
   const filterServiceId = searchParams.get('serviceId') || '';
@@ -133,14 +142,14 @@ export default function HoursHubPage() {
   };
 
   if (!isAuthenticated) {
-    return <div className="p-6 text-sm text-slate-600">Faça login para ver o hub de horas.</div>;
+    return <div className="text-sm text-[#7A7595]">Faça login para ver o hub de horas.</div>;
   }
 
   if (loading) return <LoadingState message="Carregando hub de horas..." />;
 
   if (error) {
     return (
-      <div className="p-6">
+      <div>
         <p className="text-sm text-red-700 mb-2">{error}</p>
         <Button size="sm" variant="outline" onClick={load}>
           Tentar de novo
@@ -151,168 +160,166 @@ export default function HoursHubPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900">Hub de horas</h1>
-              <p className="text-sm text-slate-500">
-                {period.label} · {formatYmdBr(period.fromYmd)} → {formatYmdBr(period.toYmd)}
-                {filterServiceId ? ` · filtro serviço` : ''}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant={periodId === 'week' ? 'default' : 'outline'}
-                onClick={() => setPeriod('week')}
-              >
-                7 dias
-              </Button>
-              <Button
-                size="sm"
-                variant={periodId === 'month' ? 'default' : 'outline'}
-                onClick={() => setPeriod('month')}
-              >
-                Mês
-              </Button>
-              {filterServiceId ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    const next = new URLSearchParams(searchParams);
-                    next.delete('serviceId');
-                    setSearchParams(next, { replace: true });
-                  }}
-                >
-                  Limpar filtro
-                </Button>
-              ) : null}
-            </div>
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Hub de horas</h1>
+            <p className="text-sm text-[#7A7595]">
+              {period.label} · {formatYmdBr(period.fromYmd)} → {formatYmdBr(period.toYmd)}
+              {filterServiceId ? ` · filtro serviço` : ''}
+            </p>
           </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={periodId === 'week' ? 'default' : 'outline'}
+              onClick={() => setPeriod('week')}
+            >
+              7 dias
+            </Button>
+            <Button
+              size="sm"
+              variant={periodId === 'month' ? 'default' : 'outline'}
+              onClick={() => setPeriod('month')}
+            >
+              Mês
+            </Button>
+            {filterServiceId ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  const next = new URLSearchParams(searchParams);
+                  next.delete('serviceId');
+                  setSearchParams(next, { replace: true });
+                }}
+              >
+                Limpar filtro
+              </Button>
+            ) : null}
+          </div>
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-4">
-            {[
-              { label: 'Estimadas', value: `${totals.estimated.toFixed(1)}h` },
-              { label: 'Registradas', value: `${totals.actual.toFixed(1)}h` },
-              { label: 'Restantes', value: `${totals.remaining.toFixed(1)}h` },
-              { label: 'Tarefas abertas', value: String(totals.openCount) },
-            ].map((s) => (
-              <Card key={s.label} className="border-slate-200 shadow-none">
+        <div className="grid gap-3 sm:grid-cols-4">
+          {STAT_CARD_LABELS.map((s, index) => {
+            const cardPastel = getCardPastel(index);
+            const raw = totals[s.key];
+            const value = s.suffix ? `${Number(raw).toFixed(1)}${s.suffix}` : String(raw);
+            return (
+              <Card key={s.label} className={`border-transparent ${cardPastel.bg}`}>
                 <CardHeader className="pb-1">
-                  <CardTitle className="text-xs font-medium text-slate-500">{s.label}</CardTitle>
+                  <CardTitle className="text-xs font-medium text-[#7A7595]">{s.label}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-semibold text-slate-900">{s.value}</p>
+                  <p className={`text-xl font-semibold ${cardPastel.text}`}>{value}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-
-          <Card className="border-slate-200 shadow-none">
-            <CardHeader>
-              <CardTitle className="text-base">Ocupação da equipe</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {occupancyRows.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  Nenhuma tarefa atribuída no período. Atribua responsáveis para ver a carga.
-                </p>
-              ) : (
-                occupancyRows.map((row) => (
-                  <div key={row.userId}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-800">{row.label}</span>
-                      <span className="text-xs text-slate-500">
-                        {row.totalPlanned.toFixed(1)}h / {row.totalCapacity.toFixed(0)}h ·{' '}
-                        {Math.round(row.load * 100)}%
-                      </span>
-                    </div>
-                    <div className="flex gap-0.5 overflow-x-auto">
-                      {row.dayHours.map((d) => {
-                        const tone =
-                          d.load > 1
-                            ? 'bg-red-500'
-                            : d.load > 0.75
-                              ? 'bg-amber-500'
-                              : d.load > 0
-                                ? 'bg-slate-700'
-                                : 'bg-slate-200';
-                        return (
-                          <div
-                            key={d.ymd}
-                            className="flex flex-col items-center gap-0.5"
-                            title={`${formatYmdBr(d.ymd)}: ${d.planned.toFixed(1)}h`}
-                          >
-                            <div
-                              className={`w-6 rounded-sm ${tone}`}
-                              style={{
-                                height: `${Math.max(4, Math.min(40, d.planned * 4))}px`,
-                              }}
-                            />
-                            <span className="text-[9px] text-slate-400">
-                              {new Date(`${d.ymd}T12:00:00`).getDate()}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-200 shadow-none">
-            <CardHeader>
-              <CardTitle className="text-base">Por entrega</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {byService.length === 0 ? (
-                <p className="text-sm text-slate-500">Sem tarefas neste recorte.</p>
-              ) : (
-                <ul className="divide-y divide-slate-100">
-                  {byService.map((row) => (
-                    <li
-                      key={row.serviceId}
-                      className="flex flex-wrap items-center justify-between gap-2 py-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{row.label}</p>
-                        <p className="text-xs text-slate-500">
-                          {row.openCount} abertas · {row.actual.toFixed(1)}h / {row.estimated.toFixed(1)}h
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {row.remaining.toFixed(1)}h rest.
-                        </Badge>
-                        {row.serviceId !== '_none' ? (
-                          <Button asChild size="sm" variant="outline">
-                            <Link
-                              to={buildDeliveryWorkspacePath(row.serviceId, 'atividade')}
-                            >
-                              Workspace
-                            </Link>
-                          </Button>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-
-          <p className="text-xs text-slate-400">
-            Capacidade padrão: 8h/dia útil. Carga alocada por due date ou espalhada nas datas da
-            etapa.
-          </p>
-          <Button asChild variant="ghost" size="sm">
-            <Link to={createPageUrl('dashboard')}>Voltar ao dashboard</Link>
-          </Button>
+            );
+          })}
         </div>
+
+        <Card className={`border-transparent ${pastel.soft}`}>
+          <CardHeader>
+            <CardTitle className="text-base">Ocupação da equipe</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {occupancyRows.length === 0 ? (
+              <p className="text-sm text-[#7A7595]">
+                Nenhuma tarefa atribuída no período. Atribua responsáveis para ver a carga.
+              </p>
+            ) : (
+              occupancyRows.map((row) => (
+                <div key={row.userId}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-[#18162A]">{row.label}</span>
+                    <span className="text-xs text-[#7A7595]">
+                      {row.totalPlanned.toFixed(1)}h / {row.totalCapacity.toFixed(0)}h ·{' '}
+                      {Math.round(row.load * 100)}%
+                    </span>
+                  </div>
+                  <div className="flex gap-0.5 overflow-x-auto">
+                    {row.dayHours.map((d) => {
+                      const tone =
+                        d.load > 1
+                          ? 'bg-[#E24B4A]'
+                          : d.load > 0.75
+                            ? 'bg-[#E8955A]'
+                            : d.load > 0
+                              ? 'bg-[#6C47D8]'
+                              : 'bg-[#EDE9FB]';
+                      return (
+                        <div
+                          key={d.ymd}
+                          className="flex flex-col items-center gap-0.5"
+                          title={`${formatYmdBr(d.ymd)}: ${d.planned.toFixed(1)}h`}
+                        >
+                          <div
+                            className={`w-6 rounded-sm ${tone}`}
+                            style={{
+                              height: `${Math.max(4, Math.min(40, d.planned * 4))}px`,
+                            }}
+                          />
+                          <span className="text-[9px] text-[#7A7595]">
+                            {new Date(`${d.ymd}T12:00:00`).getDate()}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className={`border-transparent ${pastel.bg}`}>
+          <CardHeader>
+            <CardTitle className="text-base">Por entrega</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {byService.length === 0 ? (
+              <p className="text-sm text-[#7A7595]">Sem tarefas neste recorte.</p>
+            ) : (
+              <ul className="divide-y divide-[#E8E5F5]/70">
+                {byService.map((row) => (
+                  <li
+                    key={row.serviceId}
+                    className="flex flex-wrap items-center justify-between gap-2 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#18162A] truncate">{row.label}</p>
+                      <p className="text-xs text-[#7A7595]">
+                        {row.openCount} abertas · {row.actual.toFixed(1)}h / {row.estimated.toFixed(1)}h
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs bg-white/60">
+                        {row.remaining.toFixed(1)}h rest.
+                      </Badge>
+                      {row.serviceId !== '_none' ? (
+                        <Button asChild size="sm" variant="outline" className="bg-white/80">
+                          <Link
+                            to={buildDeliveryWorkspacePath(row.serviceId, 'atividade')}
+                          >
+                            Workspace
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <p className="text-xs text-[#7A7595]">
+          Capacidade padrão: 8h/dia útil. Carga alocada por due date ou espalhada nas datas da
+          etapa.
+        </p>
+        <Button asChild variant="ghost" size="sm">
+          <Link to={createPageUrl('dashboard')}>Voltar ao dashboard</Link>
+        </Button>
       </div>
     </ErrorBoundary>
   );

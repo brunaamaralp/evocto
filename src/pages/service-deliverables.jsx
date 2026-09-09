@@ -37,10 +37,10 @@ export default function ServiceDeliverablesPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="p-6">
-        <Card className="border-0 shadow-sm">
+      <div>
+        <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
           <CardHeader>
-            <CardTitle>Entregáveis do Serviço</CardTitle>
+            <CardTitle className="text-[#18162A] font-bold tracking-tight">Entregáveis do Serviço</CardTitle>
           </CardHeader>
           <CardContent className="text-slate-600">
             <div className="flex items-center gap-2 text-amber-600">
@@ -54,25 +54,25 @@ export default function ServiceDeliverablesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle>Entregáveis do Serviço</CardTitle>
+    <div className="space-y-6">
+      <Card className="rounded-2xl border-transparent shadow-sm">
+        <CardHeader className="bg-[#F5F2FC] rounded-t-2xl">
+          <CardTitle className="text-[#18162A] font-bold tracking-tight">Entregáveis do Serviço</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {loading ? (
-            <p className="text-slate-600">Carregando...</p>
+            <p className="text-[#7A7595]">Carregando...</p>
           ) : err ? (
             <div className="text-red-600 text-sm flex items-center gap-2">
               <AlertCircle className="w-4 h-4" /> {err}
             </div>
           ) : !service ? (
-            <p className="text-slate-600">Serviço não encontrado.</p>
+            <p className="text-[#7A7595]">Serviço não encontrado.</p>
           ) : (
             <>
-              <div className="text-sm text-slate-600">
-                <span className="font-medium text-slate-900">Serviço:</span> {service.name} •{" "}
-                <span className="font-medium text-slate-900">Cliente:</span> {service.clientId || "—"}
+              <div className="text-sm text-[#7A7595]">
+                <span className="font-medium text-[#18162A]">Serviço:</span> {service.name} •{" "}
+                <span className="font-medium text-[#18162A]">Cliente:</span> {service.clientId || "—"}
               </div>
 
               <DeliverablesEditor

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLeadStore } from '@/store/useLeadStore';
+import { getModulePastel } from '@/lib/modulePastels';
 
 const FinanceiroConfigTab = lazy(() => import('@/components/finance/FinanceiroConfigTab.jsx'));
 
@@ -75,7 +76,7 @@ export default function SettingsPage() {
     contactEmail: agency?.contactEmail || '',
     contactPhone: agency?.contactPhone || '',
     logoUrl: agency?.logoUrl || '',
-    primaryColor: agency?.primaryColor || '#2563EB',
+    primaryColor: agency?.primaryColor || '#6C47D8',
     secondaryColor: agency?.secondaryColor || '#F1F5F9'
   });
   
@@ -110,7 +111,7 @@ export default function SettingsPage() {
         contactEmail: agency.contactEmail || '',
         contactPhone: agency.contactPhone || '',
         logoUrl: agency.logoUrl || '',
-        primaryColor: agency.primaryColor || '#2563EB',
+        primaryColor: agency.primaryColor || '#6C47D8',
         secondaryColor: agency.secondaryColor || '#F1F5F9'
       });
       
@@ -168,12 +169,13 @@ export default function SettingsPage() {
 
   // Verificar permissões para configurações da agência
   const canEditAgency = isOwner() || isAdmin();
+  const pastel = getModulePastel('settings');
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600 mt-2">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Configurações</h1>
+        <p className="text-[#7A7595] mt-1">
           Gerencie suas preferências pessoais e configurações da agência
         </p>
       </div>
@@ -204,7 +206,7 @@ export default function SettingsPage() {
 
         {/* Aba Perfil */}
         <TabsContent value="profile">
-          <Card>
+          <Card className={`border-transparent ${pastel.soft}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5" />
@@ -264,7 +266,7 @@ export default function SettingsPage() {
               {!canEditAgency ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                  <p className="text-gray-600">Você não tem permissão para editar essas configurações.</p>
+                  <p className="text-[#7A7595]">Você não tem permissão para editar essas configurações.</p>
                 </div>
               ) : (
                 <>
@@ -374,7 +376,7 @@ export default function SettingsPage() {
               {!canEditAgency ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                  <p className="text-gray-600">Você não tem permissão para editar essas configurações.</p>
+                  <p className="text-[#7A7595]">Você não tem permissão para editar essas configurações.</p>
                 </div>
               ) : (
                 <>
@@ -522,7 +524,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="email">Notificações por Email</Label>
-                    <p className="text-sm text-gray-600">Receber notificações por email</p>
+                    <p className="text-sm text-[#7A7595]">Receber notificações por email</p>
                   </div>
                   <Switch
                     id="email"
@@ -534,7 +536,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="push">Notificações Push</Label>
-                    <p className="text-sm text-gray-600">Receber notificações push no navegador</p>
+                    <p className="text-sm text-[#7A7595]">Receber notificações push no navegador</p>
                   </div>
                   <Switch
                     id="push"
@@ -546,7 +548,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="sms">Notificações SMS</Label>
-                    <p className="text-sm text-gray-600">Receber notificações por SMS</p>
+                    <p className="text-sm text-[#7A7595]">Receber notificações por SMS</p>
                   </div>
                   <Switch
                     id="sms"
@@ -558,7 +560,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="digest">Digest Diário</Label>
-                    <p className="text-sm text-gray-600">Receber resumo diário das atividades</p>
+                    <p className="text-sm text-[#7A7595]">Receber resumo diário das atividades</p>
                   </div>
                   <Switch
                     id="digest"

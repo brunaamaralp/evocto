@@ -149,28 +149,25 @@ function TaskCard({ task, users, clients }) {
 function TaskColumn({ column, tasks, users, clients, droppableId }) {
   return (
     <div className="flex-shrink-0 w-80 min-w-80">
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${column.color.replace('bg-', 'bg-')}`} />
-              <span className="text-sm font-medium">{column.title}</span>
-            </div>
-            <Badge variant="outline" className="text-xs">
+      <div className={`h-full rounded-2xl p-4 ${column.color}`}>
+        <div className="pb-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-[#18162A]">{column.title}</span>
+            <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
               {tasks.length}
             </Badge>
-          </CardTitle>
-          <p className="text-xs text-gray-500">{column.description}</p>
-        </CardHeader>
+          </div>
+          <p className="text-xs text-[#7A7595]">{column.description}</p>
+        </div>
         
-        <CardContent className="pt-0">
+        <div className="pt-1">
           <Droppable droppableId={droppableId}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`min-h-[200px] space-y-2 p-2 rounded-md transition-colors ${
-                  snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                className={`min-h-[200px] space-y-2 p-2 rounded-xl transition-colors ${
+                  snapshot.isDraggingOver ? 'bg-white/60' : ''
                 }`}
               >
                 {tasks.map((task, index) => (
@@ -204,15 +201,15 @@ function TaskColumn({ column, tasks, users, clients, droppableId }) {
                 {provided.placeholder}
                 
                 {tasks.length === 0 && (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-[#7A7595]">
                     <p className="text-sm">Nenhuma tarefa</p>
                   </div>
                 )}
               </div>
             )}
           </Droppable>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -535,14 +532,14 @@ export default function TasksManagerPage() {
       </div>
 
       {/* Quadro Kanban com Barra de Rolagem Horizontal Melhorada */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="rounded-2xl p-4 bg-[#F5F2FC]/50">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Container principal com scroll horizontal */}
-          <div className="kanban-scroll-container overflow-x-auto"> {/* Added overflow-x-auto here */}
+          <div className="kanban-scroll-container overflow-x-auto">
             <div 
-              className="flex gap-4 pb-4" // Removed overflow-x-auto and custom-scrollbar
+              className="flex gap-4 pb-4"
               style={{ 
-                width: `${KANBAN_COLUMNS.length * 320 + (KANBAN_COLUMNS.length - 1) * 16}px`, // Column width (320px) + gap (16px)
+                width: `${KANBAN_COLUMNS.length * 320 + (KANBAN_COLUMNS.length - 1) * 16}px`,
                 minHeight: '600px'
               }}
             >

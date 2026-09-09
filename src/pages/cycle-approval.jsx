@@ -8,18 +8,18 @@ import { Loader2, CheckCircle, XCircle, AlertCircle, Clock, FileText, Building2,
 import { toast } from 'sonner';
 
 const LoadingState = () => (
-  <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center">
     <div className="text-center">
-      <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-600 mb-4" />
-      <h2 className="text-xl font-semibold text-slate-900 mb-2">Carregando aprovação...</h2>
-      <p className="text-slate-600">Verificando dados do planejamento</p>
+      <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#6C47D8] mb-4" />
+      <h2 className="text-xl font-semibold text-[#18162A] mb-2">Carregando aprovação...</h2>
+      <p className="text-[#7A7595]">Verificando dados do planejamento</p>
     </div>
   </div>
 );
 
 const ErrorState = ({ error, token }) => (
-  <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-    <Card className="max-w-md w-full">
+  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
+    <Card className="max-w-md w-full rounded-2xl border-transparent shadow-sm">
       <CardHeader className="text-center">
         <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
         <CardTitle className="text-red-800">Erro ao Carregar Aprovação</CardTitle>
@@ -56,7 +56,7 @@ const ErrorState = ({ error, token }) => (
 );
 
 const ExpiredState = ({ token }) => (
-  <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <Clock className="w-12 h-12 mx-auto text-orange-500 mb-4" />
@@ -87,7 +87,7 @@ const ExpiredState = ({ token }) => (
 );
 
 const InvalidTokenState = ({ token }) => (
-  <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <XCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
@@ -240,7 +240,7 @@ export default function CycleApprovalPage() {
 
   if (approved || cyclePlan.status === 'approved') {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4" />
@@ -274,21 +274,21 @@ export default function CycleApprovalPage() {
 
   // Renderizar tela de aprovação normal...
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-[#F5F2FC] p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header da aprovação */}
-        <Card className="mb-6">
+        <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-2xl text-slate-900">
+                <CardTitle className="text-2xl font-bold tracking-tight text-[#18162A]">
                   Aprovação de Planejamento
                 </CardTitle>
-                <p className="text-slate-600 mt-2">
+                <p className="text-[#7A7595] mt-2">
                   Revise e aprove o planejamento estratégico para {cyclePlan.cyclePeriod}
                 </p>
               </div>
-              <Badge className="bg-blue-100 text-blue-800">
+              <Badge className="bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]">
                 Aguardando Aprovação
               </Badge>
             </div>
@@ -316,15 +316,15 @@ export default function CycleApprovalPage() {
 
         {/* Conteúdo do planejamento */}
         {cyclePlan.planData && (
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
             <CardHeader>
-              <CardTitle>Detalhes do Planejamento</CardTitle>
+              <CardTitle className="text-[#18162A]">Detalhes do Planejamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {cyclePlan.planData.mudancaChave && (
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-2">Mudança-Chave</h3>
-                  <p className="text-slate-700 bg-blue-50 p-3 rounded-lg">
+                  <h3 className="font-semibold text-[#18162A] mb-2">Mudança-Chave</h3>
+                  <p className="text-[#5A3A7A] bg-[#EDE9FB] border border-[#D4CBF5] p-3 rounded-2xl">
                     {cyclePlan.planData.mudancaChave}
                   </p>
                 </div>
@@ -332,10 +332,10 @@ export default function CycleApprovalPage() {
 
               {cyclePlan.planData.prioridades && cyclePlan.planData.prioridades.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-3">Prioridades do Ciclo</h3>
+                  <h3 className="font-semibold text-[#18162A] mb-3">Prioridades do Ciclo</h3>
                   <div className="space-y-2">
                     {cyclePlan.planData.prioridades.map((prioridade, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                      <div key={index} className="flex items-start gap-3 p-3 bg-[#F5F2FC] rounded-2xl">
                         <Badge variant="outline" className="mt-1 text-xs">
                           {index + 1}
                         </Badge>

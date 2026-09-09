@@ -26,6 +26,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { getCardPastel } from '@/lib/modulePastels';
 
 const DOCUMENT_GROUPS = {
   diagnostic: 'Diagnóstico',
@@ -53,8 +54,8 @@ const STATUS_LABELS = {
 const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highlighted = false }) => {
   const getFileIcon = (fileType) => {
     if (fileType?.includes('pdf')) return <File className="w-5 h-5 text-red-500" />;
-    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-blue-500" />;
-    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-blue-600" />;
+    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#6C47D8]" />;
+    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-[#6C47D8]" />;
     if (fileType?.includes('excel') || fileType?.includes('sheet')) return <FileText className="w-5 h-5 text-green-600" />;
     return <File className="w-5 h-5 text-gray-500" />;
   };
@@ -69,8 +70,8 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highligh
   return (
     <Card
       id={`document-${document.id}`}
-      className={`hover:shadow-lg transition-shadow ${
-        highlighted ? 'ring-2 ring-blue-500 border-blue-300' : ''
+      className={`rounded-2xl border-transparent shadow-sm hover:shadow-md transition-shadow ${
+        highlighted ? 'ring-2 ring-[#6C47D8] border-[#D4CBF5]' : ''
       }`}
     >
       <CardContent className="p-4">
@@ -78,7 +79,7 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highligh
           <div className="flex items-start gap-3 flex-1">
             {getFileIcon(document.fileType)}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 truncate">
+              <h3 className="font-medium text-[#18162A] truncate">
                 {document.title}
               </h3>
               <p className="text-sm text-gray-500 truncate">
@@ -97,32 +98,32 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, onDelete, highligh
 
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Grupo:</span>
+            <span className="text-[#7A7595]">Grupo:</span>
             <Badge variant="secondary" className="text-xs">
               {DOCUMENT_GROUPS[document.group] || document.group}
             </Badge>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Visibilidade:</span>
+            <span className="text-[#7A7595]">Visibilidade:</span>
             <span className="font-medium">
               {VISIBILITY_LABELS[document.visibility]}
             </span>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Tamanho:</span>
+            <span className="text-[#7A7595]">Tamanho:</span>
             <span>{formatFileSize(document.fileSize)}</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Criado em:</span>
+            <span className="text-[#7A7595]">Criado em:</span>
             <span>{new Date(document.created_date).toLocaleDateString('pt-BR')}</span>
           </div>
         </div>
 
         {document.description && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+          <p className="text-sm text-[#7A7595] mb-4 line-clamp-2">
             {document.description}
           </p>
         )}
@@ -275,8 +276,7 @@ export default function ClientDocumentsPage() {
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
           <EmptyState
             icon={FileText}
             title="Cliente não encontrado"
@@ -286,14 +286,12 @@ export default function ClientDocumentsPage() {
               onClick: () => window.location.href = createPageUrl('clients')
             }}
           />
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -306,58 +304,46 @@ export default function ClientDocumentsPage() {
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FolderOpen className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-3">
+              <FolderOpen className="w-8 h-8 text-[#6C47D8]" />
               Documentos - {client.name}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-[#7A7595] mt-1">
               Gerencie todos os documentos deste cliente
             </p>
           </div>
 
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button>
             <Upload className="w-4 h-4 mr-2" />
             Upload Documento
           </Button>
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total de Documentos</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Eye className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-900">{stats.byVisibility.client || 0}</div>
-              <div className="text-sm text-gray-600">Visíveis ao Cliente</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Archive className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-900">{stats.byGroup.report || 0}</div>
-              <div className="text-sm text-gray-600">Relatórios</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 text-center">
-              <User className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-900">{stats.byVisibility.internal || 0}</div>
-              <div className="text-sm text-gray-600">Documentos Internos</div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { icon: FileText, label: 'Total de Documentos', value: stats.total, idx: 0 },
+            { icon: Eye, label: 'Visíveis ao Cliente', value: stats.byVisibility.client || 0, idx: 2 },
+            { icon: Archive, label: 'Relatórios', value: stats.byGroup.report || 0, idx: 3 },
+            { icon: User, label: 'Documentos Internos', value: stats.byVisibility.internal || 0, idx: 1 },
+          ].map(({ icon: Icon, label, value, idx }) => {
+            const pastel = getCardPastel(idx);
+            return (
+              <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
+                <CardContent className="p-6 text-center">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${pastel.tag}`}>
+                    <Icon className={`w-5 h-5 ${pastel.text}`} />
+                  </div>
+                  <div className="text-2xl font-bold text-[#18162A]">{value}</div>
+                  <div className="text-sm text-[#7A7595]">{label}</div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Filtros */}
-        <Card className="mb-6">
+        <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Filtros</CardTitle>
           </CardHeader>
@@ -467,7 +453,6 @@ export default function ClientDocumentsPage() {
             }
           />
         )}
-      </div>
     </div>
   );
 }

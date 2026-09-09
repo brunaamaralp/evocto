@@ -204,7 +204,7 @@ export default function ClientBriefingPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div>
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
@@ -217,14 +217,14 @@ export default function ClientBriefingPage() {
 
   return (
     <ErrorBoundary>
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
               Briefings - {client?.name}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-[#7A7595] mt-1">
               Gerencie briefings e formulários de coleta de informações
             </p>
           </div>
@@ -257,7 +257,7 @@ export default function ClientBriefingPage() {
         </div>
 
         {/* Briefings Internos */}
-        <Card className="mb-6">
+        <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
@@ -269,10 +269,10 @@ export default function ClientBriefingPage() {
             {briefings.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-[#18162A] mb-2">
                   Nenhum briefing criado
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-[#7A7595] mb-4">
                   Crie um briefing para coletar informações do cliente
                 </p>
                 <Button onClick={handleCreateBriefing}>
@@ -286,13 +286,13 @@ export default function ClientBriefingPage() {
                   <div
                     key={brief.id}
                     id={`briefing-${brief.id}`}
-                    className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 ${
-                      briefingId === brief.id ? 'ring-2 ring-blue-500 border-blue-300' : ''
+                    className={`flex items-center justify-between p-4 border rounded-2xl hover:bg-[#F5F2FC] ${
+                      briefingId === brief.id ? 'ring-2 ring-[#6C47D8] border-[#D4CBF5] bg-[#F5F2FC]' : ''
                     }`}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-[#18162A]">
                           {brief.nome_campanha || brief.title || 'Briefing'}
                         </h3>
                         {brief.brief_kind === 'campanha_mensal' && (
@@ -313,7 +313,7 @@ export default function ClientBriefingPage() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#7A7595]">
                         Criado em {new Date(brief.created_date).toLocaleDateString('pt-BR')}
                         {brief.updated_date && brief.updated_date !== brief.created_date && (
                           <span> • Atualizado em {new Date(brief.updated_date).toLocaleDateString('pt-BR')}</span>
@@ -343,7 +343,7 @@ export default function ClientBriefingPage() {
         </Card>
 
         {/* Links Públicos */}
-        <Card>
+        <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LinkIcon className="w-5 h-5" />
@@ -355,10 +355,10 @@ export default function ClientBriefingPage() {
             {briefingTokens.length === 0 ? (
               <div className="text-center py-8">
                 <LinkIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-[#18162A] mb-2">
                   Nenhum link público gerado
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-[#7A7595] mb-4">
                   Gere um link público para o cliente preencher o briefing
                 </p>
                 <Button onClick={handleGenerateToken} variant="outline">
@@ -371,16 +371,16 @@ export default function ClientBriefingPage() {
                 {briefingTokens.map((token) => (
                   <div
                     key={token.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-2xl"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-[#18162A]">
                           Link Público #{token.id.slice(-8)}
                         </h3>
                         {getTokenStatusBadge(token)}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#7A7595]">
                         Criado em {new Date(token.created_date).toLocaleDateString('pt-BR')} •
                         Expira em {new Date(token.expiresAt).toLocaleDateString('pt-BR')} •
                         {token.accessCount || 0} acessos

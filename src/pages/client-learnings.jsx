@@ -15,6 +15,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import LearningCard from '@/components/learnings/LearningCard';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientLearningsPage() {
   const { user, agencyId } = useSession();
@@ -99,11 +100,10 @@ export default function ClientLearningsPage() {
   const pendingReviewLearnings = learnings.filter(l => !l.reviewed);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
             size="icon"
@@ -113,74 +113,40 @@ export default function ClientLearningsPage() {
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
               Aprendizados - {client.name}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-[#7A7595]">
               Conhecimento específico acumulado com este cliente
             </p>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Lightbulb className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{learnings.length}</p>
-                  <p className="text-sm text-gray-600">Total de Aprendizados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{highConfidenceLearnings.length}</p>
-                  <p className="text-sm text-gray-600">Alta Confiança</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{pendingReviewLearnings.length}</p>
-                  <p className="text-sm text-gray-600">Pendentes Revisão</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {learnings.filter(l => l.isShared).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Compartilhados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { icon: Lightbulb, label: 'Total de Aprendizados', value: learnings.length, idx: 3 },
+            { icon: Star, label: 'Alta Confiança', value: highConfidenceLearnings.length, idx: 2 },
+            { icon: Eye, label: 'Pendentes Revisão', value: pendingReviewLearnings.length, idx: 5 },
+            { icon: TrendingUp, label: 'Compartilhados', value: learnings.filter(l => l.isShared).length, idx: 0 },
+          ].map(({ icon: Icon, label, value, idx }) => {
+            const pastel = getCardPastel(idx);
+            return (
+              <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pastel.tag}`}>
+                      <Icon className={`w-5 h-5 ${pastel.text}`} />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-[#18162A]">{value}</p>
+                      <p className="text-sm text-[#7A7595]">{label}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Filtros */}
@@ -198,7 +164,7 @@ export default function ClientLearningsPage() {
           <select 
             value={confidenceFilter}
             onChange={(e) => setConfidenceFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
           >
             <option value="all">Todas Confianças</option>
             <option value="high">Alta (≥80%)</option>
@@ -209,7 +175,7 @@ export default function ClientLearningsPage() {
           <select 
             value={reviewedFilter}
             onChange={(e) => setReviewedFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
           >
             <option value="all">Todos Status</option>
             <option value="reviewed">Revisados</option>
@@ -241,7 +207,6 @@ export default function ClientLearningsPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

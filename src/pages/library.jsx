@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  BookOpen, Search, Filter, Star, Clock, 
-  TrendingUp, FileText, Lightbulb, Plus,
-  Archive, Eye, Edit
+  BookOpen, Search, Star, Clock, 
+  Lightbulb, Plus, Eye, Edit
 } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
 import { LearningEntry } from '@/api/entities';
 import { PlaybookItem } from '@/api/entities';
+import { getModulePastel, getCardPastel } from '@/lib/modulePastels';
 
 export default function LibraryPage() {
-  const { user, agencyId } = useSession();
+  const { agencyId } = useSession();
+  const pastel = getModulePastel('library');
   const [loading, setLoading] = useState(true);
   const [learnings, setLearnings] = useState([]);
   const [playbooks, setPlaybooks] = useState([]);
@@ -62,84 +63,81 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Biblioteca</h1>
-            <p className="text-gray-600 mt-1">Conhecimento e aprendizados da agência</p>
-          </div>
-          
-          <Button className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Aprendizado
-          </Button>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Biblioteca</h1>
+          <p className="text-[#7A7595] mt-1">Conhecimento e aprendizados da agência</p>
         </div>
+        
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Aprendizado
+        </Button>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-purple-600">{learnings.length}</div>
-              <div className="text-sm text-gray-600">Aprendizados</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-blue-600">{playbooks.length}</div>
-              <div className="text-sm text-gray-600">Playbooks</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {learnings.filter(l => l.reviewed).length}
-              </div>
-              <div className="text-sm text-gray-600">Revisados</div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <Card className={`border-transparent ${pastel.bg}`}>
+          <CardContent className="p-6 text-center">
+            <div className={`text-2xl font-bold ${pastel.text}`}>{learnings.length}</div>
+            <div className="text-sm text-[#7A7595]">Aprendizados</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-transparent bg-[#EAF2FB]">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl font-bold text-[#2E5A7A]">{playbooks.length}</div>
+            <div className="text-sm text-[#7A7595]">Playbooks</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-transparent bg-[#F3EAFB]">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl font-bold text-[#5A3A7A]">
+              {learnings.filter(l => l.reviewed).length}
+            </div>
+            <div className="text-sm text-[#7A7595]">Revisados</div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Buscar na biblioteca..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7595]" />
+        <Input
+          placeholder="Buscar na biblioteca..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 rounded-full bg-[#F5F2FC] border-transparent"
+        />
+      </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-            <TabsTrigger value="learnings" className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4" />
-              Aprendizados ({filteredLearnings.length})
-            </TabsTrigger>
-            <TabsTrigger value="playbooks" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Playbooks ({filteredPlaybooks.length})
-            </TabsTrigger>
-          </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsTrigger value="learnings" className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4" />
+            Aprendizados ({filteredLearnings.length})
+          </TabsTrigger>
+          <TabsTrigger value="playbooks" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Playbooks ({filteredPlaybooks.length})
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Aba de Aprendizados */}
-          <TabsContent value="learnings" className="space-y-6">
-            {filteredLearnings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredLearnings.map((learning) => (
-                  <Card key={learning.id} className="hover:shadow-lg transition-shadow">
+        <TabsContent value="learnings" className="space-y-6">
+          {filteredLearnings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredLearnings.map((learning, index) => {
+                const cardPastel = getCardPastel(index);
+                return (
+                  <Card
+                    key={learning.id}
+                    className={`hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent ${cardPastel.bg}`}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <Lightbulb className="w-5 h-5 text-yellow-500" />
-                          <Badge variant={learning.reviewed ? 'default' : 'secondary'}>
+                          <Lightbulb className={`w-5 h-5 ${cardPastel.text}`} />
+                          <Badge className={learning.reviewed ? `${cardPastel.tag} border-0` : 'bg-white/70 border-0'}>
                             {learning.reviewed ? 'Revisado' : 'Pendente'}
                           </Badge>
                         </div>
@@ -154,14 +152,14 @@ export default function LibraryPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="font-semibold text-[#18162A] mb-2 line-clamp-2">
                         {learning.title}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                      <p className="text-sm text-[#7A7595] mb-3 line-clamp-3">
                         {learning.description}
                       </p>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-[#7A7595]">
                         <span>{learning.sourceType}</span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -172,7 +170,7 @@ export default function LibraryPage() {
                       {learning.tags && learning.tags.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {learning.tags.slice(0, 3).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
+                            <Badge key={tag} variant="outline" className="text-xs bg-white/60">
                               {tag}
                             </Badge>
                           ))}
@@ -180,35 +178,40 @@ export default function LibraryPage() {
                       )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={Lightbulb}
-                title={searchTerm ? 'Nenhum aprendizado encontrado' : 'Nenhum aprendizado ainda'}
-                description={
-                  searchTerm 
-                    ? 'Tente ajustar o termo de busca.'
-                    : 'Seus aprendizados aparecerão aqui conforme você trabalha com clientes.'
-                }
-                action={() => console.log('Criar aprendizado')}
-                actionText="Criar Aprendizado"
-                variant="info"
-              />
-            )}
-          </TabsContent>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Lightbulb}
+              title={searchTerm ? 'Nenhum aprendizado encontrado' : 'Nenhum aprendizado ainda'}
+              description={
+                searchTerm 
+                  ? 'Tente ajustar o termo de busca.'
+                  : 'Seus aprendizados aparecerão aqui conforme você trabalha com clientes.'
+              }
+              action={() => console.log('Criar aprendizado')}
+              actionText="Criar Aprendizado"
+              variant="info"
+            />
+          )}
+        </TabsContent>
 
-          {/* Aba de Playbooks */}
-          <TabsContent value="playbooks" className="space-y-6">
-            {filteredPlaybooks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPlaybooks.map((playbook) => (
-                  <Card key={playbook.id} className="hover:shadow-lg transition-shadow">
+        <TabsContent value="playbooks" className="space-y-6">
+          {filteredPlaybooks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredPlaybooks.map((playbook, index) => {
+                const cardPastel = getCardPastel(index + 2);
+                return (
+                  <Card
+                    key={playbook.id}
+                    className={`hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent ${cardPastel.bg}`}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-blue-500" />
-                          <Badge variant="default">
+                          <BookOpen className={`w-5 h-5 ${cardPastel.text}`} />
+                          <Badge className={`${cardPastel.tag} border-0`}>
                             {playbook.serviceType?.replace('_', ' ')}
                           </Badge>
                         </div>
@@ -223,47 +226,47 @@ export default function LibraryPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="font-semibold text-[#18162A] mb-2 line-clamp-2">
                         {playbook.title}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                      <p className="text-sm text-[#7A7595] mb-3 line-clamp-3">
                         {playbook.summary}
                       </p>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                      <div className="flex items-center justify-between text-xs text-[#7A7595] mb-2">
                         <span className="flex items-center gap-1">
-                          <Star className="w-3 h-3 text-yellow-500" />
+                          <Star className="w-3 h-3 text-[#E0B84A]" />
                           {Math.round(playbook.confidence * 100)}% confiança
                         </span>
                         <span>v{playbook.version}</span>
                       </div>
                       
                       {playbook.applicability && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[#7A7595]">
                           <span>Aplicável: {playbook.applicability.market}</span>
                         </div>
                       )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={BookOpen}
-                title={searchTerm ? 'Nenhum playbook encontrado' : 'Nenhum playbook criado'}
-                description={
-                  searchTerm 
-                    ? 'Tente ajustar o termo de busca.'
-                    : 'Playbooks são criados a partir dos seus melhores aprendizados.'
-                }
-                action={() => console.log('Criar playbook')}
-                actionText="Criar Playbook"
-                variant="info"
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={BookOpen}
+              title={searchTerm ? 'Nenhum playbook encontrado' : 'Nenhum playbook criado'}
+              description={
+                searchTerm 
+                  ? 'Tente ajustar o termo de busca.'
+                  : 'Playbooks são criados a partir dos seus melhores aprendizados.'
+              }
+              action={() => console.log('Criar playbook')}
+              actionText="Criar Playbook"
+              variant="info"
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

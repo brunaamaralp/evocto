@@ -2,31 +2,37 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Task } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { User } from "@/api/entities";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TaskFilters from "@/components/tasks/TaskFilters";
 import TimeTracker from "@/components/tasks/TimeTracker";
 import { Input } from "@/components/ui/input";
-import { GripVertical, Plus, Save } from "lucide-react";
+import { GripVertical, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/components/auth/SessionManager";
 import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
 } from "@/lib/taskFilterPresets";
+import { getStagePastel } from "@/lib/modulePastels";
 
 const STATUSES = ["backlog", "todo", "in_progress", "in_review", "completed"];
 
+const STATUS_LABELS = {
+  backlog: "Backlog",
+  todo: "A Fazer",
+  in_progress: "Em Andamento",
+  in_review: "Em Revisão",
+  completed: "Concluído",
+};
+
 function TaskCard({ task, onUpdateTitle }) {
-  // const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
-  // const style = { transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined, transition };
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
 
   return (
-    <div className="bg-white rounded-md border p-3 space-y-2 shadow-sm">
+    <div className="bg-white rounded-xl border border-white/60 p-3 space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
-        <button className="cursor-grab text-slate-400">
+        <button className="cursor-grab text-[#7A7595]">
           <GripVertical className="w-4 h-4" />
         </button>
         {editing ? (
@@ -37,17 +43,17 @@ function TaskCard({ task, onUpdateTitle }) {
             </Button>
           </div>
         ) : (
-          <button onClick={() => setEditing(true)} className="text-left font-medium text-slate-800 flex-1">
+          <button onClick={() => setEditing(true)} className="text-left font-medium text-[#18162A] flex-1">
             {task.title}
           </button>
         )}
       </div>
       <div className="flex items-center justify-between">
-        <Badge variant="outline">{task.priority}</Badge>
+        <Badge variant="outline" className="bg-white/60">{task.priority}</Badge>
         <TimeTracker task={task} />
       </div>
       {task.clientId && (
-        <div className="text-xs text-slate-500">Cliente: {task.client?.name || task.clientId}</div>
+        <div className="text-xs text-[#7A7595]">Cliente: {task.client?.name || task.clientId}</div>
       )}
     </div>
   );
@@ -88,7 +94,6 @@ export default function TasksBoardPage() {
     return tasks.filter((t) => applyTaskFilters(t, filters, { userId: currentUserId }));
   }, [tasks, filters, currentUserId]);
 
-  // Build columns
   useEffect(() => {
     const next = {};
     STATUSES.forEach(s => { next[s] = []; });
@@ -122,10 +127,14 @@ export default function TasksBoardPage() {
   }, [filtered]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tarefas • Kanban</h1>
-        <div className="text-sm text-slate-600">Horas registradas (filtro atual): <span className="font-semibold">{totalHours.toFixed(2)}h</span></div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Tarefas · Kanban</h1>
+          <p className="text-sm text-[#7A7595] mt-1">
+            Horas registradas (filtro atual): <span className="font-semibold text-[#18162A]">{totalHours.toFixed(2)}h</span>
+          </p>
+        </div>
       </div>
 
       <TaskFilters
@@ -136,30 +145,32 @@ export default function TasksBoardPage() {
         currentUserId={currentUserId}
       />
 
-      {/* <DndContext onDragEnd={onDragEnd}> */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {STATUSES.map((status) => (
-            <Card key={status} className="border-0 shadow-sm bg-slate-50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm uppercase text-slate-600">{status.replace("_", " ")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* <SortableContext items={(columns[status] || []).map(t => t.id)} strategy={verticalListSortingStrategy}> */}
-                  <div className="space-y-3">
-                    {(columns[status] || []).map((t) => (
-                      <TaskCard
-                        key={t.id}
-                        task={t}
-                        onUpdateTitle={(title) => updateTitle(t.id, title)}
-                      />
-                    ))}
-                  </div>
-                {/* </SortableContext> */}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      {/* </DndContext> */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {STATUSES.map((status) => {
+          const stagePastel = getStagePastel(status);
+          return (
+            <div key={status} className={`rounded-2xl p-4 ${stagePastel.column}`}>
+              <div className="pb-2 mb-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#18162A]">{STATUS_LABELS[status]}</span>
+                  <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
+                    {(columns[status] || []).length}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {(columns[status] || []).map((t) => (
+                  <TaskCard
+                    key={t.id}
+                    task={t}
+                    onUpdateTitle={(title) => updateTitle(t.id, title)}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

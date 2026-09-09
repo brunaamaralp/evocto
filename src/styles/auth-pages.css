@@ -18,7 +18,7 @@
   pointer-events: none;
   background:
     radial-gradient(ellipse 120% 80% at 50% -20%, rgba(93, 226, 193, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 70% at 100% 100%, rgba(139, 141, 250, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 70% at 100% 100%, rgba(108, 71, 216, 0.18) 0%, transparent 50%),
     linear-gradient(165deg, #0c0a14 0%, #13111f 42%, #18152a 100%);
 }
 
@@ -54,7 +54,7 @@
   height: min(440px, 80vw);
   bottom: -22%;
   right: -10%;
-  background: radial-gradient(circle, rgba(139, 141, 250, 0.32) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(108, 71, 216, 0.32) 0%, transparent 70%);
   animation: loginBlobDriftB 22s ease-in-out infinite;
 }
 
@@ -72,8 +72,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #8b8dfa;
-  box-shadow: 0 0 12px rgba(139, 141, 250, 0.9), 0 0 24px rgba(139, 141, 250, 0.4);
+  background: #6C47D8;
+  box-shadow: 0 0 12px rgba(108, 71, 216, 0.9), 0 0 24px rgba(108, 71, 216, 0.4);
 }
 
 .login-page__spark--1 { top: 22%; right: 24%; opacity: 0.85; }
@@ -113,7 +113,7 @@
   padding: 44px 32px 36px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 0 0 1px rgba(139, 141, 250, 0.08),
+    0 0 0 1px rgba(108, 71, 216, 0.08),
     0 24px 64px rgba(0, 0, 0, 0.45),
     0 8px 24px rgba(93, 226, 193, 0.08);
   text-align: center;

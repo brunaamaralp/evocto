@@ -33,6 +33,7 @@ import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import ContextHeader from '@/components/navigation/ContextHeader';
 import ServiceCard from '@/components/services/ServiceCard';
+import { getCardPastel } from '@/lib/modulePastels';
 
 /**
  * Página de serviços de um cliente específico
@@ -131,12 +132,12 @@ export default function ClientServicesPage() {
     const statusConfig = {
       setup: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Configuração' },
       briefing_pending: { color: 'bg-yellow-100 text-yellow-800', icon: FileText, label: 'Aguardando Briefing' },
-      kpis_setup: { color: 'bg-blue-100 text-blue-800', icon: TrendingUp, label: 'Configurando KPIs' },
+      kpis_setup: { color: 'bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]', icon: TrendingUp, label: 'Configurando KPIs' },
       in_execution: { color: 'bg-green-100 text-green-800', icon: Play, label: 'Em Execução' },
       closing: { color: 'bg-orange-100 text-orange-800', icon: Clock, label: 'Finalizando' },
       completed: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Concluído' },
       cancelled: { color: 'bg-red-100 text-red-800', icon: Pause, label: 'Cancelado' },
-      archived: { color: 'bg-gray-100 text-gray-600', icon: FileText, label: 'Arquivado' }
+      archived: { color: 'bg-gray-100 text-[#7A7595]', icon: FileText, label: 'Arquivado' }
     };
 
     const config = statusConfig[service.service_status] || statusConfig.setup;
@@ -184,7 +185,7 @@ export default function ClientServicesPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div>
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
@@ -197,7 +198,7 @@ export default function ClientServicesPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50">
+      <div>
         {/* Header */}
         <ContextHeader
           title="Serviços do Cliente"
@@ -232,71 +233,50 @@ export default function ClientServicesPage() {
           ]}
         />
 
-        <div className="p-6">
+        <div>
           <Breadcrumbs items={breadcrumbItems} />
 
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Estatísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Total</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalServices}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Play className="h-8 w-8 text-green-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Em Progresso</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.inProgressServices}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-8 w-8 text-emerald-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Concluídos</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.completedServices}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <TrendingUp className="h-8 w-8 text-purple-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Progresso</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.averageProgress}%</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {[{
+                icon: FileText, label: 'Total', value: stats.totalServices, idx: 0,
+              }, {
+                icon: Play, label: 'Em Progresso', value: stats.inProgressServices, idx: 1,
+              }, {
+                icon: CheckCircle, label: 'Concluídos', value: stats.completedServices, idx: 2,
+              }, {
+                icon: TrendingUp, label: 'Progresso', value: `${stats.averageProgress}%`, idx: 3,
+              }].map(({ icon: Icon, label, value, idx }) => {
+                const pastel = getCardPastel(idx);
+                return (
+                  <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
+                    <CardContent className="p-5">
+                      <div className="flex items-center">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pastel.tag}`}>
+                          <Icon className={`h-5 w-5 ${pastel.text}`} />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-[#7A7595]">{label}</p>
+                          <p className="text-2xl font-bold text-[#18162A]">{value}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Serviços Ativos */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Serviços Ativos</h2>
+              <h2 className="text-xl font-semibold text-[#18162A] mb-4">Serviços Ativos</h2>
               
               {services.length === 0 ? (
-                <Card>
+                <Card className="rounded-2xl border-transparent shadow-sm">
                   <CardContent className="p-8 text-center">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum serviço ativo</h3>
-                    <p className="text-gray-600 mb-4">
+                    <h3 className="text-lg font-medium text-[#18162A] mb-2">Nenhum serviço ativo</h3>
+                    <p className="text-[#7A7595] mb-4">
                       Este cliente ainda não possui serviços contratados.
                     </p>
                     <Button onClick={() => document.getElementById('service-templates')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -308,12 +288,12 @@ export default function ClientServicesPage() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {services.map((service) => (
-                    <Card key={service.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={service.id} className="rounded-2xl border-transparent shadow-sm hover:shadow-md transition-shadow">
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div>
                             <CardTitle className="text-lg">{service.name}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-[#7A7595] mt-1">
                               {service.category} • v{service.version}
                             </p>
                           </div>
@@ -333,7 +313,7 @@ export default function ClientServicesPage() {
                           </div>
 
                           {/* Informações */}
-                          <div className="flex justify-between text-sm text-gray-600">
+                          <div className="flex justify-between text-sm text-[#7A7595]">
                             <span>Início:</span>
                             <span>
                               {service.start_date 
@@ -344,7 +324,7 @@ export default function ClientServicesPage() {
                           </div>
 
                           {service.end_date && (
-                            <div className="flex justify-between text-sm text-gray-600">
+                            <div className="flex justify-between text-sm text-[#7A7595]">
                               <span>Término:</span>
                               <span>{new Date(service.end_date).toLocaleDateString('pt-BR')}</span>
                             </div>
@@ -353,7 +333,7 @@ export default function ClientServicesPage() {
                           {/* Deliverables */}
                           {service.deliverables && service.deliverables.length > 0 && (
                             <div>
-                              <p className="text-sm text-gray-600 mb-2">
+                              <p className="text-sm text-[#7A7595] mb-2">
                                 {service.deliverables.filter(d => d.status === 'completed').length}/
                                 {service.deliverables.length} fases concluídas
                               </p>
@@ -390,14 +370,14 @@ export default function ClientServicesPage() {
 
             {/* Templates Disponíveis */}
             <div id="service-templates">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Adicionar Novo Serviço</h2>
+              <h2 className="text-xl font-semibold text-[#18162A] mb-4">Adicionar Novo Serviço</h2>
               
               {serviceTemplates.length === 0 ? (
-                <Card>
+                <Card className="rounded-2xl border-transparent shadow-sm">
                   <CardContent className="p-8 text-center">
                     <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum template disponível</h3>
-                    <p className="text-gray-600 mb-4">
+                    <h3 className="text-lg font-medium text-[#18162A] mb-2">Nenhum template disponível</h3>
+                    <p className="text-[#7A7595] mb-4">
                       Não há templates de serviços configurados.
                     </p>
                     <Button asChild>
@@ -413,22 +393,22 @@ export default function ClientServicesPage() {
                   {serviceTemplates.map((template) => (
                     <Card 
                       key={template.id} 
-                      className="hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-blue-200"
+                      className="rounded-2xl hover:shadow-md transition-all cursor-pointer border-2 border-transparent hover:border-[#D4CBF5] shadow-sm"
                       onClick={() => handleCreateService(template.id)}
                     >
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div>
                             <CardTitle className="text-lg">{template.name}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">{template.category}</p>
+                            <p className="text-sm text-[#7A7595] mt-1">{template.category}</p>
                           </div>
-                          <Badge className="bg-blue-100 text-blue-800">Template</Badge>
+                          <Badge className="bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]">Template</Badge>
                         </div>
                       </CardHeader>
                       
                       <CardContent>
                         <div className="space-y-3">
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                          <p className="text-sm text-[#7A7595] line-clamp-2">
                             {template.description}
                           </p>
 
@@ -446,7 +426,7 @@ export default function ClientServicesPage() {
                           )}
 
                           {template.pricing && (
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-[#18162A]">
                               {template.pricing.type === 'fixed' && template.pricing.base_price && (
                                 <span>R$ {template.pricing.base_price.toLocaleString('pt-BR')}</span>
                               )}

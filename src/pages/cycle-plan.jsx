@@ -33,9 +33,9 @@ const CyclePlanSkeleton = () => (
 
     {/* Form Skeleton */}
     <div className="space-y-4">
-      <div className="h-32 bg-slate-200 rounded-lg animate-pulse"></div>
-      <div className="h-24 bg-slate-200 rounded-lg animate-pulse"></div>
-      <div className="h-48 bg-slate-200 rounded-lg animate-pulse"></div>
+      <div className="h-32 bg-[#EDE9FB] rounded-2xl animate-pulse"></div>
+      <div className="h-24 bg-[#F5F2FC] rounded-2xl animate-pulse"></div>
+      <div className="h-48 bg-[#EDE9FB] rounded-2xl animate-pulse"></div>
     </div>
   </div>
 );
@@ -273,15 +273,15 @@ export default function CyclePlanPage() {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
                         <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`services/${service.id}`))}>
                             <ArrowLeft className="w-4 h-4 mr-2"/>
                             Voltar para {service.name}
                         </Button>
-                        <CardTitle className="mt-2 text-2xl">Plano de {cyclePlan.cyclePeriod}</CardTitle>
-                        <CardDescription>{client.name}</CardDescription>
+                        <CardTitle className="mt-2 text-2xl font-bold tracking-tight text-[#18162A]">Plano de {cyclePlan.cyclePeriod}</CardTitle>
+                        <CardDescription className="text-[#7A7595]">{client.name}</CardDescription>
                     </div>
                     {isApprovalActive ? (
                         <Button asChild>
@@ -366,7 +366,7 @@ export default function CyclePlanPage() {
                             {service?.deliverables && service.deliverables.length > 0 ? (
                                 <div className="space-y-4">
                                     {service.deliverables.map(deliverable => (
-                                        <div key={deliverable.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                        <div key={deliverable.id} className="flex items-center justify-between p-4 border rounded-2xl">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <h4 className="font-medium">{deliverable.name}</h4>
@@ -392,9 +392,9 @@ export default function CyclePlanPage() {
                                         </div>
                                     ))}
                                     
-                                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                                        <h4 className="font-medium text-blue-900 mb-2">📋 Integração com o Plano</h4>
-                                        <p className="text-sm text-blue-700">
+                                    <div className="mt-6 p-4 bg-[#EDE9FB] border border-[#D4CBF5] rounded-2xl">
+                                        <h4 className="font-medium text-[#4A2FA3] mb-2">📋 Integração com o Plano</h4>
+                                        <p className="text-sm text-[#5A3A7A]">
                                             Estes entregáveis servem como referência para o planejamento do ciclo. 
                                             A IA já considera esta lista ao sugerir prioridades e ajustes estratégicos.
                                         </p>
@@ -441,7 +441,7 @@ export default function CyclePlanPage() {
                                         </ul>
                                     </div>
                                 )}
-                                <div className="mt-4 p-3 bg-indigo-50 rounded-lg text-sm text-indigo-700">
+                                <div className="mt-4 p-3 bg-[#F3EAFB] border border-[#D4BFEB] rounded-2xl text-sm text-[#5A3A7A]">
                                     <p>Este painel contextualiza o planejamento, fornecendo acesso rápido a dados relevantes para decisões estratégicas.</p>
                                 </div>
                             </div>
@@ -459,7 +459,7 @@ export default function CyclePlanPage() {
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="font-semibold">Status Atual:</h4>
-                                    <p className="text-lg font-medium text-blue-600">{getStatusLabel(cyclePlan.status)}</p>
+                                    <p className="text-lg font-medium text-[#6C47D8]">{getStatusLabel(cyclePlan.status)}</p>
                                 </div>
                                 {cyclePlan.approvalData && (
                                     <div className="space-y-2">
@@ -467,7 +467,7 @@ export default function CyclePlanPage() {
                                         {cyclePlan.approvalData.public_share_token && (
                                             <p className="text-sm text-gray-700">
                                                 Link de Aprovação: 
-                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-500 hover:underline">
+                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#6C47D8] hover:underline">
                                                     Abrir Link <ExternalLink className="inline-block w-4 h-4 ml-1" />
                                                 </a>
                                             </p>
@@ -486,7 +486,7 @@ export default function CyclePlanPage() {
                                         )}
                                     </div>
                                 )}
-                                <div className="mt-4 p-3 bg-green-50 rounded-lg text-sm text-green-700">
+                                <div className="mt-4 p-3 bg-[#E6F7F0] border border-[#A8E0CB] rounded-2xl text-sm text-[#085041]">
                                     <p>Este histórico permite auditar todas as ações de aprovação, garantindo transparência e rastreabilidade.</p>
                                 </div>
                             </div>

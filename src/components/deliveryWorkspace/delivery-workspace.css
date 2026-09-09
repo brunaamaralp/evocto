@@ -1,6 +1,6 @@
 .delivery-workspace {
-  min-height: 100vh;
-  background: #f8fafc;
+  min-height: 100%;
+  background: transparent;
 }
 
 .delivery-workspace__shell {
@@ -10,11 +10,15 @@
   max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 0px);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card, 0 4px 16px rgba(24, 22, 42, 0.05));
+  overflow: hidden;
 }
 
 .delivery-workspace__aside {
-  border-right: 1px solid #e2e8f0;
-  background: #fff;
+  border-right: 1px solid #E8E5F5;
+  background: #F5F2FC;
   padding: 16px 12px;
 }
 

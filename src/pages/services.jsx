@@ -356,28 +356,25 @@ export default function ServicesPage() {
     (activeTab === 'instances' && loadingState.instances);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestão de Serviços</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Gestão de Serviços</h1>
+            <p className="text-[#7A7595] mt-1">
               Templates reutilizáveis e instâncias específicas por cliente
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Atualizar
             </Button>
-            {/* CORREÇÃO: Usando o handler correto para abrir o wizard */}
             <Button onClick={handleCreateTemplate}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Template
             </Button>
-            {/* CORREÇÃO: Usando o handler correto para abrir o modal de instância */}
             <Button variant="outline" onClick={handleCreateService}>
               <Building className="w-4 h-4 mr-2" />
               Nova Instância
@@ -476,9 +473,7 @@ export default function ServicesPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Modais - CORREÇÃO: Renderizar APENAS quando showCreateModal/showTemplateForm for true */}
       {showCreateModal && (
         <ServiceModal
           isOpen={showCreateModal}

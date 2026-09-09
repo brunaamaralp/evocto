@@ -15,6 +15,7 @@ import TimelineView from '@/components/evolution/TimelineView';
 import MetricsView from '@/components/evolution/MetricsView';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientEvolutionPage() {
   const { user, agencyId } = useSession();
@@ -89,11 +90,10 @@ export default function ClientEvolutionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
             size="icon"
@@ -103,10 +103,10 @@ export default function ClientEvolutionPage() {
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
               Evolução - {client.name}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-[#7A7595]">
               Timeline de transformações e marcos importantes
             </p>
           </div>
@@ -130,68 +130,30 @@ export default function ClientEvolutionPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{evolutionEvents.length}</p>
-                  <p className="text-sm text-gray-600">Total de Eventos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {evolutionEvents.filter(e => e.impact === 'high').length}
-                  </p>
-                  <p className="text-sm text-gray-600">Alto Impacto</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {evolutionEvents.filter(e => e.type === 'milestone_achieved').length}
-                  </p>
-                  <p className="text-sm text-gray-600">Marcos Alcançados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {evolutionEvents.filter(e => e.type === 'learning_applied').length}
-                  </p>
-                  <p className="text-sm text-gray-600">Aprendizados Aplicados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { icon: Calendar, label: 'Total de Eventos', value: evolutionEvents.length, idx: 1 },
+            { icon: TrendingUp, label: 'Alto Impacto', value: evolutionEvents.filter(e => e.impact === 'high').length, idx: 4 },
+            { icon: CheckCircle, label: 'Marcos Alcançados', value: evolutionEvents.filter(e => e.type === 'milestone_achieved').length, idx: 2 },
+            { icon: Users, label: 'Aprendizados Aplicados', value: evolutionEvents.filter(e => e.type === 'learning_applied').length, idx: 3 },
+          ].map(({ icon: Icon, label, value, idx }) => {
+            const pastel = getCardPastel(idx);
+            return (
+              <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pastel.tag}`}>
+                      <Icon className={`w-5 h-5 ${pastel.text}`} />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-[#18162A]">{value}</p>
+                      <p className="text-sm text-[#7A7595]">{label}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Content */}
@@ -216,7 +178,6 @@ export default function ClientEvolutionPage() {
             )}
           </div>
         )}
-      </div>
     </div>
   );
 }

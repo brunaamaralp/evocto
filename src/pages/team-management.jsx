@@ -1,18 +1,25 @@
 import React from 'react';
 import TeamMemberManagement from '@/components/team/TeamMemberManagement';
 import InvitesPanel from '@/components/team/InvitesPanel';
+import { getModulePastel } from '@/lib/modulePastels';
 
-// REMOVER withAuth para evitar duplicação de layout
 function TeamManagementPage() {
+  const pastel = getModulePastel('team');
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <TeamMemberManagement />
-      <div className="mt-6">
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Equipe</h1>
+        <p className="text-[#7A7595] mt-1">Gerencie membros e convites da sua agência</p>
+      </div>
+      <div className={`rounded-2xl ${pastel.soft}`}>
+        <TeamMemberManagement />
+      </div>
+      <div className={`rounded-2xl ${pastel.soft}`}>
         <InvitesPanel />
       </div>
     </div>
   );
 }
 
-// EXPORTAR DIRETAMENTE sem withAuth
 export default TeamManagementPage;

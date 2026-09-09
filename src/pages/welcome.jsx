@@ -92,9 +92,9 @@ export default function WelcomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F2FC] via-white to-[#EDE9FB]">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-[#E8E5F5]/70 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
@@ -121,22 +121,22 @@ export default function WelcomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 px-4 py-1">
+                  <Badge className="bg-[#EDE9FB] text-[#6C47D8] hover:bg-[#EDE9FB] px-4 py-1 border-0">
                     <Sparkles className="w-4 h-4 mr-2" />
                     Para times e agências de marketing
                   </Badge>
                   
                   <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                    <span className="text-gray-900">Orquestre seu</span>
+                    <span className="text-[#18162A]">Orquestre seu</span>
                     <br />
-                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-[#6C47D8] to-[#9B6BC9] bg-clip-text text-transparent">
                       time de marketing
                     </span>
                     <br />
-                    <span className="text-gray-900">com IA</span>
+                    <span className="text-[#18162A]">com IA</span>
                   </h1>
                   
-                  <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
+                  <p className="text-xl text-[#7A7595] leading-relaxed max-w-lg">
                     A plataforma que <strong>organiza briefings e entregas</strong>, acelera aprovações
                     e dá aos clientes uma <strong>visão clara</strong> do que o time está produzindo.
                   </p>
@@ -144,8 +144,8 @@ export default function WelcomePage() {
 
                 <div className="space-y-3">
                   {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-3 text-gray-700">
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                    <div key={index} className="flex items-center gap-3 text-[#4A4068]">
+                      <div className="w-2 h-2 bg-[#6C47D8] rounded-full"></div>
                       <span>{benefit}</span>
                     </div>
                   ))}
@@ -154,7 +154,7 @@ export default function WelcomePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     size="lg" 
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3"
+                    className="px-8 py-3"
                     asChild
                   >
                     <Link to="/create-account">
@@ -178,17 +178,17 @@ export default function WelcomePage() {
                   <div className="flex items-center gap-2">
                     <div className="flex -space-x-2">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white"></div>
+                        <div key={i} className="w-8 h-8 bg-[#6C47D8] rounded-full border-2 border-white"></div>
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600">+500 profissionais de marketing</span>
+                    <span className="text-sm text-[#7A7595]">+500 profissionais de marketing</span>
                   </div>
                   
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
-                    <span className="text-sm text-gray-600 ml-1">4.9/5</span>
+                    <span className="text-sm text-[#7A7595] ml-1">4.9/5</span>
                   </div>
                 </div>
               </div>
@@ -215,25 +215,25 @@ export default function WelcomePage() {
         <section className="py-20 bg-white/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl lg:text-4xl font-bold text-[#18162A] mb-4">
                 Por que times de marketing escolhem a Evocto?
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <p className="text-xl text-[#7A7595] max-w-3xl mx-auto">
                 Do briefing à aprovação: um sistema para agências e times in-house operarem com clareza
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => (
-                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
+                <Card key={index} className="border-transparent shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white">
+                    <div className="w-16 h-16 bg-[#EDE9FB] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#6C47D8]">
                       {feature.icon}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-[#18162A] mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-[#7A7595]">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -247,26 +247,26 @@ export default function WelcomePage() {
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl lg:text-4xl font-bold text-[#18162A] mb-4">
                 O que dizem líderes de marketing
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {testimonials.map((testimonial, index) => (
-                <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <Card key={index} className="border-transparent shadow-[var(--shadow-card)] bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-8">
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       ))}
                     </div>
-                    <p className="text-gray-700 mb-4 italic">
+                    <p className="text-[#4A4068] mb-4 italic">
                       "{testimonial.comment}"
                     </p>
                     <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
+                      <div className="font-semibold text-[#18162A]">{testimonial.name}</div>
+                      <div className="text-sm text-[#7A7595]">{testimonial.role}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -276,19 +276,19 @@ export default function WelcomePage() {
         </section>
 
         {/* CTA Final */}
-        <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <section className="py-20 bg-gradient-to-r from-[#6C47D8] to-[#9B6BC9]">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
               Pronto para alinhar time, clientes e entregas?
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
               Junte-se a times de marketing que já saíram do operacional caótico com a Evocto
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3"
+                className="bg-white text-[#6C47D8] hover:bg-[#F5F2FC] px-8 py-3"
                 asChild
               >
                 <Link to="/create-account">
@@ -307,7 +307,7 @@ export default function WelcomePage() {
               </Button>
             </div>
             
-            <p className="text-sm text-blue-200 mt-4">
+            <p className="text-sm text-white/70 mt-4">
               Sem cartão de crédito • Setup em 5 minutos • Suporte premium incluso
             </p>
           </div>
@@ -315,15 +315,15 @@ export default function WelcomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-[#18162A] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <NaviBrandLockup height={28} />
           </div>
-          <p className="text-gray-400 mb-4">
+          <p className="text-[#7A7595] mb-4">
             Operação de marketing mais clara para times, agências e clientes
           </p>
-          <div className="flex justify-center gap-8 text-sm text-gray-400">
+          <div className="flex justify-center gap-8 text-sm text-[#7A7595]">
             <Link to="/terms-of-service" className="hover:text-white transition-colors">
               Termos de Uso
             </Link>

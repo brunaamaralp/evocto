@@ -11,32 +11,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Mail, Shield, Send } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Import das funções de backend
 import { sendInvite } from '@/api/functions';
+import { getModulePastel } from '@/lib/modulePastels';
 
 function MemberList({ members, invites }) {
+  const pastel = getModulePastel('team');
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-800">Membros da Equipe</h3>
-      <div className="bg-white p-4 rounded-lg border">
-        <ul className="divide-y divide-slate-200">
+      <h3 className="text-lg font-semibold text-[#18162A]">Membros da Equipe</h3>
+      <div className={`p-4 rounded-2xl border-transparent ${pastel.soft}`}>
+        <ul className="divide-y divide-[#E8E5F5]/70">
           {members.map(member => (
             <li key={member.id} className="py-3 flex justify-between items-center">
               <div>
-                <p className="font-medium text-slate-900">{member.full_name}</p>
-                <p className="text-sm text-slate-500">{member.email}</p>
+                <p className="font-medium text-[#18162A]">{member.full_name}</p>
+                <p className="text-sm text-[#7A7595]">{member.email}</p>
               </div>
-              <span className="text-sm capitalize px-2 py-1 rounded-full bg-blue-100 text-blue-700">{member.role}</span>
+              <span className="text-sm capitalize px-2.5 py-1 rounded-full bg-[#EDE9FB] text-[#6C47D8]">{member.role}</span>
             </li>
           ))}
           {invites.map(invite => (
              <li key={invite.id} className="py-3 flex justify-between items-center opacity-60">
               <div>
-                <p className="font-medium text-slate-900">{invite.email}</p>
-                <p className="text-sm text-slate-500 italic">Convite pendente</p>
+                <p className="font-medium text-[#18162A]">{invite.email}</p>
+                <p className="text-sm text-[#7A7595] italic">Convite pendente</p>
               </div>
-              <span className="text-sm capitalize px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">{invite.role}</span>
+              <span className="text-sm capitalize px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#7A5A10]">{invite.role}</span>
             </li>
           ))}
         </ul>
@@ -83,7 +84,7 @@ function InviteMemberDialog({ onInviteSent }) {
           Convidar Membro
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-2xl">
         <DialogHeader>
           <DialogTitle>Convidar novo membro</DialogTitle>
           <DialogDescription>
@@ -94,7 +95,7 @@ function InviteMemberDialog({ onInviteSent }) {
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#7A7595]" />
               <Input
                 id="email"
                 type="email"
@@ -109,7 +110,7 @@ function InviteMemberDialog({ onInviteSent }) {
             <Label htmlFor="role">Permissão</Label>
              <Select value={role} onValueChange={setRole}>
               <SelectTrigger>
-                <Shield className="w-4 h-4 mr-2 text-slate-400" />
+                <Shield className="w-4 h-4 mr-2 text-[#7A7595]" />
                 <SelectValue placeholder="Selecione a permissão" />
               </SelectTrigger>
               <SelectContent>
@@ -138,7 +139,7 @@ export default function MyAgencyPage() {
 
   const fetchData = useCallback(async () => {
     if (!agencyId) {
-      setLoading(false); // Ensure loading state is turned off if no agencyId
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -164,26 +165,28 @@ export default function MyAgencyPage() {
   }, [fetchData]);
   
   if (loading) {
-    return <div className="p-8 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#6C47D8]" />
+      </div>
+    );
   }
   
   if (!agency) {
-    return <div className="p-8 text-center text-slate-500">Nenhuma agência encontrada.</div>;
+    return <div className="text-center text-[#7A7595]">Nenhuma agência encontrada.</div>;
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">{agency.agencyName}</h1>
-          <p className="text-slate-500 mt-1">Gerencie as configurações e membros da sua agência.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">{agency.agencyName}</h1>
+          <p className="text-[#7A7595] mt-1">Gerencie as configurações e membros da sua agência.</p>
         </div>
         {isAdmin() && <InviteMemberDialog onInviteSent={fetchData} />}
       </div>
       
       <MemberList members={members} invites={invites} />
-
-      {/* Placeholder para mais seções de configurações */}
     </div>
   );
 }

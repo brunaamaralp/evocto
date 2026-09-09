@@ -10,13 +10,17 @@ import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
 
 const STATUS_BADGE = {
-  not_started: 'bg-slate-100 text-slate-700',
-  in_progress: 'bg-blue-100 text-blue-800',
-  ready_for_review: 'bg-amber-100 text-amber-800',
-  pending_approval: 'bg-purple-100 text-purple-800',
-  approved: 'bg-emerald-100 text-emerald-800',
-  completed: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-red-100 text-red-800',
+  not_started: 'bg-[#EDE8F5] text-[#4A4068]',
+  backlog: 'bg-[#EDE8F5] text-[#4A4068]',
+  todo: 'bg-[#DCEAF8] text-[#2E5A7A]',
+  in_progress: 'bg-[#FFE4D1] text-[#8A4A22]',
+  in_review: 'bg-[#E8D9F7] text-[#5A3A7A]',
+  ready_for_review: 'bg-[#FFF8E6] text-[#7A5A10]',
+  pending_approval: 'bg-[#F3EAFB] text-[#5A3A7A]',
+  approved: 'bg-[#E6F7F0] text-[#085041]',
+  completed: 'bg-[#D0F0E4] text-[#085041]',
+  blocked: 'bg-[#FAD9DB] text-[#8A2A2A]',
+  rejected: 'bg-[#FAD9DB] text-[#8A2A2A]',
 };
 
 function TaskRow({ task }) {

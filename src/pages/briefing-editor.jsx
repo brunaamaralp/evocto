@@ -312,7 +312,7 @@ function BriefingEditorPage() {
         </Alert>
         
         <div className="mt-6 space-y-4">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[#7A7595]">
             <p><strong>URL atual:</strong> {window.location.href}</p>
             <p><strong>Parâmetros encontrados:</strong></p>
             <pre className="bg-gray-100 p-2 rounded text-xs">
@@ -343,7 +343,7 @@ function BriefingEditorPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50">
+      <div>
         {/* Header de contexto */}
         <ContextHeader
           title={isEditing ? 'Editar Briefing Mestre' : 'Criar Briefing Mestre'}
@@ -377,7 +377,7 @@ function BriefingEditorPage() {
           ]}
         />
 
-        <div className="p-6">
+        <div>
           <Breadcrumbs items={breadcrumbItems} />
 
           {/* Formulário de briefing */}

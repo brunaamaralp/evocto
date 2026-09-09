@@ -19,6 +19,7 @@ import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { getCardPastel } from '@/lib/modulePastels';
 
 // Componente de estatísticas das tarefas
 const TaskStats = React.memo(({ tasks }) => {
@@ -31,55 +32,33 @@ const TaskStats = React.memo(({ tasks }) => {
 
   const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
 
+  const statItems = [
+    { icon: Target, label: 'Total', value: stats.total, idx: 0 },
+    { icon: CheckCircle, label: 'Concluídas', value: stats.completed, idx: 2 },
+    { icon: Clock, label: 'Em Progresso', value: stats.inProgress, idx: 1 },
+    { icon: AlertCircle, label: 'Atrasadas', value: stats.overdue, idx: 4 },
+  ];
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-blue-600" />
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.completed}</div>
-              <div className="text-sm text-gray-600">Concluídas</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-yellow-600" />
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.inProgress}</div>
-              <div className="text-sm text-gray-600">Em Progresso</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600" />
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.overdue}</div>
-              <div className="text-sm text-gray-600">Atrasadas</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {statItems.map(({ icon: Icon, label, value, idx }) => {
+        const pastel = getCardPastel(idx);
+        return (
+          <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pastel.tag}`}>
+                  <Icon className={`w-4 h-4 ${pastel.text}`} />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#18162A]">{value}</div>
+                  <div className="text-sm text-[#7A7595]">{label}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 });
@@ -291,8 +270,7 @@ export default function ClientTasksPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
           <EmptyState
             icon="alert-circle"
             title="Erro ao carregar tarefas"
@@ -302,22 +280,20 @@ export default function ClientTasksPage() {
               onClick: () => window.location.href = `/client-overview?clientId=${clientId}` 
             }}
           />
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-full mx-auto">
+    <div className="max-w-full mx-auto">
         {/* Header - Mobile Optimized */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
+              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
               <span className="truncate">Quadro de Tarefas</span>
             </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+            <p className="text-[#7A7595] mt-1 text-sm sm:text-base">
               <span className="truncate">{client?.name}</span> • Gestão das atividades do projeto
             </p>
           </div>
@@ -355,7 +331,7 @@ export default function ClientTasksPage() {
 
         {/* Service Selector */}
         {services.length > 1 && (
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
             <CardHeader>
               <CardTitle>Selecionar Serviço</CardTitle>
             </CardHeader>
@@ -381,7 +357,7 @@ export default function ClientTasksPage() {
         {/* Progresso por Fases */}
         {Object.keys(tasksByPhase).length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Progresso por Fase</h2>
+            <h2 className="text-xl font-semibold text-[#18162A] mb-4">Progresso por Fase</h2>
             <div className="grid gap-4">
               {Object.entries(tasksByPhase).map(([phase, phaseData]) => {
                 const totalTasks = phaseData.tasks.length;
@@ -390,25 +366,25 @@ export default function ClientTasksPage() {
                 const isActive = phaseData.tasks.some(t => ['todo', 'in_progress'].includes(t.status));
                 
                 return (
-                  <Card key={phase} className={`transition-all ${isActive ? 'ring-2 ring-blue-200 bg-blue-50/30' : ''}`}>
+                  <Card key={phase} className={`rounded-2xl border-transparent shadow-sm transition-all ${isActive ? 'ring-2 ring-[#D4CBF5] bg-[#F5F2FC]' : ''}`}>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                             progress === 100 ? 'bg-green-100 text-green-700' :
-                            isActive ? 'bg-blue-100 text-blue-700' :
+                            isActive ? 'bg-[#EDE9FB] text-[#4A2FA3]' :
                             'bg-gray-100 text-gray-500'
                           }`}>
                             {phase}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900">{phaseData.name}</h3>
-                            <p className="text-sm text-gray-600">{phaseData.description}</p>
+                            <h3 className="font-semibold text-[#18162A]">{phaseData.name}</h3>
+                            <p className="text-sm text-[#7A7595]">{phaseData.description}</p>
                           </div>
                         </div>
                         
                         <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">{progress}%</div>
+                          <div className="text-lg font-bold text-[#6C47D8]">{progress}%</div>
                           <div className="text-xs text-gray-500">{completedTasks}/{totalTasks} tarefas</div>
                         </div>
                       </div>
@@ -425,7 +401,7 @@ export default function ClientTasksPage() {
                               ) : (
                                 <Clock className="w-4 h-4 text-yellow-600" />
                               )}
-                              <span className={`text-sm ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                              <span className={`text-sm ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-[#18162A]'}`}>
                                 {task.title}
                               </span>
                             </div>
@@ -493,7 +469,6 @@ export default function ClientTasksPage() {
             defaultStatus="todo"
           />
         )}
-      </div>
     </div>
   );
 }

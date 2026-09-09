@@ -65,17 +65,17 @@ const APPROVAL_STATUS = {
 
 // Card de estatísticas
 const StatsCard = ({ title, value, change, icon: Icon, trend }) => {
-  const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600';
+  const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-[#7A7595]';
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : null;
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="text-sm font-medium text-gray-600">{title}</div>
-        <Icon className="h-4 w-4 text-gray-600" />
+        <div className="text-sm font-medium text-[#7A7595]">{title}</div>
+        <Icon className="h-4 w-4 text-[#6C47D8]" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
+        <div className="text-2xl font-bold text-[#18162A]">{value}</div>
         {change !== undefined && (
           <div className={`flex items-center text-sm ${trendColor} mt-1`}>
             {TrendIcon && <TrendIcon className="h-3 w-3 mr-1" />}
@@ -149,10 +149,10 @@ const ApprovalFilters = ({ filters, onFiltersChange }) => {
 // Tabela de aprovações
 const ApprovalsTable = ({ approvals, onAction }) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[#D4CBF5] overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-[#F5F2FC]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Conteúdo
@@ -182,10 +182,10 @@ const ApprovalsTable = ({ approvals, onAction }) => {
                 Math.ceil((new Date(approval.expiresAt) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
               return (
-                <tr key={approval.id} className="hover:bg-gray-50">
+                <tr key={approval.id} className="hover:bg-[#F5F2FC]">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-[#18162A]">
                         {approval.title || 'Sem título'}
                       </div>
                       <div className="text-sm text-gray-500 capitalize">
@@ -195,7 +195,7 @@ const ApprovalsTable = ({ approvals, onAction }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-[#18162A]">
                         {approval.approverName}
                       </div>
                       <div className="text-sm text-gray-500">
@@ -209,12 +209,12 @@ const ApprovalsTable = ({ approvals, onAction }) => {
                       {statusConfig.label}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#18162A]">
                     {format(new Date(approval.created_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {daysLeft !== null ? (
-                      <span className={daysLeft <= 1 ? 'text-red-600 font-medium' : 'text-gray-600'}>
+                      <span className={daysLeft <= 1 ? 'text-red-600 font-medium' : 'text-[#7A7595]'}>
                         {daysLeft > 0 ? `${daysLeft} dia(s)` : 'Expirado'}
                       </span>
                     ) : (
@@ -265,8 +265,8 @@ const ApprovalsTable = ({ approvals, onAction }) => {
       {approvals.length === 0 && (
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma aprovação encontrada</h3>
-          <p className="text-gray-600">Crie sua primeira solicitação de aprovação</p>
+          <h3 className="text-lg font-medium text-[#18162A] mb-2">Nenhuma aprovação encontrada</h3>
+          <p className="text-[#7A7595]">Crie sua primeira solicitação de aprovação</p>
         </div>
       )}
     </div>
@@ -392,26 +392,23 @@ export default function ApprovalDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <span className="ml-3 text-gray-600">Carregando dashboard...</span>
+            <div className="w-8 h-8 border-4 border-[#6C47D8] border-t-transparent rounded-full animate-spin" />
+            <span className="ml-3 text-[#7A7595]">Carregando dashboard...</span>
           </div>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard de Aprovações</h1>
-            <p className="text-gray-600">Gerencie todas as solicitações de aprovação</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">Dashboard de Aprovações</h1>
+            <p className="text-[#7A7595]">Gerencie todas as solicitações de aprovação</p>
           </div>
           <Button>
             <Send className="w-4 h-4 mr-2" />
@@ -455,7 +452,6 @@ export default function ApprovalDashboard() {
 
         {/* Tabela */}
         <ApprovalsTable approvals={filteredApprovals} onAction={handleAction} />
-      </div>
     </div>
   );
 }

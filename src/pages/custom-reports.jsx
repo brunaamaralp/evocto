@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -17,14 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  FileText, Download, Calendar, Filter, 
-  BarChart3, PieChart, TrendingUp, Users,
-  Settings, Eye, Plus, Clock
+  FileText, Download, Calendar, 
+  BarChart3, PieChart, TrendingUp,
+  Settings, Clock
 } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
 import { toast } from 'sonner';
 import { generateCustomReports } from '@/api/functions';
+import { getModulePastel, getCardPastel } from '@/lib/modulePastels';
 
 const REPORT_TYPES = [
   {
@@ -73,6 +73,7 @@ const REPORT_TYPES = [
 
 export default function CustomReportsPage() {
   const { user, agencyId } = useSession();
+  const pastel = getModulePastel('reports');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [clients, setClients] = useState([]);
@@ -85,7 +86,6 @@ export default function CustomReportsPage() {
   const [selectedFormat, setSelectedFormat] = useState('pdf');
   const [reportData, setReportData] = useState({});
 
-  // Carregar dados iniciais
   useEffect(() => {
     const loadData = async () => {
       if (!agencyId) return;
@@ -100,8 +100,6 @@ export default function CustomReportsPage() {
 
         setClients(clientsData || []);
         setServices(servicesData || []);
-        
-        // TODO: Carregar histórico de relatórios recentes
         setRecentReports([]);
         
       } catch (error) {
@@ -115,7 +113,6 @@ export default function CustomReportsPage() {
     loadData();
   }, [agencyId]);
 
-  // Filtrar serviços pelo cliente selecionado
   const filteredServices = selectedClient 
     ? services.filter(s => s.clientId === selectedClient)
     : services;
@@ -149,7 +146,6 @@ export default function CustomReportsPage() {
       const result = await generateCustomReports(reportPayload);
       
       if (result.status === 200) {
-        // Criar link de download
         const blob = new Blob([result.data], { 
           type: selectedFormat === 'pdf' ? 'application/pdf' : 'text/csv' 
         });
@@ -164,7 +160,6 @@ export default function CustomReportsPage() {
 
         toast.success('Relatório gerado com sucesso!');
         
-        // Adicionar à lista de relatórios recentes
         const newReport = {
           id: Date.now(),
           type: selectedReportType,
@@ -194,52 +189,48 @@ export default function CustomReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Relatórios Customizados</h1>
-          <p className="text-gray-600 mt-1">
-            Gere relatórios personalizados para seus clientes e serviços
-          </p>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Relatórios Customizados</h1>
+        <p className="text-[#7A7595] mt-1">
+          Gere relatórios personalizados para seus clientes e serviços
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Painel de configuração */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Seleção do tipo de relatório */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Tipo de Relatório
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {REPORT_TYPES.map(report => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card className={`border-transparent ${pastel.soft}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#7A7595]" />
+                Tipo de Relatório
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {REPORT_TYPES.map((report, index) => {
+                  const cardPastel = getCardPastel(index);
+                  const isSelected = selectedReportType === report.id;
+                  return (
                     <div
                       key={report.id}
                       onClick={() => setSelectedReportType(report.id)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        selectedReportType === report.id 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                      className={`p-4 rounded-2xl cursor-pointer transition-all border ${
+                        isSelected
+                          ? `border-[#6C47D8] ring-2 ring-[#6C47D8]/20 ${cardPastel.bg}`
+                          : `border-transparent hover:shadow-[var(--shadow-elevated)] ${cardPastel.bg}`
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <report.icon className={`w-5 h-5 mt-1 ${
-                          selectedReportType === report.id ? 'text-blue-600' : 'text-gray-500'
+                        <report.icon className={`w-5 h-5 mt-1 shrink-0 ${
+                          isSelected ? 'text-[#6C47D8]' : cardPastel.text
                         }`} />
                         <div>
-                          <h3 className="font-medium text-gray-900">{report.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{report.description}</p>
+                          <h3 className="font-medium text-[#18162A]">{report.name}</h3>
+                          <p className="text-sm text-[#7A7595] mt-1">{report.description}</p>
                           <div className="flex gap-1 mt-2">
                             {report.formats.map(format => (
-                              <Badge key={format} variant="outline" className="text-xs">
+                              <Badge key={format} variant="outline" className="text-xs bg-white/60">
                                 {format.toUpperCase()}
                               </Badge>
                             ))}
@@ -247,170 +238,162 @@ export default function CustomReportsPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Configurações do relatório */}
-            {selectedReportType && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    Configurações
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  
-                  {/* Cliente */}
-                  <div>
-                    <Label htmlFor="client">Cliente *</Label>
-                    <Select value={selectedClient} onValueChange={setSelectedClient}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map(client => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Serviço (opcional) */}
-                  <div>
-                    <Label htmlFor="service">Serviço (opcional)</Label>
-                    <Select value={selectedService} onValueChange={setSelectedService}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todos os serviços" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Todos os serviços</SelectItem>
-                        {filteredServices.map(service => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Formato */}
-                  <div>
-                    <Label htmlFor="format">Formato</Label>
-                    <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedReportConfig?.formats.map(format => (
-                          <SelectItem key={format} value={format}>
-                            {format.toUpperCase()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Campos específicos do relatório */}
-                  {selectedReportType === 'gf360_monthly' && (
-                    <div>
-                      <Label htmlFor="month">Mês de Referência</Label>
-                      <Input
-                        type="month"
-                        value={reportData.month || ''}
-                        onChange={(e) => setReportData(prev => ({ ...prev, month: e.target.value }))}
-                      />
-                    </div>
-                  )}
-
-                  {selectedReportType === 'margin_implementation' && (
-                    <div>
-                      <Label htmlFor="roi">ROI Alcançado (%)</Label>
-                      <Input
-                        type="number"
-                        placeholder="Ex: 312"
-                        value={reportData.roi || ''}
-                        onChange={(e) => setReportData(prev => ({ ...prev, roi: e.target.value }))}
-                      />
-                    </div>
-                  )}
-
-                  {/* Botão de gerar */}
-                  <Separator />
-                  <Button 
-                    onClick={handleGenerateReport}
-                    disabled={!selectedReportType || !selectedClient || generating}
-                    className="w-full"
-                  >
-                    {generating ? (
-                      <>
-                        <Clock className="w-4 h-4 mr-2 animate-spin" />
-                        Gerando Relatório...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
-                        Gerar Relatório
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Painel lateral - Relatórios recentes */}
-          <div>
+          {selectedReportType && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Relatórios Recentes
+                  <Settings className="w-5 h-5 text-[#7A7595]" />
+                  Configurações
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {recentReports.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentReports.map(report => (
-                      <div 
-                        key={report.id}
-                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">
-                              {report.typeName}
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              {report.client}
-                              {report.service && ` • ${report.service}`}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {new Date(report.generatedAt).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                          <Badge variant="outline" className="text-xs">
-                            {report.format.toUpperCase()}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="client">Cliente *</Label>
+                  <Select value={selectedClient} onValueChange={setSelectedClient}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="service">Serviço (opcional)</Label>
+                  <Select value={selectedService} onValueChange={setSelectedService}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os serviços" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Todos os serviços</SelectItem>
+                      {filteredServices.map(service => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="format">Formato</Label>
+                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedReportConfig?.formats.map(format => (
+                        <SelectItem key={format} value={format}>
+                          {format.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedReportType === 'gf360_monthly' && (
+                  <div>
+                    <Label htmlFor="month">Mês de Referência</Label>
+                    <Input
+                      type="month"
+                      value={reportData.month || ''}
+                      onChange={(e) => setReportData(prev => ({ ...prev, month: e.target.value }))}
+                    />
                   </div>
-                ) : (
-                  <EmptyState
-                    icon={FileText}
-                    title="Nenhum relatório gerado"
-                    description="Seus relatórios recentes aparecerão aqui"
-                    className="py-8"
-                  />
                 )}
+
+                {selectedReportType === 'margin_implementation' && (
+                  <div>
+                    <Label htmlFor="roi">ROI Alcançado (%)</Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 312"
+                      value={reportData.roi || ''}
+                      onChange={(e) => setReportData(prev => ({ ...prev, roi: e.target.value }))}
+                    />
+                  </div>
+                )}
+
+                <Separator />
+                <Button 
+                  onClick={handleGenerateReport}
+                  disabled={!selectedReportType || !selectedClient || generating}
+                  className="w-full"
+                >
+                  {generating ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      Gerando Relatório...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Gerar Relatório
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
-          </div>
+          )}
+        </div>
+
+        <div>
+          <Card className={`border-transparent ${pastel.bg}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#7A7595]" />
+                Relatórios Recentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recentReports.length > 0 ? (
+                <div className="space-y-3">
+                  {recentReports.map(report => (
+                    <div 
+                      key={report.id}
+                      className="p-3 rounded-xl bg-white/70 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-[#18162A]">
+                            {report.typeName}
+                          </h4>
+                          <p className="text-xs text-[#7A7595]">
+                            {report.client}
+                            {report.service && ` • ${report.service}`}
+                          </p>
+                          <p className="text-xs text-[#7A7595] mt-1">
+                            {new Date(report.generatedAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs bg-white/60">
+                          {report.format.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={FileText}
+                  title="Nenhum relatório gerado"
+                  description="Seus relatórios recentes aparecerão aqui"
+                  className="py-8"
+                />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

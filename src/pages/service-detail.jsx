@@ -87,22 +87,19 @@ export default function ServiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
           <LoadingState 
             variant="skeleton" 
             size="page"
             message="Carregando detalhes do serviço..."
           />
-        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
           <ErrorState
             type={error.type}
             title={error.type === '404' ? 'Serviço Não Encontrado' : 'Erro ao Carregar Serviço'}
@@ -116,47 +113,44 @@ export default function ServiceDetailPage() {
             backUrl={createPageUrl('services-overview')}
             onAction={() => window.location.reload()}
           />
-        </div>
       </div>
     );
   }
 
   if (!service) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
           <ErrorState
             type="404"
             title="Serviço Não Encontrado"
             message="O serviço solicitado não foi encontrado."
             backUrl={createPageUrl('services-overview')}
           />
-        </div>
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
+      <div>
         
         {/* Header fixo */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="bg-[#F5F2FC] border-b border-[#D4CBF5] sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto py-4">
             
             {/* Breadcrumbs */}
-            <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+            <nav className="flex items-center space-x-2 text-sm text-[#7A7595] mb-4">
               {getBreadcrumbs().map((crumb, index) => (
                 <React.Fragment key={index}>
                   {crumb.href ? (
                     <button 
                       onClick={() => window.location.href = crumb.href}
-                      className="hover:text-gray-900 transition-colors"
+                      className="hover:text-[#18162A] transition-colors"
                     >
                       {crumb.label}
                     </button>
                   ) : (
-                    <span className="text-gray-900 font-medium">{crumb.label}</span>
+                    <span className="text-[#18162A] font-medium">{crumb.label}</span>
                   )}
                   {index < getBreadcrumbs().length - 1 && (
                     <span className="text-gray-400">/</span>
@@ -180,7 +174,7 @@ export default function ServiceDetailPage() {
 
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
                       {service.name}
                     </h1>
                     
@@ -188,7 +182,7 @@ export default function ServiceDetailPage() {
                       variant={service.is_template ? "secondary" : "default"}
                       className={service.is_template ? 
                         "bg-purple-100 text-purple-800 border-purple-300" : 
-                        "bg-blue-100 text-blue-800 border-blue-300"
+                        "bg-[#EDE9FB] text-[#4A2FA3] border-[#D4CBF5]"
                       }
                     >
                       {getServiceTypeLabel(service)}
@@ -203,7 +197,7 @@ export default function ServiceDetailPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-4 text-sm text-[#7A7595]">
                     
                     <div className="flex items-center gap-1">
                       <Target className="w-4 h-4" />
@@ -213,7 +207,7 @@ export default function ServiceDetailPage() {
                     {context.client && (
                       <button
                         onClick={handleViewClient}
-                        className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                        className="flex items-center gap-1 hover:text-[#6C47D8] transition-colors"
                       >
                         <Users className="w-4 h-4" />
                         <span>{context.client.name}</span>
@@ -278,7 +272,7 @@ export default function ServiceDetailPage() {
         </div>
 
         {/* Conteúdo principal */}
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Coluna principal - 2/3 */}
@@ -298,15 +292,15 @@ export default function ServiceDetailPage() {
             <div className="space-y-6">
               
               {/* Card de resumo */}
-              <Card>
+              <Card className="rounded-2xl border-transparent shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">Resumo</CardTitle>
+                  <CardTitle className="text-lg text-[#18162A]">Resumo</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   
                   {service.pricing && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Valor Base</span>
+                      <span className="text-sm text-[#7A7595]">Valor Base</span>
                       <div className="flex items-center gap-1">
                         <DollarSign className="w-4 h-4 text-green-600" />
                         <span className="font-medium">
@@ -317,7 +311,7 @@ export default function ServiceDetailPage() {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Entregáveis</span>
+                    <span className="text-sm text-[#7A7595]">Entregáveis</span>
                     <span className="font-medium">
                       {service.deliverables?.length || 0}
                     </span>
@@ -325,7 +319,7 @@ export default function ServiceDetailPage() {
 
                   {service.cycle_frequency && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Frequência</span>
+                      <span className="text-sm text-[#7A7595]">Frequência</span>
                       <Badge variant="outline">
                         {service.cycle_frequency === 'monthly' ? 'Mensal' :
                          service.cycle_frequency === 'weekly' ? 'Semanal' :
@@ -337,7 +331,7 @@ export default function ServiceDetailPage() {
 
                   {service.created_date && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Criado em</span>
+                      <span className="text-sm text-[#7A7595]">Criado em</span>
                       <span className="text-sm">
                         {new Date(service.created_date).toLocaleDateString('pt-BR')}
                       </span>
@@ -348,13 +342,13 @@ export default function ServiceDetailPage() {
 
               {/* Estatísticas do template (se aplicável) */}
               {service.is_template && service.template_metadata && (
-                <Card>
+                <Card className="rounded-2xl border-transparent shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg">Estatísticas do Template</CardTitle>
+                    <CardTitle className="text-lg text-[#18162A]">Estatísticas do Template</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Uso Total</span>
+                      <span className="text-sm text-[#7A7595]">Uso Total</span>
                       <span className="font-medium">
                         {service.template_metadata.usage_count || 0}x
                       </span>
@@ -362,7 +356,7 @@ export default function ServiceDetailPage() {
 
                     {service.template_metadata.success_rate && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Taxa de Sucesso</span>
+                        <span className="text-sm text-[#7A7595]">Taxa de Sucesso</span>
                         <span className="font-medium text-green-600">
                           {Math.round(service.template_metadata.success_rate * 100)}%
                         </span>
@@ -371,7 +365,7 @@ export default function ServiceDetailPage() {
 
                     {service.template_metadata.last_used && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Último Uso</span>
+                        <span className="text-sm text-[#7A7595]">Último Uso</span>
                         <span className="text-sm">
                           {new Date(service.template_metadata.last_used).toLocaleDateString('pt-BR')}
                         </span>
@@ -382,9 +376,9 @@ export default function ServiceDetailPage() {
               )}
 
               {/* Ações rápidas */}
-              <Card>
+              <Card className="rounded-2xl border-transparent shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+                  <CardTitle className="text-lg text-[#18162A]">Ações Rápidas</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {service.is_template ? (
