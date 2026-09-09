@@ -82,6 +82,7 @@ export const functions = {
 
 export const client = {
   get: getAppwriteClient,
+  ping: (...args) => getAppwriteClient().ping(...args),
 };
 
 export {
