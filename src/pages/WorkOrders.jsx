@@ -56,24 +56,26 @@ export default function WorkOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Work Orders</h1>
-          <p className="text-slate-600 mt-1">Gerencie trabalhos pontuais e projetos únicos.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Work Orders</h1>
+          <p className="text-slate-600 mt-1 text-sm sm:text-base">Gerencie trabalhos pontuais e projetos únicos.</p>
         </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600">
+        <Button className="w-full sm:w-auto shrink-0 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600">
           <Plus className="w-4 h-4 mr-2" />
           Novo Work Order
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full max-w-md">
-          <TabsTrigger value="todos">Todos</TabsTrigger>
-          <TabsTrigger value="ativos">Ativos</TabsTrigger>
-          <TabsTrigger value="concluidos">Concluídos</TabsTrigger>
-          <TabsTrigger value="cancelados">Cancelados</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:max-w-md sm:grid-cols-4 gap-1 h-auto">
+            <TabsTrigger value="todos" className="shrink-0 whitespace-nowrap">Todos</TabsTrigger>
+            <TabsTrigger value="ativos" className="shrink-0 whitespace-nowrap">Ativos</TabsTrigger>
+            <TabsTrigger value="concluidos" className="shrink-0 whitespace-nowrap">Concluídos</TabsTrigger>
+            <TabsTrigger value="cancelados" className="shrink-0 whitespace-nowrap">Cancelados</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value={activeTab} className="pt-6">
           {filterWorkOrders(activeTab).length > 0 ? (

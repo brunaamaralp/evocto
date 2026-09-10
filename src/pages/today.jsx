@@ -111,11 +111,11 @@ export default function TodayPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-          <Calendar className="h-8 w-8 mr-3 text-blue-600" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+          <Calendar className="h-7 w-7 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-blue-600 shrink-0" />
           Hoje
         </h1>
         <p className="text-gray-600 mt-1">
@@ -187,12 +187,12 @@ export default function TodayPage() {
           <CardContent>
             <div className="space-y-4">
               {todayData?.urgentTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                    <p className="text-xs text-gray-500">{task.time} • {task.client}</p>
+                <div key={task.id} className="flex items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
+                    <p className="text-xs text-gray-500 truncate">{task.time} • {task.client}</p>
                   </div>
-                  <Badge variant={task.priority === 'high' ? 'destructive' : 'default'}>
+                  <Badge className="shrink-0" variant={task.priority === 'high' ? 'destructive' : 'default'}>
                     {task.priority === 'high' ? 'Urgente' : 'Médio'}
                   </Badge>
                 </div>
@@ -219,12 +219,12 @@ export default function TodayPage() {
             </CardHeader>
             <div className="space-y-4">
               {todayData?.pendingApprovals.map((approval) => (
-                <div key={approval.id} className="flex items-center justify-between p-3 border rounded-lg bg-orange-50">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{approval.description}</p>
-                    <p className="text-xs text-gray-500">{approval.client}</p>
+                <div key={approval.id} className="flex items-start sm:items-center justify-between gap-3 p-3 border rounded-lg bg-orange-50">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{approval.description}</p>
+                    <p className="text-xs text-gray-500 truncate">{approval.client}</p>
                   </div>
-                  <Badge variant="secondary">
+                  <Badge className="shrink-0" variant="secondary">
                     Expira em {approval.expires}
                   </Badge>
                 </div>

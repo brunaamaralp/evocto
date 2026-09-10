@@ -244,27 +244,27 @@ export default function ClientDetailPage() {
                 {setupChecklist.map((step) => (
                   <div
                     key={step.id}
-                    className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E8E5F5]/80"
+                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-white rounded-xl border border-[#E8E5F5]/80"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
                       {step.completed ? (
-                        <CheckCircle className="w-5 h-5 text-[#22C98A]" />
+                        <CheckCircle className="w-5 h-5 text-[#22C98A] shrink-0 mt-0.5" />
                       ) : (
-                        <Circle className="w-5 h-5 text-[#7A7595]" />
+                        <Circle className="w-5 h-5 text-[#7A7595] shrink-0 mt-0.5" />
                       )}
-                      <div>
+                      <div className="min-w-0">
                         <h4 className="font-medium text-[#18162A]">{step.title}</h4>
                         <p className="text-sm text-[#7A7595]">{step.description}</p>
                       </div>
                     </div>
                     {!step.completed && (
                       step.onClick ? (
-                        <Button size="sm" onClick={step.onClick}>
+                        <Button size="sm" className="w-full sm:w-auto shrink-0" onClick={step.onClick}>
                           <Plus className="w-4 h-4 mr-1" />
                           {step.action}
                         </Button>
                       ) : (
-                        <Button asChild size="sm">
+                        <Button asChild size="sm" className="w-full sm:w-auto shrink-0">
                           <Link to={step.href}>
                             <Plus className="w-4 h-4 mr-1" />
                             {step.action}

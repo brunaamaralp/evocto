@@ -104,22 +104,30 @@ export default function FinancialKPIsPage() {
   }
 
   return (
-    <div className="container-page py-8">
+    <div className="container-page py-6 sm:py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           KPIs de Performance
-          {selectedClient && <span className="text-lg text-gray-600 ml-2">- {selectedClient.name}</span>}
-          {selectedService && <span className="text-lg text-gray-600 ml-2">({selectedService.name})</span>}
+          {selectedClient && (
+            <span className="block sm:inline text-base sm:text-lg text-gray-600 sm:ml-2 mt-1 sm:mt-0 truncate">
+              - {selectedClient.name}
+            </span>
+          )}
+          {selectedService && (
+            <span className="block sm:inline text-base sm:text-lg text-gray-600 sm:ml-2 truncate">
+              ({selectedService.name})
+            </span>
+          )}
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 mt-2 text-sm sm:text-base">
           Sistema completo de gestão e monitoramento de indicadores de marketing e performance
         </p>
       </div>
 
       {/* Navigation Tabs */}
       <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+        <div className="border-b border-gray-200 overflow-x-auto -mx-1 px-1">
+          <nav className="-mb-px flex w-max min-w-full gap-6 sm:gap-8">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
               { id: 'manager', label: 'Gerenciar KPIs', icon: Settings },
@@ -130,13 +138,13 @@ export default function FinancialKPIsPage() {
               <button
                 key={tab.id}
                 onClick={() => handleViewChange(tab.id)}
-                className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`group inline-flex items-center shrink-0 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                   view === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <tab.icon className="mr-2 h-5 w-5" />
+                <tab.icon className="mr-2 h-5 w-5 shrink-0" />
                 {tab.label}
               </button>
             ))}

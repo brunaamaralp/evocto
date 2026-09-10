@@ -40,27 +40,27 @@ export default function PWAInstaller({ className }: PWAInstallerProps) {
   const handleInstall = async () => {
     try {
       await install();
-      toast.success('📱 Aplicação instalada com sucesso!');
-    } catch (error) {
-      toast.error('❌ Erro ao instalar aplicação');
+      toast.success('Aplicação instalada com sucesso');
+    } catch {
+      toast.error('Não foi possível instalar agora');
     }
   };
 
   const handleUpdate = async () => {
     try {
       await update();
-      toast.success('🔄 Aplicação atualizada!');
-    } catch (error) {
-      toast.error('❌ Erro ao atualizar aplicação');
+      toast.success('Aplicação atualizada');
+    } catch {
+      toast.error('Não foi possível atualizar agora');
     }
   };
 
   const handleClearCache = async () => {
     try {
       await clearCache();
-      toast.success('🗑️ Cache limpo com sucesso!');
-    } catch (error) {
-      toast.error('❌ Erro ao limpar cache');
+      toast.success('Cache limpo com sucesso');
+    } catch {
+      toast.error('Não foi possível limpar o cache');
     }
   };
 
@@ -152,10 +152,9 @@ export default function PWAInstaller({ className }: PWAInstallerProps) {
 
         {/* Informações adicionais */}
         <div className="text-xs text-gray-500 space-y-1">
-          <p>• Instale o app para acesso rápido</p>
-          <p>• Funciona offline após instalação</p>
-          <p>• Notificações push disponíveis</p>
-          <p>• Sincronização automática</p>
+          <p>• Instale o app para acesso rápido na tela inicial</p>
+          <p>• O shell do app fica disponível offline após o primeiro carregamento</p>
+          <p>• Dados e APIs exigem conexão com a internet</p>
         </div>
       </CardContent>
     </Card>

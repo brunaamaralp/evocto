@@ -75,6 +75,10 @@ export async function createSessionJwt() {
   }
 }
 
+/** Limpa JWT em memória (shim — sessão real fica no Appwrite SDK). */
+export function clearClientJwt() {}
+export function clearSessionJwtCache() {}
+
 /** Stub Functions API — não usado no backend local do Evocto. */
 export const functions = {
   createExecution: async () => ({ $id: '', responseBody: '{}' }),

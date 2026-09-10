@@ -117,12 +117,12 @@ export default function ConfigurarEmpresaModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>Configurar Empresa</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="overflow-y-auto px-6 flex-1 space-y-4 py-2">
           <div className="space-y-1.5">
             <Label htmlFor="emp-nome">* Nome da Empresa</Label>
             <Input
@@ -148,7 +148,7 @@ export default function ConfigurarEmpresaModal({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="emp-videos">* Número de Vídeos</Label>
               <Input
@@ -268,11 +268,11 @@ export default function ConfigurarEmpresaModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)}>
+        <DialogFooter className="gap-2 shrink-0 border-t px-6 py-4 bg-background">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange?.(false)}>
             Cancelar
           </Button>
-          <Button type="button" disabled={!canSave} onClick={handleSave}>
+          <Button type="button" className="w-full sm:w-auto" disabled={!canSave} onClick={handleSave}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Salvar Configuração
           </Button>

@@ -329,7 +329,7 @@ export default function BriefingCampanhaAnualPage() {
 
   if (!clientId) {
     return (
-      <div className="p-6">
+      <div>
         <p className="text-red-600">clientId obrigatório na URL.</p>
       </div>
     );
@@ -337,7 +337,7 @@ export default function BriefingCampanhaAnualPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div>
         <p className="text-red-600 mb-3">{error}</p>
         <Button variant="outline" onClick={load}>
           Tentar novamente
@@ -347,23 +347,23 @@ export default function BriefingCampanhaAnualPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <Button variant="ghost" size="sm" className="mb-2 -ml-2" onClick={backToList}>
             <ArrowLeft className="w-4 h-4 mr-1" />
             Briefings
           </Button>
-          <h1 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
-            <CalendarRange className="w-6 h-6" />
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 flex items-center gap-2">
+            <CalendarRange className="w-6 h-6 shrink-0" />
             Plano anual de campanhas
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-slate-600 mt-1 truncate">
             {client?.name}
             {empresa?.nome ? ` · ${empresa.nome}` : ''}
           </p>
         </div>
-        <Badge variant="outline">
+            <Badge variant="outline" className="w-fit shrink-0 self-start sm:self-auto">
           {hasCampanhas
             ? existingPayload?.status_anual || 'ia_gerou'
             : hasTemas
@@ -492,12 +492,13 @@ export default function BriefingCampanhaAnualPage() {
 
       {step === 'temas' && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between space-y-0">
             <CardTitle className="text-lg">Sugestão de temas</CardTitle>
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto shrink-0"
               disabled={suggestingTemas || !produtosOk || !ciclosOk}
               onClick={handleSuggestTemas}
             >
@@ -627,10 +628,11 @@ export default function BriefingCampanhaAnualPage() {
         </div>
       )}
 
-      <div className="flex flex-wrap justify-between gap-2">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
         <Button
           type="button"
           variant="outline"
+          className="w-full sm:w-auto"
           onClick={goPrev}
           disabled={step === 'empresa' || generating || suggestingTemas}
         >
@@ -638,12 +640,13 @@ export default function BriefingCampanhaAnualPage() {
           Voltar
         </Button>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto">
           {step === 'temas' && (
             <>
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={handleSaveTemas}
                 disabled={saving || suggestingTemas || !temasInfo.complete}
               >
@@ -654,7 +657,7 @@ export default function BriefingCampanhaAnualPage() {
                 )}
                 Salvar temas
               </Button>
-              <Button type="button" onClick={goNext} disabled={!temasInfo.complete}>
+              <Button type="button" className="w-full sm:w-auto" onClick={goNext} disabled={!temasInfo.complete}>
                 Continuar
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>

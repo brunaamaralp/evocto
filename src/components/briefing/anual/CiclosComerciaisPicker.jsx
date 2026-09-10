@@ -16,6 +16,13 @@ const CICLO_COLORS = {
   reconhecimento: 'bg-violet-100 text-violet-900 border-violet-200',
 };
 
+const CICLO_SHORT = {
+  autoridade: 'Aut.',
+  vendas: 'Vend.',
+  engajamento: 'Eng.',
+  reconhecimento: 'Rec.',
+};
+
 /**
  * Atribui cada mês (1–12) a um ciclo comercial.
  * Clique no mês cicla: autoridade → vendas → engajamento → reconhecimento → (remove).
@@ -62,7 +69,7 @@ export default function CiclosComerciaisPicker({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {CICLOS_COMERCIAIS.map((ciclo) => (
           <div
             key={ciclo}
@@ -70,7 +77,7 @@ export default function CiclosComerciaisPicker({
           >
             <div className="font-semibold">{CICLO_LABELS[ciclo]}</div>
             <div className="text-xs opacity-80 mt-0.5">{CICLO_HINTS[ciclo]}</div>
-            <div className="text-xs mt-2 font-medium">
+            <div className="text-xs mt-2 font-medium break-words">
               {ciclos[ciclo].length
                 ? ciclos[ciclo].map((m) => MES_LABELS[m]).join(', ')
                 : '—'}
@@ -85,7 +92,7 @@ export default function CiclosComerciaisPicker({
             ? `Clique nos meses para marcar como ${CICLO_LABELS[activeCiclo]}.`
             : 'Clique em cada mês para alternar o ciclo comercial.'}
         </p>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
           {Array.from({ length: 12 }, (_, i) => i + 1).map((mes) => {
             const ciclo = map[mes];
             return (
@@ -93,14 +100,15 @@ export default function CiclosComerciaisPicker({
                 key={mes}
                 type="button"
                 variant="outline"
-                className={`h-auto py-3 flex flex-col gap-1 ${
+                className={`h-auto min-h-[3.25rem] py-2.5 px-1.5 flex flex-col gap-0.5 ${
                   ciclo ? CICLO_COLORS[ciclo] : 'bg-white'
                 }`}
                 onClick={() => handleMesClick(mes)}
               >
-                <span className="font-semibold">{MES_LABELS[mes]}</span>
-                <span className="text-[10px] font-normal opacity-80">
-                  {ciclo ? CICLO_LABELS[ciclo] : 'definir'}
+                <span className="font-semibold text-sm">{MES_LABELS[mes]}</span>
+                <span className="text-[10px] font-normal opacity-80 leading-tight">
+                  <span className="sm:hidden">{ciclo ? CICLO_SHORT[ciclo] : 'definir'}</span>
+                  <span className="hidden sm:inline">{ciclo ? CICLO_LABELS[ciclo] : 'definir'}</span>
                 </span>
               </Button>
             );

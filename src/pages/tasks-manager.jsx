@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
+import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
@@ -227,6 +228,7 @@ export default function TasksManagerPage() {
   const [selectedUser, setSelectedUser] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Carregar dados
   const loadData = useCallback(async (_useCache = true) => {
@@ -377,7 +379,7 @@ export default function TasksManagerPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
@@ -390,7 +392,7 @@ export default function TasksManagerPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center max-w-md">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -420,10 +422,8 @@ export default function TasksManagerPage() {
           </p>
         </div>
         <Button
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('task:create'));
-          }}
-          className="gap-2"
+          onClick={() => setCreateOpen(true)}
+          className="gap-2 w-full sm:w-auto shrink-0"
         >
           <Plus className="w-4 h-4" />
           Nova Tarefa
@@ -562,7 +562,7 @@ export default function TasksManagerPage() {
       {totalTasks > 0 && (
         <Card className="mt-6">
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
               {KANBAN_COLUMNS.map(column => {
                 const count = tasksByStatus[column.id]?.length || 0;
                 const percentage = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
@@ -579,6 +579,15 @@ export default function TasksManagerPage() {
           </CardContent>
         </Card>
       )}
+
+      <TaskCreateModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={() => {
+          setCreateOpen(false);
+          loadData(false);
+        }}
+      />
     </div>
   );
 }

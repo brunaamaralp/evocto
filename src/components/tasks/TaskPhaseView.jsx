@@ -211,16 +211,16 @@ export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loadin
           className="cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={() => togglePhase(phaseName)}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-3 min-w-0 w-full sm:w-auto">
               {isExpanded ? 
-                <ChevronDown className="w-5 h-5 text-gray-500" /> : 
-                <ChevronRight className="w-5 h-5 text-gray-500" />
+                <ChevronDown className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" /> : 
+                <ChevronRight className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
               }
-              <Layers className="w-5 h-5 text-blue-600" />
-              <div>
-                <CardTitle className="text-lg">{phaseName}</CardTitle>
-                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+              <Layers className="w-5 h-5 text-blue-600 shrink-0 mt-0.5 hidden sm:block" />
+              <div className="min-w-0">
+                <CardTitle className="text-base sm:text-lg">{phaseName}</CardTitle>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 mt-1">
                   <span>{phaseData.totalTasks} tarefas</span>
                   <span className="text-green-600">{phaseData.completedTasks} concluídas</span>
                   <span className="text-yellow-600">{phaseData.inProgressTasks} em progresso</span>
@@ -231,15 +231,13 @@ export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loadin
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Progresso da Fase */}
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">{phaseData.progress}%</div>
-                <div className="text-sm text-gray-600">Concluído</div>
+            <div className="flex items-center gap-3 w-full sm:w-auto sm:gap-4">
+              <div className="text-left sm:text-right shrink-0">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{phaseData.progress}%</div>
+                <div className="text-xs sm:text-sm text-gray-600">Concluído</div>
               </div>
               
-              {/* Barra de Progresso */}
-              <div className="w-32">
+              <div className="flex-1 sm:flex-none sm:w-32">
                 <Progress value={phaseData.progress} className="h-2" />
               </div>
             </div>

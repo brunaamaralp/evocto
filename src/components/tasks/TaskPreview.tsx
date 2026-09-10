@@ -99,10 +99,10 @@ export function TaskPreview({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-blue-600" />
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            <Eye className="w-5 h-5 text-blue-600 shrink-0" />
             Preview das Tarefas
             <Badge variant="outline" className="text-xs">
               {service?.name}
@@ -148,7 +148,7 @@ export function TaskPreview({
           )}
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">{totalTasks}</div>

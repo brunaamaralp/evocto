@@ -274,8 +274,8 @@ export default function CyclePlanPage() {
     return (
         <div className="space-y-6">
             <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
-                <CardHeader className="flex flex-row items-start justify-between">
-                    <div>
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
                         <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`services/${service.id}`))}>
                             <ArrowLeft className="w-4 h-4 mr-2"/>
                             Voltar para {service.name}
@@ -284,14 +284,14 @@ export default function CyclePlanPage() {
                         <CardDescription className="text-[#7A7595]">{client.name}</CardDescription>
                     </div>
                     {isApprovalActive ? (
-                        <Button asChild>
+                        <Button asChild className="w-full sm:w-auto shrink-0">
                             <a href={approvalUrl} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="w-4 h-4 mr-2"/>
                                 Abrir link de aprovação
                             </a>
                         </Button>
                     ) : (
-                         <Button onClick={handleSendForApproval} disabled={isSending || cyclePlan.status !== 'draft'}>
+                         <Button className="w-full sm:w-auto shrink-0" onClick={handleSendForApproval} disabled={isSending || cyclePlan.status !== 'draft'}>
                             {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Send className="w-4 h-4 mr-2" />}
                             Enviar para Aprovação
                         </Button>
@@ -300,12 +300,14 @@ export default function CyclePlanPage() {
             </Card>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="plan">Plano</TabsTrigger>
-                    <TabsTrigger value="deliverables">Entregáveis</TabsTrigger>
-                    <TabsTrigger value="context">Contexto</TabsTrigger>
-                    <TabsTrigger value="approval">Aprovação</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto -mx-1 px-1">
+                    <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 gap-1 h-auto">
+                        <TabsTrigger value="plan" className="shrink-0 whitespace-nowrap">Plano</TabsTrigger>
+                        <TabsTrigger value="deliverables" className="shrink-0 whitespace-nowrap">Entregáveis</TabsTrigger>
+                        <TabsTrigger value="context" className="shrink-0 whitespace-nowrap">Contexto</TabsTrigger>
+                        <TabsTrigger value="approval" className="shrink-0 whitespace-nowrap">Aprovação</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="plan" className="mt-6">
                     <Card>
@@ -350,14 +352,14 @@ export default function CyclePlanPage() {
                 <TabsContent value="deliverables" className="mt-6">
                     <Card>
                         <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <div>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+                                <div className="min-w-0">
                                     <CardTitle>Entregáveis Previstos</CardTitle>
                                     <p className="text-sm text-slate-500 mt-1">
                                         Baseado no serviço contratado para este ciclo
                                     </p>
                                 </div>
-                                <Badge variant="outline">
+                                <Badge variant="outline" className="w-fit shrink-0">
                                     {service?.deliverables?.length || 0} entregáveis
                                 </Badge>
                             </div>
@@ -366,9 +368,9 @@ export default function CyclePlanPage() {
                             {service?.deliverables && service.deliverables.length > 0 ? (
                                 <div className="space-y-4">
                                     {service.deliverables.map(deliverable => (
-                                        <div key={deliverable.id} className="flex items-center justify-between p-4 border rounded-2xl">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
+                                        <div key={deliverable.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-2xl">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
                                                     <h4 className="font-medium">{deliverable.name}</h4>
                                                     <Badge variant="outline" className="text-xs">
                                                         <Hash className="w-3 h-3 mr-1" />
@@ -384,7 +386,7 @@ export default function CyclePlanPage() {
                                                 )}
                                             </div>
                                             {deliverable.estimated_hours > 0 && (
-                                                <Badge variant="outline" className="ml-4">
+                                                <Badge variant="outline" className="w-fit sm:ml-4 shrink-0">
                                                     <Clock className="w-3 h-3 mr-1" />
                                                     {deliverable.estimated_hours}h
                                                 </Badge>

@@ -93,11 +93,11 @@ const FilterPanel = ({ filters, onFiltersChange, onClearFilters, appliedCount })
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <h3 className="font-semibold text-slate-800">Filtros Avançados</h3>
         {appliedCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-slate-500">
+          <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-slate-500 w-fit">
             <X className="w-4 h-4 mr-1" />
             Limpar ({appliedCount})
           </Button>
@@ -300,16 +300,16 @@ function AprendizadosPage() {
             </p>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowAutoInputModal(true)}>
+          <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setShowAutoInputModal(true)}>
               <Upload className="w-4 h-4 mr-2" />
               Analisar Documento
             </Button>
-            <Button onClick={handleExport} disabled={actionLoading || filteredLearnings.length === 0}>
+            <Button className="flex-1 sm:flex-none" onClick={handleExport} disabled={actionLoading || filteredLearnings.length === 0}>
               <Download className="w-4 h-4 mr-2" />
               {actionLoading ? 'Exportando...' : 'Exportar CSV'}
             </Button>
-            <Button onClick={handleCreateClick} className="bg-purple-600 hover:bg-purple-700 text-white">
+            <Button onClick={handleCreateClick} className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Aprendizado
             </Button>
@@ -317,7 +317,7 @@ function AprendizadosPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card className="bg-white border-slate-200/60 shadow-sm">
               <CardContent className="p-4">

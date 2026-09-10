@@ -164,7 +164,7 @@ export default function ContextualLayout({ user, children }) {
         />
 
         <main
-          className={`flex-1 overflow-auto p-4 sm:p-6 lg:p-8 ${
+          className={`flex-1 overflow-auto p-4 sm:p-6 lg:p-8 pb-28 ${
             isClientShell ? CLIENT_CONTEXT.contentAccent : ''
           }`}
         >

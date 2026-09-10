@@ -269,7 +269,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome Fantasia *</Label>
               <Input
@@ -295,7 +295,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cnpj">CNPJ</Label>
               <Input
@@ -321,7 +321,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
               <Input
@@ -345,7 +345,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="company_size">Porte da Empresa</Label>
               <Select

@@ -131,11 +131,11 @@ export default function ClientSettingsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Erro</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Erro</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <Button onClick={() => window.location.href = '/clients'}>
               Voltar para Clientes
@@ -165,7 +165,7 @@ export default function ClientSettingsPage() {
               <p className="text-xs text-[#7A7595]">Dados e preferências do cliente</p>
             </div>
           </div>
-          <Button size="sm" onClick={handleSave} disabled={saving}>
+          <Button size="sm" onClick={handleSave} disabled={saving} className="w-full sm:w-auto shrink-0">
             {saving ? (
               <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
             ) : (
@@ -176,23 +176,32 @@ export default function ClientSettingsPage() {
         </div>
 
         <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
-            <TabsTrigger value="services">Serviços</TabsTrigger>
-            <TabsTrigger value="advanced">Avançado</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-1 px-1">
+            <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-3 gap-1 h-auto">
+              <TabsTrigger value="basic" className="text-xs sm:text-sm px-2 shrink-0 whitespace-nowrap">
+                Dados Básicos
+              </TabsTrigger>
+              <TabsTrigger value="services" className="text-xs sm:text-sm px-2 shrink-0 whitespace-nowrap">
+                Serviços
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="text-xs sm:text-sm px-2 shrink-0 whitespace-nowrap">
+                Avançado
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="basic" className="space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between space-y-0">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Building className="w-5 h-5 shrink-0" />
                   Configuração de Campanha (padrão)
                 </CardTitle>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto shrink-0"
                   onClick={() => setEmpresaModalOpen(true)}
                 >
                   {empresa ? 'Editar' : 'Configurar Empresa'}
@@ -371,11 +380,11 @@ export default function ClientSettingsPage() {
                 {services.length > 0 ? (
                   <div className="space-y-4">
                     {services.map((service) => (
-                      <div key={service.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
+                      <div key={service.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg">
+                        <div className="min-w-0">
                           <h3 className="font-medium text-gray-900">{service.name}</h3>
                           <p className="text-sm text-gray-600">{service.description}</p>
-                          <div className="flex gap-2 mt-2">
+                          <div className="flex flex-wrap gap-2 mt-2">
                             <Badge variant={service.is_active ? "default" : "secondary"}>
                               {service.is_active ? 'Ativo' : 'Inativo'}
                             </Badge>
@@ -384,7 +393,7 @@ export default function ClientSettingsPage() {
                             </Badge>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto shrink-0">
                           Configurar
                         </Button>
                       </div>

@@ -23,18 +23,22 @@ const Breadcrumbs = ({ items = [], currentPage = '', className = '' }) => {
   };
 
   return (
-    <nav className={`flex items-center space-x-2 text-sm ${className}`} aria-label="Breadcrumb">
+    <nav
+      className={`flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap max-w-full pb-0.5 ${className}`}
+      aria-label="Breadcrumb"
+    >
       {/* Home sempre presente */}
       <Link 
         to={safeCreatePageUrl('dashboard')} 
-        className="text-gray-500 hover:text-gray-700 flex items-center"
+        className="text-gray-500 hover:text-gray-700 flex items-center shrink-0"
+        aria-label="Início"
       >
         <Home className="w-4 h-4" />
       </Link>
 
       {safeItems.length > 0 && (
         <>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
           
           {safeItems.map((item, index) => {
             const isLast = index === safeItems.length - 1;
@@ -46,14 +50,14 @@ const Breadcrumbs = ({ items = [], currentPage = '', className = '' }) => {
                   <>
                     <Link 
                       to={itemHref}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 shrink-0 max-w-[40vw] truncate"
                     >
                       {item.label || item.title || 'Página'}
                     </Link>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
                   </>
                 ) : (
-                  <span className="text-gray-900 font-medium">
+                  <span className="text-gray-900 font-medium truncate max-w-[50vw]">
                     {item.label || item.title || 'Página Atual'}
                   </span>
                 )}
@@ -66,8 +70,8 @@ const Breadcrumbs = ({ items = [], currentPage = '', className = '' }) => {
       {/* Página atual se não estiver nos items */}
       {currentPage && safeItems.length === 0 && (
         <>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">{currentPage}</span>
+          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+          <span className="text-gray-900 font-medium truncate max-w-[70vw]">{currentPage}</span>
         </>
       )}
     </nav>

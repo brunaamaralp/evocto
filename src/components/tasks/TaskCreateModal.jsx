@@ -290,7 +290,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
             </div>
 
             {/* Linha: Tipo, Prioridade, Status */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label>Tipo</Label>
                 <Select 
@@ -359,7 +359,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
             </div>
 
             {/* Linha: Responsável, Data, Horas */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label className="flex items-center gap-1">
                   <UserIcon className="w-4 h-4" />
@@ -408,10 +408,11 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
             </div>
 
             {/* Botões */}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
               >
@@ -419,6 +420,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
               </Button>
               <Button
                 type="submit"
+                className="w-full sm:w-auto"
                 disabled={loading || !taskData.title.trim() || !taskData.clientId}
               >
                 {loading ? (

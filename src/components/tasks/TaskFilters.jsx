@@ -107,7 +107,7 @@ export default function TaskFilters({
   }
 
   return (
-    <Card className="mx-4 sm:mx-0">
+    <Card className="sm:mx-0">
       <CardContent className="p-3 sm:p-4 space-y-3">
         <div className="flex flex-wrap gap-2">
           {TASK_FILTER_PRESETS.map((preset) => {

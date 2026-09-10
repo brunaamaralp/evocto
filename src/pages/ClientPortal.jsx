@@ -104,20 +104,20 @@ export default function ClientPortal() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Olá, {clientData.name} 👋
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+                  Olá, {clientData.name}
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-sm sm:text-base">
                   {clientData.company && `${clientData.company} • `}
                   Bem-vindo ao seu portal
                 </p>
               </div>
               
-              <div className="flex items-center gap-2">
-                <User className="w-8 h-8 p-2 bg-gray-100 rounded-full" />
-                <span className="text-sm text-gray-600">{user.email}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <User className="w-8 h-8 p-2 bg-gray-100 rounded-full shrink-0" />
+                <span className="text-sm text-gray-600 truncate max-w-[180px] hidden sm:inline">{user.email}</span>
               </div>
             </div>
           </div>
@@ -149,28 +149,30 @@ export default function ClientPortal() {
           {/* Right Column - Main Content */}
           <div className="lg:col-span-3">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid grid-cols-5 w-full">
-                <TabsTrigger value="overview" className="flex items-center gap-2">
-                  <Home className="w-4 h-4" />
-                  <span className="hidden sm:inline">Visão Geral</span>
-                </TabsTrigger>
-                <TabsTrigger value="approvals" className="flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4" />
-                  <span className="hidden sm:inline">Aprovações</span>
-                </TabsTrigger>
-                <TabsTrigger value="documents" className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  <span className="hidden sm:inline">Documentos</span>
-                </TabsTrigger>
-                <TabsTrigger value="reports" className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="hidden sm:inline">Relatórios</span>
-                </TabsTrigger>
-                <TabsTrigger value="help" className="flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Ajuda</span>
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto -mx-1 px-1">
+                <TabsList className="inline-flex w-max min-w-full gap-1 h-auto">
+                  <TabsTrigger value="overview" className="flex items-center gap-2 shrink-0" aria-label="Visão Geral">
+                    <Home className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline whitespace-nowrap">Visão Geral</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="approvals" className="flex items-center gap-2 shrink-0" aria-label="Aprovações">
+                    <CheckSquare className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline whitespace-nowrap">Aprovações</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="documents" className="flex items-center gap-2 shrink-0" aria-label="Documentos">
+                    <FileText className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline whitespace-nowrap">Documentos</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="reports" className="flex items-center gap-2 shrink-0" aria-label="Relatórios">
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline whitespace-nowrap">Relatórios</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="help" className="flex items-center gap-2 shrink-0" aria-label="Ajuda">
+                    <HelpCircle className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline whitespace-nowrap">Ajuda</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="overview">
                 <DashboardOverview 

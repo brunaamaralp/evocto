@@ -38,90 +38,89 @@ const ContextHeader = ({
   const EntityIcon = entity?.type ? getEntityIcon(entity.type) : null;
 
   return (
-    <div className="bg-white border-b border-slate-200 px-6 py-4 space-y-4">
+    <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 space-y-4">
       {/* Primeira linha - Navegação e título */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Botão voltar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           {backButton && (
             <Button
               variant="ghost"
               size="icon"
               asChild
-              className="hover:bg-slate-100"
+              className="hover:bg-slate-100 shrink-0"
             >
               {backButton.href ? (
-                <Link to={backButton.href}>
+                <Link to={backButton.href} aria-label="Voltar">
                   <ChevronLeft className="w-5 h-5" />
                 </Link>
               ) : (
-                <button onClick={backButton.action}>
+                <button type="button" onClick={backButton.action} aria-label="Voltar">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
               )}
             </Button>
           )}
 
-          <div className="flex items-center gap-3">
-            {/* Ícone da entidade */}
+          <div className="flex items-center gap-3 min-w-0">
             {EntityIcon && (
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+              <div className="hidden sm:flex w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg items-center justify-center shrink-0">
                 <EntityIcon className="w-5 h-5 text-blue-600" />
               </div>
             )}
 
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 truncate">{title}</h1>
               {subtitle && (
-                <p className="text-sm text-slate-600">{subtitle}</p>
+                <p className="text-sm text-slate-600 truncate">{subtitle}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Ações principais */}
-        <div className="flex items-center gap-2">
-          {actions.map((action, index) => (
-            <Button
-              key={index}
-              variant={action.variant || 'default'}
-              size="sm"
-              onClick={action.onClick}
-              className={action.className}
-            >
-              {action.icon && <action.icon className="w-4 h-4 mr-2" />}
-              {action.label}
-            </Button>
-          ))}
-        </div>
+        {actions.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
+            {actions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant || 'default'}
+                size="sm"
+                onClick={action.onClick}
+                className={`w-full sm:w-auto ${action.className || ''}`}
+              >
+                {action.icon && <action.icon className="w-4 h-4 mr-2" />}
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Segunda linha - Contexto da entidade e navegação rápida */}
       {(entity || relatedPages.length > 0 || quickActions.length > 0) && (
-        <div className="flex items-center justify-between">
-          {/* Informações da entidade */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {entity && (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
               {entity.status && (
                 <StatusBadge status={entity.status} size="sm" />
               )}
               
               {entity.metadata && entity.metadata.map((meta, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm text-slate-600">
-                  {meta.icon && <meta.icon className="w-4 h-4" />}
-                  <span>{meta.label}: <span className="font-medium">{meta.value}</span></span>
+                <div key={index} className="flex items-center gap-2 text-sm text-slate-600 min-w-0">
+                  {meta.icon && <meta.icon className="w-4 h-4 shrink-0" />}
+                  <span className="truncate">
+                    {meta.label}: <span className="font-medium">{meta.value}</span>
+                  </span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Navegação rápida e ações */}
-          <div className="flex items-center gap-2">
-            {/* Páginas relacionadas */}
+          <div className="flex items-center gap-2 shrink-0">
             {relatedPages.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     Navegar para
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </Button>
@@ -140,11 +139,10 @@ const ContextHeader = ({
               </DropdownMenu>
             )}
 
-            {/* Ações rápidas */}
             {quickActions.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label="Mais ações">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>

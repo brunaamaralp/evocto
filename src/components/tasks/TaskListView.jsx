@@ -264,8 +264,59 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
         </div>
       </div>
 
-      {/* Tabela - Mobile Responsive */}
-      <Card className="overflow-hidden">
+      {/* Lista mobile (cards) */}
+      <div className="space-y-3 md:hidden">
+        {sortedTasks.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center">
+              <Eye className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-base font-medium text-gray-900">Nenhuma tarefa encontrada</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Ajuste os filtros ou crie uma nova tarefa para começar.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          sortedTasks.map((task) => {
+            const isOverdue =
+              task.dueDate &&
+              new Date(task.dueDate) < new Date() &&
+              task.status !== 'completed';
+            return (
+              <Card
+                key={task.id}
+                className={`cursor-pointer ${isOverdue ? 'border-red-200 bg-red-50/60' : ''}`}
+                onClick={() => onEditTask(task)}
+              >
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-medium text-sm text-gray-900 line-clamp-2 min-w-0">
+                      {task.title}
+                    </h4>
+                    <Badge className={`${STATUS_COLORS[task.status]} text-xs shrink-0`}>
+                      {getStatusLabel(task.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                    <span className="truncate">{task.assigneeName || 'Não atribuído'}</span>
+                    {task.dueDate && (
+                      <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
+                        {format(new Date(task.dueDate), 'dd/MM/yyyy', { locale: ptBR })}
+                      </span>
+                    )}
+                    {task.priority && (
+                      <span className="capitalize">{getPriorityLabel(task.priority)}</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
+      {/* Tabela - desktop */}
+      <Card className="overflow-hidden hidden md:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>

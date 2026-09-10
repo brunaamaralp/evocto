@@ -306,24 +306,26 @@ export default function TaskManager({
       )}
 
       <Tabs value={activeView} onValueChange={setActiveView} className="space-y-4">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-1 px-1">
           <TabsList
             className={
               embedded
-                ? 'grid w-full grid-cols-2 min-w-0'
-                : 'grid w-full grid-cols-4 min-w-[320px] sm:min-w-0'
+                ? 'inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-2 gap-1 h-auto'
+                : 'inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 gap-1 h-auto'
             }
           >
             <TabsTrigger
               value="list"
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm shrink-0"
+              aria-label="Lista"
             >
               <List className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               Lista
             </TabsTrigger>
             <TabsTrigger
               value="kanban"
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm shrink-0"
+              aria-label="Kanban"
             >
               <Kanban className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               Kanban
@@ -332,17 +334,21 @@ export default function TaskManager({
               <>
                 <TabsTrigger
                   value="phase"
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm shrink-0"
+                  aria-label="Por Fase"
                 >
                   <Layers className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline sm:inline">Por Fase</span>
+                  <span className="hidden sm:inline">Por Fase</span>
+                  <span className="sm:hidden">Fase</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="calendar"
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm shrink-0"
+                  aria-label="Calendário"
                 >
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline sm:inline">Calendário</span>
+                  <span className="hidden sm:inline">Calendário</span>
+                  <span className="sm:hidden">Agenda</span>
                 </TabsTrigger>
               </>
             )}
@@ -420,7 +426,7 @@ function TaskLoadingSkeleton() {
       <div className="animate-pulse">
         <div className="h-8 bg-gray-300 rounded w-1/3 mb-4"></div>
         <div className="h-4 bg-gray-300 rounded w-1/2 mb-6"></div>
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="h-10 bg-gray-300 rounded"></div>
           ))}

@@ -3,7 +3,8 @@
 .af-page {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 3rem;
+  /* Horizontal padding comes from ContextualLayout main */
+  padding: 0 0 3rem;
   color: #0f172a;
 }
 
@@ -256,16 +257,17 @@
 }
 
 @media (max-width: 720px) {
+  /* Padding comes from ContextualLayout — do not re-add horizontal padding here */
   .af-page {
-    padding: 1rem 0.85rem 2.5rem;
+    padding: 0 0 2.5rem;
+  }
+
+  .af-month {
+    min-width: 0;
+    width: 100%;
   }
 
   .af-dre-cols {
     grid-template-columns: 1fr;
-  }
-
-  .af-table th:nth-child(3),
-  .af-table td:nth-child(3) {
-    /* keep tables usable; no hide — scroll instead */
   }
 }

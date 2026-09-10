@@ -139,33 +139,35 @@ export default function SettingsPage() {
   const canEditAgency = isOwner() || isAdmin();
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configurações</h1>
+        <p className="text-gray-600 mt-2 text-sm sm:text-base">
           Gerencie suas preferências pessoais e configurações da agência
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Perfil
-          </TabsTrigger>
-          <TabsTrigger value="agency" className="flex items-center gap-2">
-            <Building2 className="w-4 h-4" />
-            Agência
-          </TabsTrigger>
-          <TabsTrigger value="policies" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Políticas
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notificações
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 gap-1 h-auto">
+            <TabsTrigger value="profile" className="flex items-center gap-2 shrink-0">
+              <User className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Perfil</span>
+            </TabsTrigger>
+            <TabsTrigger value="agency" className="flex items-center gap-2 shrink-0">
+              <Building2 className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Agência</span>
+            </TabsTrigger>
+            <TabsTrigger value="policies" className="flex items-center gap-2 shrink-0">
+              <Shield className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Políticas</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 shrink-0">
+              <Bell className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Notificações</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Aba Perfil */}
         <TabsContent value="profile">

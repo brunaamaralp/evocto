@@ -83,43 +83,42 @@ export default function AgencyManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Building className="w-8 h-8 text-blue-600" />
+    <div className="space-y-6 p-0 sm:p-0">
+      <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Building className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 shrink-0" />
             Gerenciar Agência
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Gerencie informações da agência, equipe e configurações
           </p>
         </div>
 
         {/* Tabs principais */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
-            <TabsTrigger value="info" className="flex items-center gap-2">
-              <Building className="w-4 h-4" />
-              Agência
-            </TabsTrigger>
-            
-            <TabsTrigger value="team" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Equipe
-            </TabsTrigger>
-            
-            <TabsTrigger value="branding" className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              Visual
-            </TabsTrigger>
-            
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Configurações
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-1 px-1 mb-2">
+            <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-4 lg:w-[600px] gap-1 h-auto">
+              <TabsTrigger value="info" className="flex items-center gap-2 shrink-0">
+                <Building className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Agência</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="team" className="flex items-center gap-2 shrink-0">
+                <Users className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Equipe</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="branding" className="flex items-center gap-2 shrink-0">
+                <Palette className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Visual</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="settings" className="flex items-center gap-2 shrink-0">
+                <Settings className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Configurações</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Aba Informações da Agência */}
           <TabsContent value="info" className="space-y-6">
@@ -141,7 +140,7 @@ export default function AgencyManagementPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="contactEmail">Email de Contato</Label>
                     <Input
@@ -255,7 +254,7 @@ export default function AgencyManagementPage() {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="primaryColor" className="text-sm">Cor Principal</Label>
                     <div className="flex gap-2 items-center">
@@ -352,7 +351,6 @@ export default function AgencyManagementPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

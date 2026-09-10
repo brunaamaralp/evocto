@@ -77,22 +77,31 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center" aria-label={BRAND.name}>
-            <NaviBrandLockup height={36} />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+          <Link to="/" className="flex items-center min-w-0 shrink" aria-label={BRAND.name}>
+            <NaviBrandLockup height={32} className="sm:hidden max-w-[140px]" />
+            <NaviBrandLockup height={36} className="hidden sm:block" />
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {isAuthenticated ? (
-              <Button asChild>
+              <Button asChild size="sm" className="sm:h-10 sm:px-4 sm:text-sm">
                 <Link to={appHome}>Ir ao painel</Link>
               </Button>
             ) : (
               <>
-                <Button variant="ghost" asChild className="text-[var(--color-sidebar-text,#7A7595)]">
+                <Button
+                  variant="ghost"
+                  asChild
+                  size="sm"
+                  className="text-[var(--color-sidebar-text,#7A7595)] px-2 sm:px-4"
+                >
                   <Link to="/login">Entrar</Link>
                 </Button>
-                <Button asChild>
-                  <Link to="/create-account">{trialMarketing.ctaPrimary}</Link>
+                <Button asChild size="sm" className="sm:h-10 sm:px-4 sm:text-sm">
+                  <Link to="/create-account">
+                    <span className="sm:hidden">Teste grátis</span>
+                    <span className="hidden sm:inline">{trialMarketing.ctaPrimary}</span>
+                  </Link>
                 </Button>
               </>
             )}

@@ -142,8 +142,8 @@ export default function BriefingReviewSimples({
             const low = (detected?.confianca || 0) < 70;
             return (
               <div key={field.key} className="rounded-lg border p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{field.label}</p>
                     <Input
                       className="mt-2"
@@ -170,6 +170,7 @@ export default function BriefingReviewSimples({
                     type="button"
                     variant="ghost"
                     size="sm"
+                    className="self-start w-full sm:w-auto shrink-0"
                     onClick={() => setEditField(field.key)}
                   >
                     <Pencil className="w-3.5 h-3.5 mr-1" />
@@ -186,7 +187,7 @@ export default function BriefingReviewSimples({
             {parsed?.data?.valor && (
               <p className="text-xs text-slate-500">Detectado: {parsed.data.valor}</p>
             )}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Início</Label>
                 <Input

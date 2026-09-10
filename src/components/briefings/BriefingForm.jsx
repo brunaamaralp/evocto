@@ -92,21 +92,21 @@ export default function BriefingForm({
       {/* Header com Progress */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
+            <div className="min-w-0">
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5" />
+                <Briefcase className="w-5 h-5 shrink-0" />
                 Briefing de Consultoria
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1 truncate">
                 {client ? `${client.name} • ${client.company || 'Empresa'}` : 'Cliente não identificado'}
               </p>
             </div>
-            <div className="text-right">
+            <div className="sm:text-right shrink-0">
               <Badge variant={completionScore >= 80 ? 'default' : completionScore >= 50 ? 'secondary' : 'outline'}>
                 {completionScore}% completo
               </Badge>
-              <Progress value={completionScore} className="w-24 mt-2" />
+              <Progress value={completionScore} className="w-full sm:w-24 mt-2" />
             </div>
           </div>
         </CardHeader>
@@ -448,25 +448,25 @@ export default function BriefingForm({
       {/* Status e Alertas */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2 min-w-0">
               {completionScore >= 80 ? (
                 <>
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                   <span className="text-sm text-green-700 font-medium">
                     Briefing completo e pronto para análise
                   </span>
                 </>
               ) : completionScore >= 50 ? (
                 <>
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                   <span className="text-sm text-yellow-700 font-medium">
                     Algumas informações importantes ainda podem ser adicionadas
                   </span>
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <span className="text-sm text-red-700 font-medium">
                     Informações essenciais ainda precisam ser preenchidas
                   </span>
@@ -478,7 +478,7 @@ export default function BriefingForm({
               <Button 
                 onClick={handleSave}
                 disabled={saving}
-                className="ml-4"
+                className="w-full sm:w-auto shrink-0"
               >
                 {saving ? 'Salvando...' : 'Salvar'}
               </Button>

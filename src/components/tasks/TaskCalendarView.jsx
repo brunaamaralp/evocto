@@ -311,8 +311,48 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
         </div>
       </div>
 
-      {/* Calendário - Mobile Responsive */}
-      <Card className="overflow-hidden">
+      {/* Agenda mobile */}
+      <div className="space-y-3 md:hidden">
+        {monthDays
+          .map((day) => ({
+            day,
+            dayTasks: tasksByDate[format(day, 'yyyy-MM-dd')] || [],
+          }))
+          .filter(({ dayTasks }) => dayTasks.length > 0).length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-gray-600">
+              Nenhuma tarefa com prazo neste mês.
+            </CardContent>
+          </Card>
+        ) : (
+          monthDays
+            .map((day) => ({
+              day,
+              dayTasks: tasksByDate[format(day, 'yyyy-MM-dd')] || [],
+            }))
+            .filter(({ dayTasks }) => dayTasks.length > 0)
+            .map(({ day, dayTasks }) => (
+              <Card key={format(day, 'yyyy-MM-dd')}>
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                      {format(day, "EEEE, d 'de' MMM", { locale: ptBR })}
+                    </p>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      {dayTasks.length}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {dayTasks.map((task) => renderTask(task, false))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+        )}
+      </div>
+
+      {/* Calendário mensal — desktop/tablet */}
+      <Card className="overflow-hidden hidden md:block">
         <CardContent className="p-0">
           {/* Cabeçalho dos Dias da Semana */}
           <div className="grid grid-cols-7 border-b">

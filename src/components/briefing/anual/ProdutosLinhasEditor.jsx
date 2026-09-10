@@ -91,7 +91,7 @@ export default function ProdutosLinhasEditor({ value = [], onChange, errors = {}
                 className="min-h-[56px]"
               />
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Preço min</Label>
                   <Input

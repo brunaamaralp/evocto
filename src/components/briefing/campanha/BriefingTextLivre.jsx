@@ -59,7 +59,7 @@ export default function BriefingTextLivre({
           placeholder={`Vamos fazer a campanha de outono.\nObjetivo é aumentar as vendas.\nLança a linha Gold com desconto 15%.\nA dona aparece, interior da loja.\nGrava 15-18 de setembro.`}
           className="min-h-[300px] max-h-[600px]"
         />
-        <div className="flex justify-between mt-1 text-xs text-slate-500">
+        <div className="flex flex-col gap-1 sm:flex-row sm:justify-between mt-1 text-xs text-slate-500">
           <span>Caracteres: {len}/{MAX_CHARS}</span>
           <span>📌 Dica: Quanto mais detalhe, melhor</span>
         </div>

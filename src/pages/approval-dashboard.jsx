@@ -401,19 +401,19 @@ export default function ApprovalDashboard() {
     <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">Dashboard de Aprovações</h1>
-            <p className="text-[#7A7595]">Gerencie todas as solicitações de aprovação</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">Dashboard de Aprovações</h1>
+            <p className="text-[#7A7595] text-sm sm:text-base">Gerencie todas as solicitações de aprovação</p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto shrink-0">
             <Send className="w-4 h-4 mr-2" />
             Nova Aprovação
           </Button>
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <StatsCard
             title="Total de Aprovações"
             value={stats.total}

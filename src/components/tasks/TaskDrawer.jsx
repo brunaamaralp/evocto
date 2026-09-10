@@ -668,10 +668,10 @@ export default function TaskDrawer() {
 
   return (
     <Sheet open={open} onOpenChange={(v) => v ? setOpen(true) : closeDrawer()}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl flex flex-col">
+      <SheetContent side="right" className="w-full sm:max-w-3xl flex flex-col p-0 gap-0">
         {/* Cabeçalho Contextual Dinâmico */}
-        <SheetHeader className="border-b pb-4 px-6 pt-6">
-          <div className="flex items-start justify-between gap-4">
+        <SheetHeader className="border-b pb-4 px-4 sm:px-6 pt-4 sm:pt-6 space-y-0 text-left">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1 min-w-0">
               {/* Contexto da Tarefa */}
               <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -702,16 +702,16 @@ export default function TaskDrawer() {
               </div>
 
               {/* Título */}
-              <SheetTitle className="text-xl font-semibold leading-tight pr-4">
+              <SheetTitle className="text-lg sm:text-xl font-semibold leading-tight pr-8 sm:pr-4">
                 {task ? task.title : "Carregando tarefa..."}
               </SheetTitle>
 
               {/* Ações Rápidas de Status */}
-              <div className="flex flex-wrap items-center gap-3 mt-3">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-none">
                   <label className="text-sm font-medium text-gray-700 sr-only sm:not-sr-only">Status:</label>
                   <Select value={currentStatus} onValueChange={handleQuickStatusChange} disabled={saving}>
-                    <SelectTrigger className="w-auto min-w-[120px] h-8 text-xs sm:w-40">
+                    <SelectTrigger className="w-full min-w-0 h-8 text-xs sm:w-40">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -732,7 +732,7 @@ export default function TaskDrawer() {
                     size="sm" 
                     onClick={handleMarkCompleted} 
                     disabled={saving}
-                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 text-xs"
+                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 text-xs shrink-0"
                   >
                     {saving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
                     Concluir
@@ -743,28 +743,28 @@ export default function TaskDrawer() {
               </div>
             </div>
 
-            {/* Metadados Laterais */}
-            <div className="text-right text-xs text-muted-foreground space-y-1 min-w-[120px]">
+            {/* Metadados — abaixo no mobile */}
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground sm:flex-col sm:text-right sm:min-w-[120px] sm:shrink-0">
               {task?.dueDate && (
-                <div className="flex items-center gap-1 justify-end">
-                  <Calendar className="w-3 h-3" />
+                <div className="flex items-center gap-1 sm:justify-end">
+                  <Calendar className="w-3 h-3 shrink-0" />
                   <span>{formatDate(task.dueDate)}</span>
                 </div>
               )}
               {task?.estimatedHours && (
-                <div className="flex items-center gap-1 justify-end">
-                  <Clock className="w-3 h-3" />
+                <div className="flex items-center gap-1 sm:justify-end">
+                  <Clock className="w-3 h-3 shrink-0" />
                   <span>{task.estimatedHours}h estimadas</span>
                 </div>
               )}
               {getAssignedUser(task?.assignedTo) && (
-                <div className="flex items-center gap-1 justify-end">
-                  <Avatar className="w-4 h-4">
+                <div className="flex items-center gap-1 sm:justify-end min-w-0">
+                  <Avatar className="w-4 h-4 shrink-0">
                     <AvatarFallback className="text-xs">
                       {getAssignedUser(task.assignedTo).full_name?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
-                  <span>{getAssignedUser(task.assignedTo).full_name || getAssignedUser(task.assignedTo).email}</span>
+                  <span className="truncate">{getAssignedUser(task.assignedTo).full_name || getAssignedUser(task.assignedTo).email}</span>
                 </div>
               )}
             </div>
@@ -808,45 +808,47 @@ export default function TaskDrawer() {
         {/* Content Area com Scroll Independente */}
         {!loading && task && (
           <>
-            <div className="flex-1 overflow-hidden px-6 pt-4">
+            <div className="flex-1 overflow-hidden px-4 sm:px-6 pt-4">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-5 mb-4">
-                  <TabsTrigger value="details" className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden sm:inline">Detalhes</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="checklist" className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Checklist</span>
-                    {task.checklist?.length > 0 && (
-                      <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                        {progressChecklist}%
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="dependencies" className="flex items-center gap-2">
-                    <Link2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Deps</span>
-                    {task.dependencies?.length > 0 && (
-                      <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                        {task.dependencies.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="history" className="flex items-center gap-2">
-                    <History className="w-4 h-4" />
-                    <span className="hidden sm:inline">Histórico</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="comments" className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    <span className="hidden sm:inline">Comentários</span>
-                    {task.comments?.length > 0 && (
-                      <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                        {task.comments.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto -mx-1 px-1 mb-4">
+                  <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-5 gap-1 h-auto">
+                    <TabsTrigger value="details" className="flex items-center gap-2 shrink-0" aria-label="Detalhes">
+                      <Eye className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Detalhes</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="checklist" className="flex items-center gap-2 shrink-0" aria-label="Checklist">
+                      <CheckSquare className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Checklist</span>
+                      {task.checklist?.length > 0 && (
+                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
+                          {progressChecklist}%
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="dependencies" className="flex items-center gap-2 shrink-0" aria-label="Dependências">
+                      <Link2 className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Deps</span>
+                      {task.dependencies?.length > 0 && (
+                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
+                          {task.dependencies.length}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="flex items-center gap-2 shrink-0" aria-label="Histórico">
+                      <History className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Histórico</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="comments" className="flex items-center gap-2 shrink-0" aria-label="Comentários">
+                      <MessageCircle className="w-4 h-4 shrink-0" />
+                      <span className="hidden sm:inline">Comentários</span>
+                      {task.comments?.length > 0 && (
+                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
+                          {task.comments.length}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 {/* Tabs Content com Scroll */}
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2">
@@ -960,14 +962,14 @@ export default function TaskDrawer() {
                           </Button>
                         </div>
 
-                        <div className="flex items-center gap-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <UserIcon className="w-3 h-3" />
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <UserIcon className="w-3 h-3 shrink-0" />
                             <Select 
                               value={checklistItemAssignee} 
                               onValueChange={setChecklistItemAssignee}
                             >
-                              <SelectTrigger className="h-7 w-32 text-xs">
+                              <SelectTrigger className="h-8 w-full sm:w-32 text-xs">
                                 <SelectValue placeholder="Responsável" />
                               </SelectTrigger>
                               <SelectContent>
@@ -981,13 +983,13 @@ export default function TaskDrawer() {
                             </Select>
                           </div>
 
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <Calendar className="w-3 h-3 shrink-0" />
                             <Input
                               type="date"
                               value={checklistItemDueDate}
                               onChange={(e) => setChecklistItemDueDate(e.target.value)}
-                              className="h-7 w-32 text-xs"
+                              className="h-8 w-full sm:w-32 text-xs"
                             />
                           </div>
                         </div>
@@ -1258,25 +1260,25 @@ export default function TaskDrawer() {
             </div>
 
             {/* Rodapé Fixo com Ações */}
-            <div className="border-t bg-white p-4 px-6 mt-auto">
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-gray-500 flex items-center gap-2">
+            <div className="border-t bg-white p-3 sm:p-4 px-4 sm:px-6 mt-auto pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span>Tarefa #{task.id?.slice(-8)}</span>
-                  <span>•</span>
-                  <span>ESC para fechar</span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline">ESC para fechar</span>
                   {hasUnsavedChanges && (
                     <>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span className="text-yellow-600 font-medium">Alterações pendentes</span>
                     </>
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline" 
                     onClick={closeDrawer}
-                    className="text-sm"
+                    className="text-sm flex-1 sm:flex-none"
                   >
                     Fechar
                   </Button>
@@ -1284,7 +1286,7 @@ export default function TaskDrawer() {
                   <Button 
                     onClick={saveEdits} 
                     disabled={saving || !hasUnsavedChanges} 
-                    className="gap-2 text-sm"
+                    className="gap-2 text-sm flex-1 sm:flex-none"
                   >
                     {saving ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

@@ -31,6 +31,7 @@ import {
 import { toast } from 'sonner';
 import { useLeadStore } from '@/store/useLeadStore';
 import { getModulePastel } from '@/lib/modulePastels';
+import PWAInstaller from '@/components/pwa/PWAInstaller';
 
 const FinanceiroConfigTab = lazy(() => import('@/components/finance/FinanceiroConfigTab.jsx'));
 const GoogleDriveConnectionCard = lazy(() =>
@@ -183,32 +184,34 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Perfil
-          </TabsTrigger>
-          <TabsTrigger value="agency" className="flex items-center gap-2">
-            <Building2 className="w-4 h-4" />
-            Agência
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-2">
-            <Plug className="w-4 h-4" />
-            Integrações
-          </TabsTrigger>
-          <TabsTrigger value="financeiro" className="flex items-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="policies" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Políticas
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notificações
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto">
+            <TabsTrigger value="profile" className="flex items-center gap-2 shrink-0">
+              <User className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Perfil</span>
+            </TabsTrigger>
+            <TabsTrigger value="agency" className="flex items-center gap-2 shrink-0">
+              <Building2 className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Agência</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2 shrink-0">
+              <Plug className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Integrações</span>
+            </TabsTrigger>
+            <TabsTrigger value="financeiro" className="flex items-center gap-2 shrink-0">
+              <Wallet className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Financeiro</span>
+            </TabsTrigger>
+            <TabsTrigger value="policies" className="flex items-center gap-2 shrink-0">
+              <Shield className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Políticas</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 shrink-0">
+              <Bell className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Notificações</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="integrations">
           <Suspense fallback={<div className="text-sm text-slate-500 p-4">Carregando…</div>}>
@@ -263,6 +266,10 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+
+          <div className="mt-6">
+            <PWAInstaller />
+          </div>
         </TabsContent>
 
         {/* Aba Agência */}
@@ -478,7 +485,7 @@ export default function SettingsPage() {
                         <Label>Ativar horários silenciosos</Label>
                       </div>
                       {policies.quietHours.enabled && (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="quietStart">Início</Label>
                             <Input

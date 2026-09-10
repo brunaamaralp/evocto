@@ -150,8 +150,8 @@ export default function ClientLearningsPage() {
         </div>
 
         {/* Filtros */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1 relative">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex-1 relative min-w-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder="Buscar aprendizados..."
@@ -164,7 +164,7 @@ export default function ClientLearningsPage() {
           <select 
             value={confidenceFilter}
             onChange={(e) => setConfidenceFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
+            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
           >
             <option value="all">Todas Confianças</option>
             <option value="high">Alta (≥80%)</option>
@@ -175,7 +175,7 @@ export default function ClientLearningsPage() {
           <select 
             value={reviewedFilter}
             onChange={(e) => setReviewedFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
+            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
           >
             <option value="all">Todos Status</option>
             <option value="reviewed">Revisados</option>

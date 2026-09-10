@@ -306,15 +306,16 @@ function AICentralPage() {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button 
               variant="outline"
+              className="flex-1 sm:flex-none"
               onClick={() => window.location.href = '/ai-configuration'}
             >
               <Settings className="w-4 h-4 mr-2" />
               Configurar IA
             </Button>
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+            <Button className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
               <Brain className="w-4 h-4 mr-2" />
               Gerar Recomendações
             </Button>
@@ -322,7 +323,7 @@ function AICentralPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -386,20 +387,22 @@ function AICentralPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-fit">
-            <TabsTrigger value="recommendations" className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4" />
-              Recomendações ({stats.activeRecommendations})
-            </TabsTrigger>
-            <TabsTrigger value="agents" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Agentes ({executions.length})
-            </TabsTrigger>
-            <TabsTrigger value="jobs" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Jobs ({jobs.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-1 px-1">
+            <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-3 lg:w-fit gap-1 h-auto">
+              <TabsTrigger value="recommendations" className="flex items-center gap-2 shrink-0">
+                <Lightbulb className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Recomendações ({stats.activeRecommendations})</span>
+              </TabsTrigger>
+              <TabsTrigger value="agents" className="flex items-center gap-2 shrink-0">
+                <Brain className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Agentes ({executions.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="jobs" className="flex items-center gap-2 shrink-0">
+                <Activity className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">Jobs ({jobs.length})</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="recommendations">
             {recommendations.length > 0 ? (

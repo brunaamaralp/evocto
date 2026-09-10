@@ -4,9 +4,10 @@ import { Client } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import TaskFilters from "@/components/tasks/TaskFilters";
+import TaskCreateModal from "@/components/tasks/TaskCreateModal";
 import TimeTracker from "@/components/tasks/TimeTracker";
 import { Input } from "@/components/ui/input";
-import { GripVertical, Save } from "lucide-react";
+import { GripVertical, Plus, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/components/auth/SessionManager";
 import {
@@ -31,29 +32,42 @@ function TaskCard({ task, onUpdateTitle }) {
 
   return (
     <div className="bg-white rounded-xl border border-white/60 p-3 space-y-2 shadow-sm">
-      <div className="flex items-center gap-2">
-        <button className="cursor-grab text-[#7A7595]">
+      <div className="flex items-start gap-2">
+        <button type="button" className="cursor-grab text-[#7A7595] shrink-0 mt-0.5" aria-label="Arrastar">
           <GripVertical className="w-4 h-4" />
         </button>
         {editing ? (
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full min-w-0">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8" />
-            <Button size="sm" onClick={() => { onUpdateTitle(title); setEditing(false); }} className="gap-1">
+            <Button
+              size="sm"
+              className="gap-1 w-full"
+              onClick={() => {
+                onUpdateTitle(title);
+                setEditing(false);
+              }}
+            >
               <Save className="w-4 h-4" /> Salvar
             </Button>
           </div>
         ) : (
-          <button onClick={() => setEditing(true)} className="text-left font-medium text-[#18162A] flex-1">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-left font-medium text-[#18162A] flex-1 min-w-0 break-words"
+          >
             {task.title}
           </button>
         )}
       </div>
-      <div className="flex items-center justify-between">
-        <Badge variant="outline" className="bg-white/60">{task.priority}</Badge>
-        <TimeTracker task={task} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Badge variant="outline" className="bg-white/60 shrink-0">{task.priority}</Badge>
+        <div className="min-w-0 overflow-hidden">
+          <TimeTracker task={task} />
+        </div>
       </div>
       {task.clientId && (
-        <div className="text-xs text-[#7A7595]">Cliente: {task.client?.name || task.clientId}</div>
+        <div className="text-xs text-[#7A7595] truncate">Cliente: {task.client?.name || task.clientId}</div>
       )}
     </div>
   );
@@ -65,6 +79,7 @@ export default function TasksBoardPage() {
   const [tasks, setTasks] = useState([]);
   const [assignees, setAssignees] = useState([]);
   const [filters, setFilters] = useState({ ...EMPTY_TASK_FILTERS });
+  const [createOpen, setCreateOpen] = useState(false);
   const [columns, setColumns] = useState(() => {
     const init = {};
     STATUSES.forEach(s => { init[s] = []; });
@@ -128,13 +143,20 @@ export default function TasksBoardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Tarefas · Kanban</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">Tarefas · Kanban</h1>
           <p className="text-sm text-[#7A7595] mt-1">
             Horas registradas (filtro atual): <span className="font-semibold text-[#18162A]">{totalHours.toFixed(2)}h</span>
           </p>
         </div>
+        <Button
+          className="gap-2 w-full sm:w-auto shrink-0"
+          onClick={() => setCreateOpen(true)}
+        >
+          <Plus className="w-4 h-4" />
+          Nova Tarefa
+        </Button>
       </div>
 
       <TaskFilters
@@ -145,15 +167,16 @@ export default function TasksBoardPage() {
         currentUserId={currentUserId}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="overflow-x-auto -mx-1 px-1 pb-2">
+        <div className="flex gap-4 min-w-max lg:min-w-0 lg:grid lg:grid-cols-5 lg:w-full">
         {STATUSES.map((status) => {
           const stagePastel = getStagePastel(status);
           return (
-            <div key={status} className={`rounded-2xl p-4 ${stagePastel.column}`}>
+            <div key={status} className={`w-72 shrink-0 lg:w-auto rounded-2xl p-4 ${stagePastel.column}`}>
               <div className="pb-2 mb-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#18162A]">{STATUS_LABELS[status]}</span>
-                  <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-[#18162A] truncate">{STATUS_LABELS[status]}</span>
+                  <Badge variant="secondary" className="text-xs rounded-full bg-white/70 shrink-0">
                     {(columns[status] || []).length}
                   </Badge>
                 </div>
@@ -170,7 +193,17 @@ export default function TasksBoardPage() {
             </div>
           );
         })}
+        </div>
       </div>
+
+      <TaskCreateModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={() => {
+          setCreateOpen(false);
+          load();
+        }}
+      />
     </div>
   );
 }

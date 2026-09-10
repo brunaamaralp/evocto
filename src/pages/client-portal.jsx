@@ -191,39 +191,41 @@ export default function ClientPortalPage() {
   if (dashboardData && !loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Portal do Cliente</h1>
-            <p className="text-gray-600">Bem-vindo, {user.name || user.email}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Portal do Cliente</h1>
+            <p className="text-gray-600 text-sm sm:text-base truncate">Bem-vindo, {user.name || user.email}</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-    <TabsList className="grid w-full grid-cols-6">
-      <TabsTrigger value="overview" className="flex items-center gap-2">
-        <Building className="w-4 h-4" />
+    <div className="overflow-x-auto -mx-1 px-1">
+    <TabsList className="inline-flex w-max min-w-full gap-1 h-auto">
+      <TabsTrigger value="overview" className="flex items-center gap-2 shrink-0" aria-label="Visão Geral">
+        <Building className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Visão Geral</span>
       </TabsTrigger>
-      <TabsTrigger value="executive" className="flex items-center gap-2">
-        <BarChart3 className="w-4 h-4" />
+      <TabsTrigger value="executive" className="flex items-center gap-2 shrink-0" aria-label="Dashboard">
+        <BarChart3 className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Dashboard</span>
       </TabsTrigger>
-      <TabsTrigger value="progress" className="flex items-center gap-2">
-        <TrendingUp className="w-4 h-4" />
+      <TabsTrigger value="progress" className="flex items-center gap-2 shrink-0" aria-label="Progresso">
+        <TrendingUp className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Progresso</span>
       </TabsTrigger>
-      <TabsTrigger value="goals" className="flex items-center gap-2">
-        <CheckCircle className="w-4 h-4" />
+      <TabsTrigger value="goals" className="flex items-center gap-2 shrink-0" aria-label="Metas e KPIs">
+        <CheckCircle className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Metas & KPIs</span>
       </TabsTrigger>
-      <TabsTrigger value="files" className="flex items-center gap-2">
-        <FileText className="w-4 h-4" />
+      <TabsTrigger value="files" className="flex items-center gap-2 shrink-0" aria-label="Arquivos">
+        <FileText className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Arquivos</span>
       </TabsTrigger>
-      <TabsTrigger value="help" className="flex items-center gap-2">
-        <AlertCircle className="w-4 h-4" />
+      <TabsTrigger value="help" className="flex items-center gap-2 shrink-0" aria-label="Ajuda">
+        <AlertCircle className="w-4 h-4 shrink-0" />
         <span className="hidden sm:inline">Ajuda</span>
       </TabsTrigger>
     </TabsList>
+    </div>
 
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -347,11 +349,11 @@ export default function ClientPortalPage() {
   // Show error state
   if (error && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Portal do Cliente</h1>
-            <Button onClick={handleRefresh} disabled={refreshing} variant="outline">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Portal do Cliente</h1>
+            <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="w-full sm:w-auto shrink-0">
               {refreshing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
               {refreshing ? 'Atualizando...' : 'Tentar Novamente'}
             </Button>
@@ -398,19 +400,19 @@ export default function ClientPortalPage() {
 
   // Show main portal content
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Bem-vindo, {user?.full_name || 'Cliente'}! 👋
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
+              Bem-vindo, {user?.full_name || 'Cliente'}!
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
               {dashboardData?.client?.company || 'Seu portal de acompanhamento'}
             </p>
           </div>
-          <Button onClick={handleRefresh} disabled={refreshing} variant="outline">
+          <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="w-full sm:w-auto shrink-0">
             {refreshing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             {refreshing ? 'Atualizando...' : 'Atualizar'}
           </Button>
