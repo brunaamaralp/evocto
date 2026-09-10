@@ -44,6 +44,24 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/campaigns-agent"
+  to = "/.netlify/functions/campaigns-agent"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campaigns-agent/"
+  to = "/.netlify/functions/campaigns-agent"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campaigns/agent/*"
+  to = "/.netlify/functions/campaigns-agent"
+  status = 200
+  force = true
+
 # Service Worker e assets PWA — não cachear o SW no CDN
 [[headers]]
   for = "/sw.js"

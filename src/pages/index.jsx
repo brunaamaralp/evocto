@@ -152,6 +152,7 @@ import personaDashboard from "./persona-dashboard";
 import campaignShare from "./campaign-share";
 import campaignsPerformance from "./campaigns-performance";
 import campaignInsights from "./campaign-insights";
+import brainstorm from "./brainstorm";
 
 import customreports from "./custom-reports";
 
@@ -394,6 +395,7 @@ const PAGES = {
     "campaign-share": campaignShare,
     "campaigns-performance": campaignsPerformance,
     "campaign-insights": campaignInsights,
+    brainstorm: brainstorm,
     
     "custom-reports": customreports,
     
@@ -667,6 +669,9 @@ function PagesContent() {
                 <Route path="/dashboard/:persona" element={createElement(personaDashboard)} />
                 <Route path="/campaigns-performance" element={createElement(campaignsPerformance)} />
                 <Route path="/campaign-insights" element={createElement(campaignInsights)} />
+                <Route path="/brainstorm" element={createElement(brainstorm)} />
+                <Route path="/campaigns/cycles/:planId" element={createElement(cycleplan)} />
+                <Route path="/cycle-plan/:planId" element={createElement(cycleplan)} />
                 
                 <Route path="/custom-reports" element={createElement(customreports)} />
                 
