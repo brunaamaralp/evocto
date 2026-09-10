@@ -9,24 +9,36 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
+import { useSession, SESSION_STATUS } from '@/components/auth/SessionManager';
+
+function homeForUser(user) {
+  return user?.role === 'client' ? '/client-portal' : '/dashboard';
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated, sessionStatus, bootstrapAuth } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const checkingSession =
+    sessionStatus === SESSION_STATUS.BOOTSTRAPPING ||
+    sessionStatus === SESSION_STATUS.LOADING;
 
   useEffect(() => {
-    User.me()
-      .then((user) => {
-        if (!user) return;
-        navigate(user.role === 'client' ? '/client-portal' : '/dashboard');
-      })
-      .catch(() => {});
-  }, [navigate]);
+    if (isAuthenticated && user) {
+      const redirect = new URLSearchParams(location.search).get('redirect');
+      navigate(redirect || homeForUser(user), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location.search]);
+
+  useEffect(() => {
+    if (isAuthenticated || checkingSession) return;
+    void bootstrapAuth();
+  }, [isAuthenticated, checkingSession, bootstrapAuth]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -39,13 +51,14 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const user = await User.login({ email: email.trim(), password });
+      const loggedUser = await User.login({ email: email.trim(), password });
+      await bootstrapAuth({ force: true });
       const redirect = new URLSearchParams(location.search).get('redirect');
       if (redirect) {
-        navigate(redirect);
+        navigate(redirect, { replace: true });
         return;
       }
-      navigate(user?.role === 'client' ? '/client-portal' : '/dashboard');
+      navigate(homeForUser(loggedUser), { replace: true });
     } catch (err) {
       const message = err?.message || '';
       if (message.toLowerCase().includes('invalid') || message.toLowerCase().includes('credentials')) {
@@ -57,6 +70,19 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (checkingSession || isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F2FC] via-white to-[#EDE9FB] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 text-[#7A7595]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#6C47D8]" />
+          <p className="text-sm">
+            {isAuthenticated ? 'Abrindo seu painel...' : 'Verificando sessão...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F2FC] via-white to-[#EDE9FB] flex items-center justify-center p-4">

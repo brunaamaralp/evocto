@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import {
   LayoutDashboard,
@@ -25,22 +25,28 @@ import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildClientTasksHref } from '@/lib/taskScope';
 
 /**
  * Soft UI rail: dark brand (global) vs teal (cliente).
+ * Hierarquia cliente: Operação (campanha) → Cliente → Backstage.
  */
 export default function ContextualSidebar({
   currentPage,
   clientId,
   serviceId,
+  briefingId = null,
   isOpen,
   onClose,
 }) {
   useTranslation();
+  const location = useLocation();
   const [client, setClient] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const isClientMode = Boolean(clientId && !serviceId);
   const theme = isClientMode ? CLIENT_CONTEXT : GLOBAL_SHELL;
+  const hash = location.hash || '';
 
   useEffect(() => {
     if (!clientId) {
@@ -60,112 +66,181 @@ export default function ContextualSidebar({
 
   const getNavigationItems = () => {
     if (clientId && !serviceId) {
-      return [
+      const inCampaign =
+        Boolean(briefingId) &&
+        (currentPage === 'client-campaign' ||
+          currentPage === 'client-tasks' ||
+          currentPage === 'client-briefing' ||
+          currentPage === 'briefing-campanha' ||
+          currentPage === 'briefing-editor');
+
+      const campaignHref = briefingId
+        ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
+        : createPageUrl(`client-detail?clientId=${clientId}#campanhas`);
+
+      const tasksHref = briefingId
+        ? createPageUrl(
+            buildClientTasksHref({ clientId, briefingId })
+          )
+        : createPageUrl(`client-tasks?clientId=${clientId}`);
+
+      const briefingHref = briefingId
+        ? createPageUrl(
+            `client-briefing?clientId=${clientId}&briefingId=${briefingId}`
+          )
+        : createPageUrl(`client-briefing?clientId=${clientId}`);
+
+      const items = [
         {
+          type: 'link',
           label: 'Voltar para Clientes',
           icon: ArrowLeft,
-          href: '/clients',
+          href: createPageUrl('clients'),
           isBack: true,
         },
+        { type: 'section', label: 'Operação' },
         {
+          type: 'link',
           label: 'Visão Geral',
           icon: LayoutDashboard,
-          href: `/client-detail?clientId=${clientId}`,
+          href: createPageUrl(`client-detail?clientId=${clientId}`),
           isActive:
             (currentPage === 'client' || currentPage === 'client-detail') &&
-            typeof window !== 'undefined' &&
-            window.location.hash !== '#campanhas',
+            hash !== '#campanhas',
         },
         {
+          type: 'link',
           label: 'Campanhas',
           icon: Megaphone,
-          href: `/client-detail?clientId=${clientId}#campanhas`,
+          href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
           isActive:
-            currentPage === 'briefing-campanha' ||
+            hash === '#campanhas' ||
             currentPage === 'client-campaign' ||
-            (typeof window !== 'undefined' && window.location.hash === '#campanhas'),
+            currentPage === 'briefing-campanha' ||
+            (currentPage === 'client-tasks' && Boolean(briefingId)) ||
+            (currentPage === 'client-briefing' && Boolean(briefingId)),
         },
+      ];
+
+      if (inCampaign && briefingId) {
+        items.push(
+          {
+            type: 'link',
+            label: 'Visão da campanha',
+            icon: Megaphone,
+            href: campaignHref,
+            nested: true,
+            isActive: currentPage === 'client-campaign',
+          },
+          {
+            type: 'link',
+            label: 'Tarefas',
+            icon: CheckSquare,
+            href: tasksHref,
+            nested: true,
+            isActive: currentPage === 'client-tasks',
+          },
+          {
+            type: 'link',
+            label: 'Briefing',
+            icon: FileText,
+            href: briefingHref,
+            nested: true,
+            isActive:
+              currentPage === 'client-briefing' ||
+              currentPage === 'briefing-campanha' ||
+              currentPage === 'briefing-editor',
+          }
+        );
+      }
+
+      items.push(
+        { type: 'section', label: 'Cliente' },
         {
-          label: 'Tarefas',
-          icon: CheckSquare,
-          href: `/client-tasks?clientId=${clientId}`,
-          isActive: currentPage === 'client-tasks',
-        },
-        {
-          label: 'Briefings',
-          icon: FileText,
-          href: `/client-briefing?clientId=${clientId}`,
-          isActive: currentPage === 'client-briefing' || currentPage === 'briefing-editor',
-        },
-        {
+          type: 'link',
           label: 'Documentos',
           icon: FolderOpen,
-          href: `/client-documents?clientId=${clientId}`,
+          href: createPageUrl(`client-documents?clientId=${clientId}`),
           isActive: currentPage === 'client-documents',
         },
         {
+          type: 'link',
           label: 'Financeiro',
           icon: Wallet,
-          href: `/client-financeiro?clientId=${clientId}`,
+          href: createPageUrl(`client-financeiro?clientId=${clientId}`),
           isActive: currentPage === 'client-financeiro',
         },
         {
+          type: 'link',
           label: 'Aprendizados',
           icon: Lightbulb,
-          href: `/client-learnings?clientId=${clientId}`,
+          href: createPageUrl(`client-learnings?clientId=${clientId}`),
           isActive: currentPage === 'client-learnings',
         },
         {
+          type: 'link',
           label: 'Evolução',
           icon: BookOpen,
-          href: `/client-evolution?clientId=${clientId}`,
+          href: createPageUrl(`client-evolution?clientId=${clientId}`),
           isActive: currentPage === 'client-evolution',
         },
         {
+          type: 'link',
           label: 'Relatórios',
           icon: TrendingUp,
-          href: `/custom-reports?clientId=${clientId}`,
+          href: createPageUrl(`custom-reports?clientId=${clientId}`),
           isActive: currentPage === 'custom-reports',
         },
+        { type: 'section', label: 'Backstage' },
         {
+          type: 'link',
           label: 'Serviços',
           icon: Target,
-          href: `/client-services?clientId=${clientId}`,
+          href: createPageUrl(`client-services?clientId=${clientId}`),
           isActive: currentPage === 'client-services',
-        },
-      ];
+        }
+      );
+
+      return items;
     }
 
     if (serviceId) {
       return [
         {
+          type: 'link',
           label: 'Voltar para Cliente',
           icon: ArrowLeft,
-          href: clientId ? `/client-detail?clientId=${clientId}` : '/clients',
+          href: clientId
+            ? createPageUrl(`client-detail?clientId=${clientId}`)
+            : createPageUrl('clients'),
           isBack: true,
         },
         {
+          type: 'link',
           label: 'Visão Geral',
           icon: LayoutDashboard,
-          href: `/service-detail?serviceId=${serviceId}`,
+          href: createPageUrl(`service-detail?serviceId=${serviceId}`),
           isActive: currentPage === 'service-detail',
         },
         {
+          type: 'link',
           label: 'Deliverables',
           icon: Package,
-          href: `/service-deliverables?serviceId=${serviceId}`,
+          href: createPageUrl(`service-deliverables?serviceId=${serviceId}`),
           isActive: currentPage === 'service-deliverables',
         },
         {
+          type: 'link',
           label: 'Tarefas',
           icon: CheckSquare,
-          href: `/client-tasks?serviceId=${serviceId}`,
+          href: createPageUrl(`client-tasks?serviceId=${serviceId}`),
           isActive: currentPage === 'client-tasks',
         },
         {
+          type: 'link',
           label: 'Documentos',
           icon: FolderOpen,
-          href: `/client-documents?serviceId=${serviceId}`,
+          href: createPageUrl(`client-documents?serviceId=${serviceId}`),
           isActive: currentPage === 'client-documents',
         },
       ];
@@ -173,45 +248,52 @@ export default function ContextualSidebar({
 
     return [
       {
+        type: 'link',
         label: 'Dashboard',
         icon: LayoutDashboard,
-        href: '/dashboard',
+        href: createPageUrl('dashboard'),
         isActive: currentPage === 'dashboard',
       },
       {
+        type: 'link',
         label: 'Clientes',
         icon: Users,
-        href: '/clients',
+        href: createPageUrl('clients'),
         isActive: currentPage === 'clients',
       },
       {
+        type: 'link',
         label: 'Tarefas',
         icon: CheckSquare,
-        href: '/tasks-manager',
+        href: createPageUrl('tasks-manager'),
         isActive: currentPage === 'tasks-manager',
       },
       {
+        type: 'link',
         label: 'Biblioteca',
         icon: BookOpen,
-        href: '/library',
+        href: createPageUrl('library'),
         isActive: currentPage === 'library',
       },
       {
+        type: 'link',
         label: 'Relatórios',
         icon: TrendingUp,
-        href: '/custom-reports',
+        href: createPageUrl('custom-reports'),
         isActive: currentPage === 'custom-reports',
       },
       {
+        type: 'link',
         label: 'Financeiro',
         icon: Wallet,
-        href: '/financeiro',
+        href: createPageUrl('financeiro'),
         isActive: currentPage === 'financeiro',
       },
       {
+        type: 'link',
         label: 'Templates',
         icon: Briefcase,
-        href: '/services',
+        href: createPageUrl('services'),
         isActive: currentPage === 'services',
       },
     ];
@@ -265,32 +347,55 @@ export default function ContextualSidebar({
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navigationItems.map((item, index) => {
+          if (item.type === 'section') {
+            if (collapsed) {
+              return (
+                <div
+                  key={`section-${item.label}-${index}`}
+                  className={`my-2 mx-2 border-t ${theme.sidebarBorder}`}
+                  aria-hidden
+                />
+              );
+            }
+            return (
+              <div
+                key={`section-${item.label}-${index}`}
+                className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider ${theme.sidebarMuted}`}
+              >
+                {item.label}
+              </div>
+            );
+          }
+
           const ItemIcon = item.icon;
           const isBack = item.isBack;
+          const nested = Boolean(item.nested);
 
           return (
             <Link
-              key={index}
+              key={`${item.href}-${index}`}
               to={item.href}
               onClick={onClose}
               title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 ${
-                collapsed ? 'justify-center' : ''
-              } ${
+              className={`flex items-center gap-3 rounded-xl text-sm transition-colors duration-200 ${
+                nested && !collapsed ? 'pl-8 pr-3 py-2' : 'px-3 py-2.5'
+              } ${collapsed ? 'justify-center' : ''} ${
                 item.isActive
                   ? theme.sidebarActive
-                  : isBack
-                    ? `${theme.sidebarMuted} ${theme.sidebarHover}`
-                    : `${theme.sidebarMuted} ${theme.sidebarHover}`
+                  : `${theme.sidebarMuted} ${theme.sidebarHover}`
               }`}
             >
               <ItemIcon
-                className={`w-[18px] h-[18px] stroke-[1.5] shrink-0 ${
+                className={`stroke-[1.5] shrink-0 ${
+                  nested ? 'w-4 h-4' : 'w-[18px] h-[18px]'
+                } ${
                   item.isActive && !isClientMode ? GLOBAL_SHELL.sidebarIconActive : ''
                 }`}
               />
               {!collapsed && (
-                <span className={isBack ? 'text-xs' : 'font-medium'}>{item.label}</span>
+                <span className={isBack || nested ? 'text-xs' : 'font-medium'}>
+                  {item.label}
+                </span>
               )}
             </Link>
           );
@@ -299,7 +404,11 @@ export default function ContextualSidebar({
 
       <div className={`p-3 border-t ${theme.sidebarBorder} space-y-1`}>
         <Link
-          to={isClientMode && clientId ? `/client-settings?clientId=${clientId}` : '/settings'}
+          to={
+            isClientMode && clientId
+              ? createPageUrl(`client-settings?clientId=${clientId}`)
+              : createPageUrl('settings')
+          }
           title={collapsed ? 'Configurações' : undefined}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
             collapsed ? 'justify-center' : ''

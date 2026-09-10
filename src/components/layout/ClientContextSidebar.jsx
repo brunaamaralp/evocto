@@ -15,16 +15,19 @@ import {
   Lightbulb,
   Wallet,
   Megaphone,
+  TrendingUp,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildClientTasksHref } from '@/lib/taskScope';
 
 /**
  * Navegação de contexto do cliente (nav única do hub).
- * Visual teal — distinto do menu global azul/branco.
+ * Hierarquia: Operação (campanha) → Cliente → Backstage.
  */
 export default function ClientContextSidebar({
   clientId,
@@ -36,6 +39,16 @@ export default function ClientContextSidebar({
   const [client, setClient] = useState(clientProp || null);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(!clientProp);
+
+  const urlParams = new URLSearchParams(location.search);
+  const briefingId =
+    urlParams.get('briefingId') ||
+    urlParams.get('campanhaId') ||
+    urlParams.get('campaignId') ||
+    null;
+  const currentPage =
+    location.pathname.split('/').pop() || location.pathname.substring(1);
+  const hash = location.hash || '';
 
   const loadClientData = useCallback(async () => {
     if (!clientId || !agencyId) return;
@@ -75,74 +88,124 @@ export default function ClientContextSidebar({
   const resolvedServiceCount =
     typeof serviceCount === 'number' ? serviceCount : services.length;
 
+  const inCampaign =
+    Boolean(briefingId) &&
+    (currentPage === 'client-campaign' ||
+      currentPage === 'client-tasks' ||
+      currentPage === 'client-briefing' ||
+      currentPage === 'briefing-campanha' ||
+      currentPage === 'briefing-editor');
+
   const menuItems = [
+    { type: 'section', label: 'Operação' },
     {
+      type: 'link',
       label: 'Visão Geral',
       icon: BarChart3,
       href: createPageUrl(`client-detail?clientId=${clientId}`),
       active:
-        location.pathname.includes('client-detail') &&
-        location.hash !== '#campanhas',
+        location.pathname.includes('client-detail') && hash !== '#campanhas',
     },
     {
+      type: 'link',
       label: 'Campanhas',
       icon: Megaphone,
       href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
       active:
+        hash === '#campanhas' ||
         location.pathname.includes('briefing-campanha') ||
         location.pathname.includes('client-campaign') ||
-        location.hash === '#campanhas',
+        (location.pathname.includes('client-tasks') && Boolean(briefingId)) ||
+        (location.pathname.includes('client-briefing') && Boolean(briefingId)),
     },
+  ];
+
+  if (inCampaign && briefingId) {
+    menuItems.push(
+      {
+        type: 'link',
+        label: 'Visão da campanha',
+        icon: Megaphone,
+        href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })),
+        nested: true,
+        active: location.pathname.includes('client-campaign'),
+      },
+      {
+        type: 'link',
+        label: 'Tarefas',
+        icon: CheckSquare,
+        href: createPageUrl(buildClientTasksHref({ clientId, briefingId })),
+        nested: true,
+        active: location.pathname.includes('client-tasks'),
+      },
+      {
+        type: 'link',
+        label: 'Briefing',
+        icon: FileText,
+        href: createPageUrl(
+          `client-briefing?clientId=${clientId}&briefingId=${briefingId}`
+        ),
+        nested: true,
+        active:
+          location.pathname.includes('client-briefing') ||
+          location.pathname.includes('briefing-campanha'),
+      }
+    );
+  }
+
+  menuItems.push(
+    { type: 'section', label: 'Cliente' },
     {
-      label: 'Tarefas',
-      icon: CheckSquare,
-      href: createPageUrl(`client-tasks?clientId=${clientId}`),
-      active: location.pathname.includes('client-tasks'),
-    },
-    {
-      label: 'Briefings',
-      icon: FileText,
-      href: createPageUrl(`client-briefing?clientId=${clientId}`),
-      active: location.pathname.includes('client-briefing'),
-    },
-    {
+      type: 'link',
       label: 'Documentos',
       icon: FolderOpen,
       href: createPageUrl(`client-documents?clientId=${clientId}`),
       active: location.pathname.includes('client-documents'),
     },
     {
+      type: 'link',
       label: 'Financeiro',
       icon: Wallet,
       href: createPageUrl(`client-financeiro?clientId=${clientId}`),
       active: location.pathname.includes('client-financeiro'),
     },
     {
+      type: 'link',
       label: 'Aprendizados',
       icon: Lightbulb,
       href: createPageUrl(`client-learnings?clientId=${clientId}`),
       active: location.pathname.includes('client-learnings'),
     },
     {
+      type: 'link',
       label: 'Evolução',
       icon: BookOpen,
       href: createPageUrl(`client-evolution?clientId=${clientId}`),
       active: location.pathname.includes('client-evolution'),
     },
     {
+      type: 'link',
+      label: 'Relatórios',
+      icon: TrendingUp,
+      href: createPageUrl(`custom-reports?clientId=${clientId}`),
+      active: location.pathname.includes('custom-reports'),
+    },
+    { type: 'section', label: 'Backstage' },
+    {
+      type: 'link',
       label: 'Serviços',
       icon: Target,
       href: createPageUrl(`client-services?clientId=${clientId}`),
       active: location.pathname.includes('client-services'),
-      badge: resolvedServiceCount || null,
     },
     {
+      type: 'link',
       label: 'Configurações',
       icon: Settings,
       href: createPageUrl(`client-settings?clientId=${clientId}`),
       active: location.pathname.includes('client-settings'),
-    },
-  ];
+    }
+  );
 
   return (
     <div
@@ -197,14 +260,26 @@ export default function ClientContextSidebar({
 
       <nav className="flex-1 overflow-y-auto p-2">
         <div className="space-y-1">
-          {menuItems.map((item) => {
+          {menuItems.map((item, index) => {
+            if (item.type === 'section') {
+              return (
+                <div
+                  key={`section-${item.label}-${index}`}
+                  className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider ${CLIENT_CONTEXT.sidebarMuted}`}
+                >
+                  {item.label}
+                </div>
+              );
+            }
+
             const Icon = item.icon;
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${index}`}
                 to={item.href}
                 className={`
-                  flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                  flex items-center justify-between rounded-lg text-sm font-medium transition-colors
+                  ${item.nested ? 'pl-8 pr-3 py-1.5' : 'px-3 py-2'}
                   ${
                     item.active
                       ? CLIENT_CONTEXT.sidebarActive
@@ -213,14 +288,11 @@ export default function ClientContextSidebar({
                 `}
               >
                 <div className="flex items-center">
-                  <Icon className="w-4 h-4 mr-3" />
-                  {item.label}
+                  <Icon className={`mr-3 ${item.nested ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} />
+                  <span className={item.nested ? 'text-xs font-normal' : ''}>
+                    {item.label}
+                  </span>
                 </div>
-                {item.badge ? (
-                  <Badge className="ml-2 text-xs bg-teal-600 text-white hover:bg-teal-600">
-                    {item.badge}
-                  </Badge>
-                ) : null}
               </Link>
             );
           })}
@@ -233,7 +305,7 @@ export default function ClientContextSidebar({
             {resolvedServiceCount > 0 && (
               <div>
                 {resolvedServiceCount} serviço
-                {resolvedServiceCount !== 1 ? 's' : ''}
+                {resolvedServiceCount !== 1 ? 's' : ''} · backstage
               </div>
             )}
             {client.email && <div className="truncate">{client.email}</div>}

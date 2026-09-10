@@ -21,7 +21,10 @@ export default function ContextualLayout({ user, children }) {
   const clientId = urlParams.get('clientId');
   const serviceId = urlParams.get('serviceId');
   const briefingId =
-    urlParams.get('briefingId') || urlParams.get('campaignId') || null;
+    urlParams.get('briefingId') ||
+    urlParams.get('campanhaId') ||
+    urlParams.get('campaignId') ||
+    null;
 
   const getCurrentContext = () => {
     const pathname = location.pathname;
@@ -134,6 +137,7 @@ export default function ContextualLayout({ user, children }) {
         currentPage={currentPage}
         clientId={context.clientId}
         serviceId={context.serviceId}
+        briefingId={context.briefingId}
         context={context}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

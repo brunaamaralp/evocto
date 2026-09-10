@@ -1,4 +1,4 @@
-
+import { useLocation } from 'react-router-dom';
 import { SessionProvider } from '@/components/auth/SessionManager';
 import I18nProvider from '@/components/i18n/I18nProvider';
 import { AppContextProvider } from '@/components/context/AppContextProvider';
@@ -7,11 +7,8 @@ import { AuthenticatedLayout, PublicLayout } from '@/components/layout/Authentic
 import { NavigationProvider } from '@/components/navigation/NavigationTracker';
 import TaskCreateFab from '@/components/tasks/TaskCreateFab';
 import TaskDrawer from '@/components/tasks/TaskDrawer';
-// UXMonitor temporariamente removido devido a rate limit issues
-// import UXMonitor from '@/components/monitoring/UXMonitor';
 import ServiceActionsFab from '@/components/services/ServiceActionsFab';
 
-// Lista de rotas públicas que não precisam de sidebar
 const publicRoutes = [
   '/',
   '/welcome',
@@ -31,12 +28,11 @@ const publicRoutes = [
 ];
 
 function isPublicRoute(pathname) {
-  return publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
+  return publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 }
 
-// Componente interno para decidir layout
 function LayoutContent({ children, isPublic }) {
   if (isPublic) {
     return <PublicLayout>{children}</PublicLayout>;
@@ -51,9 +47,8 @@ function LayoutContent({ children, isPublic }) {
   );
 }
 
-// Componente Layout principal - VERSÃO LIMPA SEM MODAIS GLOBAIS
 function Layout({ children }) {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const { pathname } = useLocation();
   const isPublic = isPublicRoute(pathname);
 
   return (
@@ -64,15 +59,10 @@ function Layout({ children }) {
             <LayoutContent isPublic={isPublic}>
               {children}
             </LayoutContent>
-            {/* Botão flutuante global para criar tarefas (não aparece em rotas públicas) */}
             {!isPublic && <TaskCreateFab />}
-            {/* Drawer global de tarefa (abre por evento window.dispatchEvent(new CustomEvent('task:open',{detail:{taskId}}))) */}
             {!isPublic && <TaskDrawer />}
-            {/* NOVO: Ações rápidas do serviço (ativa/inativa/exclui e gera tarefas) */}
             {!isPublic && <ServiceActionsFab />}
           </NavigationProvider>
-          {/* UXMonitor temporariamente desabilitado devido a rate limit issues */}
-          {/* {!isPublic && <UXMonitor />} */}
         </SessionProvider>
       </I18nProvider>
     </div>

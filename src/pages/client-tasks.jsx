@@ -6,19 +6,18 @@ import { Service } from '@/api/entities';
 import { Task } from '@/api/entities';
 import { CyclePlan } from '@/api/entities';
 import { Brief } from '@/api/entities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
   CheckSquare,
-  ArrowRight,
+  ArrowLeft,
   Plus,
   Target,
   AlertCircle,
   Clock,
   CheckCircle,
-  X,
+  Megaphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -33,6 +32,7 @@ import {
   buildClientTasksHref,
   filterTasksByScope,
 } from '@/lib/taskScope';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 
 const TaskStats = React.memo(function TaskStats({ tasks }) {
   const stats = {
@@ -55,13 +55,13 @@ const TaskStats = React.memo(function TaskStats({ tasks }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {statItems.map(({ icon: Icon, label, value, idx }) => {
         const pastel = getCardPastel(idx);
         return (
           <Card
             key={label}
-            className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}
+            className={`rounded-2xl border-transparent shadow-none ${pastel.bg}`}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
@@ -113,12 +113,11 @@ export default function ClientTasksPage() {
   const initialUrl = useMemo(() => readTasksUrlContext(), []);
   const [clientId, setClientId] = useState(initialUrl.clientId);
   const [urlServiceId] = useState(initialUrl.serviceId);
-  const [cycleId, setCycleId] = useState(initialUrl.cycleId);
-  const [briefingId, setBriefingId] = useState(initialUrl.briefingId);
+  const [cycleId] = useState(initialUrl.cycleId);
+  const [briefingId] = useState(initialUrl.briefingId);
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
   const [cycle, setCycle] = useState(null);
   const [campaign, setCampaign] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -135,9 +134,7 @@ export default function ClientTasksPage() {
   const { handleError } = useErrorHandling();
 
   const overviewHref = createPageUrl(`client-detail?clientId=${clientId || ''}`);
-  const clearScopeHref = createPageUrl(
-    buildClientTasksHref({ clientId, serviceId: selectedServiceId })
-  );
+  const isCampaignScope = Boolean(briefingId);
 
   useEffect(() => {
     if (!initialUrl.clientId) {
@@ -205,7 +202,6 @@ export default function ClientTasksPage() {
           null;
 
         setSelectedServiceId(matched?.id || null);
-        setSelectedService(matched);
 
         syncTasksUrl({
           clientId,
@@ -228,15 +224,6 @@ export default function ClientTasksPage() {
   }, [clientId, agencyId, cycleId, briefingId, urlServiceId]);
 
   useEffect(() => {
-    if (selectedServiceId && services.length > 0) {
-      const service = services.find((s) => s.id === selectedServiceId);
-      setSelectedService(service || null);
-    } else {
-      setSelectedService(null);
-    }
-  }, [selectedServiceId, services]);
-
-  useEffect(() => {
     if (selectedServiceId) {
       loadTasksForService(selectedServiceId).catch((err) => {
         console.error('[ClientTasks] Error loading tasks:', err);
@@ -249,32 +236,6 @@ export default function ClientTasksPage() {
     setSelectedServiceId(serviceId);
     syncTasksUrl({ clientId, serviceId, cycleId, briefingId });
   };
-
-  const clearScope = () => {
-    setCycleId(null);
-    setBriefingId(null);
-    setCycle(null);
-    setCampaign(null);
-    syncTasksUrl({ clientId, serviceId: selectedServiceId });
-  };
-
-  const tasksByPhase = useMemo(() => {
-    if (!selectedService?.deliverables) return {};
-
-    const phases = {};
-    selectedService.deliverables.forEach((deliverable) => {
-      phases[deliverable.phase] = {
-        ...deliverable,
-        tasks: tasks.filter(
-          (t) =>
-            t.serviceId === selectedService.id &&
-            t.tags?.includes(`fase-${deliverable.phase}`)
-        ),
-      };
-    });
-
-    return phases;
-  }, [selectedService, tasks]);
 
   const handleGenerateTasks = async () => {
     if (!selectedServiceId || !clientId) {
@@ -321,15 +282,17 @@ export default function ClientTasksPage() {
     }
   };
 
-  const contextLabel = [
-    campaign?.nome_campanha || campaign?.title,
-    cycle?.title || cycle?.cyclePeriod,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const campaignName = campaign?.nome_campanha || campaign?.title || 'Campanha';
+  const campaignHref = briefingId
+    ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
+    : overviewHref;
+
+  const completedCount = tasks.filter((t) => t.status === 'completed').length;
+  const progressPct =
+    tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   if (loading) {
-    return <LoadingState message="Carregando quadro de tarefas..." />;
+    return <LoadingState message="Carregando tarefas..." />;
   }
 
   if (error) {
@@ -340,9 +303,9 @@ export default function ClientTasksPage() {
           title="Erro ao carregar tarefas"
           description={error}
           primaryAction={{
-            label: 'Voltar para Visão Geral',
+            label: 'Voltar',
             onClick: () => {
-              window.location.href = overviewHref;
+              window.location.href = isCampaignScope ? campaignHref : overviewHref;
             },
           }}
         />
@@ -351,104 +314,111 @@ export default function ClientTasksPage() {
   }
 
   return (
-    <div className="max-w-full mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
-            <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
-            <span className="truncate">Quadro de Tarefas</span>
-          </h1>
-          <p className="text-[#7A7595] mt-1 text-sm sm:text-base">
-            <span className="truncate">{client?.name}</span>
-            {contextLabel
-              ? ` · ${contextLabel}`
-              : ' · Gestão das atividades do projeto'}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-            <Link to={overviewHref}>
-              <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
-              Voltar
+    <div className="space-y-6">
+      {isCampaignScope ? (
+        <div className="space-y-3">
+          <Button asChild variant="ghost" size="sm" className="-ml-2">
+            <Link to={campaignHref} className="text-[#7A7595]">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Voltar à campanha
             </Link>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleGenerateTasks}
-            className="flex-1 sm:flex-none"
-          >
-            <Target className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Gerar Tarefas</span>
-            <span className="sm:hidden">Gerar</span>
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleCreateTask}
-            className="flex-1 sm:flex-none"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Nova Tarefa</span>
-            <span className="sm:hidden">Nova</span>
-          </Button>
-        </div>
-      </div>
-
-      {(cycleId || briefingId) && (
-        <Card
-          className={`mb-6 rounded-2xl border shadow-sm ${
-            scopeMeta.sharedCycleFallback
-              ? 'border-amber-200 bg-amber-50'
-              : 'border-[#D4CBF5] bg-[#F5F2FC]'
-          }`}
-        >
-          <CardContent className="p-4 flex flex-wrap items-start justify-between gap-3">
+          <nav className="flex flex-wrap items-center gap-1.5 text-xs text-[#7A7595]">
+            <Link to={overviewHref} className="hover:text-[#6C47D8] hover:underline">
+              {client?.name || 'Cliente'}
+            </Link>
+            <span aria-hidden>/</span>
+            <Link
+              to={campaignHref}
+              className="hover:text-[#6C47D8] hover:underline truncate max-w-[180px]"
+            >
+              {campaignName}
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="text-[#18162A] font-medium">Tarefas</span>
+          </nav>
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                {campaign && (
-                  <Badge variant="secondary">
-                    {campaign.nome_campanha || campaign.title || 'Campanha'}
-                  </Badge>
-                )}
-                {cycle && (
-                  <Badge variant="outline">
-                    {cycle.title || cycle.cyclePeriod || 'Ciclo'}
-                  </Badge>
-                )}
-                {scopeMeta.sharedCycleFallback && (
-                  <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                    Ciclo compartilhado
-                  </Badge>
-                )}
+              <div className="flex items-center gap-2 text-xs text-[#7A7595] mb-1">
+                <Megaphone className="w-3.5 h-3.5" />
+                Tarefas da campanha
+                {cycle?.cyclePeriod || cycle?.title
+                  ? ` · ${cycle.cyclePeriod || cycle.title}`
+                  : ''}
               </div>
-              <p className="text-sm text-[#7A7595]">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] truncate">
+                {campaignName}
+              </h1>
+              <p className="text-sm text-[#7A7595] mt-1">
+                {tasks.length} tarefas · {progressPct}% concluído
                 {scopeMeta.sharedCycleFallback
-                  ? 'Ainda não há tarefas marcadas nesta campanha — listando o ciclo. Novas tarefas criadas daqui ficam vinculadas à campanha.'
-                  : scopeMeta.scope === 'campaign'
-                    ? 'Filtro ativo: tarefas desta campanha.'
-                    : 'Filtro ativo: tarefas deste ciclo.'}
+                  ? ' · período compartilhado'
+                  : ''}
               </p>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to={clearScopeHref} onClick={clearScope}>
-                <X className="w-4 h-4 mr-1" />
-                Limpar filtro
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={handleGenerateTasks}>
+                <Target className="w-4 h-4 mr-1" />
+                Gerar
+              </Button>
+              <Button size="sm" onClick={handleCreateTask}>
+                <Plus className="w-4 h-4 mr-1" />
+                Nova tarefa
+              </Button>
+            </div>
+          </div>
+          {tasks.length > 0 && <Progress value={progressPct} className="h-1.5" />}
+        </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
+              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
+              <span className="truncate">Tarefas</span>
+            </h1>
+            <p className="text-[#7A7595] mt-1 text-sm sm:text-base truncate">
+              {client?.name || 'Cliente'} · Atividades do cliente
+            </p>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+              <Link to={overviewHref}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Cliente
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateTasks}
+              className="flex-1 sm:flex-none"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Gerar Tarefas</span>
+              <span className="sm:hidden">Gerar</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleCreateTask}
+              className="flex-1 sm:flex-none"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Nova Tarefa</span>
+              <span className="sm:hidden">Nova</span>
+            </Button>
+          </div>
+        </div>
       )}
 
-      {services.length > 1 && (
-        <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
-          <CardHeader>
-            <CardTitle>Selecionar Serviço</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-3 flex-wrap">
+      {!isCampaignScope && services.length > 1 && (
+        <Card className="rounded-2xl border-transparent shadow-none bg-[#FAFAFC]">
+          <CardContent className="p-4">
+            <p className="text-xs font-medium text-[#7A7595] mb-3">Serviço</p>
+            <div className="flex gap-2 flex-wrap">
               {services.map((service) => (
                 <Button
                   key={service.id}
+                  size="sm"
                   variant={
                     selectedServiceId === service.id ? 'default' : 'outline'
                   }
@@ -462,130 +432,7 @@ export default function ClientTasksPage() {
         </Card>
       )}
 
-      <TaskStats tasks={tasks} />
-
-      {Object.keys(tasksByPhase).length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-[#18162A] mb-4">
-            Progresso por Fase
-          </h2>
-          <div className="grid gap-4">
-            {Object.entries(tasksByPhase).map(([phase, phaseData]) => {
-              const totalTasks = phaseData.tasks.length;
-              const completedTasks = phaseData.tasks.filter(
-                (t) => t.status === 'completed'
-              ).length;
-              const progress =
-                totalTasks > 0
-                  ? Math.round((completedTasks / totalTasks) * 100)
-                  : 0;
-              const isActive = phaseData.tasks.some((t) =>
-                ['todo', 'in_progress'].includes(t.status)
-              );
-
-              return (
-                <Card
-                  key={phase}
-                  className={`rounded-2xl border-transparent shadow-sm transition-all ${
-                    isActive ? 'ring-2 ring-[#D4CBF5] bg-[#F5F2FC]' : ''
-                  }`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                            progress === 100
-                              ? 'bg-green-100 text-green-700'
-                              : isActive
-                                ? 'bg-[#EDE9FB] text-[#4A2FA3]'
-                                : 'bg-gray-100 text-gray-500'
-                          }`}
-                        >
-                          {phase}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-[#18162A]">
-                            {phaseData.name}
-                          </h3>
-                          <p className="text-sm text-[#7A7595]">
-                            {phaseData.description}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-[#6C47D8]">
-                          {progress}%
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {completedTasks}/{totalTasks} tarefas
-                        </div>
-                      </div>
-                    </div>
-
-                    <Progress value={progress} className="mb-4" />
-
-                    <div className="space-y-2">
-                      {phaseData.tasks.slice(0, 3).map((task) => (
-                        <div
-                          key={task.id}
-                          className="flex items-center justify-between p-2 bg-white rounded border"
-                        >
-                          <div className="flex items-center gap-2">
-                            {task.status === 'completed' ? (
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <Clock className="w-4 h-4 text-yellow-600" />
-                            )}
-                            <span
-                              className={`text-sm ${
-                                task.status === 'completed'
-                                  ? 'line-through text-gray-500'
-                                  : 'text-[#18162A]'
-                              }`}
-                            >
-                              {task.title}
-                            </span>
-                          </div>
-                          <Badge
-                            variant={
-                              task.status === 'completed'
-                                ? 'default'
-                                : task.status === 'in_progress'
-                                  ? 'secondary'
-                                  : 'outline'
-                            }
-                            className={
-                              task.status === 'completed'
-                                ? 'bg-green-100 text-green-700'
-                                : task.status === 'in_progress'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-gray-100 text-gray-700'
-                            }
-                          >
-                            {task.status === 'completed'
-                              ? 'Concluída'
-                              : task.status === 'in_progress'
-                                ? 'Em progresso'
-                                : 'Pendente'}
-                          </Badge>
-                        </div>
-                      ))}
-
-                      {phaseData.tasks.length > 3 && (
-                        <p className="text-xs text-gray-500 text-center">
-                          +{phaseData.tasks.length - 3} tarefas adicionais
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {!isCampaignScope && <TaskStats tasks={tasks} />}
 
       {selectedServiceId ? (
         <TaskManager
@@ -594,6 +441,8 @@ export default function ClientTasksPage() {
           cycleId={cycleId}
           briefingId={briefingId}
           userRole={user?.role || 'consultor'}
+          embedded={isCampaignScope}
+          hideCreate={isCampaignScope}
         />
       ) : (
         <EmptyState
@@ -601,11 +450,9 @@ export default function ClientTasksPage() {
           title="Nenhum serviço ativo"
           description="Este cliente não possui serviços ativos para gerenciar tarefas."
           primaryAction={{
-            label: 'Configurar Serviços',
+            label: isCampaignScope ? 'Voltar à campanha' : 'Ver cliente',
             onClick: () => {
-              window.location.href = createPageUrl(
-                `services?clientId=${clientId}`
-              );
+              window.location.href = isCampaignScope ? campaignHref : overviewHref;
             },
           }}
         />

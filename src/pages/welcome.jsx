@@ -5,6 +5,7 @@ import NaviBrandLockup from '@/components/NaviBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { BRAND } from '@/lib/brandAssets';
 import { trialMarketing } from '@/lib/trialCopy';
+import { useSession } from '@/components/auth/SessionManager';
 
 const HERO = {
   title: 'O hub operacional do seu marketing',
@@ -70,6 +71,9 @@ const GAINS = [
 ];
 
 export default function WelcomePage() {
+  const { isAuthenticated, user } = useSession();
+  const appHome = user?.role === 'client' ? '/client-portal' : '/dashboard';
+
   return (
     <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
@@ -78,12 +82,20 @@ export default function WelcomePage() {
             <NaviBrandLockup height={36} />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button variant="ghost" asChild className="text-[var(--color-sidebar-text,#7A7595)]">
-              <Link to="/login">Entrar</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/create-account">{trialMarketing.ctaPrimary}</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild>
+                <Link to={appHome}>Ir ao painel</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild className="text-[var(--color-sidebar-text,#7A7595)]">
+                  <Link to="/login">Entrar</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/create-account">{trialMarketing.ctaPrimary}</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -107,20 +119,33 @@ export default function WelcomePage() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button size="lg" className="px-7" asChild>
-                  <Link to="/create-account">
-                    {trialMarketing.ctaPrimary}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="px-7" asChild>
-                  <Link to="/login">Já tenho conta</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button size="lg" className="px-7" asChild>
+                    <Link to={appHome}>
+                      Ir ao painel
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button size="lg" className="px-7" asChild>
+                      <Link to="/create-account">
+                        {trialMarketing.ctaPrimary}
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" className="px-7" asChild>
+                      <Link to="/login">Já tenho conta</Link>
+                    </Button>
+                  </>
+                )}
               </div>
 
-              <p className="text-sm text-[var(--color-sidebar-text,#7A7595)]">
-                {trialMarketing.heroHint}
-              </p>
+              {!isAuthenticated && (
+                <p className="text-sm text-[var(--color-sidebar-text,#7A7595)]">
+                  {trialMarketing.heroHint}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-center lg:justify-end">
