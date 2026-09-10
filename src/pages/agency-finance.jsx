@@ -32,6 +32,7 @@ import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
+  Pencil,
 } from 'lucide-react';
 import {
   CHARGE_TYPES,
@@ -47,6 +48,8 @@ import {
   formatBRL,
   formatMonthTitle,
   shiftMonth,
+  buildPayableInstallments,
+  MAX_PAYABLE_INSTALLMENTS,
 } from '@/lib/agencyFinance/constants';
 import * as api from '@/lib/agencyFinance/api';
 import './agency-finance.css';
@@ -58,6 +61,13 @@ const TABS = [
   { id: 'cash', label: 'Caixa' },
   { id: 'dre', label: 'DRE' },
 ];
+
+function payableInstallmentLabel(p) {
+  const n = Number(p?.installmentNumber) || 0;
+  const total = Number(p?.installmentTotal) || 0;
+  if (n > 0 && total > 1) return `${n}/${total}`;
+  return '';
+}
 
 function StatusBadge({ status, map }) {
   const label = map[status] || status;
@@ -108,8 +118,18 @@ export default function AgencyFinancePage() {
 
   const [chargeOpen, setChargeOpen] = useState(false);
   const [payableOpen, setPayableOpen] = useState(false);
+  const [editingPayableId, setEditingPayableId] = useState('');
   const [cashOpen, setCashOpen] = useState(false);
   const [busyId, setBusyId] = useState('');
+
+  const emptyPayableForm = () => ({
+    vendorName: '',
+    category: 'freela',
+    description: '',
+    amount: '',
+    dueDate: todayYmd(),
+    installments: '1',
+  });
 
   const [chargeForm, setChargeForm] = useState({
     clientId: '',
@@ -118,13 +138,7 @@ export default function AgencyFinancePage() {
     amount: '',
     dueDate: todayYmd(),
   });
-  const [payableForm, setPayableForm] = useState({
-    vendorName: '',
-    category: 'freela',
-    description: '',
-    amount: '',
-    dueDate: todayYmd(),
-  });
+  const [payableForm, setPayableForm] = useState(emptyPayableForm);
   const [cashForm, setCashForm] = useState({
     direction: 'in',
     category: 'servicos',
@@ -207,26 +221,100 @@ export default function AgencyFinancePage() {
 
   async function submitPayable() {
     try {
-      await api.createPayable({
-        agencyId,
-        payload: {
-          ...payableForm,
-          amount: Number(String(payableForm.amount).replace(',', '.')),
-          competenceMonth: month,
-        },
-      });
-      toast.success('Conta a pagar criada');
+      const amount = Number(String(payableForm.amount).replace(',', '.'));
+      if (!amount || amount <= 0) {
+        toast.error('Informe um valor válido');
+        return;
+      }
+
+      if (editingPayableId) {
+        await api.updatePayable({
+          agencyId,
+          id: editingPayableId,
+          payload: {
+            vendorName: payableForm.vendorName,
+            category: payableForm.category,
+            description: payableForm.description,
+            amount,
+            dueDate: payableForm.dueDate || todayYmd(),
+          },
+        });
+        toast.success('Conta atualizada');
+      } else {
+        const installments = Math.min(
+          MAX_PAYABLE_INSTALLMENTS,
+          Math.max(1, Math.trunc(Number(payableForm.installments) || 1))
+        );
+        await api.createPayable({
+          agencyId,
+          payload: {
+            vendorName: payableForm.vendorName,
+            category: payableForm.category,
+            description: payableForm.description,
+            amount,
+            dueDate: payableForm.dueDate || todayYmd(),
+            installments,
+          },
+        });
+        toast.success(
+          installments > 1
+            ? `${installments} parcelas criadas — aparecem nos meses respectivos`
+            : 'Conta a pagar criada'
+        );
+      }
+
       setPayableOpen(false);
-      setPayableForm({
-        vendorName: '',
-        category: 'freela',
-        description: '',
-        amount: '',
-        dueDate: todayYmd(),
-      });
+      setEditingPayableId('');
+      setPayableForm(emptyPayableForm());
       await load({ soft: true });
     } catch (err) {
-      toast.error(err?.message || 'Erro ao criar conta');
+      const msg = err?.message || '';
+      if (msg === 'conta_paga') toast.error('Conta já paga não pode ser editada');
+      else if (msg === 'conta_cancelada') toast.error('Conta cancelada não pode ser editada');
+      else toast.error(msg || 'Erro ao salvar conta');
+    }
+  }
+
+  function openNewPayable() {
+    setEditingPayableId('');
+    setPayableForm(emptyPayableForm());
+    setPayableOpen(true);
+  }
+
+  function openEditPayable(p) {
+    if (p.status !== 'open') {
+      toast.error('Só é possível editar contas em aberto');
+      return;
+    }
+    setEditingPayableId(p.id);
+    setPayableForm({
+      vendorName: p.vendorName || '',
+      category: p.category || 'outro',
+      description: p.description || '',
+      amount: String(p.amount ?? ''),
+      dueDate: p.dueDate || todayYmd(),
+      installments: '1',
+    });
+    setPayableOpen(true);
+  }
+
+  async function cancelPayable(id) {
+    setBusyId(id);
+    try {
+      await api.cancelPayable({ agencyId, id });
+      toast.success('Conta cancelada');
+      if (editingPayableId === id) {
+        setPayableOpen(false);
+        setEditingPayableId('');
+        setPayableForm(emptyPayableForm());
+      }
+      await load({ soft: true });
+    } catch (err) {
+      const msg = err?.message || '';
+      if (msg === 'conta_paga') toast.error('Conta já paga não pode ser cancelada');
+      else toast.error(msg || 'Erro ao cancelar');
+    } finally {
+      setBusyId('');
     }
   }
 
@@ -350,7 +438,7 @@ export default function AgencyFinancePage() {
                 <Button size="sm" onClick={() => { setTab('charges'); setChargeOpen(true); }}>
                   <Plus className="h-4 w-4" /> Nova cobrança
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => { setTab('payables'); setPayableOpen(true); }}>
+                <Button size="sm" variant="outline" onClick={() => { setTab('payables'); openNewPayable(); }}>
                   <Plus className="h-4 w-4" /> Conta a pagar
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => { setTab('cash'); setCashOpen(true); }}>
@@ -416,7 +504,7 @@ export default function AgencyFinancePage() {
             <section className="af-section">
               <div className="af-section__head">
                 <h2>A pagar</h2>
-                <Button size="sm" onClick={() => setPayableOpen(true)}>
+                <Button size="sm" onClick={openNewPayable}>
                   <Plus className="h-4 w-4" /> Nova
                 </Button>
               </div>
@@ -430,6 +518,7 @@ export default function AgencyFinancePage() {
                         <th>Fornecedor</th>
                         <th>Categoria</th>
                         <th>Descrição</th>
+                        <th>Parcela</th>
                         <th>Vencimento</th>
                         <th>Valor</th>
                         <th>Status</th>
@@ -442,6 +531,7 @@ export default function AgencyFinancePage() {
                           <td>{p.vendorName}</td>
                           <td>{PAYABLE_CATEGORIES[p.category] || p.category}</td>
                           <td>{p.description || '—'}</td>
+                          <td>{payableInstallmentLabel(p) || '—'}</td>
                           <td>{p.dueDate || '—'}</td>
                           <td className="af-num">{formatBRL(p.amount)}</td>
                           <td>
@@ -449,10 +539,21 @@ export default function AgencyFinancePage() {
                           </td>
                           <td className="af-actions">
                             {p.status === 'open' ? (
-                              <Button size="sm" variant="outline" disabled={busyId === p.id} onClick={() => payPayable(p.id)}>
-                                {busyId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                                Pagar
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={busyId === p.id}
+                                  onClick={() => openEditPayable(p)}
+                                  aria-label="Editar"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button size="sm" variant="outline" disabled={busyId === p.id} onClick={() => payPayable(p.id)}>
+                                  {busyId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                                  Pagar
+                                </Button>
+                              </>
                             ) : null}
                           </td>
                         </tr>
@@ -628,10 +729,19 @@ export default function AgencyFinancePage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={payableOpen} onOpenChange={setPayableOpen}>
+      <Dialog
+        open={payableOpen}
+        onOpenChange={(open) => {
+          setPayableOpen(open);
+          if (!open) {
+            setEditingPayableId('');
+            setPayableForm(emptyPayableForm());
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nova conta a pagar</DialogTitle>
+            <DialogTitle>{editingPayableId ? 'Editar conta a pagar' : 'Nova conta a pagar'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -659,18 +769,81 @@ export default function AgencyFinancePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Valor</Label>
+                <Label>
+                  {editingPayableId
+                    ? 'Valor'
+                    : Number(payableForm.installments) > 1
+                      ? 'Valor total'
+                      : 'Valor'}
+                </Label>
                 <Input value={payableForm.amount} onChange={(e) => setPayableForm((f) => ({ ...f, amount: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label>Vencimento</Label>
+                <Label>{editingPayableId ? 'Vencimento' : '1º vencimento'}</Label>
                 <Input type="date" value={payableForm.dueDate} onChange={(e) => setPayableForm((f) => ({ ...f, dueDate: e.target.value }))} />
               </div>
             </div>
+            {!editingPayableId ? (
+              <div className="space-y-1.5">
+                <Label>Parcelas</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={MAX_PAYABLE_INSTALLMENTS}
+                  value={payableForm.installments}
+                  onChange={(e) => setPayableForm((f) => ({ ...f, installments: e.target.value }))}
+                />
+                {(() => {
+                  const amount = Number(String(payableForm.amount).replace(',', '.')) || 0;
+                  const n = Math.min(
+                    MAX_PAYABLE_INSTALLMENTS,
+                    Math.max(1, Math.trunc(Number(payableForm.installments) || 1))
+                  );
+                  if (n <= 1 || amount <= 0) {
+                    return (
+                      <p className="text-xs af-muted">
+                        1 = conta única. Com 2 ou mais, o valor é dividido e cada parcela aparece no mês do vencimento.
+                      </p>
+                    );
+                  }
+                  const schedule = buildPayableInstallments(amount, n, payableForm.dueDate || todayYmd());
+                  const first = schedule[0];
+                  const last = schedule[schedule.length - 1];
+                  if (!first || !last) return null;
+                  return (
+                    <p className="text-xs af-muted">
+                      {n}× de {formatBRL(first.amount)} — de {first.dueDate} até {last.dueDate}. Cada parcela entra em A
+                      pagar no mês correspondente.
+                    </p>
+                  );
+                })()}
+              </div>
+            ) : (
+              <p className="text-xs af-muted">
+                A edição altera só esta parcela/conta. Contas já pagas não podem ser editadas.
+              </p>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPayableOpen(false)}>
-              Cancelar
+          <DialogFooter className="gap-2 sm:gap-0">
+            {editingPayableId ? (
+              <Button
+                variant="ghost"
+                className="text-rose-700 sm:mr-auto"
+                disabled={busyId === editingPayableId}
+                onClick={() => cancelPayable(editingPayableId)}
+              >
+                Cancelar conta
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPayableOpen(false);
+                setEditingPayableId('');
+                setPayableForm(emptyPayableForm());
+              }}
+            >
+              Fechar
             </Button>
             <Button onClick={submitPayable}>Salvar</Button>
           </DialogFooter>

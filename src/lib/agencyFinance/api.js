@@ -2,7 +2,7 @@
  * API do Financeiro Agência — Appwrite TablesDB (af_charges, af_payables, af_cash).
  */
 import { getTablesDB, DATABASE_ID, ID, Query, Permission, Role } from '@/api/appwriteClient';
-import { ymNow, todayYmd, monthBounds } from './constants.js';
+import { ymNow, todayYmd, monthBounds, buildPayableInstallments } from './constants.js';
 
 export const AF_CHARGES =
   import.meta.env.VITE_APPWRITE_AF_CHARGES_COLLECTION_ID || 'af_charges';
@@ -289,30 +289,104 @@ export async function createPayable({ agencyId, payload }) {
   const amount = Number(payload.amount) || 0;
   if (amount <= 0) throw new Error('valor_invalido');
 
+  const firstDue = payload.dueDate || todayYmd();
+  const schedule = buildPayableInstallments(amount, payload.installments, firstDue);
+  if (!schedule.length) throw new Error('valor_invalido');
+
+  const vendorName = payload.vendorName || 'Fornecedor';
+  const category = payload.category || 'outro';
+  const baseDescription = payload.description || '';
+  const status = payload.status || 'open';
+  const method = payload.method || '';
+  const note = payload.note || '';
+  const installmentTotal = schedule.length;
+  const installmentGroupId = installmentTotal > 1 ? ID.unique() : '';
+
+  const created = [];
+  for (const item of schedule) {
+    const desc =
+      installmentTotal > 1
+        ? `${baseDescription || vendorName} (${item.installmentNumber}/${installmentTotal})`.trim()
+        : baseDescription;
+    const data = knownSplit(
+      {
+        agencyId: aid,
+        vendorName,
+        category,
+        description: desc,
+        amount: item.amount,
+        status,
+        dueDate: item.dueDate,
+        competenceMonth: item.competenceMonth,
+        method,
+        note,
+        ...(installmentTotal > 1
+          ? {
+              installmentNumber: item.installmentNumber,
+              installmentTotal,
+              installmentGroupId,
+            }
+          : {}),
+      },
+      PAYABLE_KEYS
+    );
+
+    const row = await db().createRow({
+      databaseId: DATABASE_ID,
+      tableId: AF_PAYABLES,
+      rowId: ID.unique(),
+      data,
+      permissions: perms(),
+    });
+    created.push(mapRow(row));
+  }
+
+  return installmentTotal > 1 ? created : created[0];
+}
+
+export async function updatePayable({ agencyId, id, payload }) {
+  assertAgency(agencyId);
+  const existing = mapRow(
+    await db().getRow({ databaseId: DATABASE_ID, tableId: AF_PAYABLES, rowId: id })
+  );
+  if (!existing) throw new Error('conta_nao_encontrada');
+  if (existing.status === 'paid') throw new Error('conta_paga');
+  if (existing.status === 'cancelled') throw new Error('conta_cancelada');
+
+  const amount =
+    payload.amount != null ? Number(payload.amount) : Number(existing.amount) || 0;
+  if (amount <= 0) throw new Error('valor_invalido');
+
+  const dueDate = payload.dueDate || existing.dueDate || todayYmd();
+  const competenceMonth = String(dueDate).slice(0, 7);
+
   const data = knownSplit(
     {
-      agencyId: aid,
-      vendorName: payload.vendorName || 'Fornecedor',
-      category: payload.category || 'outro',
-      description: payload.description || '',
+      vendorName: payload.vendorName ?? existing.vendorName ?? 'Fornecedor',
+      category: payload.category ?? existing.category ?? 'outro',
+      description: payload.description ?? existing.description ?? '',
       amount,
-      status: payload.status || 'open',
-      dueDate: payload.dueDate || todayYmd(),
-      competenceMonth: payload.competenceMonth || ymNow(),
-      method: payload.method || '',
-      note: payload.note || '',
+      dueDate,
+      competenceMonth,
+      note: payload.note ?? existing.note ?? '',
+      ...(existing.installmentGroupId
+        ? {
+            installmentNumber: existing.installmentNumber,
+            installmentTotal: existing.installmentTotal,
+            installmentGroupId: existing.installmentGroupId,
+          }
+        : {}),
     },
     PAYABLE_KEYS
   );
 
-  const row = await db().createRow({
+  const updated = await db().updateRow({
     databaseId: DATABASE_ID,
     tableId: AF_PAYABLES,
-    rowId: ID.unique(),
+    rowId: id,
     data,
-    permissions: perms(),
   });
-  return mapRow(row);
+  return mapRow(updated);
 }
 
 export async function markPayablePaid({ agencyId, id, method = 'pix', date } = {}) {
@@ -354,6 +428,13 @@ export async function markPayablePaid({ agencyId, id, method = 'pix', date } = {
 
 export async function cancelPayable({ agencyId, id }) {
   assertAgency(agencyId);
+  const existing = mapRow(
+    await db().getRow({ databaseId: DATABASE_ID, tableId: AF_PAYABLES, rowId: id })
+  );
+  if (!existing) throw new Error('conta_nao_encontrada');
+  if (existing.status === 'paid') throw new Error('conta_paga');
+  if (existing.status === 'cancelled') return existing;
+
   const updated = await db().updateRow({
     databaseId: DATABASE_ID,
     tableId: AF_PAYABLES,
