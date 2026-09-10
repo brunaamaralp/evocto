@@ -17,7 +17,6 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
-  Megaphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -313,48 +312,41 @@ export default function ClientTasksPage() {
     );
   }
 
+  const cycleLabel = cycle?.cyclePeriod || cycle?.title || null;
+  const showCycleLabel =
+    cycleLabel &&
+    String(cycleLabel).trim().toLowerCase() !==
+      String(campaignName).trim().toLowerCase();
+
   return (
-    <div className="space-y-6">
+    <div className={isCampaignScope ? 'space-y-4' : 'space-y-6'}>
       {isCampaignScope ? (
-        <div className="space-y-3">
-          <Button asChild variant="ghost" size="sm" className="-ml-2">
-            <Link to={campaignHref} className="text-[#7A7595]">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Voltar à campanha
-            </Link>
-          </Button>
-          <nav className="flex flex-wrap items-center gap-1.5 text-xs text-[#7A7595]">
-            <Link to={overviewHref} className="hover:text-[#6C47D8] hover:underline">
-              {client?.name || 'Cliente'}
-            </Link>
-            <span aria-hidden>/</span>
-            <Link
-              to={campaignHref}
-              className="hover:text-[#6C47D8] hover:underline truncate max-w-[180px]"
-            >
-              {campaignName}
-            </Link>
-            <span aria-hidden>/</span>
-            <span className="text-[#18162A] font-medium">Tarefas</span>
-          </nav>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs text-[#7A7595] mb-1">
-                <Megaphone className="w-3.5 h-3.5" />
-                Tarefas da campanha
-                {cycle?.cyclePeriod || cycle?.title
-                  ? ` · ${cycle.cyclePeriod || cycle.title}`
-                  : ''}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+                <Link to={campaignHref} aria-label="Voltar à campanha">
+                  <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+                </Link>
+              </Button>
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                  Tarefas
+                </h1>
+                <p className="text-xs text-[#7A7595] truncate">
+                  <Link
+                    to={campaignHref}
+                    className="hover:text-[#6C47D8] hover:underline"
+                  >
+                    {campaignName}
+                  </Link>
+                  {showCycleLabel ? ` · ${cycleLabel}` : ''}
+                  <span className="mx-1.5">·</span>
+                  {tasks.length} tarefa{tasks.length === 1 ? '' : 's'}
+                  {tasks.length > 0 ? ` · ${progressPct}%` : ''}
+                  {scopeMeta.sharedCycleFallback ? ' · ciclo compartilhado' : ''}
+                </p>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] truncate">
-                {campaignName}
-              </h1>
-              <p className="text-sm text-[#7A7595] mt-1">
-                {tasks.length} tarefas · {progressPct}% concluído
-                {scopeMeta.sharedCycleFallback
-                  ? ' · período compartilhado'
-                  : ''}
-              </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Button variant="outline" size="sm" onClick={handleGenerateTasks}>
@@ -367,7 +359,7 @@ export default function ClientTasksPage() {
               </Button>
             </div>
           </div>
-          {tasks.length > 0 && <Progress value={progressPct} className="h-1.5" />}
+          {tasks.length > 0 && <Progress value={progressPct} className="h-1" />}
         </div>
       ) : (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

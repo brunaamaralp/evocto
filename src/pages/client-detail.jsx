@@ -163,11 +163,15 @@ export default function ClientDetailPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">{client.name}</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">
+              Visão geral
+            </h1>
             {(client.legal_name || client.email) && (
-              <p className="text-[#7A7595]">{client.legal_name || client.email}</p>
+              <p className="text-xs sm:text-sm text-[#7A7595] truncate">
+                {client.legal_name || client.email}
+              </p>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">

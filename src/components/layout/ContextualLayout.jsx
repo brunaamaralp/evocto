@@ -86,8 +86,7 @@ export default function ContextualLayout({ user, children }) {
   const context = getCurrentContext();
   const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
   const isClientShell = context.type === 'client' && Boolean(context.clientId);
-  const isCampaignPage =
-    currentPage === 'client-campaign' && Boolean(context.briefingId);
+  const hasCampaignContext = Boolean(context.briefingId);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +108,7 @@ export default function ContextualLayout({ user, children }) {
 
   useEffect(() => {
     let cancelled = false;
-    if (!isCampaignPage || !context.briefingId) {
+    if (!hasCampaignContext || !context.briefingId) {
       setContextCampaign(null);
       return undefined;
     }
@@ -128,7 +127,7 @@ export default function ContextualLayout({ user, children }) {
     return () => {
       cancelled = true;
     };
-  }, [isCampaignPage, context.briefingId]);
+  }, [hasCampaignContext, context.briefingId]);
 
   return (
     <div className={`evocto-shell ${isClientShell ? CLIENT_CONTEXT.shellBg : ''}`}>

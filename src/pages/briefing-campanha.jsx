@@ -207,18 +207,25 @@ export default function BriefingCampanhaPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <Button variant="ghost" size="sm" className="-ml-2 mb-1" onClick={backToClient}>
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Voltar
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 -ml-1.5"
+            onClick={backToClient}
+            aria-label="Voltar ao cliente"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-            Nova campanha — {empresa?.nome || client?.name}
-          </h1>
-          <p className="text-sm text-[#7A7595] mt-1">
-            Briefing + ciclo do mês + tarefas em um só fluxo.
-          </p>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+              Nova campanha
+            </h1>
+            <p className="text-xs text-[#7A7595]">
+              Briefing + ciclo + tarefas
+            </p>
+          </div>
         </div>
         <Button
           variant="outline"
@@ -226,7 +233,7 @@ export default function BriefingCampanhaPage() {
           onClick={() => setEmpresaModalOpen(true)}
         >
           <Building2 className="w-4 h-4 mr-1.5" />
-          {empresa ? 'Editar Empresa' : 'Configurar Empresa'}
+          {empresa ? 'Empresa' : 'Configurar Empresa'}
         </Button>
       </div>
 

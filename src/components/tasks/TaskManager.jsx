@@ -282,34 +282,6 @@ export default function TaskManager({
         </div>
       )}
 
-      {embedded && (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-[#7A7595]">
-          <p>
-            {taskStats.total} tarefas
-            <span className="mx-1.5">·</span>
-            {taskStats.completed} concluídas
-            <span className="mx-1.5">·</span>
-            {taskStats.inProgress} em progresso
-            {taskStats.overdue > 0 && (
-              <span className="text-red-600 font-medium">
-                <span className="mx-1.5 text-[#7A7595]">·</span>
-                {taskStats.overdue} atrasadas
-              </span>
-            )}
-          </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExportTasks}
-            disabled={filteredTasks.length === 0}
-            className="hidden sm:inline-flex h-8"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" />
-            Exportar
-          </Button>
-        </div>
-      )}
-
       <TaskFilters
         filters={filters}
         onFiltersChange={setFilters}

@@ -6,17 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Building, 
   Plus, 
   Settings,
   CheckCircle,
-  Clock,
   AlertTriangle,
   FileText,
-  Eye,
   Play,
+  TrendingUp,
+  ArrowLeft,
+  Eye,
+  Clock,
   Pause,
-  TrendingUp
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -24,8 +24,6 @@ import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import Breadcrumbs from '@/components/navigation/Breadcrumbs';
-import ContextHeader from '@/components/navigation/ContextHeader';
 import { getCardPastel } from '@/lib/modulePastels';
 
 /**
@@ -163,15 +161,6 @@ export default function ClientServicesPage() {
     );
   };
 
-  const breadcrumbItems = [
-    { label: 'Clientes', href: createPageUrl('clients'), icon: Building },
-    ...(client ? [{ 
-      label: client.name || client.legal_name, 
-      href: createPageUrl('client') + `?clientId=${client.id}` 
-    }] : []),
-    { label: 'Serviços' }
-  ];
-
   if (loading) {
     return <LoadingState message="Carregando serviços..." />;
   }
@@ -189,76 +178,85 @@ export default function ClientServicesPage() {
     );
   }
 
+  const clientHref = clientId
+    ? createPageUrl(`client-detail?clientId=${clientId}`)
+    : createPageUrl('clients');
+
   return (
     <ErrorBoundary>
       <div>
-        {/* Header */}
-        <ContextHeader
-          title="Serviços do Cliente"
-          subtitle={client ? `${client.name} • ${stats.totalServices} serviços` : 'Cliente'}
-          backButton={{
-            href: client ? `${createPageUrl('client')}?clientId=${client.id}` : createPageUrl('clients')
-          }}
-          entity={{
-            type: 'services',
-            metadata: [
-              {
-                icon: CheckCircle,
-                label: 'Ativos',
-                value: stats.activeServices
-              },
+        <div className="max-w-7xl mx-auto space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+                <Link to={clientHref} aria-label="Voltar ao cliente">
+                  <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+                </Link>
+              </Button>
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                  Serviços
+                </h1>
+                <p className="text-xs text-[#7A7595]">
+                  Backstage · {stats.totalServices || 0} serviço
+                  {(stats.totalServices || 0) === 1 ? '' : 's'}
+                  {stats.activeServices != null
+                    ? ` · ${stats.activeServices} ativo${stats.activeServices === 1 ? '' : 's'}`
+                    : ''}
+                  {stats.averageProgress != null
+                    ? ` · ${stats.averageProgress}%`
+                    : ''}
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                document
+                  .getElementById('service-templates')
+                  ?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Novo serviço
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: FileText, label: 'Total', value: stats.totalServices, idx: 0 },
+              { icon: Play, label: 'Em progresso', value: stats.inProgressServices, idx: 1 },
+              { icon: CheckCircle, label: 'Concluídos', value: stats.completedServices, idx: 2 },
               {
                 icon: TrendingUp,
-                label: 'Progresso Médio',
-                value: `${stats.averageProgress}%`
-              }
-            ]
-          }}
-          actions={[
-            {
-              label: 'Novo Serviço',
-              icon: Plus,
-              onClick: () => {
-                // Scroll to templates section
-                document.getElementById('service-templates')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }
-          ]}
-        />
-
-        <div>
-          <Breadcrumbs items={breadcrumbItems} />
-
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[{
-                icon: FileText, label: 'Total', value: stats.totalServices, idx: 0,
-              }, {
-                icon: Play, label: 'Em Progresso', value: stats.inProgressServices, idx: 1,
-              }, {
-                icon: CheckCircle, label: 'Concluídos', value: stats.completedServices, idx: 2,
-              }, {
-                icon: TrendingUp, label: 'Progresso', value: `${stats.averageProgress}%`, idx: 3,
-              }].map(({ icon: Icon, label, value, idx }) => {
-                const pastel = getCardPastel(idx);
-                return (
-                  <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
-                    <CardContent className="p-5">
-                      <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pastel.tag}`}>
-                          <Icon className={`h-5 w-5 ${pastel.text}`} />
-                        </div>
-                        <div className="ml-4">
-                          <p className="text-sm font-medium text-[#7A7595]">{label}</p>
-                          <p className="text-2xl font-bold text-[#18162A]">{value}</p>
-                        </div>
+                label: 'Progresso',
+                value: `${stats.averageProgress || 0}%`,
+                idx: 3,
+              },
+            ].map(({ icon: Icon, label, value, idx }) => {
+              const pastel = getCardPastel(idx);
+              return (
+                <Card
+                  key={label}
+                  className={`rounded-2xl border-transparent shadow-none ${pastel.bg}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${pastel.tag}`}
+                      >
+                        <Icon className={`h-4 w-4 ${pastel.text}`} />
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                      <div>
+                        <p className="text-xl font-bold text-[#18162A]">{value}</p>
+                        <p className="text-xs text-[#7A7595]">{label}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
             {/* Serviços Ativos */}
             <div>
@@ -438,7 +436,6 @@ export default function ClientServicesPage() {
               )}
             </div>
           </div>
-        </div>
       </div>
     </ErrorBoundary>
   );

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   FileText, Download, Upload, Eye,
   Search, User, 
-  FolderOpen, File, Image, Archive, Share2,
+  File, Image, Archive, Share2,
   ArrowLeft, RefreshCw
 } from 'lucide-react';
 import {
@@ -24,6 +24,7 @@ import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getCardPastel } from '@/lib/modulePastels';
 
@@ -290,31 +291,34 @@ export default function ClientDocumentsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => window.location.href = createPageUrl('client-detail') + `?clientId=${clientId}`}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-3">
-              <FolderOpen className="w-8 h-8 text-[#6C47D8]" />
-              Documentos - {client.name}
-            </h1>
-            <p className="text-[#7A7595] mt-1">
-              Gerencie todos os documentos deste cliente
-            </p>
+    <div className="max-w-7xl mx-auto space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 -ml-1.5"
+            >
+              <Link
+                to={createPageUrl(`client-detail?clientId=${clientId}`)}
+                aria-label="Voltar ao cliente"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+              </Link>
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                Documentos
+              </h1>
+              <p className="text-xs text-[#7A7595]">
+                {stats.total || 0} documento{(stats.total || 0) === 1 ? '' : 's'}
+              </p>
+            </div>
           </div>
-
-          <Button>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Documento
+          <Button size="sm">
+            <Upload className="w-4 h-4 mr-1" />
+            Upload
           </Button>
         </div>
 

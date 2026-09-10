@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Loader2,
-  Megaphone,
   Target,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -226,47 +225,37 @@ export default function ClientCampaignPage() {
         }`
       : null);
 
+  const statusText = statusLabel(briefing.status_campanha || briefing.status);
+  const showPeriod =
+    period &&
+    String(period).trim().toLowerCase() !==
+      String(campaignName).trim().toLowerCase();
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="space-y-3">
-        <Button asChild variant="ghost" size="sm" className="-ml-2">
-          <Link to={clientHref} className="text-[#7A7595]">
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            {client.name}
-          </Link>
-        </Button>
-        <nav className="flex flex-wrap items-center gap-1.5 text-xs text-[#7A7595]">
-          <Link to={clientHref} className="hover:text-[#6C47D8] hover:underline">
-            {client.name}
-          </Link>
-          <span aria-hidden>/</span>
-          <span className="text-[#18162A] font-medium truncate max-w-[240px]">
-            {campaignName}
-          </span>
-        </nav>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-xs text-[#7A7595] mb-1">
-              <Megaphone className="w-3.5 h-3.5" />
-              Campanha
-              {period ? ` · ${period}` : ''}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">
-              {campaignName}
-            </h1>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary">
-                {statusLabel(briefing.status_campanha || briefing.status)}
-              </Badge>
-              {briefing.tipo_campanha && (
-                <Badge variant="outline">{briefing.tipo_campanha}</Badge>
-              )}
-              {cycle?.status && (
-                <Badge variant="outline">{statusLabel(cycle.status)}</Badge>
-              )}
+    <div className="space-y-4 max-w-4xl">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+              <Link to={clientHref} aria-label="Voltar ao cliente">
+                <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+              </Link>
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-[#18162A] truncate leading-tight">
+                {campaignName}
+              </h1>
+              <p className="text-xs text-[#7A7595] truncate">
+                {statusText}
+                {briefing.tipo_campanha ? ` · ${briefing.tipo_campanha}` : ''}
+                {showPeriod ? ` · ${period}` : ''}
+                {progress.total > 0
+                  ? ` · ${progress.percentComplete}% · ${progress.completed}/${progress.total}`
+                  : ''}
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
             <Button asChild size="sm">
               <Link to={tasksHref}>
                 <CheckSquare className="w-4 h-4 mr-1" />
@@ -276,7 +265,7 @@ export default function ClientCampaignPage() {
             <Button asChild size="sm" variant="outline">
               <Link to={briefingHref}>
                 <FileText className="w-4 h-4 mr-1" />
-                Editar campanha
+                Editar
               </Link>
             </Button>
             {workspaceHref && (
@@ -286,6 +275,9 @@ export default function ClientCampaignPage() {
             )}
           </div>
         </div>
+        {progress.total > 0 && (
+          <Progress value={progress.percentComplete} className="h-1" />
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

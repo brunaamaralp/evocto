@@ -89,27 +89,31 @@ export default function ClientEvolutionPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => window.location.href = createPageUrl('client-detail') + `?clientId=${clientId}`}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-              Evolução - {client.name}
-            </h1>
-            <p className="text-[#7A7595]">
-              Timeline de transformações e marcos importantes
-            </p>
+    <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 -ml-1.5"
+              onClick={() =>
+                (window.location.href =
+                  createPageUrl('client-detail') + `?clientId=${clientId}`)
+              }
+              aria-label="Voltar ao cliente"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                Evolução
+              </h1>
+              <p className="text-xs text-[#7A7595]">
+                {evolutionEvents.length} evento
+                {evolutionEvents.length === 1 ? '' : 's'}
+              </p>
+            </div>
           </div>
-
           <div className="flex gap-2">
             <Button
               variant={viewMode === 'timeline' ? 'default' : 'outline'}

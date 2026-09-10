@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Settings, User, Building,
+  User, Building,
   RefreshCw, Save, AlertCircle, Trash2,
   ArrowLeft, CheckSquare, Plus
 } from 'lucide-react';
@@ -19,6 +19,8 @@ import LoadingState from '@/components/shared/LoadingStates';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import { getEmpresaByClientId, configFromEmpresa } from '@/lib/empresaConfig';
 import EmpresaConfigResumo from '@/components/briefing/campanha/EmpresaConfigResumo';
+import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
 
 export default function ClientSettingsPage() {
   const { _user, isAuthenticated, agencyId } = useSession();
@@ -145,37 +147,32 @@ export default function ClientSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Settings className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-              <p className="text-gray-600">Gerencie os dados e configurações de {client?.name}</p>
+    <div className="max-w-4xl mx-auto space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+              <Link
+                to={createPageUrl(`client-detail?clientId=${clientId}`)}
+                aria-label="Voltar ao cliente"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+              </Link>
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                Configurações
+              </h1>
+              <p className="text-xs text-[#7A7595]">Dados e preferências do cliente</p>
             </div>
           </div>
-
-          <div className="flex justify-end gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = `/client-overview?clientId=${clientId}`}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Salvar Alterações
-            </Button>
-          </div>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            Salvar
+          </Button>
         </div>
 
         <Tabs defaultValue="basic" className="space-y-6">
@@ -440,7 +437,6 @@ export default function ClientSettingsPage() {
           empresa={empresa}
           onSaved={(saved) => setEmpresa(saved)}
         />
-      </div>
     </div>
   );
 }

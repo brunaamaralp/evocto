@@ -334,38 +334,39 @@ export default function ClientBriefingPage() {
 
   return (
     <ErrorBoundary>
-      <div className="max-w-6xl mx-auto space-y-6 px-1">
-        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-between sm:items-start">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-              Briefings — {client?.name}
+      <div className="max-w-6xl mx-auto space-y-4 px-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between sm:items-center">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+              Briefings
             </h1>
-            <p className="text-[#7A7595] mt-1 max-w-xl">
-              Comece pelo link do cliente, monte o plano do ano com IA e abra campanhas mês a mês.
+            <p className="text-xs text-[#7A7595]">
+              Plano anual e campanhas do cliente
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {!hasSubmittedInicial && (
               <Button
+                size="sm"
                 onClick={handleGenerateInicialLink}
                 className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
                 disabled={generatingLink}
               >
                 {generatingLink ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (
-                  <LinkIcon className="w-4 h-4 mr-2" />
+                  <LinkIcon className="w-4 h-4 mr-1" />
                 )}
-                Link do briefing inicial
+                Link inicial
               </Button>
             )}
-            <Button variant="outline" onClick={handleCreatePlanoAnual}>
-              <CalendarRange className="w-4 h-4 mr-2" />
+            <Button size="sm" variant="outline" onClick={handleCreatePlanoAnual}>
+              <CalendarRange className="w-4 h-4 mr-1" />
               Plano anual
             </Button>
-            <Button variant="outline" onClick={handleCreateCampanha}>
-              <Plus className="w-4 h-4 mr-2" />
+            <Button size="sm" variant="outline" onClick={handleCreateCampanha}>
+              <Plus className="w-4 h-4 mr-1" />
               Nova campanha
             </Button>
           </div>

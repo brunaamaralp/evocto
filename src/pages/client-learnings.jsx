@@ -98,24 +98,26 @@ export default function ClientLearningsPage() {
   const pendingReviewLearnings = learnings.filter(l => !l.reviewed);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
+    <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
             size="icon"
-            onClick={() => window.location.href = createPageUrl('client-detail') + `?clientId=${clientId}`}
+            className="h-8 w-8 shrink-0 -ml-1.5"
+            onClick={() =>
+              (window.location.href =
+                createPageUrl('client-detail') + `?clientId=${clientId}`)
+            }
+            aria-label="Voltar ao cliente"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
           </Button>
-          
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-              Aprendizados - {client.name}
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+              Aprendizados
             </h1>
-            <p className="text-[#7A7595]">
-              Conhecimento específico acumulado com este cliente
+            <p className="text-xs text-[#7A7595]">
+              {learnings.length} registro{learnings.length === 1 ? '' : 's'}
             </p>
           </div>
         </div>
