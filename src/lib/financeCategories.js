@@ -1,7 +1,8 @@
 /**
  * Categorias fixas de FINANCIAL_TX — fonte de verdade para type, DRE e contas.
- * Campo `category` na transação armazena o label (ex.: "Mensalidades")
+ * Campo `category` na transação armazena o label (ex.: "Fee mensal / retainer")
  * ou valor `acct:CODE` para contas do plano de contas.
+ * Vocabulário padrão: agência de marketing (aliases legados de academia ainda resolvem).
  */
 
 import {
@@ -26,7 +27,7 @@ export const PATRIMONIAL_FLOW_GROUP = 'Fluxo patrimonial / financiamento';
 
 export const FINANCE_CATEGORIES = {
   MENSALIDADE: {
-    label: 'Mensalidades',
+    label: 'Fee mensal / retainer',
     type: 'plan',
     dreGroup: 'Receita Bruta',
     dreAccount: '4.1.1',
@@ -34,40 +35,40 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'receita_servico',
   },
   VENDA_PRODUTO: {
-    label: 'Vendas de produtos',
+    label: 'Vendas de produtos / packs',
     type: 'product',
     dreGroup: 'Receita Bruta',
-    dreAccount: '4.1.1',
+    dreAccount: '4.1.8',
     operationalBucket: 'operational',
     cashFlowClass: 'receita_produto',
   },
   MATRICULA: {
-    label: 'Matrículas',
+    label: 'Setup / onboarding de cliente',
     type: 'enrollment',
     dreGroup: 'Receita Bruta',
-    dreAccount: '4.1.1',
+    dreAccount: '4.1.2',
     operationalBucket: 'operational',
     cashFlowClass: 'receita_servico',
   },
   ALUGUEL_RECEITA: {
-    label: 'Aluguéis recebidos',
-    title: 'Kimonos, uniformes e equipamentos emprestados',
+    label: 'Aluguéis / cessão de espaço',
+    title: 'Espaço, estúdio ou equipamentos cedidos',
     type: 'rental',
     dreGroup: 'Receita Bruta',
-    dreAccount: '4.1.1',
+    dreAccount: '4.1.8',
     operationalBucket: 'operational',
     cascadeSplitRevenue: true,
   },
   OUTROS_RECEITA: {
-    label: 'Outras receitas',
+    label: 'Outras receitas de serviços',
     type: 'other',
     dreGroup: 'Receita Bruta',
-    dreAccount: '4.1.1',
+    dreAccount: '4.1.8',
     operationalBucket: 'operational',
     cascadeSplitRevenue: true,
   },
   AULAS_AVULSAS: {
-    label: 'Aulas avulsas / day pass',
+    label: 'Projetos e jobs avulsos',
     type: 'other',
     dreGroup: 'Receita Bruta',
     dreAccount: '4.1.2',
@@ -75,7 +76,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'receita_servico',
   },
   EVENTOS_SEMINARIOS: {
-    label: 'Eventos e seminários',
+    label: 'Consultoria e workshops',
     type: 'other',
     dreGroup: 'Receita Bruta',
     dreAccount: '4.1.3',
@@ -83,7 +84,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'receita_servico',
   },
   PATROCINIOS: {
-    label: 'Patrocínios',
+    label: 'Gestão de mídia (fee)',
     type: 'other',
     dreGroup: 'Receita Bruta',
     dreAccount: '4.1.4',
@@ -122,7 +123,7 @@ export const FINANCE_CATEGORIES = {
     operationalBucket: 'neutral',
   },
   CANCELAMENTO: {
-    label: 'Cancelamentos',
+    label: 'Cancelamentos e estornos',
     type: 'refund',
     dreGroup: 'Deduções',
     dreAccount: '4.9.1',
@@ -133,20 +134,20 @@ export const FINANCE_CATEGORIES = {
     label: 'Descontos concedidos',
     type: 'refund',
     dreGroup: 'Deduções',
-    dreAccount: '4.9.1',
+    dreAccount: '4.9.2',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_variavel',
   },
   CUSTO_ESTOQUE: {
-    label: 'Custo de estoque',
+    label: 'Licenças, stock e insumos de produção',
     type: 'stock_purchase',
     dreGroup: 'CMV/CPV',
-    dreAccount: '5.1.1',
+    dreAccount: '5.1.3',
     operationalBucket: 'operational',
     cashFlowClass: 'pgto_fornecedor',
   },
   CUSTO_SERVICO: {
-    label: 'Custo do serviço',
+    label: 'Freelancers e produção terceirizada',
     type: 'service_cogs',
     dreGroup: 'CMV/CPV',
     dreAccount: '5.1.1',
@@ -154,18 +155,18 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'pgto_fornecedor',
   },
   INSUMO_ATENDIMENTO: {
-    label: 'Insumos de atendimento (café, fruta…)',
+    label: 'Hospitalidade / café e atendimento',
     type: 'consumable_cogs',
     dreGroup: 'CMV/CPV',
-    dreAccount: '5.1.1',
+    dreAccount: '5.1.4',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_variavel',
   },
   ALUGUEL_ESPACO: {
-    label: 'Aluguel do espaço',
+    label: 'Aluguel e condomínio',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.10',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
@@ -173,23 +174,23 @@ export const FINANCE_CATEGORIES = {
     label: 'Salários e encargos',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.1.1',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
   MARKETING: {
-    label: 'Marketing',
+    label: 'Marketing da própria agência',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.14',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
   SISTEMAS: {
-    label: 'Sistemas / Software',
+    label: 'Ferramentas SaaS e softwares',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.13',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
@@ -205,7 +206,7 @@ export const FINANCE_CATEGORIES = {
     label: 'Água e esgoto',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.11',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
@@ -213,15 +214,15 @@ export const FINANCE_CATEGORIES = {
     label: 'Luz / energia',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.11',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
   TELEFONE_INTERNET: {
-    label: 'Telefone e internet',
+    label: 'Internet e telefonia',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.12',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
@@ -229,20 +230,20 @@ export const FINANCE_CATEGORIES = {
     label: 'Condomínio',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.10',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
   IMPOSTOS_TAXAS: {
-    label: 'Impostos e taxas',
+    label: 'Impostos e taxas operacionais',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.15',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_variavel',
   },
   OUTRAS_DESPESAS: {
-    label: 'Outras despesas',
+    label: 'Outras despesas operacionais',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.1',
@@ -250,7 +251,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_fixa',
   },
   LIMPEZA: {
-    label: 'Limpeza e higiene',
+    label: 'Limpeza e facilities',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.3',
@@ -258,7 +259,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_fixa',
   },
   MATERIAL_TREINO: {
-    label: 'Material de treino (faixas, tatame…)',
+    label: 'Produção e materiais de campanha',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.4',
@@ -266,7 +267,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_variavel',
   },
   TRANSPORTE: {
-    label: 'Transporte e combustível',
+    label: 'Transporte e deslocamentos',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.5',
@@ -282,7 +283,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_fixa',
   },
   CONTABILIDADE: {
-    label: 'Contabilidade e honorários',
+    label: 'Contabilidade, jurídico e honorários',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.7',
@@ -290,7 +291,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_fixa',
   },
   CAPACITACAO: {
-    label: 'Capacitação de professores',
+    label: 'Capacitação e treinamento da equipe',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.8',
@@ -345,7 +346,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_variavel',
   },
   PRO_LABORE: {
-    label: 'Pró-labore',
+    label: 'Pró-labore / retirada de sócio',
     type: 'equity_withdrawal',
     dreGroup: '',
     dreAccount: '3.1.2',
@@ -353,7 +354,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'retirada_socio',
   },
   ROYALTY_FRANQUIA: {
-    label: 'Royalty de franquia (mensal)',
+    label: 'Licenças de marca / parceiros',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.1',
@@ -361,7 +362,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_fixa',
   },
   FRANQUIA_PATRIMONIO: {
-    label: 'Taxa de franquia / licenciamento (patrimonial)',
+    label: 'Investimento em licenciamento / parceria',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.1',
@@ -369,10 +370,10 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'investimento',
   },
   REEMBOLSO_FUNCIONARIO: {
-    label: 'Reembolso a funcionário',
+    label: 'Reembolso a colaborador',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.17',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
@@ -380,15 +381,15 @@ export const FINANCE_CATEGORIES = {
     label: 'Reembolso de compras',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
-    dreAccount: '6.2.1',
+    dreAccount: '6.2.17',
     operationalBucket: 'operational',
     cashFlowClass: 'desp_fixa',
   },
   RECEITA_TERCEIROS: {
-    label: 'Receita de terceiros',
+    label: 'Receita de terceiros (passagem)',
     type: 'third_party_in',
     dreGroup: 'Receita Bruta',
-    dreAccount: '4.1.1',
+    dreAccount: '4.1.8',
     operationalBucket: 'operational',
     cashFlowClass: 'receita_terceiro',
   },
@@ -409,7 +410,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'despesa_terceiro',
   },
   DESPESA_TERCEIROS: {
-    label: 'Despesas de terceiros',
+    label: 'Despesas de terceiros (passagem)',
     type: 'expense_operational',
     dreGroup: 'Despesas Operacionais',
     dreAccount: '6.2.1',
@@ -425,7 +426,7 @@ export const FINANCE_CATEGORIES = {
     cashFlowClass: 'desp_variavel',
   },
   PAGAMENTO_FORNECEDOR: {
-    label: 'Pagamento a fornecedor',
+    label: 'Pagamento a fornecedor / freela',
     type: 'stock_purchase',
     dreGroup: 'CMV/CPV',
     dreAccount: '5.1.1',
@@ -434,10 +435,61 @@ export const FINANCE_CATEGORIES = {
   },
 };
 
+/** Labels legados (academia) → categoria atual, para lançamentos antigos. */
+const CATEGORY_LABEL_ALIASES = {
+  mensalidades: 'MENSALIDADE',
+  'vendas de produtos': 'VENDA_PRODUTO',
+  matrículas: 'MATRICULA',
+  matriculas: 'MATRICULA',
+  'aluguéis recebidos': 'ALUGUEL_RECEITA',
+  'alugueis recebidos': 'ALUGUEL_RECEITA',
+  'outras receitas': 'OUTROS_RECEITA',
+  'aulas avulsas / day pass': 'AULAS_AVULSAS',
+  'eventos e seminários': 'EVENTOS_SEMINARIOS',
+  'eventos e seminarios': 'EVENTOS_SEMINARIOS',
+  patrocínios: 'PATROCINIOS',
+  patrocinios: 'PATROCINIOS',
+  cancelamentos: 'CANCELAMENTO',
+  'descontos concedidos': 'DESCONTO',
+  'custo de estoque': 'CUSTO_ESTOQUE',
+  'custo do serviço': 'CUSTO_SERVICO',
+  'custo do servico': 'CUSTO_SERVICO',
+  'insumos de atendimento (café, fruta…)': 'INSUMO_ATENDIMENTO',
+  'insumos de atendimento (café, fruta...)': 'INSUMO_ATENDIMENTO',
+  'aluguel do espaço': 'ALUGUEL_ESPACO',
+  'aluguel do espaco': 'ALUGUEL_ESPACO',
+  marketing: 'MARKETING',
+  'sistemas / software': 'SISTEMAS',
+  'telefone e internet': 'TELEFONE_INTERNET',
+  'outras despesas': 'OUTRAS_DESPESAS',
+  'limpeza e higiene': 'LIMPEZA',
+  'material de treino (faixas, tatame…)': 'MATERIAL_TREINO',
+  'material de treino (faixas, tatame...)': 'MATERIAL_TREINO',
+  'transporte e combustível': 'TRANSPORTE',
+  'transporte e combustivel': 'TRANSPORTE',
+  'contabilidade e honorários': 'CONTABILIDADE',
+  'contabilidade e honorarios': 'CONTABILIDADE',
+  'capacitação de professores': 'CAPACITACAO',
+  'capacitacao de professores': 'CAPACITACAO',
+  'pró-labore': 'PRO_LABORE',
+  'pro-labore': 'PRO_LABORE',
+  'royalty de franquia (mensal)': 'ROYALTY_FRANQUIA',
+  'taxa de franquia / licenciamento (patrimonial)': 'FRANQUIA_PATRIMONIO',
+  'reembolso a funcionário': 'REEMBOLSO_FUNCIONARIO',
+  'reembolso a funcionario': 'REEMBOLSO_FUNCIONARIO',
+  'receita de terceiros': 'RECEITA_TERCEIROS',
+  'despesas de terceiros': 'DESPESA_TERCEIROS',
+  'pagamento a fornecedor': 'PAGAMENTO_FORNECEDOR',
+};
+
 const BY_KEY = FINANCE_CATEGORIES;
 const BY_LABEL = new Map(
   Object.values(FINANCE_CATEGORIES).map((c) => [c.label.trim().toLowerCase(), c])
 );
+for (const [alias, key] of Object.entries(CATEGORY_LABEL_ALIASES)) {
+  const cat = FINANCE_CATEGORIES[key];
+  if (cat && !BY_LABEL.has(alias)) BY_LABEL.set(alias, cat);
+}
 const _BY_TYPE_DEFAULT = new Map(
   Object.values(FINANCE_CATEGORIES).map((c) => [c.type, c])
 );

@@ -10,6 +10,7 @@ import {
 import { createSessionJwt } from '../../lib/appwrite';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import { downloadCsvTemplate } from '../../lib/reportsExport.js';
+import { DEFAULT_AGENCY_CHART_OF_ACCOUNTS } from '../../lib/agencyChartOfAccounts.js';
 
 const VIOLET = 'var(--color-primary)';
 const CORAL = '#F04040';
@@ -42,18 +43,17 @@ function isBankRowInvalid(row) {
 
 function downloadFinanceImportTemplate() {
   const headers = ['Código', 'Nome', 'Tipo', 'Natureza', 'Grupo DRE', 'Classe DFC', 'Subcl. DFC', 'Caixa'];
-  const sampleRows = [
-    ['1', 'Ativo', 'ativo', 'devedora', '', '', '', 'Não'],
-    ['1.1', 'Circulante', 'ativo', 'devedora', '', '', '', 'Não'],
-    ['1.1.1', 'Caixa', 'ativo', 'devedora', '', 'Operacional', '', 'Sim'],
-    ['4.1', 'Receitas', 'receita', 'credora', 'Receita Bruta', '', '', 'Não'],
-    ['4.1.1', 'Receita de Vendas', 'receita', 'credora', 'Receita Bruta', '', '', 'Não'],
-    ['4.1.2', 'Aulas avulsas / day pass', 'receita', 'credora', 'Receita Bruta', '', '', 'Não'],
-    ['6.2', 'Despesas operacionais', 'despesa', 'devedora', 'Despesas Operacionais', '', '', 'Não'],
-    ['6.2.1', 'Despesas Gerais e Adm', 'despesa', 'devedora', 'Despesas Operacionais', '', '', 'Não'],
-    ['6.2.3', 'Limpeza e higiene', 'despesa', 'devedora', 'Despesas Operacionais', '', '', 'Não'],
-  ];
-  downloadCsvTemplate(headers, sampleRows, 'modelo-plano-de-contas-nave.csv');
+  const sampleRows = DEFAULT_AGENCY_CHART_OF_ACCOUNTS.slice(0, 18).map((a) => [
+    a.code,
+    a.name,
+    a.type,
+    a.nature,
+    a.dreGrupo || '',
+    a.dfcClasse || '',
+    a.dfcSubclasse || '',
+    a.cash ? 'Sim' : 'Não',
+  ]);
+  downloadCsvTemplate(headers, sampleRows, 'modelo-plano-de-contas-agencia.csv');
 }
 
 function PulsingDots() {

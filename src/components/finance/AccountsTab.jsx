@@ -3,10 +3,8 @@ import { createPortal } from 'react-dom';
 import { databases, DB_ID, ACCOUNTS_COL } from '../../lib/appwrite';
 import { Query, ID } from 'appwrite';
 import { seedAccounts, buildAccountUsageByCode, useAccountingStore } from '../../store/useAccountingStore';
-import {
-  expandedCategorySeedAccounts,
-  missingSeedAccounts,
-} from '../../lib/financeChartSeedAccounts.js';
+import { missingSeedAccounts } from '../../lib/financeChartSeedAccounts.js';
+import { DEFAULT_AGENCY_CHART_OF_ACCOUNTS } from '../../lib/agencyChartOfAccounts.js';
 import {
   isProtectedAccountCode,
   PROTECTED_CODE_DELETE_MESSAGE,
@@ -628,7 +626,7 @@ export default function AccountsTab({
           }
         } else {
           const mapped = docs.map(mapDoc);
-          const missing = missingSeedAccounts(mapped, expandedCategorySeedAccounts());
+          const missing = missingSeedAccounts(mapped, DEFAULT_AGENCY_CHART_OF_ACCOUNTS);
           if (missing.length > 0) {
             const payloads = missing.map((s) => ({
               academyId,
