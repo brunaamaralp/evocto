@@ -32,6 +32,18 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/team-members"
+  to = "/.netlify/functions/team-members"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/team-members/"
+  to = "/.netlify/functions/team-members"
+  status = 200
+  force = true
+
 # Service Worker e assets PWA — não cachear o SW no CDN
 [[headers]]
   for = "/sw.js"

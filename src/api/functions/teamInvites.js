@@ -1,5 +1,6 @@
-import { getAccount, getTeams, ID } from '@/api/appwriteClient';
+import { getAccount, getTeams, getTablesDB, DATABASE_ID, ID, Permission, Role } from '@/api/appwriteClient';
 import { createEntityAdapter } from '../appwrite/entityAdapter';
+import { createSessionJwt } from '@/lib/appwrite';
 
 const Invite = createEntityAdapter('invites');
 const Profile = createEntityAdapter('profiles');
@@ -148,11 +149,96 @@ function buildStats(invites) {
 
 async function createTeamMembership({ agencyId, email, role, token, userId }) {
   const teams = getTeams();
+  // Client SDK exige `url` mesmo com userId.
+  const url = inviteRedirectUrl(token) || loginUrl().replace(/\/login$/, '/invite-accept');
   return teams.createMembership({
     teamId: agencyId,
     roles: [role],
+    url,
     ...(userId ? { userId } : { email }),
-    ...(userId ? {} : { url: inviteRedirectUrl(token) }),
+  });
+}
+
+async function createMemberWithPasswordViaApi({ email, role, name, password }) {
+  const jwt = await createSessionJwt();
+  if (!jwt) return null;
+
+  let res;
+  try {
+    res = await fetch('/api/team-members?route=create-with-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ email, role, name, password }),
+    });
+  } catch (err) {
+    console.warn('[teamInvites] API team-members indisponível:', err?.message || err);
+    return null;
+  }
+
+  // Sem função deployada → fallback client
+  if (res.status === 404) return null;
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.success === false) {
+    return fail(
+      json.error || 'api_error',
+      json.message || 'Não foi possível criar o membro.',
+      json.suggestion ? { suggestion: json.suggestion } : {}
+    );
+  }
+
+  const payload = json.data || json;
+  return ok({
+    method: 'password',
+    message: payload.message || 'Membro criado. Compartilhe e-mail e senha com a pessoa.',
+    temporaryPassword: payload.temporaryPassword || password,
+    email: payload.email || email,
+    name: payload.name || name,
+    userId: payload.userId,
+    loginUrl: payload.loginUrl || loginUrl(),
+  });
+}
+
+async function createProfileRow({
+  userId,
+  agencyId,
+  role,
+  email,
+  displayName,
+  createdBy,
+}) {
+  const tables = getTablesDB();
+  await tables.createRow({
+    databaseId: DATABASE_ID,
+    tableId: 'profiles',
+    rowId: userId,
+    data: {
+      agencyId,
+      role,
+      clientId: '',
+      name: displayName,
+      email,
+      full_name: displayName,
+      status: 'active',
+      payload: JSON.stringify({
+        isTemporaryPassword: true,
+        createdBy: createdBy || null,
+        createdVia: 'password_share',
+      }),
+    },
+    permissions: [
+      Permission.read(Role.user(userId)),
+      Permission.update(Role.user(userId)),
+      Permission.read(Role.team(agencyId)),
+      Permission.update(Role.team(agencyId)),
+      Permission.delete(Role.team(agencyId)),
+      // Quem cria precisa ler/atualizar se o membership ainda estiver pendente
+      Permission.read(Role.user(createdBy)),
+      Permission.update(Role.user(createdBy)),
+    ].filter(Boolean),
   });
 }
 
@@ -188,6 +274,15 @@ async function createMemberWithPassword({ email, role, name, password } = {}) {
   const availability = await assertEmailAvailable(actor, normalizedEmail);
   if (availability) return availability;
 
+  // Preferir API server (Users + membership confirmado). Evita 401 no profile e "URL is required".
+  const viaApi = await createMemberWithPasswordViaApi({
+    email: normalizedEmail,
+    role: normalizedRole,
+    name: displayName,
+    password: sharePassword,
+  });
+  if (viaApi) return viaApi;
+
   const account = getAccount();
   const userId = ID.unique();
 
@@ -201,9 +296,28 @@ async function createMemberWithPassword({ email, role, name, password } = {}) {
   } catch (error) {
     const msg = String(error?.message || '').toLowerCase();
     if (msg.includes('already') || msg.includes('exists') || error?.code === 409) {
-      return fail('email_in_use', 'Já existe uma conta com este e-mail');
+      return fail(
+        'email_in_use',
+        'Já existe uma conta com este e-mail (pode ser de uma tentativa anterior). Use outro e-mail ou remova o usuário no Appwrite Console.'
+      );
     }
     throw error;
+  }
+
+  // Garante que a sessão do admin não foi trocada
+  try {
+    const stillMe = await account.get();
+    if (normalizeEmail(stillMe.email) !== actor.email) {
+      return fail(
+        'session_changed',
+        'A sessão mudou ao criar o usuário. Faça login de novo como admin e tente outro e-mail.'
+      );
+    }
+  } catch {
+    return fail(
+      'session_lost',
+      'Sessão perdida ao criar o usuário. Faça login de novo e tente novamente com outro e-mail.'
+    );
   }
 
   let membershipWarning = null;
@@ -212,25 +326,31 @@ async function createMemberWithPassword({ email, role, name, password } = {}) {
       agencyId: actor.agencyId,
       role: normalizedRole,
       userId,
+      token: ID.unique(),
     });
   } catch (error) {
     membershipWarning = error?.message || 'Membership do time não confirmado automaticamente.';
     console.warn('[teamInvites] createMembership (password):', membershipWarning);
   }
 
-  await Profile.create({
-    id: userId,
-    agencyId: actor.agencyId,
-    role: normalizedRole,
-    clientId: '',
-    email: normalizedEmail,
-    name: displayName,
-    full_name: displayName,
-    status: 'active',
-    isTemporaryPassword: true,
-    createdBy: actor.userId,
-    createdVia: 'password_share',
-  });
+  try {
+    await createProfileRow({
+      userId,
+      agencyId: actor.agencyId,
+      role: normalizedRole,
+      email: normalizedEmail,
+      displayName,
+      createdBy: actor.userId,
+    });
+  } catch (error) {
+    console.error('[teamInvites] profile create (password):', error);
+    return fail(
+      'profile_create_failed',
+      error?.message ||
+        'Conta Auth criada, mas o perfil falhou. Use outro e-mail ou remova o usuário órfão no Appwrite Console.',
+      { userId }
+    );
+  }
 
   return ok({
     method: 'password',
