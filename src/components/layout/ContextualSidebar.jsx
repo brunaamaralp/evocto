@@ -336,9 +336,11 @@ export default function ContextualSidebar({
               onClick={onClose}
             >
               {collapsed ? (
-                <NaviBrandLockup variant="mark" height={32} />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
+                  <NaviBrandLockup variant="mark" height={22} className="brightness-0 invert" />
+                </span>
               ) : (
-                <NaviBrandLockup height={26} className="max-w-[168px]" />
+                <NaviBrandLockup variant="dark" height={26} className="max-w-[168px]" />
               )}
             </Link>
           )}
