@@ -50,6 +50,8 @@ export default function ContextualLayout({ user, children }) {
     const clientContextPages = [
       'briefing-editor',
       'client-briefing',
+      'client-brainstorm',
+      'brainstorm',
       'client-campaign',
       'client-services',
       'client-tasks',

@@ -36,6 +36,7 @@ function statusPillLabel(status) {
  *
  * @param {{
  *   conversationId: string,
+ *   clientId?: string,
  *   initialMessages?: Array<{ role: string, content: string }>,
  *   contextoEnriquecido?: object,
  *   onSaveAsBrief?: () => void,
@@ -43,8 +44,73 @@ function statusPillLabel(status) {
  *   onMessagesChange?: (messages: Array<{ role: string, content: string }>) => void,
  * }} props
  */
+function FlowStepper({ isRefinada, isFinalizada, hasMessages }) {
+  const steps = [
+    {
+      id: 1,
+      label: 'Explorar',
+      done: hasMessages || isRefinada || isFinalizada,
+      current: !isRefinada && !isFinalizada && !hasMessages,
+    },
+    {
+      id: 2,
+      label: 'Refinar',
+      done: isRefinada || isFinalizada,
+      current: !isRefinada && !isFinalizada && hasMessages,
+    },
+    {
+      id: 3,
+      label: 'Criar campanha',
+      done: isFinalizada,
+      current: isRefinada && !isFinalizada,
+    },
+  ];
+
+  return (
+    <nav aria-label="Fluxo do brainstorm" style={styles.stepper}>
+      {steps.map((step, index) => (
+        <div key={step.id} style={styles.stepItem}>
+          {index > 0 ? <span style={styles.stepLine} aria-hidden /> : null}
+          <span
+            style={{
+              ...styles.stepDot,
+              ...(step.done
+                ? styles.stepDotDone
+                : step.current
+                  ? styles.stepDotCurrent
+                  : null),
+            }}
+            aria-current={step.current ? 'step' : undefined}
+          >
+            {step.done ? '✓' : step.id}
+          </span>
+          <span
+            style={{
+              ...styles.stepLabel,
+              ...(step.current || step.done ? styles.stepLabelActive : null),
+            }}
+          >
+            {step.label}
+          </span>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function flowHint({ isRefinada, isFinalizada }) {
+  if (isFinalizada) {
+    return 'Campanha criada a partir desta ideia. Continue no ciclo ou no briefing.';
+  }
+  if (isRefinada) {
+    return 'Ideia refinada. Opcional: gere roteiros. Depois, crie a campanha (brief + ciclo).';
+  }
+  return 'Converse até fechar foco, público, formato e ciclo. Quando estiver clara, o status vira Refinada.';
+}
+
 export default function ChatInterface({
   conversationId,
+  clientId,
   initialMessages = [],
   contextoEnriquecido,
   onSaveAsBrief,
@@ -58,6 +124,8 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [savingCampaign, setSavingCampaign] = useState(false);
   const listRef = useRef(null);
   const bottomRef = useRef(null);
 
@@ -125,21 +193,44 @@ export default function ChatInterface({
     sendMessage(ROTEIROS_PROMPT);
   };
 
-  const handleSaveBrief = async () => {
+  const canSaveBriefComputed = () => {
+    const status = String(contextoEnriquecido?.status || '').toLowerCase();
+    return (
+      status === 'refinada' &&
+      !loading &&
+      !savingCampaign &&
+      Boolean(conversationId)
+    );
+  };
+
+  const openCreateCampaign = () => {
+    if (!canSaveBriefComputed()) return;
+    setConfirmOpen(true);
+  };
+
+  const executeCreateCampaign = async () => {
+    setConfirmOpen(false);
+    setError(null);
+
     if (onSaveAsBrief) {
-      onSaveAsBrief();
+      setSavingCampaign(true);
+      try {
+        await onSaveAsBrief();
+      } finally {
+        setSavingCampaign(false);
+      }
       return;
     }
 
     if (loading || !conversationId) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') {
-      setError('Nenhuma resposta do agente pra salvar');
+      setError('Nenhuma resposta do agente para criar a campanha');
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setSavingCampaign(true);
     try {
       const data = await postAgent('save-brief', { conversationId });
       if (data.success && (data.cycleId || data.briefId)) {
@@ -147,18 +238,22 @@ export default function ChatInterface({
           navigate(`/campaigns/cycles/${data.cycleId}`);
         } else {
           navigate(
-            createPageUrl(`client-briefing?briefingId=${data.briefId}`) ||
-              `/campaigns/${data.briefId}`
+            createPageUrl(
+              clientId
+                ? `client-briefing?clientId=${clientId}&briefingId=${data.briefId}`
+                : `client-briefing?briefingId=${data.briefId}`
+            ) || `/campaigns/${data.briefId}`
           );
         }
       } else {
-        setError('Não foi possível salvar o brief');
+        setError('Não foi possível criar a campanha');
       }
     } catch (err) {
       console.error('[ChatInterface] save-brief', err);
-      setError(err?.message || 'Falha ao salvar brief');
+      setError(err?.message || 'Falha ao criar campanha');
     } finally {
       setLoading(false);
+      setSavingCampaign(false);
     }
   };
 
@@ -180,9 +275,11 @@ export default function ChatInterface({
   const statusRaw = String(contextoEnriquecido?.status || '').toLowerCase();
   const isRefinada = statusRaw === 'refinada';
   const isFinalizada = statusRaw === 'finalizada';
-  const canSaveBrief = isRefinada && !isFinalizada && !loading && Boolean(conversationId);
+  const canSaveBrief =
+    isRefinada && !isFinalizada && !loading && !savingCampaign && Boolean(conversationId);
   const assistantCount = messages.filter((m) => m.role === 'assistant').length;
-  const showGerarRoteiros = assistantCount >= 2;
+  const showGerarRoteiros =
+    !isFinalizada && (isRefinada || assistantCount >= 2);
   const canSend = Boolean(inputValue.trim()) && !loading && Boolean(conversationId);
   const empresaNome = contextoEnriquecido?.empresa?.nome;
   const ciclo = contextoEnriquecido?.ciclo_proximo;
@@ -190,11 +287,12 @@ export default function ChatInterface({
     contextoEnriquecido?.mesAtual != null
       ? `${contextoEnriquecido.mesAtual}/${contextoEnriquecido.anoAtual || ''}`.replace(/\/$/, '')
       : null;
+  const hint = flowHint({ isRefinada, isFinalizada });
 
   return (
     <div className="chat-interface" style={styles.root}>
       <header style={styles.header}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={styles.headerTitle}>
             {empresaNome || 'Brainstorm'}
             <span style={styles.statusPill}>{statusPillLabel(statusRaw)}</span>
@@ -206,12 +304,21 @@ export default function ChatInterface({
               {ciclo ? <span>ciclo {String(ciclo).toUpperCase()}</span> : null}
             </div>
           )}
+          <FlowStepper
+            isRefinada={isRefinada}
+            isFinalizada={isFinalizada}
+            hasMessages={messages.length > 0}
+          />
+          <p style={styles.flowHint}>{hint}</p>
         </div>
       </header>
 
       <div ref={listRef} style={styles.list}>
         {messages.length === 0 && !loading ? (
-          <p style={styles.empty}>Comece descrevendo o que precisa para a campanha.</p>
+          <p style={styles.empty}>
+            Descreva o que precisa para a campanha deste mês. Depois refinamos juntos e
+            transformamos em brief + ciclo.
+          </p>
         ) : null}
 
         {messages.map((msg, i) => {
@@ -265,8 +372,11 @@ export default function ChatInterface({
             disabled={loading || !conversationId}
             style={styles.secondaryBtn}
           >
-            Gerar Roteiros
+            Gerar roteiros (opcional)
           </button>
+          <span style={styles.secondaryHint}>
+            Detalha hooks e cenas antes de criar a campanha
+          </span>
         </div>
       ) : null}
 
@@ -275,8 +385,8 @@ export default function ChatInterface({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Diga o que quer..."
-          disabled={loading || !conversationId}
+          placeholder="Ex.: foco em vendas, público X, 5 vídeos…"
+          disabled={loading || !conversationId || isFinalizada}
           rows={3}
           style={{
             ...styles.textarea,
@@ -286,8 +396,8 @@ export default function ChatInterface({
         <button
           type="button"
           onClick={handleSend}
-          disabled={!canSend}
-          style={btnSend(!canSend)}
+          disabled={!canSend || isFinalizada}
+          style={btnSend(!canSend || isFinalizada)}
         >
           Enviar
         </button>
@@ -297,23 +407,80 @@ export default function ChatInterface({
         <button
           type="button"
           className="chat-primary-btn"
-          onClick={handleSaveBrief}
+          onClick={openCreateCampaign}
           disabled={!canSaveBrief}
           style={btnSave(!canSaveBrief)}
           title={
             isFinalizada
-              ? 'Brief já finalizado'
+              ? 'Campanha já criada'
               : !isRefinada
-                ? 'Disponível quando a conversa estiver refinada'
-                : undefined
+                ? 'Disponível quando a ideia estiver refinada'
+                : 'Cria brief e ciclo de execução'
           }
         >
-          Salvar como Brief
+          {savingCampaign
+            ? 'Criando campanha…'
+            : isFinalizada
+              ? 'Campanha criada'
+              : 'Criar campanha'}
         </button>
         {!isRefinada && !isFinalizada ? (
-          <p style={styles.saveHint}>Disponível quando a ideia estiver refinada</p>
+          <p style={styles.saveHint}>
+            Liberado no passo 3, quando o status for <strong>Refinada</strong>
+          </p>
+        ) : null}
+        {isRefinada && !isFinalizada ? (
+          <p style={styles.saveHint}>
+            Vai gerar um brief em rascunho e um ciclo com as fases de execução
+          </p>
         ) : null}
       </div>
+
+      {confirmOpen ? (
+        <div
+          style={styles.overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-campaign-title"
+        >
+          <div style={styles.modal}>
+            <h3 id="create-campaign-title" style={styles.modalTitle}>
+              Criar campanha a partir desta ideia?
+            </h3>
+            <p style={styles.modalBody}>
+              Vamos transformar o brainstorm em operação:
+            </p>
+            <ul style={styles.modalList}>
+              <li>
+                <strong>Brief de campanha</strong> (rascunho) com as 9 dimensões alinhadas
+              </li>
+              <li>
+                <strong>Ciclo de execução</strong> com fases (planejamento já iniciado)
+              </li>
+            </ul>
+            <p style={styles.modalBody}>
+              Em seguida você entra no ciclo para seguir com tarefas e produção.
+            </p>
+            <div style={styles.modalActions}>
+              <button
+                type="button"
+                className="chat-primary-btn"
+                style={btnSave(false)}
+                onClick={executeCreateCampaign}
+              >
+                Confirmar e criar
+              </button>
+              <button
+                type="button"
+                style={styles.modalCancel}
+                onClick={() => setConfirmOpen(false)}
+              >
+                Continuar conversando
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <style>{`
         .chat-secondary-btn:hover:not(:disabled) {
@@ -421,6 +588,9 @@ const styles = {
   error: { margin: 0, fontSize: 12, color: '#c0392b' },
   secondaryRow: {
     display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
     justifyContent: 'flex-start',
   },
   secondaryBtn: {
@@ -463,6 +633,121 @@ const styles = {
     fontSize: 12,
     color: '#555',
     textAlign: 'center',
+  },
+  flowHint: {
+    margin: '8px 0 0',
+    fontSize: 12,
+    color: '#555',
+    lineHeight: 1.4,
+  },
+  stepper: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 10,
+  },
+  stepItem: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  stepLine: {
+    width: 12,
+    height: 1,
+    background: '#ddd',
+    marginRight: 2,
+  },
+  stepDot: {
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    border: '1px solid #ccc',
+    background: '#fff',
+    color: '#888',
+    fontSize: 10,
+    fontWeight: 700,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  stepDotCurrent: {
+    borderColor: '#007bff',
+    background: '#e3f2fd',
+    color: '#007bff',
+  },
+  stepDotDone: {
+    borderColor: '#1e7e34',
+    background: '#e8f8ef',
+    color: '#1e7e34',
+  },
+  stepLabel: {
+    fontSize: 11,
+    color: '#888',
+    fontWeight: 500,
+  },
+  stepLabelActive: {
+    color: '#111',
+    fontWeight: 600,
+  },
+  secondaryHint: {
+    fontSize: 11,
+    color: '#666',
+    alignSelf: 'center',
+  },
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.35)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+    padding: 16,
+  },
+  modal: {
+    width: '100%',
+    maxWidth: 420,
+    background: '#fff',
+    borderRadius: 12,
+    padding: '1.25rem 1.35rem',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+  },
+  modalTitle: {
+    margin: '0 0 0.75rem',
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#111',
+  },
+  modalBody: {
+    margin: '0 0 0.65rem',
+    fontSize: 13,
+    color: '#444',
+    lineHeight: 1.45,
+  },
+  modalList: {
+    margin: '0 0 0.75rem',
+    paddingLeft: '1.15rem',
+    fontSize: 13,
+    color: '#222',
+    lineHeight: 1.55,
+  },
+  modalActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    marginTop: 8,
+  },
+  modalCancel: {
+    padding: '0.55rem 1rem',
+    borderRadius: 8,
+    border: '1px solid #ccc',
+    background: '#fff',
+    color: '#333',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer',
   },
 };
 

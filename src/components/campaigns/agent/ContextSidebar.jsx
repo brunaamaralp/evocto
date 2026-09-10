@@ -22,40 +22,32 @@ function produtoNome(p) {
   return p.nome || p.name || p.linha || '';
 }
 
-function cicloBadgeStyle() {
-  return {
-    display: 'inline-block',
-    padding: '0.2rem 0.55rem',
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 600,
-    color: '#fff',
-    background: '#007bff',
-    textTransform: 'uppercase',
-    letterSpacing: '0.02em',
-  };
-}
-
 function campaignKey(c, index) {
   return `${c?.ano ?? ''}-${c?.mes ?? ''}-${c?.nome_campanha ?? index}`;
 }
 
 /**
- * Sidebar de contexto enriquecido para o agent de campanha.
+ * Sidebar de contexto — versão enxuta: próximo passo + sinais úteis.
+ * Histórico/produtos ficam atrás de detalhes colapsáveis.
  *
  * @param {{
  *   contextoEnriquecido: object,
  *   conversationStatus?: string,
+ *   compact?: boolean,
  * }} props
  */
 export default function ContextSidebar({
   contextoEnriquecido,
   conversationStatus,
+  compact = false,
 }) {
   const ctx = contextoEnriquecido || {};
+  const status = String(conversationStatus || ctx.status || '').toLowerCase();
+  const isRefinada = status === 'refinada';
+  const isFinalizada = status === 'finalizada';
   const ultima = ctx.ultima_campanha || null;
   const historico = Array.isArray(ctx.campanhas_anteriores)
-    ? ctx.campanhas_anteriores.slice(0, 6)
+    ? ctx.campanhas_anteriores.slice(0, 4)
     : [];
   const produtos = useMemo(() => {
     const list = Array.isArray(ctx.empresa?.produtos)
@@ -66,11 +58,18 @@ export default function ContextSidebar({
     return list.map(produtoNome).filter(Boolean);
   }, [ctx.empresa?.produtos, ctx.produtos]);
 
-  const [expandedUltima, setExpandedUltima] = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState(() => new Set());
-  const [hoverUltima, setHoverUltima] = useState(false);
 
   const mesLabel = `${MES_NOMES[ctx.mesAtual] || ctx.mesAtual || '—'}/${ctx.anoAtual || '—'}`;
+  const melhorVendas =
+    ctx.padroes_performance?.melhor_ciclo_vendas ||
+    ctx.padroes?.melhor_ciclo_vendas ||
+    null;
+  const melhorEngaj =
+    ctx.padroes_performance?.melhor_ciclo_engajamento ||
+    ctx.padroes?.melhor_ciclo_engajamento ||
+    null;
 
   const toggleKey = (key) => {
     setExpandedKeys((prev) => {
@@ -81,222 +80,177 @@ export default function ContextSidebar({
     });
   };
 
+  const nextStepCopy = isFinalizada
+    ? 'Campanha criada. Siga no ciclo.'
+    : isRefinada
+      ? 'Use Criar campanha no chat (brief + ciclo).'
+      : 'Refine no chat até o status Refinada.';
+
   return (
     <aside
       style={{
-        background: '#f9f9f9',
+        background: compact ? 'transparent' : '#f9f9f9',
         width: '100%',
-        maxWidth: 300,
-        padding: '1.5rem',
-        borderRadius: 8,
+        padding: compact ? '0.55rem 0.65rem 0.85rem' : '1rem',
         color: '#1a1a1a',
         overflowY: 'auto',
         maxHeight: '100%',
         boxSizing: 'border-box',
+        flex: 1,
+        minHeight: 0,
       }}
     >
-      <section style={{ marginBottom: '1.25rem' }}>
-        <h3 style={sectionTitle}>Resumo</h3>
-        <p style={{ margin: '0 0 0.35rem', fontWeight: 700, fontSize: 15, color: '#111' }}>
+      <section style={{ marginBottom: '0.85rem' }}>
+        <p style={{ margin: '0 0 0.2rem', fontWeight: 700, fontSize: 13, color: '#111' }}>
           {ctx.empresa?.nome || '—'}
         </p>
-        <p style={{ margin: '0 0 0.5rem', fontSize: 13, color: '#555' }}>{mesLabel}</p>
-        {ctx.ciclo_proximo ? (
-          <span style={cicloBadgeStyle()}>{ctx.ciclo_proximo}</span>
-        ) : null}
+        <p style={{ margin: 0, fontSize: 12, color: '#666' }}>
+          {mesLabel}
+          {ctx.ciclo_proximo ? ` · ${String(ctx.ciclo_proximo).toUpperCase()}` : ''}
+        </p>
       </section>
 
-      <section style={{ marginBottom: '1.25rem' }}>
-        <h3 style={sectionTitle}>Última Campanha</h3>
-        {ultima ? (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setExpandedUltima((v) => !v)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setExpandedUltima((v) => !v);
-              }
-            }}
-            onMouseEnter={() => setHoverUltima(true)}
-            onMouseLeave={() => setHoverUltima(false)}
-            style={{
-              ...cardBase,
-              borderLeft: '3px solid #007bff',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{ fontWeight: 700, color: '#111' }}>{ultima.nome_campanha || '—'}</div>
-            <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}>
-              {ultima.ciclo_comercial || '—'}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 13, color: '#111' }}>
-              Nota:{' '}
-              <span style={{ fontWeight: 700 }}>
-                {ultima.resultado?.nota_geral ?? '—'}/10
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}>
-              Vendas {ultima.resultado?.vendas_realizado ?? '—'}% · Engajamento{' '}
-              {ultima.resultado?.engajamento_realizado ?? '—'}%
-            </div>
+      <section style={nextCard}>
+        <h3 style={sectionTitle}>Próximo passo</h3>
+        <p style={{ margin: 0, fontSize: 12, color: '#333', lineHeight: 1.4 }}>
+          {nextStepCopy}
+        </p>
+      </section>
 
-            <div
-              style={{
-                ...detailsBox,
-                maxHeight: hoverUltima || expandedUltima ? 120 : 0,
-                opacity: hoverUltima || expandedUltima ? 1 : 0,
-              }}
-            >
-              <div style={{ paddingTop: 8, fontSize: 12, color: '#1a1a1a' }}>
-                <strong>O que funcionou:</strong>{' '}
-                {ultima.resultado?.o_que_funcionou || '—'}
-              </div>
+      {ultima ? (
+        <section style={{ marginBottom: '0.85rem' }}>
+          <h3 style={sectionTitle}>Última campanha</h3>
+          <div style={signalCard}>
+            <div style={{ fontWeight: 600, fontSize: 12, color: '#111' }}>
+              {ultima.nome_campanha || '—'}
+            </div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>
+              Nota {ultima.resultado?.nota_geral ?? '—'}/10
+              {ultima.ciclo_comercial ? ` · ${ultima.ciclo_comercial}` : ''}
             </div>
           </div>
-        ) : (
-          <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Nenhuma campanha anterior</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section style={{ marginBottom: '1.25rem' }}>
-        <h3 style={sectionTitle}>Histórico</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {historico.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Sem histórico</p>
-          ) : (
-            historico.map((c, index) => {
-              const key = campaignKey(c, index);
-              const open = expandedKeys.has(key);
-              const isUltima = index === 0;
-              return (
-                <div
-                  key={key}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleKey(key)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleKey(key);
-                    }
-                  }}
-                  style={{
-                    ...cardBase,
-                    borderLeft: `3px solid ${isUltima ? '#007bff' : '#c8c8c8'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#111' }}>
-                      {c.nome_campanha || '—'}
-                    </span>
-                    <span style={{ fontSize: 12, color: '#111', fontWeight: 700 }}>
-                      {c.resultado?.nota_geral ?? '—'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>
-                    {c.mes}/{c.ano}
-                  </div>
-
-                  <div
-                    style={{
-                      ...detailsBox,
-                      maxHeight: open ? 220 : 0,
-                      opacity: open ? 1 : 0,
-                    }}
-                  >
-                    <div style={{ paddingTop: 8, fontSize: 12, color: '#1a1a1a', lineHeight: 1.45 }}>
-                      <div>
-                        <strong>Ciclo:</strong> {c.ciclo_comercial || '—'}
-                      </div>
-                      <div>
-                        <strong>Vendas:</strong> {c.resultado?.vendas_realizado ?? '—'}%
-                      </div>
-                      <div>
-                        <strong>Engajamento:</strong>{' '}
-                        {c.resultado?.engajamento_realizado ?? '—'}%
-                      </div>
-                      <div style={{ marginTop: 4 }}>
-                        <strong>Funcionou:</strong> {c.resultado?.o_que_funcionou || '—'}
-                      </div>
-                      <div>
-                        <strong>Não funcionou:</strong>{' '}
-                        {c.resultado?.o_que_nao_funcionou || '—'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </section>
-
-      <section style={{ marginBottom: '1.25rem' }}>
-        <h3 style={sectionTitle}>Padrões</h3>
-        <p style={{ margin: '0 0 0.35rem', fontSize: 13, color: '#1a1a1a' }}>
-          Melhor VENDAS:{' '}
-          <strong>
-            {ctx.padroes_performance?.melhor_ciclo_vendas ||
-              ctx.padroes?.melhor_ciclo_vendas ||
-              '—'}
-          </strong>
-        </p>
-        <p style={{ margin: 0, fontSize: 13, color: '#1a1a1a' }}>
-          Melhor ENGAJAMENTO:{' '}
-          <strong>
-            {ctx.padroes_performance?.melhor_ciclo_engajamento ||
-              ctx.padroes?.melhor_ciclo_engajamento ||
-              '—'}
-          </strong>
-        </p>
-      </section>
-
-      <section style={{ marginBottom: conversationStatus ? '1.25rem' : 0 }}>
-        <h3 style={sectionTitle}>Produtos</h3>
-        {produtos.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Nenhum produto</p>
-        ) : (
-          <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: 13, lineHeight: 1.6, color: '#1a1a1a' }}>
-            {produtos.map((nome) => (
-              <li key={nome}>{nome}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {conversationStatus ? (
-        <section>
-          <p style={{ margin: 0, fontSize: 12, color: '#555' }}>
-            Status:{' '}
-            <strong style={{ textTransform: 'capitalize', color: '#111' }}>
-              {conversationStatus}
-            </strong>
+      {(melhorVendas || melhorEngaj) && (
+        <section style={{ marginBottom: '0.85rem' }}>
+          <h3 style={sectionTitle}>Padrões</h3>
+          <p style={{ margin: 0, fontSize: 12, color: '#333', lineHeight: 1.4 }}>
+            {melhorVendas ? (
+              <>
+                Vendas: <strong>{melhorVendas}</strong>
+              </>
+            ) : null}
+            {melhorVendas && melhorEngaj ? ' · ' : null}
+            {melhorEngaj ? (
+              <>
+                Engaj.: <strong>{melhorEngaj}</strong>
+              </>
+            ) : null}
           </p>
         </section>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setShowDetails((v) => !v)}
+        style={detailsToggle}
+      >
+        {showDetails ? 'Ocultar detalhes' : 'Mais contexto'}
+      </button>
+
+      {showDetails ? (
+        <div style={{ marginTop: '0.75rem' }}>
+          <section style={{ marginBottom: '0.85rem' }}>
+            <h3 style={sectionTitle}>Histórico</h3>
+            {historico.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 12, color: '#555' }}>Sem histórico</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {historico.map((c, index) => {
+                  const key = campaignKey(c, index);
+                  const open = expandedKeys.has(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleKey(key)}
+                      style={{ ...signalCard, textAlign: 'left', cursor: 'pointer', width: '100%' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+                        <span style={{ fontWeight: 600, fontSize: 12 }}>
+                          {c.nome_campanha || '—'}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 700 }}>
+                          {c.resultado?.nota_geral ?? '—'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#666' }}>
+                        {c.mes}/{c.ano}
+                      </div>
+                      {open ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#444', lineHeight: 1.4 }}>
+                          Ciclo: {c.ciclo_comercial || '—'}
+                          <br />
+                          Funcionou: {c.resultado?.o_que_funcionou || '—'}
+                        </div>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h3 style={sectionTitle}>Produtos</h3>
+            {produtos.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 12, color: '#555' }}>Nenhum produto</p>
+            ) : (
+              <p style={{ margin: 0, fontSize: 12, color: '#333', lineHeight: 1.45 }}>
+                {produtos.slice(0, 6).join(' · ')}
+                {produtos.length > 6 ? ` · +${produtos.length - 6}` : ''}
+              </p>
+            )}
+          </section>
+        </div>
       ) : null}
     </aside>
   );
 }
 
 const sectionTitle = {
-  margin: '0 0 0.6rem',
-  fontSize: 11,
+  margin: '0 0 0.4rem',
+  fontSize: 10,
   fontWeight: 700,
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
   color: '#007bff',
 };
 
-const cardBase = {
+const nextCard = {
+  marginBottom: '0.85rem',
   background: '#fff',
-  borderRadius: 6,
-  padding: '0.75rem 0.85rem',
+  borderRadius: 8,
+  padding: '0.65rem 0.7rem',
+  border: '1px solid #e8e8e8',
 };
 
-const detailsBox = {
-  overflow: 'hidden',
-  transition: 'max-height 0.25s ease, opacity 0.25s ease',
+const signalCard = {
+  background: '#fff',
+  borderRadius: 6,
+  padding: '0.55rem 0.65rem',
+  border: '1px solid #eee',
+  borderLeft: '3px solid #007bff',
+};
+
+const detailsToggle = {
+  border: 'none',
+  background: 'transparent',
+  color: '#007bff',
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: 'pointer',
+  padding: 0,
+  textAlign: 'left',
 };

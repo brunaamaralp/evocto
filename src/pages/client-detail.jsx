@@ -259,6 +259,12 @@ export default function ClientDetailPage() {
         </h2>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link
+            to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Brainstorm
+          </Link>
+          <Link
             to={createPageUrl(`client-briefing?clientId=${clientId}`)}
             className="text-sm font-medium text-[#007bff] hover:underline"
           >

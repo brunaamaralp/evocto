@@ -16,6 +16,7 @@ import {
   Wallet,
   Megaphone,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
@@ -155,6 +156,15 @@ export default function ClientContextSidebar({
 
   menuItems.push(
     { type: 'section', label: 'Cliente' },
+    {
+      type: 'link',
+      label: 'Brainstorm',
+      icon: Sparkles,
+      href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
+      active:
+        location.pathname.includes('client-brainstorm') ||
+        location.pathname.includes('/brainstorm'),
+    },
     {
       type: 'link',
       label: 'Documentos',

@@ -19,6 +19,7 @@ import {
   Target,
   Menu,
   Megaphone,
+  Sparkles,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -156,6 +157,14 @@ export default function ContextualSidebar({
 
       items.push(
         { type: 'section', label: 'Cliente' },
+        {
+          type: 'link',
+          label: 'Brainstorm',
+          icon: Sparkles,
+          href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
+          isActive:
+            currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
+        },
         {
           type: 'link',
           label: 'Documentos',

@@ -4,17 +4,6 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowRight, Plus } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
-function cycleStatusLabel(status) {
-  switch (status) {
-    case 'in_execution':
-      return 'Em execução';
-    case 'approved':
-      return 'Aprovado';
-    default:
-      return status || '—';
-  }
-}
-
 function progressScopeLabel(scope) {
   if (scope === 'none') return 'Sem tarefas vinculadas ainda';
   return 'Progresso';
@@ -23,11 +12,11 @@ function progressScopeLabel(scope) {
 function groupByCycle(campaigns = []) {
   const groups = new Map();
   for (const campaign of campaigns) {
-    const key = campaign.cycleId || '_none';
+    const key = campaign.cycleId || campaign.id || '_none';
     if (!groups.has(key)) {
       groups.set(key, {
         cycleId: campaign.cycleId,
-        cycleTitle: campaign.cycleTitle || 'Sem ciclo vinculado',
+        cycleTitle: campaign.cycleTitle || campaign.cyclePeriod || campaign.name || null,
         cycleStatus: campaign.cycleStatus,
         cyclePeriod: campaign.cyclePeriod,
         cycleHref: campaign.cycleHref,
@@ -146,30 +135,32 @@ export default function ClientActiveCampaignsPanel({
       ) : (
         <div className="space-y-8">
           {groups.map((group) => (
-            <section key={group.cycleId || 'none'} className="space-y-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#eee] pb-2">
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-[#111]">
-                    {group.cycleTitle}
-                    {group.cyclePeriod ? ` · ${group.cyclePeriod}` : ''}
-                  </p>
-                  <p className="text-xs text-[#555]">
-                    {group.campaigns.length} campanha
-                    {group.campaigns.length === 1 ? '' : 's'}
-                    {group.cycleStatus
-                      ? ` · ${cycleStatusLabel(group.cycleStatus)}`
-                      : ''}
-                  </p>
+            <section key={group.cycleId || group.campaigns[0]?.id || 'none'} className="space-y-3">
+              {group.cycleTitle ? (
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#eee] pb-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-semibold text-[#111]">
+                      {group.cycleTitle}
+                      {group.cyclePeriod &&
+                      group.cyclePeriod !== group.cycleTitle
+                        ? ` · ${group.cyclePeriod}`
+                        : ''}
+                    </p>
+                    <p className="text-xs text-[#555]">
+                      {group.campaigns.length} campanha
+                      {group.campaigns.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                  {group.cycleHref ? (
+                    <Link
+                      to={group.cycleHref}
+                      className="shrink-0 text-sm font-medium text-[#555] hover:text-[#111]"
+                    >
+                      Workspace
+                    </Link>
+                  ) : null}
                 </div>
-                {group.cycleHref ? (
-                  <Link
-                    to={group.cycleHref}
-                    className="shrink-0 text-sm font-medium text-[#555] hover:text-[#111]"
-                  >
-                    Workspace
-                  </Link>
-                ) : null}
-              </div>
+              ) : null}
               <ul className="space-y-3">
                 {group.campaigns.map((campaign) => (
                   <CampaignRow key={campaign.id} campaign={campaign} />

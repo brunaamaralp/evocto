@@ -89,6 +89,7 @@ function exportConversationPdf(conversation, contextData, onError) {
  *   onError?: (message: string) => void,
  *   createOpen?: boolean,
  *   onCreateOpenChange?: (open: boolean) => void,
+ *   compact?: boolean,
  * }} props
  */
 export default function ConversationList({
@@ -102,6 +103,7 @@ export default function ConversationList({
   onError,
   createOpen,
   onCreateOpenChange,
+  compact = false,
 }) {
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [internalCreating, setInternalCreating] = useState(false);
@@ -210,13 +212,15 @@ export default function ConversationList({
   };
 
   return (
-    <aside style={styles.sidebar}>
-      <header style={styles.header}>
-        <h2 style={styles.headerTitle}>Conversas</h2>
-      </header>
+    <aside style={{ ...styles.sidebar, ...(compact ? styles.sidebarCompact : null) }}>
+      {!compact ? (
+        <header style={styles.header}>
+          <h2 style={styles.headerTitle}>Conversas</h2>
+        </header>
+      ) : null}
 
       <button type="button" style={styles.newBtn} onClick={() => setIsCreatingNew(true)}>
-        + Nova Conversa
+        + Nova
       </button>
 
       <div style={styles.list}>
@@ -248,7 +252,9 @@ export default function ConversationList({
                 >
                   <div style={styles.itemTitle}>{c.titulo || 'Sem título'}</div>
                   <div style={styles.itemMeta}>
-                    {c.empresa || '—'} · {MES_NOMES[c.mes] || c.mes}/{c.ano || '—'}
+                    {compact
+                      ? `${MES_NOMES[c.mes] || c.mes}/${c.ano || '—'}`
+                      : `${c.empresa || '—'} · ${MES_NOMES[c.mes] || c.mes}/${c.ano || '—'}`}
                   </div>
                   <div style={styles.statusRow}>
                     <span style={styles.statusText}>{st.text}</span>
@@ -300,32 +306,39 @@ export default function ConversationList({
           <form style={styles.modal} onSubmit={submitNew}>
             <h3 style={{ margin: '0 0 1rem', fontSize: 16, color: '#111' }}>Nova conversa</h3>
 
-            <label style={styles.label}>
-              Empresa
-              {empresaOptions.length ? (
-                <select
-                  value={formEmpresa}
-                  onChange={(e) => setFormEmpresa(e.target.value)}
-                  style={styles.input}
-                  required
-                >
-                  <option value="">Selecione…</option>
-                  {empresaOptions.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  value={formEmpresa}
-                  onChange={(e) => setFormEmpresa(e.target.value)}
-                  placeholder="Nome ou ID da empresa"
-                  style={styles.input}
-                  required
-                />
-              )}
-            </label>
+            {empresaOptions.length === 1 ? (
+              <p style={{ margin: '0 0 12px', fontSize: 13, color: '#555' }}>
+                Cliente:{' '}
+                <strong style={{ color: '#111' }}>{empresaOptions[0].label}</strong>
+              </p>
+            ) : (
+              <label style={styles.label}>
+                Empresa
+                {empresaOptions.length ? (
+                  <select
+                    value={formEmpresa}
+                    onChange={(e) => setFormEmpresa(e.target.value)}
+                    style={styles.input}
+                    required
+                  >
+                    <option value="">Selecione…</option>
+                    {empresaOptions.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={formEmpresa}
+                    onChange={(e) => setFormEmpresa(e.target.value)}
+                    placeholder="Nome ou ID da empresa"
+                    style={styles.input}
+                    required
+                  />
+                )}
+              </label>
+            )}
 
             <label style={styles.label}>
               Mês
@@ -384,6 +397,11 @@ const styles = {
     padding: '1rem',
     color: '#1a1a1a',
     overflow: 'hidden',
+  },
+  sidebarCompact: {
+    maxWidth: 'none',
+    background: 'transparent',
+    padding: '0.5rem 0.55rem 0.75rem',
   },
   header: { marginBottom: '0.75rem' },
   headerTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111' },

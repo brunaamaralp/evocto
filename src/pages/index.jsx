@@ -396,6 +396,7 @@ const PAGES = {
     "campaigns-performance": campaignsPerformance,
     "campaign-insights": campaignInsights,
     brainstorm: brainstorm,
+    "client-brainstorm": brainstorm,
     
     "custom-reports": customreports,
     
@@ -669,6 +670,7 @@ function PagesContent() {
                 <Route path="/dashboard/:persona" element={createElement(personaDashboard)} />
                 <Route path="/campaigns-performance" element={createElement(campaignsPerformance)} />
                 <Route path="/campaign-insights" element={createElement(campaignInsights)} />
+                <Route path="/client-brainstorm" element={createElement(brainstorm)} />
                 <Route path="/brainstorm" element={createElement(brainstorm)} />
                 <Route path="/campaigns/cycles/:planId" element={createElement(cycleplan)} />
                 <Route path="/cycle-plan/:planId" element={createElement(cycleplan)} />

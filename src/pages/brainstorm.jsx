@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ConversationList from '@/components/campaigns/agent/ConversationList';
 import ChatInterface from '@/components/campaigns/agent/ChatInterface';
 import ContextSidebar from '@/components/campaigns/agent/ContextSidebar';
+import { useSession } from '@/components/auth/SessionManager';
+import { Client } from '@/api/entities';
+import { getEmpresaByClientId } from '@/lib/empresaConfig';
+import { createPageUrl } from '@/utils';
 
 const API_BASE = '/api/campaigns-agent';
 
@@ -24,36 +28,88 @@ async function agentFetch(route, { method = 'GET', body, empresa } = {}) {
 }
 
 /**
- * Brainstorm de campanhas — layout 3 colunas.
- * Esquerda: ConversationList | Centro: ChatInterface | Direita: ContextSidebar
+ * Brainstorm de campanhas — escopo do cliente (hub contextual).
+ * Rota: /client-brainstorm?clientId=...
  */
 export default function BrainstormPage() {
   const navigate = useNavigate();
+  const { agencyId } = useSession();
   const [searchParams] = useSearchParams();
-  const empresaFilter = searchParams.get('empresa') || '';
+  const clientId = searchParams.get('clientId') || '';
+
+  const [client, setClient] = useState(null);
+  const [empresa, setEmpresa] = useState(null);
+  const [bootLoading, setBootLoading] = useState(true);
+  const [bootError, setBootError] = useState(null);
 
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [contextoEnriquecido, setContextoEnriquecido] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [mobilePanel, setMobilePanel] = useState('center'); // left | center | right
+  const [mobilePanel, setMobilePanel] = useState('center');
   const [savingBrief, setSavingBrief] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(true);
+
+  const empresaKey = empresa?.id || empresa?.nome || '';
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) || null,
     [conversations, activeConversationId]
   );
 
+  // Boot: exige clientId e resolve Cliente + Empresa
+  useEffect(() => {
+    let cancelled = false;
+    async function boot() {
+      if (!clientId) {
+        setBootError('clientId_obrigatorio');
+        setBootLoading(false);
+        return;
+      }
+      setBootLoading(true);
+      setBootError(null);
+      try {
+        const [clientData, empresaData] = await Promise.all([
+          Client.get(clientId),
+          getEmpresaByClientId(clientId, agencyId),
+        ]);
+        if (cancelled) return;
+        if (!clientData) {
+          setBootError('cliente_nao_encontrado');
+          return;
+        }
+        setClient(clientData);
+        setEmpresa(empresaData);
+        if (!empresaData) {
+          setBootError('empresa_nao_configurada');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[Brainstorm] boot', err);
+          setBootError(err?.message || 'falha_ao_carregar_cliente');
+        }
+      } finally {
+        if (!cancelled) setBootLoading(false);
+      }
+    }
+    boot();
+    return () => {
+      cancelled = true;
+    };
+  }, [clientId, agencyId]);
+
   const loadConversations = useCallback(async () => {
+    if (!empresaKey) return;
     setLoading(true);
     setError(null);
     try {
       const data = await agentFetch('get-conversations', {
         method: 'GET',
-        empresa: empresaFilter || undefined,
+        empresa: empresaKey,
       });
       const list = Array.isArray(data.conversations) ? data.conversations : [];
       setConversations(list);
@@ -74,11 +130,11 @@ export default function BrainstormPage() {
     } finally {
       setLoading(false);
     }
-  }, [empresaFilter]);
+  }, [empresaKey]);
 
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+    if (empresaKey) loadConversations();
+  }, [empresaKey, loadConversations]);
 
   useEffect(() => {
     if (!activeConversation) {
@@ -94,10 +150,10 @@ export default function BrainstormPage() {
   };
 
   const handleNewConversation = async (payload) => {
-    const empresa = payload?.empresa;
     const mes = Number(payload?.mes);
     const ano = Number(payload?.ano) || new Date().getFullYear();
-    if (!empresa || !mes) return;
+    const empresaInput = empresa?.id || empresa?.nome || payload?.empresa;
+    if (!empresaInput || !mes) return;
 
     setLoading(true);
     setError(null);
@@ -105,13 +161,13 @@ export default function BrainstormPage() {
     try {
       const data = await agentFetch('init', {
         method: 'POST',
-        body: { empresa, mes, ano },
+        body: { empresa: empresaInput, mes, ano },
       });
 
       const nova = {
         id: data.conversationId,
-        titulo: `${data.contextoEnriquecido?.empresa?.nome || empresa} - Ideas`,
-        empresa: data.contextoEnriquecido?.empresa?.nome || empresa,
+        titulo: `${data.contextoEnriquecido?.empresa?.nome || empresa?.nome || client?.name} - Ideas`,
+        empresa: data.contextoEnriquecido?.empresa?.nome || empresa?.nome || '',
         mes,
         ano,
         status: 'explorando',
@@ -154,16 +210,20 @@ export default function BrainstormPage() {
           c.id === activeConversationId ? { ...c, status: 'finalizada' } : c
         )
       );
-      setSuccess('Brief salvo');
+      setSuccess('Campanha criada — brief e ciclo prontos');
       await new Promise((r) => setTimeout(r, 800));
       if (data.cycleId) {
         navigate(`/campaigns/cycles/${data.cycleId}`);
       } else if (data.briefId) {
-        navigate(`/client-briefing?briefingId=${data.briefId}`);
+        navigate(
+          createPageUrl(
+            `client-briefing?clientId=${clientId}&briefingId=${data.briefId}`
+          )
+        );
       }
     } catch (err) {
       console.error('[Brainstorm] save-brief', err);
-      setError(err?.message || 'Falha ao salvar brief');
+      setError(err?.message || 'Falha ao criar campanha');
     } finally {
       setSavingBrief(false);
     }
@@ -179,15 +239,80 @@ export default function BrainstormPage() {
 
   const initialMessages = activeConversation?.historicoMensagens || [];
 
-  const openCreateFromEmpty = () => {
-    setCreateOpen(true);
-    setMobilePanel('left');
-  };
+  const empresaOptions = useMemo(() => {
+    if (!empresa) return [];
+    return [{ id: empresa.id, nome: empresa.nome || client?.name || 'Empresa' }];
+  }, [empresa, client?.name]);
+
+  if (!clientId) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 p-8 text-center">
+        <h1 className="text-lg font-semibold text-[#111]">Brainstorm</h1>
+        <p className="text-sm text-[#555]">
+          Abra o brainstorm a partir de um cliente (contexto do hub).
+        </p>
+        <Link
+          to={createPageUrl('clients')}
+          className="inline-flex rounded-lg bg-[#007bff] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Ir para Clientes
+        </Link>
+      </div>
+    );
+  }
+
+  if (bootLoading) {
+    return (
+      <div className="p-8 text-center text-sm text-[#666]">Carregando cliente…</div>
+    );
+  }
+
+  if (bootError === 'empresa_nao_configurada') {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 p-8 text-center">
+        <h1 className="text-lg font-semibold text-[#111]">
+          {client?.name || 'Cliente'}
+        </h1>
+        <p className="text-sm text-[#555]">
+          Configure a empresa deste cliente antes de usar o brainstorm (produtos,
+          tom, formato).
+        </p>
+        <Link
+          to={createPageUrl(`client-settings?clientId=${clientId}`)}
+          className="inline-flex rounded-lg bg-[#007bff] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Configurar empresa
+        </Link>
+      </div>
+    );
+  }
+
+  if (bootError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 p-8 text-center">
+        <p className="text-sm text-[#c0392b]">{bootError}</p>
+        <Link
+          to={createPageUrl(`client-detail?clientId=${clientId}`)}
+          className="text-sm font-semibold text-[#007bff]"
+        >
+          Voltar ao cliente
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.page}>
       <div style={styles.topBar}>
-        <h1 style={styles.title}>Brainstorm de Campanhas</h1>
+        <div>
+          <h1 style={styles.title}>Brainstorm de Campanhas</h1>
+          <p style={styles.subtitle}>
+            {client?.name || 'Cliente'}
+            {empresa?.nome ? ` · ${empresa.nome}` : ''}
+            {' — '}
+            explorar → refinar → criar campanha
+          </p>
+        </div>
         <div style={styles.mobileToggles} className="brainstorm-mobile-toggles">
           <button
             type="button"
@@ -225,21 +350,70 @@ export default function BrainstormPage() {
       ) : null}
 
       <div
-        className={`brainstorm-grid panel-${mobilePanel}`}
-        style={styles.grid}
+        className={`brainstorm-grid panel-${mobilePanel}${leftCollapsed ? ' left-collapsed' : ''}${rightCollapsed ? ' right-collapsed' : ''}`}
+        style={{
+          ...styles.grid,
+          gridTemplateColumns: `${leftCollapsed ? '48px' : '200px'} minmax(0, 1fr) ${rightCollapsed ? '44px' : '240px'}`,
+        }}
       >
-        <div className="brainstorm-col brainstorm-left" style={styles.col}>
-          <ConversationList
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onSelectConversation={handleSelectConversation}
-            onNewConversation={handleNewConversation}
-            contextData={contextoEnriquecido}
-            onRefresh={loadConversations}
-            onError={(msg) => setError(msg)}
-            createOpen={createOpen}
-            onCreateOpenChange={setCreateOpen}
-          />
+        <div
+          className="brainstorm-col brainstorm-left"
+          style={{
+            ...styles.col,
+            flexDirection: 'column',
+            background: '#fafafa',
+          }}
+        >
+          <div style={styles.railHeader}>
+            {!leftCollapsed ? (
+              <span style={styles.railTitle}>Conversas</span>
+            ) : null}
+            <button
+              type="button"
+              style={styles.collapseBtn}
+              onClick={() => setLeftCollapsed((v) => !v)}
+              title={leftCollapsed ? 'Expandir conversas' : 'Recolher conversas'}
+              aria-label={leftCollapsed ? 'Expandir conversas' : 'Recolher conversas'}
+            >
+              {leftCollapsed ? '»' : '«'}
+            </button>
+          </div>
+          {leftCollapsed ? (
+            <div style={styles.collapsedRail}>
+              <button
+                type="button"
+                style={styles.railIconBtn}
+                title="Nova conversa"
+                onClick={() => {
+                  setLeftCollapsed(false);
+                  setCreateOpen(true);
+                }}
+              >
+                +
+              </button>
+              <button
+                type="button"
+                style={styles.railIconBtn}
+                title="Expandir lista"
+                onClick={() => setLeftCollapsed(false)}
+              >
+                ≡
+              </button>
+            </div>
+          ) : (
+            <ConversationList
+              conversations={conversations}
+              activeConversationId={activeConversationId}
+              onSelectConversation={handleSelectConversation}
+              onNewConversation={handleNewConversation}
+              contextData={contextoEnriquecido}
+              empresas={empresaOptions}
+              onRefresh={loadConversations}
+              createOpen={createOpen}
+              onCreateOpenChange={setCreateOpen}
+              compact
+            />
+          )}
         </div>
 
         <div className="brainstorm-col brainstorm-center" style={styles.centerCol}>
@@ -249,6 +423,7 @@ export default function BrainstormPage() {
             <ChatInterface
               key={activeConversationId}
               conversationId={activeConversationId}
+              clientId={clientId}
               initialMessages={initialMessages}
               contextoEnriquecido={chatContexto}
               onSaveAsBrief={handleSaveAsBrief}
@@ -263,28 +438,70 @@ export default function BrainstormPage() {
               }}
             />
           ) : (
-            <div style={styles.emptyState}>
-              <h2 style={styles.emptyTitle}>Comece um brainstorm</h2>
-              <p style={styles.emptyText}>
-                Crie uma conversa para gerar ideias de campanha com contexto da empresa.
+            <div style={styles.placeholder}>
+              <p style={{ margin: '0 0 12px' }}>
+                Nenhuma conversa ainda para {client?.name}.
               </p>
-              <button type="button" style={styles.emptyCta} onClick={openCreateFromEmpty}>
-                Começar brainstorm
+              <button
+                type="button"
+                style={styles.primaryBtn}
+                onClick={() => {
+                  setLeftCollapsed(false);
+                  setCreateOpen(true);
+                  setMobilePanel('left');
+                }}
+              >
+                + Nova conversa
               </button>
             </div>
           )}
           {savingBrief ? (
-            <p style={{ margin: '0.5rem 0 0', fontSize: 12, color: '#555' }}>
-              Salvando brief e criando ciclo…
+            <p style={{ margin: '0.5rem 0 0', fontSize: 12, color: '#666' }}>
+              Criando brief e ciclo de campanha…
             </p>
           ) : null}
         </div>
 
-        <div className="brainstorm-col brainstorm-right" style={styles.col}>
-          <ContextSidebar
-            contextoEnriquecido={contextoEnriquecido}
-            conversationStatus={activeConversation?.status}
-          />
+        <div
+          className="brainstorm-col brainstorm-right"
+          style={{
+            ...styles.col,
+            borderRight: 'none',
+            borderLeft: '1px solid #eee',
+            flexDirection: 'column',
+            background: '#f9f9f9',
+          }}
+        >
+          <div style={{ ...styles.railHeader, justifyContent: rightCollapsed ? 'center' : 'space-between' }}>
+            {!rightCollapsed ? (
+              <span style={styles.railTitle}>Contexto</span>
+            ) : null}
+            <button
+              type="button"
+              style={styles.collapseBtn}
+              onClick={() => setRightCollapsed((v) => !v)}
+              title={rightCollapsed ? 'Mostrar contexto' : 'Recolher contexto'}
+              aria-label={rightCollapsed ? 'Mostrar contexto' : 'Recolher contexto'}
+            >
+              {rightCollapsed ? '«' : '»'}
+            </button>
+          </div>
+          {rightCollapsed ? (
+            <button
+              type="button"
+              style={styles.contextRailBtn}
+              onClick={() => setRightCollapsed(false)}
+              title="Abrir contexto do cliente"
+            >
+              i
+            </button>
+          ) : (
+            <ContextSidebar
+              contextoEnriquecido={contextoEnriquecido}
+              conversationStatus={activeConversation?.status}
+              compact
+            />
+          )}
         </div>
       </div>
 
@@ -292,16 +509,32 @@ export default function BrainstormPage() {
         .brainstorm-mobile-toggles { display: none; }
         @media (max-width: 1024px) {
           .brainstorm-grid {
+            grid-template-columns: 200px 1fr !important;
+          }
+          .brainstorm-grid.left-collapsed {
+            grid-template-columns: 48px 1fr !important;
+          }
+          .brainstorm-right { display: none !important; }
+          .brainstorm-grid.panel-right {
             grid-template-columns: 1fr !important;
           }
-          .brainstorm-left,
-          .brainstorm-right { display: none !important; }
+          .brainstorm-grid.panel-right .brainstorm-left,
+          .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
+          .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
+          .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
+          .brainstorm-grid.panel-center .brainstorm-left { display: none !important; }
+          .brainstorm-mobile-toggles { display: flex !important; }
+        }
+        @media (max-width: 768px) {
+          .brainstorm-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .brainstorm-left, .brainstorm-right { display: none !important; }
           .brainstorm-grid.panel-left .brainstorm-left { display: flex !important; }
           .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
           .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
           .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
           .brainstorm-grid.panel-center .brainstorm-center { display: flex !important; }
-          .brainstorm-mobile-toggles { display: flex !important; }
         }
       `}</style>
     </div>
@@ -315,47 +548,47 @@ const styles = {
     height: 'calc(100vh - 64px)',
     minHeight: 480,
     background: '#fff',
-    color: '#1a1a1a',
+    color: '#333',
   },
   topBar: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    padding: '0.85rem 1.25rem',
+    padding: '0.75rem 1rem',
     borderBottom: '1px solid #eee',
   },
-  title: { margin: 0, fontSize: 22, fontWeight: 700, color: '#111' },
+  title: { margin: 0, fontSize: 18, fontWeight: 700 },
+  subtitle: { margin: '2px 0 0', fontSize: 12, color: '#666' },
   mobileToggles: { gap: 6 },
   toggle: {
-    padding: '0.5rem 0.85rem',
+    padding: '0.35rem 0.65rem',
     borderRadius: 6,
     border: '1px solid #ccc',
     background: '#fff',
-    fontSize: 13,
+    fontSize: 12,
     cursor: 'pointer',
-    color: '#1a1a1a',
   },
   toggleActive: {
-    padding: '0.5rem 0.85rem',
+    padding: '0.35rem 0.65rem',
     borderRadius: 6,
     border: '1px solid #007bff',
     background: '#e3f2fd',
     color: '#007bff',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
   },
   error: {
     margin: 0,
-    padding: '0.5rem 1.25rem',
+    padding: '0.5rem 1rem',
     background: '#fdecea',
     color: '#c0392b',
     fontSize: 13,
   },
   success: {
     margin: 0,
-    padding: '0.5rem 1.25rem',
+    padding: '0.5rem 1rem',
     background: '#e8f8ef',
     color: '#1e7e34',
     fontSize: 13,
@@ -363,9 +596,10 @@ const styles = {
   grid: {
     flex: 1,
     display: 'grid',
-    gridTemplateColumns: '300px 1fr 300px',
+    gridTemplateColumns: '200px minmax(0, 1fr) 44px',
     minHeight: 0,
     overflow: 'hidden',
+    transition: 'grid-template-columns 0.2s ease',
   },
   col: {
     minHeight: 0,
@@ -378,42 +612,85 @@ const styles = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    padding: '1.5rem',
-    borderRight: '1px solid #eee',
+    padding: '1rem 1.25rem',
+  },
+  railHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+    padding: '0.5rem 0.4rem',
+    borderBottom: '1px solid #eee',
+    minHeight: 40,
+    flexShrink: 0,
+  },
+  railTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    color: '#666',
+    paddingLeft: 4,
+  },
+  collapseBtn: {
+    border: '1px solid #ddd',
+    background: '#fff',
+    borderRadius: 6,
+    width: 28,
+    height: 28,
+    cursor: 'pointer',
+    fontSize: 12,
+    color: '#444',
+    lineHeight: 1,
+    flexShrink: 0,
+  },
+  collapsedRail: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+    padding: '0.75rem 0.35rem',
+  },
+  railIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    border: '1px solid #ddd',
+    background: '#fff',
+    cursor: 'pointer',
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#333',
+  },
+  contextRailBtn: {
+    margin: '0.75rem auto',
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    border: '1px solid #ccc',
+    background: '#fff',
+    color: '#555',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   placeholder: {
     margin: 'auto',
     textAlign: 'center',
-    color: '#555',
+    color: '#888',
     fontSize: 14,
     padding: 24,
   },
-  emptyState: {
-    margin: 'auto',
-    textAlign: 'center',
-    maxWidth: 360,
-    padding: 24,
-  },
-  emptyTitle: {
-    margin: '0 0 0.5rem',
-    fontSize: 20,
-    fontWeight: 700,
-    color: '#111',
-  },
-  emptyText: {
-    margin: '0 0 1.25rem',
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 1.45,
-  },
-  emptyCta: {
-    padding: '0.7rem 1.25rem',
+  primaryBtn: {
+    padding: '0.55rem 1rem',
     borderRadius: 8,
     border: 'none',
     background: '#007bff',
     color: '#fff',
     fontWeight: 600,
-    fontSize: 14,
     cursor: 'pointer',
   },
 };

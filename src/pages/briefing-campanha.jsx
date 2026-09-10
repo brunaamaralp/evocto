@@ -161,7 +161,7 @@ export default function BriefingCampanhaPage() {
             <p className="text-sm text-slate-500">
               {launchResult?.cyclePlan
                 ? `${launchResult.tasksCreated || 0} tarefa(s) gerada(s) no ciclo do mês.`
-                : 'Briefing salvo. O ciclo ainda precisa ser aberto.'}
+                : 'Campanha criada com ciclo operacional.'}
             </p>
             <div className="flex flex-wrap gap-2 justify-center pt-2">
               {campaignHref && (

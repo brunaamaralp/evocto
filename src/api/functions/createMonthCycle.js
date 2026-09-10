@@ -60,6 +60,7 @@ function applyAssignee(payload, profiles, taskTemplate, ownerId) {
  *   templateId?: string,
  *   serviceId?: string, // reutilizar serviço existente
  *   serviceName?: string,
+ *   title?: string,
  *   generateTasks?: boolean,
  *   ownerId?: string,
  *   pipeline?: 'legado' | 'narrativa',
@@ -77,6 +78,7 @@ export async function createMonthCycle(opts = {}) {
     templateId,
     serviceId,
     serviceName,
+    title: cycleTitleOpt,
     generateTasks = true,
     ownerId,
     pipeline = 'narrativa',
@@ -181,11 +183,13 @@ export async function createMonthCycle(opts = {}) {
     : [];
 
   const cyclePeriod = formatCyclePeriod(startDate);
+  const cycleTitle = String(cycleTitleOpt || '').trim() || cyclePeriod;
   const cyclePlan = await CyclePlan.create({
     agencyId,
     clientId,
     customerId: clientId,
     serviceId: service.id,
+    title: cycleTitle,
     cyclePeriod,
     status: 'approved',
     start_date: String(startDate).slice(0, 10),

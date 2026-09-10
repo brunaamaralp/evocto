@@ -13,6 +13,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
+import { Brief } from '@/api/entities';
 import EmpresaConfigResumo from './EmpresaConfigResumo';
 import EditarConfigCampanhaModal from './EditarConfigCampanhaModal';
 import { configFromEmpresa } from '@/lib/empresaConfig';
@@ -82,14 +83,8 @@ export default function BriefingFormSimples({
         cicloId,
         userId: user?.id || user?.$id || null,
       });
-      await notifyNovoBriefing({
-        agencyId,
-        briefing,
-        empresaNome: empresa.nome,
-        actorUserId: user?.id || user?.$id,
-      });
 
-      let launchResult = null;
+      let launchResult;
       try {
         launchResult = await launchCampanhaFromBrief({
           briefing,
@@ -99,25 +94,34 @@ export default function BriefingFormSimples({
           generateTasks: true,
           empresaNome: empresa.nome,
         });
-        toast.success(
-          `Campanha criada${
-            launchResult.tasksCreated
-              ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
-              : ''
-          }`
-        );
       } catch (launchErr) {
         console.error(launchErr);
-        toast.warning(
-          'Briefing salvo, mas não foi possível criar o ciclo. Abra o cliente e tente de novo.'
+        await Brief.delete(briefing.id).catch(() => {});
+        throw new Error(
+          launchErr?.message ||
+            'Não foi possível criar o ciclo da campanha. Tente novamente.'
         );
       }
 
-      onSuccess?.(launchResult || { briefing, tasksCreated: 0 });
+      await notifyNovoBriefing({
+        agencyId,
+        briefing: launchResult.briefing || briefing,
+        empresaNome: empresa.nome,
+        actorUserId: user?.id || user?.$id,
+      });
+
+      toast.success(
+        `Campanha criada${
+          launchResult.tasksCreated
+            ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
+            : ''
+        }`
+      );
+      onSuccess?.(launchResult);
     } catch (err) {
       console.error(err);
       if (err?.errors) setErrors(err.errors);
-      toast.error('Erro ao criar campanha. Tente novamente');
+      toast.error(err?.message || 'Erro ao criar campanha. Tente novamente');
     } finally {
       setSaving(false);
     }

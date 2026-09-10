@@ -22,19 +22,31 @@ const CANCELLED_TASK_STATUSES = new Set(['cancelled', 'canceled']);
 const CLOSED_TASK_STATUSES = new Set([...DONE_TASK_STATUSES, ...CANCELLED_TASK_STATUSES]);
 const ACTIVE_CYCLE_STATUSES = new Set(['approved', 'in_execution']);
 const INCOMPLETE_BRIEF_STATUSES = new Set(['DRAFT', 'IN_REVIEW', 'draft', 'in_review']);
-const ACTIVE_CAMPAIGN_BRIEF_STATUSES = new Set([
-  'READY',
-  'APPROVED',
-  'IN_REVIEW',
-  'in_review',
-  'ready',
-  'approved',
-]);
 const URGENT_PRIORITIES = new Set(['high', 'urgent', 'critical', 'alta', 'urgente']);
 const PENDING_TASK_STATUSES = new Set(['todo', 'in_progress', 'pending', 'in_review', 'blocked']);
 
 function briefCycleId(brief) {
   return brief?.ciclo_id || brief?.cycleId || brief?.cyclePlanId || null;
+}
+
+function cycleBriefId(cycle) {
+  return (
+    cycle?.briefId ||
+    cycle?.briefingId ||
+    cycle?.planData?.briefId ||
+    cycle?.planData?.briefingId ||
+    null
+  );
+}
+
+function resolveCycleForBrief(brief, activeCycleById, cyclesByBriefId) {
+  const linkedId = briefCycleId(brief);
+  if (linkedId && activeCycleById.has(String(linkedId))) {
+    return activeCycleById.get(String(linkedId));
+  }
+  const viaBrief = cyclesByBriefId.get(String(brief?.id));
+  if (viaBrief) return viaBrief;
+  return null;
 }
 
 function isCampaignBrief(brief) {
@@ -79,6 +91,11 @@ export function deriveActiveCampaigns({
 }) {
   const activeCycles = cycles.filter((c) => ACTIVE_CYCLE_STATUSES.has(c?.status));
   const activeCycleById = new Map(activeCycles.map((c) => [String(c.id), c]));
+  const cyclesByBriefId = new Map();
+  for (const cycle of activeCycles) {
+    const bid = cycleBriefId(cycle);
+    if (bid) cyclesByBriefId.set(String(bid), cycle);
+  }
   const serviceById = new Map(services.map((s) => [String(s.id), s]));
 
   const tasksByCycle = new Map();
@@ -94,15 +111,16 @@ export function deriveActiveCampaigns({
     if (INCOMPLETE_BRIEF_STATUSES.has(brief?.status) && brief.brief_kind !== 'campanha_mensal') {
       return false;
     }
-    const cicloId = briefCycleId(brief);
-    if (cicloId) return activeCycleById.has(String(cicloId));
-    return ACTIVE_CAMPAIGN_BRIEF_STATUSES.has(brief?.status);
+    const cycle = resolveCycleForBrief(brief, activeCycleById, cyclesByBriefId);
+    if (cycle) return true;
+    // Campanhas sem ciclo operacional não entram como "em andamento"
+    return false;
   });
 
   return campaignBriefs
     .map((brief) => {
-      const cicloId = briefCycleId(brief);
-      const cycle = cicloId ? activeCycleById.get(String(cicloId)) : null;
+      const cycle = resolveCycleForBrief(brief, activeCycleById, cyclesByBriefId);
+      const cicloId = cycle?.id || briefCycleId(brief);
       const cycleTasks = cicloId ? tasksByCycle.get(String(cicloId)) || [] : [];
       const campaignTasks = tasks.filter((task) =>
         getTaskBriefIds(task).includes(String(brief.id))
@@ -122,6 +140,12 @@ export function deriveActiveCampaigns({
         null;
       const resolvedCycleId = cycle?.id || cicloId || null;
       const resolvedServiceId = service?.id || cycle?.serviceId || brief.serviceId || null;
+      const cycleLabel =
+        cycle?.title ||
+        cycle?.cyclePeriod ||
+        brief.nome_campanha ||
+        brief.title ||
+        null;
 
       return {
         id: brief.id,
@@ -129,7 +153,7 @@ export function deriveActiveCampaigns({
         status: brief.status || brief.status_campanha || null,
         briefKind: brief.brief_kind || 'campanha_mensal',
         cycleId: resolvedCycleId,
-        cycleTitle: cycle?.title || cycle?.cyclePeriod || null,
+        cycleTitle: cycleLabel,
         cycleStatus: cycle?.status || null,
         cyclePeriod: cycle?.cyclePeriod || null,
         serviceId: resolvedServiceId,

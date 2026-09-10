@@ -273,12 +273,19 @@ export default function DashboardPage() {
                           >
                             {campaign.name}
                           </Link>
-                          <p className="mt-1 text-sm text-[#555]">
-                            {campaign.cycleTitle || campaign.cyclePeriod || 'Sem ciclo vinculado'}
-                            {campaign.progress.total > 0
-                              ? ` · ${campaign.progress.completed}/${campaign.progress.total} tarefas`
-                              : ''}
-                          </p>
+                          {(() => {
+                            const subtitle = [
+                              campaign.cyclePeriod || campaign.cycleTitle,
+                              campaign.progress.total > 0
+                                ? `${campaign.progress.completed}/${campaign.progress.total} tarefas`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ');
+                            return subtitle ? (
+                              <p className="mt-1 text-sm text-[#555]">{subtitle}</p>
+                            ) : null;
+                          })()}
                         </div>
                         <p className="shrink-0 text-xl font-bold tabular-nums text-[#111]">
                           {campaign.progress.percentComplete}%
