@@ -38,6 +38,10 @@ export const BriefingTemplate = entity('BriefingTemplate');
 export const SentimentAnalysis = entity('SentimentAnalysis');
 export const SmartRecommendation = entity('SmartRecommendation');
 export const ApprovalRequest = entity('ApprovalRequest');
+export const MaterialDelivery = entity('MaterialDelivery');
+export const MaterialDeliveryVersion = entity('MaterialDeliveryVersion');
+/** Preferir acesso via backend — contém secrets OAuth. */
+export const AgencyDriveConnection = entity('AgencyDriveConnection');
 export const Task = entity('Task');
 export const TimeEntry = entity('TimeEntry');
 export const UserStory = entity('UserStory');

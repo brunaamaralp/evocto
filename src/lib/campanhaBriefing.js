@@ -9,6 +9,9 @@ export const EMPTY_CAMPANHA_FORM = {
   talento_locacao: '',
   data_gravacao_inicio: '',
   data_gravacao_fim: '',
+  tipo_campanha: '5_videos',
+  ciclo_comercial: '',
+  linha_focal: '',
 };
 
 export function validateCampanhaForm(form) {
@@ -88,6 +91,9 @@ export function buildCampanhaBriefPayload({
     talento_locacao: String(campanhaForm.talento_locacao || '').trim(),
     data_gravacao_inicio: campanhaForm.data_gravacao_inicio || null,
     data_gravacao_fim: campanhaForm.data_gravacao_fim || null,
+    tipo_campanha: campanhaForm.tipo_campanha || '5_videos',
+    ciclo_comercial: campanhaForm.ciclo_comercial || null,
+    linha_focal: campanhaForm.linha_focal || null,
     // Herdados / override do mês
     publico_alvo: config.publico_alvo,
     formato: config.formato,

@@ -4,6 +4,7 @@ import { Client, Service } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { createMonthCycle } from '@/api/functions/createMonthCycle';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { ensureCicloNarrativaTemplate } from '@/api/functions/ensureCicloNarrativaTemplate';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,14 +27,19 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, CalendarPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  CICLOS_COMERCIAIS_OPS,
+  TIPOS_CAMPANHA,
+  previewPhasesForTipo,
+} from '@/lib/tipoCampanhaPipeline';
 
 function todayYmd() {
   return new Date().toISOString().slice(0, 10);
 }
 
 /**
- * Wizard: cria o ciclo operacional do mês a partir do template editável
- * "Ciclo Mensal de Campanhas".
+ * Wizard: cria o ciclo operacional do mês.
+ * Default: Pipeline Narrativa (7 fases). Legado 4 semanas permanece disponível.
  */
 export default function NewMonthCycleWizard({
   open,
@@ -51,6 +57,7 @@ export default function NewMonthCycleWizard({
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
   const [templateId, setTemplateId] = useState('');
+  const [legadoTemplateId, setLegadoTemplateId] = useState('');
 
   const [clientId, setClientId] = useState(defaultClientId || '');
   const [mode, setMode] = useState(defaultServiceId ? 'existing' : 'new');
@@ -58,6 +65,10 @@ export default function NewMonthCycleWizard({
   const [startDate, setStartDate] = useState(todayYmd());
   const [serviceName, setServiceName] = useState('');
   const [generateTasks, setGenerateTasks] = useState(true);
+  const [pipeline, setPipeline] = useState('narrativa');
+  const [tipoCampanha, setTipoCampanha] = useState('5_videos');
+  const [cicloComercial, setCicloComercial] = useState('');
+  const [linhaFocal, setLinhaFocal] = useState('');
 
   useEffect(() => {
     if (!open || !agencyId) return;
@@ -66,13 +77,15 @@ export default function NewMonthCycleWizard({
     (async () => {
       setBootstrapping(true);
       try {
-        const [clientsData, template] = await Promise.all([
+        const [clientsData, narrativaTpl, legadoTpl] = await Promise.all([
           Client.filter({ agencyId }).catch(() => []),
+          ensureCicloNarrativaTemplate(agencyId),
           ensureCicloMensalTemplate(agencyId),
         ]);
         if (cancelled) return;
         setClients(Array.isArray(clientsData) ? clientsData : []);
-        setTemplateId(template?.id || '');
+        setTemplateId(narrativaTpl?.id || '');
+        setLegadoTemplateId(legadoTpl?.id || '');
         if (defaultClientId) setClientId(defaultClientId);
         if (defaultServiceId) {
           setServiceId(defaultServiceId);
@@ -122,10 +135,18 @@ export default function NewMonthCycleWizard({
     [clients, clientId]
   );
 
+  const phasePreview = useMemo(
+    () => previewPhasesForTipo(tipoCampanha),
+    [tipoCampanha]
+  );
+
+  const activeTemplateId = pipeline === 'narrativa' ? templateId : legadoTemplateId;
   const canNextFrom1 = Boolean(clientId);
   const canNextFrom2 =
-    mode === 'new' ? Boolean(templateId) : Boolean(serviceId);
-  const canSubmit = Boolean(clientId && startDate && (mode === 'new' ? templateId : serviceId));
+    mode === 'new' ? Boolean(activeTemplateId) : Boolean(serviceId);
+  const canSubmit = Boolean(
+    clientId && startDate && (mode === 'new' ? activeTemplateId : serviceId)
+  );
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -135,15 +156,21 @@ export default function NewMonthCycleWizard({
         agencyId,
         clientId,
         startDate,
-        templateId: mode === 'new' ? templateId : undefined,
+        templateId: mode === 'new' ? activeTemplateId : undefined,
         serviceId: mode === 'existing' ? serviceId : undefined,
         serviceName:
           serviceName ||
           (selectedClient
-            ? `${selectedClient.name || selectedClient.company_name} — Ciclo Mensal`
+            ? `${selectedClient.name || selectedClient.company_name} — ${
+                pipeline === 'narrativa' ? 'Pipeline Narrativa' : 'Ciclo Mensal'
+              }`
             : undefined),
         generateTasks,
         ownerId: user?.id || user?.data?.id,
+        pipeline,
+        tipo_campanha: tipoCampanha,
+        ciclo_comercial: cicloComercial,
+        linha_focal: linhaFocal,
       });
 
       toast.success(
@@ -175,8 +202,9 @@ export default function NewMonthCycleWizard({
             Novo ciclo do mês
           </DialogTitle>
           <DialogDescription>
-            Instancia o template editável do ciclo mensal de campanhas com 4 fases:
-            PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.
+            {pipeline === 'narrativa'
+              ? `Pipeline Narrativa (${TIPOS_CAMPANHA.find((t) => t.value === tipoCampanha)?.label || tipoCampanha}): fases, subtarefas, gates e SLA.`
+              : 'Legado: 4 fases — PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -205,6 +233,20 @@ export default function NewMonthCycleWizard({
                   </Select>
                 </div>
                 <div>
+                  <Label>Pipeline</Label>
+                  <Select value={pipeline} onValueChange={setPipeline}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="narrativa">
+                        Narrativa — 7 fases + subtarefas (recomendado)
+                      </SelectItem>
+                      <SelectItem value="legado">Legado — 4 semanas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>Modo</Label>
                   <Select value={mode} onValueChange={setMode}>
                     <SelectTrigger>
@@ -222,21 +264,91 @@ export default function NewMonthCycleWizard({
             {step === 2 && (
               <div className="space-y-3">
                 {mode === 'new' ? (
-                  <div>
-                    <Label>Nome do serviço (opcional)</Label>
-                    <Input
-                      value={serviceName}
-                      onChange={(e) => setServiceName(e.target.value)}
-                      placeholder={
-                        selectedClient
-                          ? `${selectedClient.name || selectedClient.company_name} — Ciclo Mensal de Campanhas`
-                          : 'Ciclo Mensal de Campanhas'
-                      }
-                    />
-                    <p className="text-xs text-slate-500 mt-1">
-                      Template base: Ciclo Mensal de Campanhas
-                    </p>
-                  </div>
+                  <>
+                    <div>
+                      <Label>Nome do serviço (opcional)</Label>
+                      <Input
+                        value={serviceName}
+                        onChange={(e) => setServiceName(e.target.value)}
+                        placeholder={
+                          selectedClient
+                            ? `${selectedClient.name || selectedClient.company_name} — ${
+                                pipeline === 'narrativa'
+                                  ? 'Pipeline Narrativa'
+                                  : 'Ciclo Mensal de Campanhas'
+                              }`
+                            : pipeline === 'narrativa'
+                              ? 'Pipeline Narrativa'
+                              : 'Ciclo Mensal de Campanhas'
+                        }
+                      />
+                    </div>
+                    {pipeline === 'narrativa' ? (
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Tipo de campanha</Label>
+                          <Select value={tipoCampanha} onValueChange={setTipoCampanha}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TIPOS_CAMPANHA.map((t) => (
+                                <SelectItem key={t.value} value={t.value}>
+                                  {t.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {TIPOS_CAMPANHA.find((t) => t.value === tipoCampanha)?.description}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label>Ciclo comercial</Label>
+                            <Select
+                              value={cicloComercial || '__none__'}
+                              onValueChange={(v) =>
+                                setCicloComercial(v === '__none__' ? '' : v)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="—" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__none__">—</SelectItem>
+                                {CICLOS_COMERCIAIS_OPS.map((c) => (
+                                  <SelectItem key={c.value} value={c.value}>
+                                    {c.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Linha focal</Label>
+                            <Input
+                              value={linhaFocal}
+                              onChange={(e) => setLinhaFocal(e.target.value)}
+                              placeholder="Ex.: Premium"
+                            />
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                          <p className="text-[11px] font-medium text-slate-500">
+                            Preview · {phasePreview.length} fases
+                          </p>
+                          <p className="text-xs text-slate-700">
+                            {phasePreview.map((p) => p.label).join(' → ')}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        Template: Ciclo Mensal de Campanhas (4 fases)
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <div>
                     <Label>Serviço existente *</Label>
@@ -272,7 +384,9 @@ export default function NewMonthCycleWizard({
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    As 4 fases serão agendadas em sequência (dias úteis).
+                    {pipeline === 'narrativa'
+                      ? `${phasePreview.length} fases serão agendadas em sequência (dias úteis).`
+                      : 'As 4 fases serão agendadas em sequência (dias úteis).'}
                   </p>
                 </div>
                 <label className="flex items-center gap-2 text-sm">
@@ -280,7 +394,9 @@ export default function NewMonthCycleWizard({
                     checked={generateTasks}
                     onCheckedChange={(v) => setGenerateTasks(Boolean(v))}
                   />
-                  Gerar tarefas das 4 fases agora
+                  {pipeline === 'narrativa'
+                    ? 'Gerar tarefas e subtarefas agora'
+                    : 'Gerar tarefas das 4 fases agora'}
                 </label>
               </div>
             )}

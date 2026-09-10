@@ -306,6 +306,30 @@ export default function DashboardPage() {
                 Novo Cliente
               </Button>
             </Link>
+            <Link to="/dashboard/bruna">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
+                <Activity className="h-4 w-4 mr-2" />
+                Dashboard Bruna
+              </Button>
+            </Link>
+            <Link to="/dashboard/duda">
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
+                <CheckSquare className="h-4 w-4 mr-2" />
+                Fila Duda
+              </Button>
+            </Link>
+            <Link to={createPageUrl('campaign-insights')}>
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Insights
+              </Button>
+            </Link>
+            <Link to={createPageUrl('campaigns-performance')}>
+              <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Performance 12
+              </Button>
+            </Link>
             <Link to={createPageUrl('services')}>
               <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
                 <Building className="h-4 w-4 mr-2" />

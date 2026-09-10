@@ -10,6 +10,7 @@ import { UploadFile } from "@/api/integrations";
 import { CyclePlan } from "@/api/entities";
 import { AuditLog } from "@/api/entities";
 import { FileUp, Save, CheckCircle2, AlertTriangle } from "lucide-react";
+import CycleFeedbackForm from "@/components/cycles/CycleFeedbackForm";
 
 function useUrlId() {
   const [id, setId] = useState(null);
@@ -191,6 +192,15 @@ export default function ClosingPanel() {
             )) : <p className="text-sm text-slate-600">Nenhum anexo enviado.</p>}
           </div>
         </div>
+
+        <Separator />
+
+        {plan?.id ? (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Resultado estruturado</label>
+            <CycleFeedbackForm cyclePlanId={plan.id} cyclePlan={plan} compact onSaved={setPlan} />
+          </div>
+        ) : null}
 
         <Separator />
 

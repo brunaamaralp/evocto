@@ -25,13 +25,17 @@ import {
   Zap,
   Save,
   Loader2,
-  Wallet
+  Wallet,
+  Plug
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLeadStore } from '@/store/useLeadStore';
 import { getModulePastel } from '@/lib/modulePastels';
 
 const FinanceiroConfigTab = lazy(() => import('@/components/finance/FinanceiroConfigTab.jsx'));
+const GoogleDriveConnectionCard = lazy(() =>
+  import('@/components/settings/GoogleDriveConnectionCard.jsx')
+);
 
 export default function SettingsPage() {
   const session = useSession();
@@ -179,7 +183,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 h-auto">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             Perfil
@@ -187,6 +191,10 @@ export default function SettingsPage() {
           <TabsTrigger value="agency" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             Agência
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-2">
+            <Plug className="w-4 h-4" />
+            Integrações
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
@@ -201,6 +209,12 @@ export default function SettingsPage() {
             Notificações
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="integrations">
+          <Suspense fallback={<div className="text-sm text-slate-500 p-4">Carregando…</div>}>
+            <GoogleDriveConnectionCard />
+          </Suspense>
+        </TabsContent>
 
         {/* Aba Perfil */}
         <TabsContent value="profile">

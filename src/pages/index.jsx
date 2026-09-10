@@ -147,6 +147,11 @@ import clientsettings from "./client-settings";
 import document from "./document";
 
 import publicDeliverableApproval from "./public-deliverable-approval";
+import materialReview from "./material-review";
+import personaDashboard from "./persona-dashboard";
+import campaignShare from "./campaign-share";
+import campaignsPerformance from "./campaigns-performance";
+import campaignInsights from "./campaign-insights";
 
 import customreports from "./custom-reports";
 
@@ -382,6 +387,11 @@ const PAGES = {
     document: document,
     
     "public-deliverable-approval": publicDeliverableApproval,
+    "material-review": materialReview,
+    "persona-dashboard": personaDashboard,
+    "campaign-share": campaignShare,
+    "campaigns-performance": campaignsPerformance,
+    "campaign-insights": campaignInsights,
     
     "custom-reports": customreports,
     
@@ -646,6 +656,13 @@ function PagesContent() {
                 <Route path="/document" element={createElement(document)} />
                 
                 <Route path="/public-deliverable-approval" element={createElement(publicDeliverableApproval)} />
+                <Route path="/review/:token" element={createElement(materialReview)} />
+                <Route path="/review" element={createElement(materialReview)} />
+                <Route path="/campaigns/:shareToken" element={createElement(campaignShare)} />
+                <Route path="/campaigns" element={createElement(campaignShare)} />
+                <Route path="/dashboard/:persona" element={createElement(personaDashboard)} />
+                <Route path="/campaigns-performance" element={createElement(campaignsPerformance)} />
+                <Route path="/campaign-insights" element={createElement(campaignInsights)} />
                 
                 <Route path="/custom-reports" element={createElement(customreports)} />
                 

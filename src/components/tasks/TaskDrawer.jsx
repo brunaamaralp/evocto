@@ -39,6 +39,7 @@ import TaskHistory from "@/components/tasks/TaskHistory";
 import { transitionTaskStatus } from "@/lib/taskStatusTransition";
 import { appendAssignmentHistoryEntry } from "@/lib/taskActivityHistory";
 import TaskNotificationService from "@/components/notifications/TaskNotificationService";
+import { syncPipelineAfterTaskComplete } from "@/api/functions/transitionPipelinePhase";
 
 // Status mapping para o Kanban
 const STATUS_CONFIG = {
@@ -242,6 +243,27 @@ export default function TaskDrawer() {
       window.dispatchEvent(new CustomEvent('task:updated', { 
         detail: { taskId: task.id, status: newStatus } 
       }));
+
+      if (newStatus === 'completed' && task.serviceId) {
+        syncPipelineAfterTaskComplete({
+          serviceId: task.serviceId,
+          taskId: task.id,
+          actorId: user?.id || user?.data?.id,
+        })
+          .then((sync) => {
+            if (sync?.transitions?.length) {
+              toast.message('Pipeline avançou automaticamente', {
+                description: `${sync.transitions.length} fase(s)`,
+              });
+              window.dispatchEvent(
+                new CustomEvent('pipeline:updated', {
+                  detail: { serviceId: task.serviceId, transitions: sync.transitions },
+                })
+              );
+            }
+          })
+          .catch(() => {});
+      }
 
     } catch (e) {
       setError("Falha ao alterar status. Tente novamente.");

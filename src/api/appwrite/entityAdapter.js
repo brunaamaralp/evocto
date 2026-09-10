@@ -7,7 +7,7 @@ import {
   Permission,
   Role,
 } from '@/api/appwriteClient';
-import { TABLE_COLUMNS, BOOLEAN_COLUMNS, DATETIME_COLUMNS } from './tableMap';
+import { TABLE_COLUMNS, BOOLEAN_COLUMNS, DATETIME_COLUMNS, INTEGER_COLUMNS } from './tableMap';
 
 const SYSTEM_KEYS = new Set([
   'id',
@@ -29,6 +29,11 @@ function coerceValue(key, value) {
   if (DATETIME_COLUMNS.has(key)) {
     if (!value) return undefined;
     return typeof value === 'string' ? value : new Date(value).toISOString();
+  }
+  if (INTEGER_COLUMNS.has(key)) {
+    if (value === null || value === '') return undefined;
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : undefined;
   }
   if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
     return undefined;

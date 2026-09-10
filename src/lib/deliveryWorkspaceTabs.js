@@ -6,6 +6,7 @@
 export const DELIVERY_WORKSPACE_NAV_ITEMS = Object.freeze([
   { id: 'overview', label: 'Visão geral' },
   { id: 'tasks', label: 'Tarefas' },
+  { id: 'entregas', label: 'Entregas' },
   { id: 'atividade', label: 'Atividade' },
   { id: 'cronograma', label: 'Cronograma' },
   { id: 'files', label: 'Arquivos' },
@@ -25,6 +26,8 @@ export const DELIVERY_WORKSPACE_SECTION_ALIASES = Object.freeze({
   arquivos: 'files',
   financeiro: 'finance',
   notas: 'notes',
+  deliveries: 'entregas',
+  material: 'entregas',
 });
 
 /**

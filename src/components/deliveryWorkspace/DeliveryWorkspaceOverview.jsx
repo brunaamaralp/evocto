@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -6,8 +6,12 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, Circle, ListTodo, Clock, CalendarPlus, Copy, ClipboardCopy, FileText } from 'lucide-react';
 import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import DuplicateCycleWizard from '@/components/cycles/DuplicateCycleWizard';
+import PipelineTimeline from '@/components/cycles/PipelineTimeline';
+import CycleFeedbackForm from '@/components/cycles/CycleFeedbackForm';
 import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
 import { buildDeliveryWeeklyStatusCopy } from '@/lib/deliveryWeeklyStatusCopy';
+import { isNarrativaPipeline } from '@/lib/pipelineNarrativa';
+import { CyclePlan } from '@/api/entities';
 import {
   collectClientHistoryEntries,
   clientHistoryToMarkdown,
@@ -33,9 +37,30 @@ export default function DeliveryWorkspaceOverview({
   tasks = [],
   onGoSection,
   onCycleCreated,
+  onServiceUpdated,
+  onTasksNeedReload,
 }) {
   const [showNewCycle, setShowNewCycle] = useState(false);
   const [showDuplicate, setShowDuplicate] = useState(false);
+  const [linkedCycle, setLinkedCycle] = useState(null);
+
+  useEffect(() => {
+    if (!service?.id) {
+      setLinkedCycle(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const list = await CyclePlan.filter({ serviceId: service.id }, '-updated_date', 5).catch(
+        () => []
+      );
+      if (cancelled) return;
+      setLinkedCycle(Array.isArray(list) && list[0] ? list[0] : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [service?.id]);
 
   const handleCopyWeeklyStatus = async () => {
     const text = buildDeliveryWeeklyStatusCopy({ service, client, tasks });
@@ -189,6 +214,26 @@ export default function DeliveryWorkspaceOverview({
 
       <WorkloadByPersonPanel tasks={tasks} />
 
+      {linkedCycle?.id ? (
+        <CycleFeedbackForm
+          cyclePlanId={linkedCycle.id}
+          cyclePlan={linkedCycle}
+          onSaved={setLinkedCycle}
+        />
+      ) : null}
+
+      {isNarrativaPipeline(service) || deliverables.some((d) => d.phase === 'foto_e_video') ? (
+        <Card className="border-slate-200 shadow-none">
+          <CardContent className="pt-4">
+            <PipelineTimeline
+              service={service}
+              tasks={tasks}
+              onServiceUpdated={onServiceUpdated || onCycleCreated}
+              onTasksNeedReload={onTasksNeedReload}
+            />
+          </CardContent>
+        </Card>
+      ) : (
       <Card className="border-slate-200 shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Etapas</CardTitle>
@@ -229,6 +274,7 @@ export default function DeliveryWorkspaceOverview({
           )}
         </CardContent>
       </Card>
+      )}
 
       <NewMonthCycleWizard
         open={showNewCycle}

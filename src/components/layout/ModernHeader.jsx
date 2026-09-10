@@ -7,6 +7,7 @@ import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import GlobalSearch, { GlobalSearchTrigger } from '@/components/search/GlobalSearch';
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
+import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 
@@ -23,19 +24,22 @@ export default function ModernHeader({
     if (!agencyId || !uid) return;
 
     let cancelled = false;
-    (async () => {
+    const runScans = async () => {
       try {
         await scanTaskDeadlineNotifications({ agencyId, userId: uid });
+        await scanPipelineSlaEscalations({ agencyId, userId: uid });
         if (!cancelled) {
           window.dispatchEvent(new CustomEvent('notifications:refresh'));
         }
       } catch (err) {
-        console.warn('[ModernHeader] deadline scan', err);
+        console.warn('[ModernHeader] notification scans', err);
       }
-    })();
+    };
+
+    runScans();
 
     const interval = setInterval(() => {
-      scanTaskDeadlineNotifications({ agencyId, userId: uid }).catch(() => {});
+      runScans().catch(() => {});
     }, 15 * 60 * 1000);
 
     return () => {

@@ -17,6 +17,7 @@ import DeliveryWorkspaceSchedule from '@/components/deliveryWorkspace/DeliveryWo
 import DeliveryWorkspaceFiles from '@/components/deliveryWorkspace/DeliveryWorkspaceFiles';
 import DeliveryWorkspaceFinance from '@/components/deliveryWorkspace/DeliveryWorkspaceFinance';
 import DeliveryWorkspaceNotes from '@/components/deliveryWorkspace/DeliveryWorkspaceNotes';
+import DeliveryWorkspaceDeliveries from '@/components/deliveryWorkspace/DeliveryWorkspaceDeliveries';
 import '@/components/deliveryWorkspace/delivery-workspace.css';
 
 export default function DeliveryWorkspacePage() {
@@ -122,6 +123,16 @@ export default function DeliveryWorkspacePage() {
     [load, refreshTasks]
   );
 
+  useEffect(() => {
+    const onPipeline = (ev) => {
+      if (String(ev?.detail?.serviceId || '') === String(serviceId)) {
+        handleServiceUpdated();
+      }
+    };
+    window.addEventListener('pipeline:updated', onPipeline);
+    return () => window.removeEventListener('pipeline:updated', onPipeline);
+  }, [serviceId, handleServiceUpdated]);
+
   if (!isAuthenticated) {
     return (
       <div className="p-6 text-slate-600 text-sm">Faça login para acessar o workspace de entrega.</div>
@@ -157,6 +168,8 @@ export default function DeliveryWorkspacePage() {
           tasks={tasks}
           onGoSection={setSection}
           onCycleCreated={handleServiceUpdated}
+          onServiceUpdated={handleServiceUpdated}
+          onTasksNeedReload={refreshTasks}
         />
       );
       break;
@@ -171,6 +184,9 @@ export default function DeliveryWorkspacePage() {
           onServiceUpdated={handleServiceUpdated}
         />
       );
+      break;
+    case 'entregas':
+      sectionNode = <DeliveryWorkspaceDeliveries service={service} />;
       break;
     case 'files':
       sectionNode = (

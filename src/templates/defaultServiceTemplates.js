@@ -5,13 +5,18 @@
  * 1. Diagnóstico de Comunicação e Marca (avulso)
  * 2. Estratégia de Conteúdo e Posicionamento
  * 3. Marketing Operacional 360 (recorrente)
- * 4. Ciclo Mensal 4 Semanas (pipeline operacional)
+ * 4. Ciclo Mensal 4 Semanas (pipeline operacional legado)
+ * 5. Pipeline Narrativa 7 fases (operacional Estúdio Narrativa)
  */
 
 import {
   CICLO_MENSAL_4_SEMANAS_TEMPLATE,
   CICLO_MENSAL_TEMPLATE_KEY,
 } from './cicloMensal4SemanasTemplate.js';
+import {
+  CICLO_NARRATIVA_7_FASES_TEMPLATE,
+  CICLO_NARRATIVA_TEMPLATE_KEY,
+} from './cicloNarrativa7FasesTemplate.js';
 
 export {
   CICLO_MENSAL_4_SEMANAS_TEMPLATE,
@@ -19,6 +24,12 @@ export {
   CICLO_MENSAL_TEMPLATE_SLUG,
   normalizeDeliverableTaskShapes,
 } from './cicloMensal4SemanasTemplate.js';
+
+export {
+  CICLO_NARRATIVA_7_FASES_TEMPLATE,
+  CICLO_NARRATIVA_TEMPLATE_KEY,
+  CICLO_NARRATIVA_TEMPLATE_SLUG,
+} from './cicloNarrativa7FasesTemplate.js';
 
 export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
   id: 'diagnostico_comunicacao_template',
@@ -699,6 +710,7 @@ export const DEFAULT_SERVICE_TEMPLATES = {
   estrategia_conteudo: ESTRATEGIA_CONTEUDO_TEMPLATE,
   marketing_360: MARKETING_360_TEMPLATE,
   [CICLO_MENSAL_TEMPLATE_KEY]: CICLO_MENSAL_4_SEMANAS_TEMPLATE,
+  [CICLO_NARRATIVA_TEMPLATE_KEY]: CICLO_NARRATIVA_7_FASES_TEMPLATE,
   // legado (mesmo objeto)
   diagnostico_financeiro: DIAGNOSTICO_COMUNICACAO_TEMPLATE,
   mentoria_precificacao: ESTRATEGIA_CONTEUDO_TEMPLATE,

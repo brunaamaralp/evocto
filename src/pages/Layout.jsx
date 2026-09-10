@@ -24,7 +24,10 @@ const publicRoutes = [
   '/terms-of-service',
   '/privacy-policy',
   '/public-approval',
-  '/public-briefing'
+  '/public-briefing',
+  '/public-deliverable-approval',
+  '/review',
+  '/campaigns',
 ];
 
 function isPublicRoute(pathname) {

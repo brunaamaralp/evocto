@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
@@ -16,9 +23,14 @@ import {
   saveCampanhaBriefing,
   validateCampanhaForm,
 } from '@/lib/campanhaBriefing';
+import {
+  CICLOS_COMERCIAIS_OPS,
+  TIPOS_CAMPANHA,
+  previewPhasesForTipo,
+} from '@/lib/tipoCampanhaPipeline';
 
 /**
- * Formulário reduzido: 5 campos da campanha + herança da empresa.
+ * Formulário reduzido: 5 campos da campanha + tipo/ciclo/linha + herança da empresa.
  */
 export default function BriefingFormSimples({
   clientId,
@@ -38,6 +50,11 @@ export default function BriefingFormSimples({
   const baseConfig = useMemo(() => configFromEmpresa(empresa), [empresa]);
   const effectiveConfig = configOverride || baseConfig;
   const canSave = isCampanhaFormComplete(form) && Boolean(empresa) && !saving;
+  const linhas = Array.isArray(empresa?.produtos_linhas) ? empresa.produtos_linhas : [];
+  const phasePreview = useMemo(
+    () => previewPhasesForTipo(form.tipo_campanha || '5_videos'),
+    [form.tipo_campanha]
+  );
 
   const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -111,6 +128,78 @@ export default function BriefingFormSimples({
             {errors.nome_campanha && (
               <p className="text-xs text-red-600">{errors.nome_campanha}</p>
             )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label>Tipo de campanha</Label>
+              <Select
+                value={form.tipo_campanha || '5_videos'}
+                onValueChange={(v) => setField('tipo_campanha', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPOS_CAMPANHA.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Ciclo comercial</Label>
+              <Select
+                value={form.ciclo_comercial || '__none__'}
+                onValueChange={(v) =>
+                  setField('ciclo_comercial', v === '__none__' ? '' : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {CICLOS_COMERCIAIS_OPS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Linha focal</Label>
+              <Select
+                value={form.linha_focal || '__none__'}
+                onValueChange={(v) =>
+                  setField('linha_focal', v === '__none__' ? '' : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {linhas.map((p) => (
+                    <SelectItem key={p.id || p.nome} value={p.nome}>
+                      {p.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+            <p className="mb-1 text-[11px] font-medium text-slate-500">
+              Preview do pipeline ({phasePreview.length} fases)
+            </p>
+            <p className="text-xs text-slate-700">
+              {phasePreview.map((p) => p.label).join(' → ')}
+            </p>
           </div>
 
           <div className="space-y-1.5">

@@ -10,17 +10,16 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown, AlertTriangle, Lightbulb, ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Brief } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
 import {
   DIMENSAO_KEYS,
-  mapAnualMesToCampanhaMensalForm,
-  normalizeCampanhaAnualPayload,
   normalizeCampanhaMesGerada,
-  summarizeAnualProgress,
 } from '@/lib/campanhaAnualSchema';
-import { saveCampanhaBriefing } from '@/lib/campanhaBriefing';
+import {
+  materializeAnualAllMonths,
+  materializeAnualMesToCycle,
+} from '@/lib/materializeAnualMesToCycle';
 import { useSession } from '@/components/auth/SessionManager';
 
 const DIM_LABELS = {
@@ -76,6 +75,7 @@ export default function CampanhasAnualReview({
   const { user } = useSession();
   const [openMes, setOpenMes] = useState(null);
   const [busyMes, setBusyMes] = useState(null);
+  const [busyAll, setBusyAll] = useState(false);
   const list = (campanhas || []).map((c) => normalizeCampanhaMesGerada(c));
 
   const handleMaterializar = async (campanhaMes) => {
@@ -84,64 +84,69 @@ export default function CampanhasAnualReview({
       return;
     }
     const c = normalizeCampanhaMesGerada(campanhaMes);
-    if (c.brief_mensal_id) {
+    if (c.brief_mensal_id && c.ciclo_entrega_id) {
       navigate(
-        `${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${c.brief_mensal_id}`
+        `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${c.brief_mensal_id}`
       );
       return;
     }
     try {
       setBusyMes(c.mes);
-      const form = mapAnualMesToCampanhaMensalForm(c, { ano });
-      // ensure dates fallback if parse failed
-      if (!form.data_gravacao_inicio || !form.data_gravacao_fim) {
-        const y = Number(ano) || new Date().getFullYear();
-        const m = String(c.mes).padStart(2, '0');
-        form.data_gravacao_inicio = `${y}-${m}-01`;
-        form.data_gravacao_fim = `${y}-${m}-10`;
-      }
-      if (!form.talento_locacao) form.talento_locacao = 'A definir';
-
-      const created = await saveCampanhaBriefing({
+      const result = await materializeAnualMesToCycle({
+        briefingId,
+        campanhaMes: c,
+        existingPayload,
         agencyId,
         clientId,
         empresa,
-        campanhaForm: form,
-        modo_criacao: 'materializado_anual',
+        ano,
         userId: user?.id || user?.$id || null,
+        generateTasks: true,
       });
-
-      const base = normalizeCampanhaAnualPayload(existingPayload || { campanhas: list });
-      const nextCampanhas = (base.campanhas || list).map((item) => {
-        const n = normalizeCampanhaMesGerada(item);
-        if (n.mes !== c.mes) return n;
-        return {
-          ...n,
-          status_mes: 'materializado',
-          brief_mensal_id: created.id,
-        };
-      });
-      const progress = summarizeAnualProgress({ ...base, campanhas: nextCampanhas });
-      const status_anual =
-        progress.materializado >= 12 ? 'aprovado' : 'aprovado_parcial';
-
-      const updated = await Brief.update(briefingId, {
-        ...base,
-        campanhas: nextCampanhas,
-        status_anual,
-        editado_em: new Date().toISOString(),
-      });
-      const payload = normalizeCampanhaAnualPayload(updated);
-      onMaterialized?.(payload);
-      toast.success(`Briefing de ${MES_LABELS[c.mes]} criado`);
-      navigate(
-        `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${created.id}`
+      onMaterialized?.(result.anualPayload);
+      toast.success(
+        `Mês ${MES_LABELS[c.mes]} materializado` +
+          (result.tasksCreated ? ` · ${result.tasksCreated} tarefas` : '')
       );
+      if (result.service?.id) {
+        navigate(createPageUrl(`delivery-workspace?serviceId=${result.service.id}`));
+      } else {
+        navigate(
+          `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${result.briefingMensal.id}`
+        );
+      }
     } catch (err) {
       console.error(err);
-      toast.error(err.message || 'Não foi possível criar o briefing do mês');
+      toast.error(err.message || 'Não foi possível materializar o mês');
     } finally {
       setBusyMes(null);
+    }
+  };
+
+  const handleMaterializarTodos = async () => {
+    if (!briefingId || !clientId || !agencyId || !empresa?.id) {
+      toast.error('Salve o plano e configure a empresa antes');
+      return;
+    }
+    setBusyAll(true);
+    try {
+      const result = await materializeAnualAllMonths({
+        briefingId,
+        existingPayload,
+        agencyId,
+        clientId,
+        empresa,
+        ano,
+        userId: user?.id || user?.$id || null,
+        generateTasks: true,
+      });
+      onMaterialized?.(result.anualPayload);
+      toast.success(`${result.count} mês(es) materializados com ciclos`);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Falha ao materializar todos');
+    } finally {
+      setBusyAll(false);
     }
   };
 
@@ -207,6 +212,22 @@ export default function CampanhasAnualReview({
         </div>
       )}
 
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-slate-600">
+          Materializar cria briefing mensal + ciclo Narrativa com tarefas.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={busyAll || Boolean(busyMes)}
+          onClick={handleMaterializarTodos}
+        >
+          {busyAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Materializar todos os meses
+        </Button>
+      </div>
+
       <div className="space-y-2">
         {list.map((c) => {
           const open = openMes === c.mes;
@@ -240,7 +261,7 @@ export default function CampanhasAnualReview({
                             )}
                             {c.status_mes === 'materializado' && (
                               <Badge className="bg-emerald-100 text-emerald-800">
-                                Briefing aberto
+                                {c.ciclo_entrega_id ? 'Ciclo criado' : 'Briefing aberto'}
                               </Badge>
                             )}
                           </CardTitle>
@@ -271,7 +292,11 @@ export default function CampanhasAnualReview({
                         ) : (
                           <ExternalLink className="w-4 h-4 mr-1" />
                         )}
-                        {c.brief_mensal_id ? 'Abrir briefing' : 'Abrir briefing do mês'}
+                        {c.brief_mensal_id && c.ciclo_entrega_id
+                          ? 'Abrir mês'
+                          : c.brief_mensal_id
+                            ? 'Criar ciclo'
+                            : 'Materializar mês'}
                       </Button>
                     )}
                   </div>

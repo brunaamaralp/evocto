@@ -1078,6 +1078,9 @@ export function mapAnualMesToCampanhaMensalForm(campanhaMes, { ano } = {}) {
     data_gravacao_inicio: datas.inicio,
     data_gravacao_fim: datas.fim,
     // extras (não vão no validateCampanhaForm, úteis no save)
+    tipo_campanha: inferTipoFromAnual(c),
+    ciclo_comercial: c.ciclo_comercial || '',
+    linha_focal: c.produto_focal || '',
     _meta: {
       mes: c.mes,
       ciclo_comercial: c.ciclo_comercial,
@@ -1086,6 +1089,24 @@ export function mapAnualMesToCampanhaMensalForm(campanhaMes, { ano } = {}) {
       dimensoes: Object.fromEntries(DIMENSAO_KEYS.map((k) => [k, c[k]])),
     },
   };
+}
+
+function inferTipoFromAnual(c) {
+  const blob = [
+    c.resumo_executivo,
+    c['07_producao']?.formato,
+    c['07_producao']?.equipe,
+    c['02_conceito']?.nome,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  if (/ugc|user.?generated|comunidade/.test(blob)) return 'ugc';
+  if (/influenc|creator|embaixador/.test(blob)) return 'influenciador';
+  if (/s[oó]\s*posts|apenas posts|carrossel/.test(blob) && !/v[ií]deo/.test(blob)) {
+    return 'so_posts';
+  }
+  return '5_videos';
 }
 
 /**

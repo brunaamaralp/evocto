@@ -3,11 +3,20 @@ import { createServiceInstance } from '@/api/functions';
 import { scheduleDeliverablesFs } from '@/lib/deliverableScheduleCore';
 import { buildTaskPayloadFromTemplate } from '@/lib/startDeliverableStage';
 import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
+import { flattenTaskTemplates } from '@/templates/cicloNarrativa7FasesTemplate';
 import { wirePhaseFinishToStartDependencies } from '@/lib/wirePhaseDependencies';
 import { dueDateForTaskTemplate } from '@/lib/taskDueFromTemplate';
 import { wireTaskTemplateDependencies } from '@/lib/wireTaskTemplateDependencies';
 import { resolveResponsavelAssignee } from '@/lib/resolveResponsavelAssignee';
+import { generateNarrativaCycleTasks } from '@/lib/pipelineNarrativa';
+import {
+  applyCicloComercialSla,
+  buildNarrativaDeliverablesByTipo,
+  normalizeCicloComercialOps,
+  normalizeTipoCampanha,
+} from '@/lib/tipoCampanhaPipeline';
 import { ensureCicloMensalTemplate } from './ensureCicloMensalTemplate';
+import { ensureCicloNarrativaTemplate } from './ensureCicloNarrativaTemplate';
 
 function formatCyclePeriod(startDate) {
   try {
@@ -24,6 +33,22 @@ function addCalendarDays(ymd, days) {
   return d.toISOString().slice(0, 10);
 }
 
+function applyAssignee(payload, profiles, taskTemplate, ownerId) {
+  const resolved = resolveResponsavelAssignee(
+    profiles,
+    taskTemplate?.responsavel || taskTemplate?.assignee_role || ''
+  );
+  if (resolved) {
+    payload.assigneeId = resolved.assigneeId;
+    payload.assignedTo = resolved.assigneeId;
+    payload.assigneeName = resolved.assigneeName;
+  } else if (ownerId) {
+    payload.assignedTo = ownerId;
+    payload.assigneeId = ownerId;
+  }
+  return payload;
+}
+
 /**
  * Cria um ciclo mensal a partir do template canônico editável (ou templateId informado).
  * O ciclo operacional é sempre uma instância de serviço derivada do template.
@@ -37,6 +62,11 @@ function addCalendarDays(ymd, days) {
  *   serviceName?: string,
  *   generateTasks?: boolean,
  *   ownerId?: string,
+ *   pipeline?: 'legado' | 'narrativa',
+ *   tipo_campanha?: '5_videos' | 'ugc' | 'influenciador' | 'so_posts',
+ *   ciclo_comercial?: string,
+ *   linha_focal?: string,
+ *   briefId?: string,
  * }} opts
  */
 export async function createMonthCycle(opts = {}) {
@@ -49,20 +79,31 @@ export async function createMonthCycle(opts = {}) {
     serviceName,
     generateTasks = true,
     ownerId,
+    pipeline = 'narrativa',
+    tipo_campanha: tipoRaw = '5_videos',
+    ciclo_comercial: cicloRaw = '',
+    linha_focal = '',
+    briefId = null,
   } = opts;
 
   if (!agencyId) throw new Error('agencyId é obrigatório');
   if (!clientId) throw new Error('clientId é obrigatório');
   if (!startDate) throw new Error('startDate é obrigatório');
 
+  const tipo_campanha = normalizeTipoCampanha(tipoRaw);
+  const ciclo_comercial = normalizeCicloComercialOps(cicloRaw);
+
   const client = await Client.get(clientId).catch(() => null);
   if (!client) throw new Error('Cliente não encontrado');
 
   const profiles = await Profile.filter({ agencyId }).catch(() => []);
+  const useNarrativa = pipeline === 'narrativa';
 
   let templateServiceId = templateId;
   if (!templateServiceId && !serviceId) {
-    const seeded = await ensureCicloMensalTemplate(agencyId);
+    const seeded = useNarrativa
+      ? await ensureCicloNarrativaTemplate(agencyId)
+      : await ensureCicloMensalTemplate(agencyId);
     templateServiceId = seeded.id;
   }
 
@@ -72,13 +113,14 @@ export async function createMonthCycle(opts = {}) {
     if (!service) throw new Error('Serviço não encontrado');
     if (service.is_template) throw new Error('Selecione uma instância de serviço, não um template');
   } else {
+    const defaultName = useNarrativa
+      ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
+      : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
     const result = await createServiceInstance({
       templateId: templateServiceId,
       clientId,
       customizations: {
-        name:
-          serviceName ||
-          `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`,
+        name: serviceName || defaultName,
         start_date: String(startDate).slice(0, 10),
       },
     });
@@ -86,20 +128,57 @@ export async function createMonthCycle(opts = {}) {
     if (!service?.id) throw new Error('Falha ao criar instância do serviço');
   }
 
-  const rawDeliverables = normalizeDeliverableTaskShapes(service.deliverables || []);
+  const rawDeliverables = normalizeDeliverableTaskShapes(
+    useNarrativa && !serviceId
+      ? buildNarrativaDeliverablesByTipo(tipo_campanha)
+      : service.deliverables || []
+  );
+  const withCicloSla = useNarrativa
+    ? applyCicloComercialSla(rawDeliverables, ciclo_comercial)
+    : rawDeliverables;
+
+  const isNarrativaService =
+    useNarrativa ||
+    service.pipeline === 'narrativa' ||
+    service.offering_key === 'ciclo_narrativa_7_fases' ||
+    withCicloSla.some((d) => d.phase === 'foto_e_video' || d.phase === 'calendario_cliente');
+
   const scheduled = scheduleDeliverablesFs({
     startDate: String(startDate).slice(0, 10),
-    deliverables: rawDeliverables,
-  });
+    deliverables: withCicloSla,
+  }).map((d, idx) =>
+    isNarrativaService && idx === 0
+      ? {
+          ...d,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+        }
+      : d
+  );
 
   const lastEnd = scheduled[scheduled.length - 1]?.planned_end;
-  const endDate = lastEnd || addCalendarDays(startDate, 27);
+  const endDate = lastEnd || addCalendarDays(startDate, isNarrativaService ? 20 : 27);
 
   service = await Service.update(service.id, {
     deliverables: scheduled,
     start_date: String(startDate).slice(0, 10),
     end_date: endDate,
+    ...(isNarrativaService
+      ? {
+          pipeline: 'narrativa',
+          tipo_campanha,
+          ciclo_comercial: ciclo_comercial || null,
+          linha_focal: linha_focal || null,
+          briefId: briefId || null,
+        }
+      : {}),
   });
+
+  const embeddedTasks = isNarrativaService
+    ? generateNarrativaCycleTasks({}, String(startDate).slice(0, 10), {
+        deliverables: scheduled,
+      })
+    : [];
 
   const cyclePeriod = formatCyclePeriod(startDate);
   const cyclePlan = await CyclePlan.create({
@@ -113,19 +192,34 @@ export async function createMonthCycle(opts = {}) {
     startDate: String(startDate).slice(0, 10),
     end_date: endDate,
     ownerId: ownerId || null,
+    pipeline: isNarrativaService ? 'narrativa' : 'legado',
+    tipo_campanha: isNarrativaService ? tipo_campanha : null,
+    ciclo_comercial: ciclo_comercial || null,
+    linha_focal: linha_focal || null,
+    briefId: briefId || null,
     planData: {
       prioridades: [],
       ajustesEstrategicos: {},
       pendenciasCliente: [],
+      pipeline: isNarrativaService ? 'narrativa' : 'legado',
+      tipo_campanha: isNarrativaService ? tipo_campanha : null,
+      ciclo_comercial: ciclo_comercial || null,
+      linha_focal: linha_focal || null,
+      briefId: briefId || null,
+      tarefas: embeddedTasks,
+      feedback: null,
       entregaveisPrevistos: scheduled.map((d) => ({
         id: d.id,
         name: d.name,
+        phase: d.phase || null,
+        gatekeeper: d.gatekeeper ?? null,
+        sla_dias: d.sla_dias ?? null,
         planned_start: d.planned_start,
         planned_end: d.planned_end,
-        status: 'planned',
+        status: d.status || 'planned',
       })),
     },
-    version: 'v1.0',
+    version: isNarrativaService ? 'narrativa-1.0' : 'v1.0',
     source: 'new_month_cycle_wizard',
   });
 
@@ -133,9 +227,17 @@ export async function createMonthCycle(opts = {}) {
   let tasksCreated = 0;
 
   if (generateTasks) {
-    for (const deliverable of scheduled) {
-      const templates = deliverable.task_templates || [];
-      for (const taskTemplate of templates) {
+    if (isNarrativaService) {
+      const flat = flattenTaskTemplates(scheduled);
+      const byTemplateId = new Map();
+      const deliverableById = new Map(scheduled.map((d) => [String(d.id), d]));
+
+      for (const taskTemplate of flat) {
+        if (taskTemplate.parent_template_id) continue;
+
+        const deliverable = deliverableById.get(String(taskTemplate.deliverableId));
+        if (!deliverable) continue;
+
         const payload = buildTaskPayloadFromTemplate(taskTemplate, deliverable, service, {
           agencyId,
           startDate: deliverable.planned_start || startDate,
@@ -144,30 +246,78 @@ export async function createMonthCycle(opts = {}) {
         payload.dueDate =
           dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
         payload.deliverableName = deliverable.name;
-
-        // Responsável do template -> assignee na tarefa
-        const resolved = resolveResponsavelAssignee(
-          profiles,
-          taskTemplate?.responsavel || taskTemplate?.assignee_role || ''
-        );
-        if (resolved) {
-          payload.assigneeId = resolved.assigneeId;
-          payload.assignedTo = resolved.assigneeId;
-          payload.assigneeName = resolved.assigneeName;
-        } else if (ownerId) {
-          // Fallback: se não resolveu responsavel, atribui ao ownerId do ciclo (se existir)
-          payload.assignedTo = ownerId;
-          payload.assigneeId = ownerId;
-        }
+        payload.gatekeeper = taskTemplate.gatekeeper || deliverable.gatekeeper || null;
+        payload.gate_status = taskTemplate.gate_status || (payload.gatekeeper ? 'pendente' : null);
+        payload.pipeline = 'narrativa';
+        payload.parentTaskId = null;
+        applyAssignee(payload, profiles, taskTemplate, ownerId);
 
         const created = await Task.create(payload);
         tasks.push(created);
+        byTemplateId.set(String(taskTemplate.id), created);
         tasksCreated += 1;
-      }
-    }
 
-    await wirePhaseFinishToStartDependencies(tasks, scheduled).catch(() => {});
-    await wireTaskTemplateDependencies(tasks, scheduled).catch(() => {});
+        const subtarefas = Array.isArray(taskTemplate.subtarefas) ? taskTemplate.subtarefas : [];
+        for (const sub of subtarefas) {
+          const subPayload = buildTaskPayloadFromTemplate(sub, deliverable, service, {
+            agencyId,
+            startDate: deliverable.planned_start || startDate,
+            cyclePlanId: cyclePlan.id,
+          });
+          subPayload.dueDate =
+            dueDateForTaskTemplate(sub, deliverable) || subPayload.dueDate;
+          subPayload.deliverableName = deliverable.name;
+          subPayload.parentTaskId = created.id;
+          subPayload.pipeline = 'narrativa';
+          subPayload.gatekeeper = null;
+          applyAssignee(subPayload, profiles, sub, ownerId);
+
+          const subCreated = await Task.create(subPayload);
+          tasks.push(subCreated);
+          byTemplateId.set(String(sub.id), subCreated);
+          tasksCreated += 1;
+        }
+      }
+
+      // Dependências entre templates (pais e subtarefas) via bloqueador
+      const syntheticDeliverables = [
+        {
+          id: '__all__',
+          task_templates: flat.map((t) => ({
+            id: t.id,
+            bloqueador: t.bloqueador,
+            title: t.title,
+          })),
+        },
+      ];
+      await wireTaskTemplateDependencies(tasks, syntheticDeliverables).catch(() => {});
+      await wirePhaseFinishToStartDependencies(
+        tasks.filter((t) => !t.parentTaskId),
+        scheduled
+      ).catch(() => {});
+    } else {
+      for (const deliverable of scheduled) {
+        const templates = deliverable.task_templates || [];
+        for (const taskTemplate of templates) {
+          const payload = buildTaskPayloadFromTemplate(taskTemplate, deliverable, service, {
+            agencyId,
+            startDate: deliverable.planned_start || startDate,
+            cyclePlanId: cyclePlan.id,
+          });
+          payload.dueDate =
+            dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
+          payload.deliverableName = deliverable.name;
+          applyAssignee(payload, profiles, taskTemplate, ownerId);
+
+          const created = await Task.create(payload);
+          tasks.push(created);
+          tasksCreated += 1;
+        }
+      }
+
+      await wirePhaseFinishToStartDependencies(tasks, scheduled).catch(() => {});
+      await wireTaskTemplateDependencies(tasks, scheduled).catch(() => {});
+    }
 
     await CyclePlan.update(cyclePlan.id, { status: 'in_execution' }).catch(() => {});
   }
@@ -178,6 +328,10 @@ export async function createMonthCycle(opts = {}) {
     cyclePlan: { ...cyclePlan, status: generateTasks ? 'in_execution' : cyclePlan.status },
     tasks,
     tasksCreated,
+    pipeline: isNarrativaService ? 'narrativa' : 'legado',
+    tipo_campanha: isNarrativaService ? tipo_campanha : null,
+    ciclo_comercial: ciclo_comercial || null,
+    linha_focal: linha_focal || null,
     startDate: String(startDate).slice(0, 10),
     endDate,
   };

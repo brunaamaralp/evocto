@@ -20,7 +20,15 @@ export default defineConfig({
   ],
   
   server: {
-    allowedHosts: true
+    allowedHosts: true,
+    proxy: {
+      // Preferir `npx netlify-cli dev` (Functions + Vite).
+      // Fallback: se Netlify Dev estiver em 8888
+      '/api': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+    },
   },
   
   resolve: {

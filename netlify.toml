@@ -1,7 +1,38 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["lib/server/**"]
+
+# APIs antes do SPA fallback
+[[redirects]]
+  from = "/api/material-deliveries"
+  to = "/.netlify/functions/material-deliveries"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/material-deliveries/"
+  to = "/.netlify/functions/material-deliveries"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/schedule-push"
+  to = "/.netlify/functions/schedule-push"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/schedule-push/"
+  to = "/.netlify/functions/schedule-push"
+  status = 200
+  force = true
+
+# SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"

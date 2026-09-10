@@ -1,12 +1,24 @@
 /**
- * Gera estrutura de tarefas para um ciclo de 4 semanas a partir do template canônico.
- * Padrão: PLANEJAMENTO → PRODUÇÃO → REVISÃO → PUBLICAÇÃO com bloqueadores.
+ * Gera estrutura de tarefas para um ciclo a partir do template canônico.
+ * Legado: PLANEJAMENTO → PRODUÇÃO → REVISÃO → PUBLICAÇÃO.
+ * Narrativa: use generateNarrativaCycleTasks / pipelineNarrativa.js.
  */
 
 import {
   CICLO_MENSAL_4_SEMANAS_TEMPLATE,
   normalizeDeliverableTaskShapes,
 } from '@/templates/cicloMensal4SemanasTemplate';
+import {
+  generateNarrativaCycleTasks,
+  unlockDependents as unlockNarrativaDependents,
+  refreshParentProgress,
+} from '@/lib/pipelineNarrativa';
+
+export {
+  generateNarrativaCycleTasks,
+  unlockNarrativaDependents,
+  refreshParentProgress,
+};
 
 function addDays(ymd, days) {
   const d = new Date(`${String(ymd).slice(0, 10)}T12:00:00`);
