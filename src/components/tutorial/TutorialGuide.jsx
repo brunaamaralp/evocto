@@ -46,11 +46,11 @@ const MISSIONS = [
   },
   {
     id: 'cycle_plan_opened',
-    title: 'Abrir Plano do Ciclo',
-    description: 'Visualize o primeiro plano de execução',
+    title: 'Ver campanhas ativas',
+    description: 'Acompanhe as campanhas em andamento no dashboard',
     icon: Calendar,
-    href: createPageUrl('active-cycles'),
-    ctaText: 'Ver Planos',
+    href: createPageUrl('dashboard'),
+    ctaText: 'Ver campanhas',
     order: 4
   }
 ];

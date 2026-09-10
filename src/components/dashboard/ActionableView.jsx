@@ -49,7 +49,7 @@ export class ActionableView {
         status: "executando",
         risk: "low",
         priority_score: 60,
-        href: createPageUrl("active-cycles?id=cycle_jan_2024")
+        href: createPageUrl("dashboard")
       },
       
       // WorkOrder Due
@@ -78,7 +78,7 @@ export class ActionableView {
         status: "aprovado",
         risk: "low",
         priority_score: 50,
-        href: createPageUrl("active-cycles?id=cycle_approved_august&action=start")
+        href: createPageUrl("dashboard")
       },
       
       // Briefing Review

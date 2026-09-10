@@ -295,12 +295,6 @@ export default function DashboardPage() {
                       )}
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button asChild size="sm" variant="outline" className="h-8">
-                          <Link to={campaign.href}>
-                            <FileText className="w-3.5 h-3.5 mr-1" />
-                            Briefing
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm" variant="ghost" className="h-8">
                           <Link to={campaign.tasksHref}>
                             Tarefas
                             <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -310,6 +304,12 @@ export default function DashboardPage() {
                           <Link to={group.href}>
                             Cliente
                             <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="ghost" className="h-8">
+                          <Link to={campaign.href}>
+                            <FileText className="w-3.5 h-3.5 mr-1" />
+                            Briefing
                           </Link>
                         </Button>
                       </div>

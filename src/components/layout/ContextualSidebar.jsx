@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Target,
   Menu,
+  Megaphone,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -70,25 +71,30 @@ export default function ContextualSidebar({
           label: 'Visão Geral',
           icon: LayoutDashboard,
           href: `/client-detail?clientId=${clientId}`,
-          isActive: currentPage === 'client' || currentPage === 'client-detail',
+          isActive:
+            (currentPage === 'client' || currentPage === 'client-detail') &&
+            typeof window !== 'undefined' &&
+            window.location.hash !== '#campanhas',
         },
         {
-          label: 'Serviços & Ciclos',
-          icon: Target,
-          href: `/client-services?clientId=${clientId}`,
-          isActive: currentPage === 'client-services',
-        },
-        {
-          label: 'Briefing',
-          icon: FileText,
-          href: `/client-briefing?clientId=${clientId}`,
-          isActive: currentPage === 'client-briefing' || currentPage === 'briefing-editor',
+          label: 'Campanhas',
+          icon: Megaphone,
+          href: `/client-detail?clientId=${clientId}#campanhas`,
+          isActive:
+            currentPage === 'briefing-campanha' ||
+            (typeof window !== 'undefined' && window.location.hash === '#campanhas'),
         },
         {
           label: 'Tarefas',
           icon: CheckSquare,
           href: `/client-tasks?clientId=${clientId}`,
           isActive: currentPage === 'client-tasks',
+        },
+        {
+          label: 'Briefings',
+          icon: FileText,
+          href: `/client-briefing?clientId=${clientId}`,
+          isActive: currentPage === 'client-briefing' || currentPage === 'briefing-editor',
         },
         {
           label: 'Documentos',
@@ -119,6 +125,12 @@ export default function ContextualSidebar({
           icon: TrendingUp,
           href: `/custom-reports?clientId=${clientId}`,
           isActive: currentPage === 'custom-reports',
+        },
+        {
+          label: 'Serviços',
+          icon: Target,
+          href: `/client-services?clientId=${clientId}`,
+          isActive: currentPage === 'client-services',
         },
       ];
     }
@@ -172,12 +184,6 @@ export default function ContextualSidebar({
         isActive: currentPage === 'clients',
       },
       {
-        label: 'Templates de Serviço',
-        icon: Briefcase,
-        href: '/services',
-        isActive: currentPage === 'services',
-      },
-      {
         label: 'Tarefas',
         icon: CheckSquare,
         href: '/tasks-manager',
@@ -200,6 +206,12 @@ export default function ContextualSidebar({
         icon: Wallet,
         href: '/financeiro',
         isActive: currentPage === 'financeiro',
+      },
+      {
+        label: 'Templates',
+        icon: Briefcase,
+        href: '/services',
+        isActive: currentPage === 'services',
       },
     ];
   };

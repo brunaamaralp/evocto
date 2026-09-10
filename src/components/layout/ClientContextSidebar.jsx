@@ -14,6 +14,7 @@ import {
   Target,
   Lightbulb,
   Wallet,
+  Megaphone,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
@@ -79,26 +80,29 @@ export default function ClientContextSidebar({
       label: 'Visão Geral',
       icon: BarChart3,
       href: createPageUrl(`client-detail?clientId=${clientId}`),
-      active: location.pathname.includes('client-detail'),
+      active:
+        location.pathname.includes('client-detail') &&
+        location.hash !== '#campanhas',
     },
     {
-      label: 'Briefing',
-      icon: FileText,
-      href: createPageUrl(`client-briefing?clientId=${clientId}`),
-      active: location.pathname.includes('client-briefing'),
-    },
-    {
-      label: 'Serviços & Ciclos',
-      icon: Target,
-      href: createPageUrl(`client-services?clientId=${clientId}`),
-      active: location.pathname.includes('client-services'),
-      badge: resolvedServiceCount || null,
+      label: 'Campanhas',
+      icon: Megaphone,
+      href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
+      active:
+        location.pathname.includes('briefing-campanha') ||
+        location.hash === '#campanhas',
     },
     {
       label: 'Tarefas',
       icon: CheckSquare,
       href: createPageUrl(`client-tasks?clientId=${clientId}`),
       active: location.pathname.includes('client-tasks'),
+    },
+    {
+      label: 'Briefings',
+      icon: FileText,
+      href: createPageUrl(`client-briefing?clientId=${clientId}`),
+      active: location.pathname.includes('client-briefing'),
     },
     {
       label: 'Documentos',
@@ -123,6 +127,13 @@ export default function ClientContextSidebar({
       icon: BookOpen,
       href: createPageUrl(`client-evolution?clientId=${clientId}`),
       active: location.pathname.includes('client-evolution'),
+    },
+    {
+      label: 'Serviços',
+      icon: Target,
+      href: createPageUrl(`client-services?clientId=${clientId}`),
+      active: location.pathname.includes('client-services'),
+      badge: resolvedServiceCount || null,
     },
     {
       label: 'Configurações',

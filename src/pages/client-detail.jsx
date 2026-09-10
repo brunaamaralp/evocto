@@ -54,6 +54,15 @@ export default function ClientDetailPage() {
     counts,
   } = useClientHubData(clientId, agencyId);
 
+  useEffect(() => {
+    if (loading) return;
+    if (window.location.hash !== '#campanhas') return;
+    const el = document.getElementById('campanhas');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [loading, activeCampaigns.length]);
+
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -122,22 +131,21 @@ export default function ClientDetailPage() {
   }
 
   const hasCampaigns = activeCampaigns.length > 0;
-  const hasServices = activeServices.length > 0;
   const setupChecklist = [
     {
       id: 'campaign',
       title: 'Criar primeira campanha',
       description: 'Defina a campanha do mês para este cliente',
-      completed: hasCampaigns || hasServices,
+      completed: hasCampaigns,
       action: 'Nova campanha',
       href: createPageUrl(`briefing-campanha?clientId=${clientId}`),
     },
     {
-      id: 'briefing',
-      title: 'Completar briefing',
-      description: 'Detalhe objetivo, público e entregas da campanha',
+      id: 'context',
+      title: 'Briefing de contexto',
+      description: 'Histórico e materiais de referência do cliente',
       completed: briefs.length > 0,
-      action: 'Abrir briefing',
+      action: 'Abrir briefings',
       href: createPageUrl(`client-briefing?clientId=${clientId}`),
     },
     {
@@ -150,7 +158,7 @@ export default function ClientDetailPage() {
     },
   ];
 
-  const showSetup = !hasCampaigns && !hasServices;
+  const showSetup = !hasCampaigns;
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
 
   return (
@@ -267,10 +275,13 @@ export default function ClientDetailPage() {
           </Card>
         )}
 
-        <ClientActiveCampaignsPanel
-          clientId={clientId}
-          campaigns={activeCampaigns}
-        />
+        <div id="campanhas">
+          <ClientActiveCampaignsPanel
+            clientId={clientId}
+            campaigns={activeCampaigns}
+            showCreateCta={activeCampaigns.length === 0}
+          />
+        </div>
 
         <ClientAttentionPanel items={attentionItems} />
 
@@ -288,20 +299,7 @@ export default function ClientDetailPage() {
             <CardTitle className="text-base">Ações rápidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#E6F7F0] rounded-xl">
-                      <Megaphone className="w-5 h-5 text-[#22C98A]" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">Nova campanha</div>
-                      <div className="text-sm text-[#7A7595]">Briefing do mês</div>
-                    </div>
-                  </div>
-                </Link>
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
                 <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
@@ -316,14 +314,14 @@ export default function ClientDetailPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`client-services?clientId=${clientId}`)}>
+                <Link to={createPageUrl(`client-tasks?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#EAF2FB] rounded-xl">
-                      <Target className="w-5 h-5 text-[#5B9BD5]" />
+                    <div className="p-2 bg-[#FFF8E6] rounded-xl">
+                      <Clock className="w-5 h-5 text-[#E0B84A]" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Serviços</div>
-                      <div className="text-sm text-[#7A7595]">Templates e ciclos</div>
+                      <div className="font-medium">Tarefas</div>
+                      <div className="text-sm text-[#7A7595]">Fila deste cliente</div>
                     </div>
                   </div>
                 </Link>

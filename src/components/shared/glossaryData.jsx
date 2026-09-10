@@ -14,7 +14,7 @@ export const glossaryData = [
     "short": "Período operacional do serviço (ex.: Mensal, Trimestral).",
     "whenToUse": "Tem Plano, Execução e Fechamento. É onde o trabalho acontece.",
     "related": ["servico", "plano-do-ciclo", "rc"],
-    "deepLink": "/active-cycles",
+    "deepLink": "/dashboard",
     "tags": ["período", "plano", "execução"]
   },
   {
@@ -50,7 +50,7 @@ export const glossaryData = [
     "short": "Prioridades, testes e escopo IN/OUT para o período.",
     "whenToUse": "Define o que será feito no ciclo. Pode gerar um RC para aprovação.",
     "related": ["ciclo", "escopo-in-out", "rc"],
-    "deepLink": "/active-cycles",
+    "deepLink": "/dashboard",
     "tags": ["planejamento", "escopo", "estratégia"]
   },
   {
@@ -104,7 +104,7 @@ export const glossaryData = [
     "short": "Estado do serviço no ciclo (OK, Atenção, Crítico) com sinais acionáveis.",
     "whenToUse": "Monitore para antecipar problemas, como RCs expirando ou KPIs fora da meta.",
     "related": ["guardrails", "sla-digest"],
-    "deepLink": "/active-cycles",
+    "deepLink": "/dashboard",
     "tags": ["monitoramento", "saúde", "risco"]
   },
   {

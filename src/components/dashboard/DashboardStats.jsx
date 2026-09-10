@@ -193,7 +193,7 @@ const DashboardStats = () => {
         changeType="novos este mês"
         icon={Calendar}
         badge={stats.cycles.pending > 0 ? `${stats.cycles.pending} pendente${stats.cycles.pending > 1 ? 's' : ''}` : null}
-        onClick={() => navigate(createPageUrl('active-cycles'))}
+        onClick={() => navigate(createPageUrl('dashboard'))}
       />
 
       {/* Taxa de Conclusão de Tarefas */}

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Megaphone, Settings2 } from 'lucide-react';
+import { ArrowRight, Settings2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 function cycleStatusLabel(status) {
@@ -23,7 +23,6 @@ export default function ClientExecutionPanel({
   activeCycles = [],
 }) {
   const servicesHref = createPageUrl(`client-services?clientId=${clientId}`);
-  const newCampaignHref = createPageUrl(`briefing-campanha?clientId=${clientId}`);
   const topServices = activeServices.slice(0, 4);
   const cyclesByService = activeCycles.reduce((acc, cycle) => {
     const key = cycle.serviceId || '_none';
@@ -54,16 +53,10 @@ export default function ClientExecutionPanel({
       <CardContent className="space-y-4">
         {topServices.length === 0 ? (
           <div className="text-center py-6 border border-dashed rounded-lg">
-            <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-3">
-              Ainda sem serviço vinculado — comece pela campanha
+            <p className="text-sm text-gray-600">
+              Sem serviço vinculado ainda — criado automaticamente ao abrir uma
+              campanha.
             </p>
-            <Button asChild size="sm">
-              <Link to={newCampaignHref}>
-                <Megaphone className="w-4 h-4 mr-1" />
-                Nova campanha
-              </Link>
-            </Button>
           </div>
         ) : (
           <ul className="space-y-2">

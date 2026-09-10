@@ -27,10 +27,8 @@ function cycleStatusLabel(status) {
 }
 
 function progressScopeLabel(scope) {
-  if (scope === 'campaign') return 'Progresso da campanha';
-  if (scope === 'cycle') return 'Progresso do ciclo (compartilhado)';
-  if (scope === 'service') return 'Progresso do serviço';
-  return 'Sem tarefas vinculadas ainda';
+  if (scope === 'none') return 'Sem tarefas vinculadas ainda';
+  return 'Progresso';
 }
 
 function groupByCycle(campaigns = []) {
@@ -62,11 +60,6 @@ function CampaignRow({ campaign }) {
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <Megaphone className="w-4 h-4 text-[#6C47D8] shrink-0" />
             <p className="font-semibold text-[#18162A] truncate">{campaign.name}</p>
-            {campaign.serviceName && (
-              <Badge variant="outline" className="text-[10px]">
-                {campaign.serviceName}
-              </Badge>
-            )}
           </div>
           <p className="text-xs text-[#7A7595]">{progressScopeLabel(campaign.progressScope)}</p>
         </div>
@@ -101,15 +94,15 @@ function CampaignRow({ campaign }) {
 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline" className="h-8">
-          <Link to={campaign.href}>
-            <FileText className="w-3.5 h-3.5 mr-1" />
-            Briefing
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="ghost" className="h-8">
           <Link to={campaign.tasksHref}>
             Tarefas
             <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost" className="h-8">
+          <Link to={campaign.href}>
+            <FileText className="w-3.5 h-3.5 mr-1" />
+            Briefing
           </Link>
         </Button>
       </div>
@@ -120,6 +113,7 @@ function CampaignRow({ campaign }) {
 export default function ClientActiveCampaignsPanel({
   clientId,
   campaigns = [],
+  showCreateCta = true,
 }) {
   const groups = groupByCycle(campaigns);
   const newBriefHref = createPageUrl(`briefing-campanha?clientId=${clientId}`);
@@ -132,17 +126,9 @@ export default function ClientActiveCampaignsPanel({
             <Megaphone className="w-5 h-5 text-[#6C47D8]" />
             Campanhas em andamento
           </span>
-          <div className="flex items-center gap-2">
-            {campaigns.length > 0 && (
-              <Badge variant="secondary">{campaigns.length}</Badge>
-            )}
-            <Button asChild variant="ghost" size="sm" className="gap-1">
-              <Link to={newBriefHref}>
-                <Plus className="w-3.5 h-3.5" />
-                Nova campanha
-              </Link>
-            </Button>
-          </div>
+          {campaigns.length > 0 && (
+            <Badge variant="secondary">{campaigns.length}</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -152,12 +138,14 @@ export default function ClientActiveCampaignsPanel({
             <p className="text-sm text-gray-600 mb-3">
               Nenhuma campanha ativa neste cliente
             </p>
-            <Button asChild size="sm">
-              <Link to={newBriefHref}>
-                <Plus className="w-4 h-4 mr-1" />
-                Nova campanha
-              </Link>
-            </Button>
+            {showCreateCta && (
+              <Button asChild size="sm">
+                <Link to={newBriefHref}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nova campanha
+                </Link>
+              </Button>
+            )}
           </div>
         ) : (
           groups.map((group) => (
@@ -172,7 +160,7 @@ export default function ClientActiveCampaignsPanel({
                     </p>
                     <p className="text-[11px] text-[#7A7595]">
                       {group.campaigns.length} campanha
-                      {group.campaigns.length === 1 ? '' : 's'} neste ciclo
+                      {group.campaigns.length === 1 ? '' : 's'} neste período
                     </p>
                   </div>
                 </div>
@@ -185,7 +173,7 @@ export default function ClientActiveCampaignsPanel({
                   {group.cycleHref && (
                     <Button asChild variant="ghost" size="sm" className="h-7 px-2 gap-1">
                       <Link to={group.cycleHref}>
-                        Ciclo
+                        Workspace
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                     </Button>

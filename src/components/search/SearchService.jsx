@@ -46,7 +46,7 @@ export class SearchService {
         const cycleClient = service ? mockDatabase.clients.find(c => c.id === service.clientId) : null;
         return {
           id: item.id, type, title: item.name, subtitle: `Ciclo • ${service?.name} • ${cycleClient?.name}`,
-          meta: item.status, href: createPageUrl(`active-cycles?id=${item.id}`), score: 0
+          meta: item.status, href: createPageUrl('dashboard'), score: 0
         };
       }
       case 'workorder':

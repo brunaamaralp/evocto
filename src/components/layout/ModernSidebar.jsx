@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Users,
   Building,
-  Calendar,
   CheckSquare,
   BookOpen,
   BarChart3,
@@ -49,22 +48,10 @@ export default function ModernSidebar({ user }) {
       active: location.pathname.includes('/clients') && !isClientContext
     },
     {
-      label: 'Serviços',
-      icon: Target,
-      href: createPageUrl('services'),
-      active: location.pathname.includes('/services')
-    },
-    {
       label: 'Tarefas',
       icon: CheckSquare,
       href: createPageUrl('tasks'),
       active: location.pathname.includes('/tasks')
-    },
-    {
-      label: 'Ciclos Ativos',
-      icon: Calendar,
-      href: createPageUrl('active-cycles'),
-      active: location.pathname.includes('/active-cycles')
     },
     {
       label: 'Biblioteca',
@@ -77,6 +64,12 @@ export default function ModernSidebar({ user }) {
       icon: BarChart3,
       href: createPageUrl('custom-reports'),
       active: location.pathname.includes('/custom-reports') || location.pathname.includes('/hours-hub')
+    },
+    {
+      label: 'Templates',
+      icon: Target,
+      href: createPageUrl('services'),
+      active: location.pathname.includes('/services')
     }
   ];
 

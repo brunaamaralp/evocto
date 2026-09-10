@@ -155,22 +155,19 @@ export default function BriefingCampanhaPage() {
                 : 'Briefing salvo. O ciclo ainda precisa ser aberto.'}
             </p>
             <div className="flex flex-wrap gap-2 justify-center pt-2">
-              {workspaceHref && (
-                <Button onClick={() => navigate(workspaceHref)}>
-                  Abrir workspace
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              )}
-              <Button
-                variant={workspaceHref ? 'outline' : 'default'}
-                onClick={() => navigate(tasksHref)}
-              >
+              <Button onClick={backToClient}>
+                Ver no cliente
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <Button variant="outline" onClick={() => navigate(tasksHref)}>
                 <CheckSquare className="w-4 h-4 mr-1" />
                 Ver tarefas
               </Button>
-              <Button variant="outline" onClick={backToClient}>
-                Voltar ao cliente
-              </Button>
+              {workspaceHref && (
+                <Button variant="ghost" onClick={() => navigate(workspaceHref)}>
+                  Workspace
+                </Button>
+              )}
             </div>
             <Button
               variant="ghost"
