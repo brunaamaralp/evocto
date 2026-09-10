@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
@@ -15,7 +14,6 @@ import {
 import { toast } from 'sonner';
 import { useT } from '@/components/i18n/I18nProvider';
 import TeamMemberManagement from '@/components/team/TeamMemberManagement';
-import InvitesPanel from '@/components/team/InvitesPanel';
 import { Agency } from '@/api/entities';
 
 export default function AgencyManagementPage() {
@@ -210,13 +208,7 @@ export default function AgencyManagementPage() {
 
           {/* Aba Equipe */}
           <TabsContent value="team" className="space-y-6">
-            {/* Gerenciamento de Membros */}
-            <TeamMemberManagement />
-            
-            <Separator />
-            
-            {/* Painel de Convites */}
-            <InvitesPanel />
+            <TeamMemberManagement showTitle={false} />
           </TabsContent>
 
           {/* Aba Visual/Branding */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,89 +16,107 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Shield, User, Eye, 
-  Mail, Send, Info, AlertCircle, 
-  CheckCircle, Clock
+import {
+  AlertCircle,
+  Check,
+  Copy,
+  KeyRound,
+  Mail,
+  RefreshCw,
+  Send,
+  UserPlus,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
-const roleDetails = {
-  admin: {
-    icon: Shield,
-    title: 'Administrador',
-    description: 'Acesso completo à agência, pode gerenciar equipe e configurações',
-    permissions: [
-      'Gerenciar toda a equipe',
-      'Configurar políticas da agência',
-      'Acessar todos os projetos',
-      'Convidar novos membros',
-      'Gerenciar clientes'
-    ],
-    color: 'bg-blue-100 text-blue-800 border-blue-200'
-  },
-  team: {
-    icon: User,
-    title: 'Membro da Equipe',
-    description: 'Membro da equipe com acesso a projetos e execução',
-    permissions: [
-      'Acessar projetos atribuídos',
-      'Executar ciclos e planos',
-      'Criar e gerenciar aprendizados',
-      'Colaborar em briefings',
-      'Visualizar relatórios'
-    ],
-    color: 'bg-gray-100 text-gray-800 border-gray-200'
-  },
-  client: {
-    icon: Eye,
-    title: 'Cliente',
-    description: 'Acesso limitado ao portal do cliente',
-    permissions: [
-      'Visualizar seus projetos',
-      'Aprovar planos e briefings',
-      'Acessar relatórios próprios',
-      'Comunicar com a equipe',
-      'Portal de aprovação'
-    ],
-    color: 'bg-gray-100 text-gray-800 border-gray-200'
-  }
+const ROLES = [
+  { value: 'admin', label: 'Administrador', hint: 'Gerencia equipe e configurações' },
+  { value: 'team', label: 'Membro', hint: 'Executa projetos e tarefas' },
+  { value: 'client', label: 'Cliente', hint: 'Acesso ao portal do cliente' },
+];
+
+const EMPTY_FORM = {
+  method: 'password',
+  email: '',
+  name: '',
+  role: 'team',
+  password: '',
 };
 
+function generatePassword(length = 12) {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnopqrstuvwxyz';
+  const digits = '23456789';
+  const symbols = '!@#$%&*';
+  const all = upper + lower + digits + symbols;
+  const pick = (set) => set[Math.floor(Math.random() * set.length)];
+  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+  for (let i = chars.length; i < length; i += 1) chars.push(pick(all));
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join('');
+}
+
 export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    role: ''
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [credentials, setCredentials] = useState(null);
+  const [copied, setCopied] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setForm({ ...EMPTY_FORM, password: generatePassword() });
+    setErrors({});
+    setCredentials(null);
+    setCopied('');
+    setLoading(false);
+  }, [isOpen]);
+
+  const setField = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }));
+  };
+
+  const validate = () => {
+    const next = {};
+    if (!form.email.trim()) next.email = 'E-mail obrigatório';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'E-mail inválido';
+    if (!form.role) next.role = 'Selecione a função';
+    if (form.method === 'password') {
+      if (!form.password || form.password.length < 8) next.password = 'Mínimo de 8 caracteres';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validação
-    const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = 'E-mail é obrigatório';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Formato de e-mail inválido';
-    }
-    
-    if (!formData.role) {
-      newErrors.role = 'Função é obrigatória';
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
+    if (!validate()) return;
+
     setLoading(true);
     try {
-      await onInvite(formData);
-      setFormData({ email: '', role: '' });
-      setErrors({});
+      const payload = {
+        method: form.method,
+        email: form.email.trim(),
+        role: form.role,
+        ...(form.method === 'password'
+          ? { name: form.name.trim(), password: form.password }
+          : {}),
+      };
+      const result = await onInvite(payload);
+      if (result?.success === false) return;
+      if (result?.temporaryPassword) {
+        setCredentials({
+          email: result.email || form.email.trim(),
+          password: result.temporaryPassword,
+          loginUrl: result.loginUrl || `${window.location.origin}/login`,
+          name: result.name || form.name.trim(),
+        });
+        return;
+      }
+      setForm(EMPTY_FORM);
     } catch (error) {
       console.error('Error inviting member:', error);
     } finally {
@@ -106,180 +124,242 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
     }
   };
 
-  const selectedRoleDetails = formData.role ? roleDetails[formData.role] : null;
+  const copyText = async (key, value) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(key);
+      toast.success('Copiado');
+      setTimeout(() => setCopied(''), 1500);
+    } catch {
+      toast.error('Não foi possível copiar');
+    }
+  };
+
+  const copyAll = () => {
+    if (!credentials) return;
+    const text = [
+      credentials.name ? `Nome: ${credentials.name}` : null,
+      `E-mail: ${credentials.email}`,
+      `Senha: ${credentials.password}`,
+      `Login: ${credentials.loginUrl}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+    copyText('all', text);
+  };
+
+  const handleClose = () => {
+    setCredentials(null);
+    onClose();
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Mail className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-bold">Convidar Novo Membro</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
+        {credentials ? (
+          <>
+            <DialogHeader className="px-5 pt-5 pb-3 space-y-1">
+              <DialogTitle className="text-lg">Membro criado</DialogTitle>
               <DialogDescription>
-                Envie um convite por e-mail para adicionar um novo membro à sua equipe
+                Compartilhe estes dados com a pessoa. A senha só aparece agora.
               </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Campo de E-mail */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-900">
-              E-mail do Convidado
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="exemplo@email.com"
-              value={formData.email}
-              onChange={(e) => {
-                setFormData({ ...formData, email: e.target.value });
-                if (errors.email) setErrors({ ...errors, email: '' });
-              }}
-              className={`focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-300' : ''}`}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Seleção de Função */}
-          <div className="space-y-2">
-            <Label htmlFor="role" className="text-sm font-medium text-gray-900">
-              Função na Equipe
-            </Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => {
-                setFormData({ ...formData, role: value });
-                if (errors.role) setErrors({ ...errors, role: '' });
-              }}
-            >
-              <SelectTrigger className={`focus:ring-2 focus:ring-blue-500 ${errors.role ? 'border-red-300' : ''}`}>
-                <SelectValue placeholder="Selecione uma função" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(roleDetails).map(([role, details]) => {
-                  const Icon = details.icon;
-                  return (
-                    <SelectItem key={role} value={role} className="py-3">
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-4 h-4 text-gray-600" />
-                        <div>
-                          <p className="font-medium">{details.title}</p>
-                          <p className="text-xs text-gray-500">{details.description}</p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {errors.role && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {errors.role}
-              </p>
-            )}
-          </div>
-
-          {/* Detalhes da Função Selecionada */}
-          {selectedRoleDetails && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-            >
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border">
-                  <selectedRoleDetails.icon className="w-4 h-4 text-gray-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">{selectedRoleDetails.title}</h4>
-                    <Badge className={selectedRoleDetails.color}>
-                      {formData.role}
-                    </Badge>
+            </DialogHeader>
+            <div className="px-5 pb-5 space-y-3">
+              {[
+                { key: 'email', label: 'E-mail', value: credentials.email },
+                { key: 'password', label: 'Senha', value: credentials.password },
+                { key: 'loginUrl', label: 'Link de login', value: credentials.loginUrl },
+              ].map((row) => (
+                <div key={row.key} className="rounded-xl border border-[#E8E5F5] bg-[#F8F7FC] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[11px] uppercase tracking-wide text-[#7A7595]">{row.label}</p>
+                      <p className="text-sm font-medium text-[#18162A] truncate font-mono">{row.value}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 h-8 w-8 p-0"
+                      onClick={() => copyText(row.key, row.value)}
+                      aria-label={`Copiar ${row.label}`}
+                    >
+                      {copied === row.key ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    </Button>
                   </div>
-                  <p className="text-sm text-gray-600">{selectedRoleDetails.description}</p>
                 </div>
-              </div>
-              
-              <Separator className="my-3" />
-              
-              <div>
-                <h5 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
-                  Permissões Incluídas:
-                </h5>
-                <ul className="space-y-1">
-                  {selectedRoleDetails.permissions.map((permission, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
-                      {permission}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Informações sobre o Convite */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-blue-900">Como funciona o convite:</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li className="flex items-center gap-2">
-                    <Clock className="w-3 h-3" />
-                    Um e-mail será enviado com um link seguro de convite
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Mail className="w-3 h-3" />
-                    O convite expira em 7 dias para segurança
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-3 h-3" />
-                    Você pode reenviar ou revogar convites a qualquer momento
-                  </li>
-                </ul>
+              ))}
+              <div className="flex gap-2 pt-1">
+                <Button type="button" variant="outline" className="flex-1" onClick={copyAll}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar tudo
+                </Button>
+                <Button type="button" className="flex-1 bg-[#6C47D8] hover:bg-[#5A3BC0]" onClick={handleClose}>
+                  Concluir
+                </Button>
               </div>
             </div>
-          </div>
+          </>
+        ) : (
+          <>
+            <DialogHeader className="px-5 pt-5 pb-3 space-y-1">
+              <DialogTitle className="text-lg flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-[#6C47D8]" />
+                Adicionar membro
+              </DialogTitle>
+              <DialogDescription>
+                Crie o acesso agora ou envie um convite por e-mail.
+              </DialogDescription>
+            </DialogHeader>
 
-          {/* Botões */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading || !formData.email || !formData.role}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar Convite
-                </>
+            <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
+              <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#F5F2FC] p-1">
+                <button
+                  type="button"
+                  onClick={() => setField('method', 'password')}
+                  className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    form.method === 'password'
+                      ? 'bg-white text-[#18162A] shadow-sm'
+                      : 'text-[#7A7595] hover:text-[#18162A]'
+                  }`}
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  Criar senha
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setField('method', 'email')}
+                  className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    form.method === 'email'
+                      ? 'bg-white text-[#18162A] shadow-sm'
+                      : 'text-[#7A7595] hover:text-[#18162A]'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Enviar e-mail
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="invite-email">E-mail</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  autoComplete="off"
+                  placeholder="pessoa@empresa.com"
+                  value={form.email}
+                  onChange={(e) => setField('email', e.target.value)}
+                  className={errors.email ? 'border-red-300' : ''}
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+
+              {form.method === 'password' && (
+                <div className="space-y-2">
+                  <Label htmlFor="invite-name">Nome (opcional)</Label>
+                  <Input
+                    id="invite-name"
+                    placeholder="Nome para exibir no app"
+                    value={form.name}
+                    onChange={(e) => setField('name', e.target.value)}
+                  />
+                </div>
               )}
-            </Button>
-          </div>
-        </form>
+
+              <div className="space-y-2">
+                <Label>Função</Label>
+                <Select value={form.role} onValueChange={(value) => setField('role', value)}>
+                  <SelectTrigger className={errors.role ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        <div className="flex flex-col items-start py-0.5">
+                          <span className="font-medium">{role.label}</span>
+                          <span className="text-xs text-[#7A7595]">{role.hint}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.role && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.role}
+                  </p>
+                )}
+              </div>
+
+              {form.method === 'password' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="invite-password">Senha de acesso</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="invite-password"
+                      value={form.password}
+                      onChange={(e) => setField('password', e.target.value)}
+                      className={`font-mono ${errors.password ? 'border-red-300' : ''}`}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0"
+                      onClick={() => setField('password', generatePassword())}
+                      aria-label="Gerar nova senha"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {errors.password ? (
+                    <p className="text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {errors.password}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[#7A7595]">
+                      Você copia e envia no WhatsApp ou outro canal. Sem e-mail automático.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-[#7A7595] rounded-xl bg-[#F8F7FC] border border-[#E8E5F5] px-3 py-2">
+                  A pessoa recebe um link por e-mail (válido por 7 dias) para entrar na equipe.
+                </p>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <Button type="button" variant="outline" className="flex-1" onClick={handleClose} disabled={loading}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                >
+                  {loading ? (
+                    'Salvando...'
+                  ) : form.method === 'password' ? (
+                    <>
+                      <KeyRound className="w-4 h-4 mr-2" />
+                      Criar acesso
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Enviar convite
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -20,7 +20,11 @@ import InviteMemberModal from './InviteMemberModal';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function TeamMemberManagement() {
+export default function TeamMemberManagement({
+  showTitle = true,
+  showInviteButton = true,
+  onInviteClick,
+} = {}) {
   const { user: currentUser } = useSession();
   const [members, setMembers] = useState([]);
   const [invites, setInvites] = useState([]);
@@ -28,6 +32,11 @@ export default function TeamMemberManagement() {
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [activeTab, setActiveTab] = useState('members');
+
+  const openInvite = () => {
+    if (onInviteClick) onInviteClick();
+    else setShowInviteModal(true);
+  };
 
   const loadMembers = useCallback(async () => {
     try {
@@ -72,30 +81,39 @@ export default function TeamMemberManagement() {
     try {
       const { data } = await sendInvite(inviteData);
       if (data.success) {
+        if (data.temporaryPassword) {
+          toast.success(data.message || 'Membro criado com senha para compartilhar.');
+          await loadData();
+          return data;
+        }
+
         toast.success(data.message);
         setShowInviteModal(false);
-        await loadInvites(); // Recarregar convites
-      } else {
-        // Tratar diferentes tipos de erro com mensagens específicas
-        const errorMessages = {
-          already_member: 'Este e-mail já é membro da equipe',
-          email_in_other_agency: 'Este e-mail já está em uso em outra agência',
-          invite_already_sent: 'Já existe um convite pendente para este e-mail',
-          invalid_email: 'Formato de e-mail inválido',
-          invalid_role: 'Função selecionada é inválida'
-        };
-        
-        const message = errorMessages[data.error] || data.message || 'Erro ao enviar convite';
-        toast.error(message);
-        
-        // Se há sugestão, mostrar como info adicional
-        if (data.suggestion) {
-          setTimeout(() => toast.info(data.suggestion), 2000);
-        }
+        await loadData();
+        return data;
       }
+
+      const errorMessages = {
+        already_member: 'Este e-mail já é membro da equipe',
+        email_in_other_agency: 'Este e-mail já está em uso em outra agência',
+        invite_already_sent: 'Já existe um convite pendente para este e-mail',
+        invalid_email: 'Formato de e-mail inválido',
+        invalid_role: 'Função selecionada é inválida',
+        weak_password: 'A senha deve ter pelo menos 8 caracteres',
+        email_in_use: 'Já existe uma conta com este e-mail',
+      };
+
+      const message = errorMessages[data.error] || data.message || 'Erro ao adicionar membro';
+      toast.error(message);
+
+      if (data.suggestion) {
+        setTimeout(() => toast.info(data.suggestion), 2000);
+      }
+      return data;
     } catch (error) {
       console.error('Error sending invite:', error);
-      toast.error('Erro ao enviar convite. Tente novamente.');
+      toast.error('Erro ao adicionar membro. Tente novamente.');
+      return { success: false, message: error?.message };
     }
   };
 
@@ -292,87 +310,60 @@ export default function TeamMemberManagement() {
   }
 
   const canInvite = ['owner', 'admin'].includes(currentUser.role);
+  const showToolbar = showTitle || (showInviteButton && canInvite);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Users className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gerenciar Equipe</h1>
-            <p className="text-gray-600">Convide e gerencie membros da sua agência</p>
-          </div>
+      {showToolbar && (
+        <div className="flex items-center justify-between gap-3">
+          {showTitle ? (
+            <div>
+              <h2 className="text-lg font-semibold text-[#18162A]">Membros</h2>
+              <p className="text-sm text-[#7A7595]">Ativos e convites pendentes</p>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {showInviteButton && canInvite && (
+            <Button
+              onClick={openInvite}
+              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar membro
+            </Button>
+          )}
         </div>
-        
-        {canInvite && (
-          <Button 
-            onClick={() => setShowInviteModal(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Convidar Membro
-          </Button>
-        )}
-      </div>
+      )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-[#E8E5F5] shadow-none">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total de Membros</p>
-                <p className="text-2xl font-bold text-gray-900">{members.length}</p>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Users className="w-4 h-4 text-white" />
-              </div>
-            </div>
+            <p className="text-xs font-medium text-[#7A7595]">Membros</p>
+            <p className="text-2xl font-bold text-[#18162A] mt-1">{members.length}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#E8E5F5] shadow-none">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Convites Enviados</p>
-                <p className="text-2xl font-bold text-gray-900">{inviteStats.sent || 0}</p>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center">
-                <Send className="w-4 h-4 text-white" />
-              </div>
-            </div>
+            <p className="text-xs font-medium text-[#7A7595]">Convites enviados</p>
+            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.sent || 0}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#E8E5F5] shadow-none">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Convites Aceitos</p>
-                <p className="text-2xl font-bold text-gray-900">{inviteStats.accepted || 0}</p>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-                <UserCheck className="w-4 h-4 text-white" />
-              </div>
-            </div>
+            <p className="text-xs font-medium text-[#7A7595]">Aceitos</p>
+            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.accepted || 0}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#E8E5F5] shadow-none">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Convites Expirados</p>
-                <p className="text-2xl font-bold text-gray-900">{inviteStats.expired || 0}</p>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
-                <UserX className="w-4 h-4 text-white" />
-              </div>
-            </div>
+            <p className="text-xs font-medium text-[#7A7595]">Expirados</p>
+            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.expired || 0}</p>
           </CardContent>
         </Card>
       </div>
@@ -380,10 +371,10 @@ export default function TeamMemberManagement() {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="members" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-            Membros Ativos ({members.length})
+          <TabsTrigger value="members" className="data-[state=active]:bg-[#6C47D8] data-[state=active]:text-white">
+            Membros ({members.length})
           </TabsTrigger>
-          <TabsTrigger value="invites" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="invites" className="data-[state=active]:bg-[#6C47D8] data-[state=active]:text-white">
             Convites ({invites.length})
           </TabsTrigger>
         </TabsList>
@@ -400,9 +391,9 @@ export default function TeamMemberManagement() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum membro ainda</h3>
               <p className="text-gray-600 mb-4">Comece convidando seu primeiro membro da equipe.</p>
               {canInvite && (
-                <Button onClick={() => setShowInviteModal(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={openInvite} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
                   <Plus className="w-4 h-4 mr-2" />
-                  Convidar Primeiro Membro
+                  Adicionar membro
                 </Button>
               )}
             </div>
@@ -421,9 +412,9 @@ export default function TeamMemberManagement() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum convite enviado</h3>
               <p className="text-gray-600 mb-4">Convide membros para sua equipe.</p>
               {canInvite && (
-                <Button onClick={() => setShowInviteModal(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={openInvite} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
                   <Plus className="w-4 h-4 mr-2" />
-                  Enviar Primeiro Convite
+                  Adicionar membro
                 </Button>
               )}
             </div>
@@ -431,12 +422,13 @@ export default function TeamMemberManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Invite Modal */}
-      <InviteMemberModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        onInvite={handleSendInvite}
-      />
+      {!onInviteClick && (
+        <InviteMemberModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          onInvite={handleSendInvite}
+        />
+      )}
     </div>
   );
 }

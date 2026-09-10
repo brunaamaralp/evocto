@@ -18,16 +18,29 @@ export default function InviteAcceptPage() {
   }, []);
 
   const handleAccept = async () => {
-    if (!token) {
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = token || params.get('token') || '';
+    const membershipId = params.get('membershipId') || '';
+    const userId = params.get('userId') || '';
+    const secret = params.get('secret') || '';
+    const teamId = params.get('teamId') || '';
+
+    if (!inviteToken && !(membershipId && secret && teamId)) {
       setStatus('error');
-      setMessage('Token inválido.');
+      setMessage('Link de convite inválido.');
       return;
     }
 
     setStatus('processing');
     setMessage('');
     try {
-      const { data } = await acceptInvite({ token });
+      const { data } = await acceptInvite({
+        token: inviteToken,
+        membershipId,
+        userId,
+        secret,
+        teamId,
+      });
       if (data?.success) {
         setAgencyName(data.agencyName || '');
         setStatus('success');

@@ -175,8 +175,11 @@ export {
   syncClientFromPublicBriefing,
 } from '../functions/publicBriefing.js';
 
-export const sendInvite = notMigrated('sendInvite');
-export const acceptInvite = notMigrated('acceptInvite');
+export {
+  sendInvite,
+  acceptInvite,
+  manageInvites,
+} from '../functions/teamInvites.js';
 export const analyzeSentiment = notMigrated('analyzeSentiment');
 export const generateSmartRecommendations = notMigrated('generateSmartRecommendations');
 export const executeAgent = notMigrated('executeAgent');
@@ -191,7 +194,6 @@ export const generateClientReport = notMigrated('generateClientReport');
 export const testClientApprovalFlow = notMigrated('testClientApprovalFlow');
 export const generateClientReportPDF = notMigrated('generateClientReportPDF');
 export const optimizeClientQueries = notMigrated('optimizeClientQueries');
-export const manageInvites = notMigrated('manageInvites');
 export const fixDashboardStats = notMigrated('fixDashboardStats');
 export const scheduleAgents = notMigrated('scheduleAgents');
 export const manageTeamMembers = notMigrated('manageTeamMembers');
