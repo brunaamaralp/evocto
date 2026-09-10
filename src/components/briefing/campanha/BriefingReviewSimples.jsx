@@ -116,9 +116,13 @@ export default function BriefingReviewSimples({
       });
 
       toast.success(
-        `Campanha criada${
+        `${
+          launchResult.cycleReused
+            ? 'Campanha adicionada ao ciclo do mês'
+            : 'Campanha criada'
+        }${
           launchResult.tasksCreated
-            ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
+            ? ` · ${launchResult.tasksCreated} tarefa(s)`
             : ''
         }`
       );

@@ -159,9 +159,13 @@ export default function BriefingCampanhaPage() {
               {empresa?.nome || client?.name}
             </p>
             <p className="text-sm text-slate-500">
-              {launchResult?.cyclePlan
-                ? `${launchResult.tasksCreated || 0} tarefa(s) gerada(s) no ciclo do mês.`
-                : 'Campanha criada com ciclo operacional.'}
+              {launchResult?.cycleReused
+                ? `Campanha adicionada ao ciclo ${launchResult.cycleTitle || 'do mês'}`
+                : `Ciclo ${launchResult?.cycleTitle || 'do mês'} criado`}
+              {typeof launchResult?.tasksCreated === 'number'
+                ? ` · ${launchResult.tasksCreated} tarefa(s)`
+                : ''}
+              .
             </p>
             <div className="flex flex-wrap gap-2 justify-center pt-2">
               {campaignHref && (

@@ -110,13 +110,17 @@ export default function BriefingFormSimples({
         actorUserId: user?.id || user?.$id,
       });
 
-      toast.success(
-        `Campanha criada${
-          launchResult.tasksCreated
-            ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
-            : ''
-        }`
-      );
+        toast.success(
+          `${
+            launchResult.cycleReused
+              ? 'Campanha adicionada ao ciclo do mês'
+              : 'Campanha criada'
+          }${
+            launchResult.tasksCreated
+              ? ` · ${launchResult.tasksCreated} tarefa(s)`
+              : ''
+          }`
+        );
       onSuccess?.(launchResult);
     } catch (err) {
       console.error(err);
@@ -306,7 +310,7 @@ export default function BriefingFormSimples({
         )}
       </div>
       <p className="text-xs text-[#7A7595]">
-        Salva o briefing, abre o ciclo do mês e gera as tarefas do pipeline.
+        Salva o briefing no ciclo do mês do cliente (reutiliza se já existir) e gera as tarefas desta campanha.
       </p>
 
       <EditarConfigCampanhaModal

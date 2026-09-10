@@ -1,5 +1,8 @@
 import { Brief, Service } from '@/api/entities';
-import { createMonthCycle } from '@/api/functions/createMonthCycle';
+import {
+  ensureClientMonthCycle,
+  generateCampaignTasksOnCycle,
+} from '@/lib/clientMonthCycle';
 import {
   inferTipoCampanhaFromText,
   normalizeCicloComercialOps,
@@ -19,11 +22,10 @@ function briefHasCycleLink(brief, cyclePlanId) {
 }
 
 /**
- * Após salvar o briefing mensal: cria/reusa serviço + CyclePlan + tarefas,
- * e vincula o Brief ao ciclo (caminho dourado Nova campanha).
- *
- * O vínculo brief ↔ ciclo é obrigatório: falha se o ciclo não for criado
- * ou se o Brief não gravar ciclo_id / cycleId / cyclePlanId.
+ * Lança campanha no ciclo do cliente/mês.
+ * - Reutiliza o ciclo do mês se já existir
+ * - Só cria um ciclo novo se o mês ainda não tiver
+ * - Gera tarefas da campanha dentro desse ciclo
  */
 export async function launchCampanhaFromBrief({
   briefing,
@@ -67,41 +69,59 @@ export async function launchCampanhaFromBrief({
     resolvedServiceId = active?.id || null;
   }
 
-  const serviceName = resolvedServiceId
-    ? undefined
-    : `${empresaNome || campaignName} — ${campaignName}`;
-
-  const cycleResult = await createMonthCycle({
+  const ensured = await ensureClientMonthCycle({
     agencyId,
     clientId,
     startDate,
     serviceId: resolvedServiceId || undefined,
-    serviceName,
-    title: campaignName,
-    generateTasks,
     ownerId: userId,
-    pipeline: 'narrativa',
-    tipo_campanha,
-    ciclo_comercial,
-    linha_focal,
-    briefId: briefing.id,
+    empresaNome,
   });
 
-  const cyclePlan = cycleResult?.cyclePlan || null;
-  const cyclePlanId = cyclePlan?.id || null;
-  const createdServiceId = cycleResult?.service?.id || resolvedServiceId || null;
+  let cyclePlan = ensured.cyclePlan;
+  let service = ensured.service;
 
-  if (!cyclePlanId) {
-    throw new Error('Ciclo operacional não foi criado para a campanha');
+  if (!cyclePlan?.id) {
+    throw new Error('Ciclo operacional do mês não disponível');
+  }
+
+  if (!service?.id && cyclePlan.serviceId) {
+    service = await Service.get(cyclePlan.serviceId).catch(() => null);
+  }
+  if (!service?.id && resolvedServiceId) {
+    service = await Service.get(resolvedServiceId).catch(() => null);
+  }
+  if (!service?.id) {
+    throw new Error('Serviço do ciclo do mês não encontrado');
+  }
+
+  let tasks = [];
+  let tasksCreated = 0;
+
+  if (generateTasks) {
+    const generated = await generateCampaignTasksOnCycle({
+      agencyId,
+      cyclePlan,
+      service,
+      briefing,
+      startDate,
+      ownerId: userId,
+      tipo_campanha,
+      ciclo_comercial,
+      linha_focal,
+    });
+    tasks = generated.tasks || [];
+    tasksCreated = generated.tasksCreated || 0;
+    cyclePlan = generated.cyclePlan || cyclePlan;
   }
 
   let updatedBrief;
   try {
     updatedBrief = await Brief.update(briefing.id, {
-      ciclo_id: cyclePlanId,
-      cycleId: cyclePlanId,
-      cyclePlanId,
-      serviceId: createdServiceId,
+      ciclo_id: cyclePlan.id,
+      cycleId: cyclePlan.id,
+      cyclePlanId: cyclePlan.id,
+      serviceId: service.id,
       status_campanha: generateTasks ? 'em_execucao' : briefing.status_campanha || 'rápido',
       editado_em: new Date().toISOString(),
     });
@@ -109,16 +129,15 @@ export async function launchCampanhaFromBrief({
     console.error('[launchCampanhaFromBrief] falha ao vincular brief ao ciclo:', err);
     throw new Error(
       err?.message ||
-        'Ciclo criado, mas não foi possível vincular a campanha. Tente novamente.'
+        'Ciclo disponível, mas não foi possível vincular a campanha. Tente novamente.'
     );
   }
 
-  if (!briefHasCycleLink(updatedBrief, cyclePlanId)) {
-    // Leitura imediata: payload às vezes só confirma no get
+  if (!briefHasCycleLink(updatedBrief, cyclePlan.id)) {
     const fresh = await Brief.get(briefing.id).catch(() => null);
-    if (!briefHasCycleLink(fresh, cyclePlanId)) {
+    if (!briefHasCycleLink(fresh, cyclePlan.id)) {
       throw new Error(
-        'Ciclo criado, mas o vínculo com a campanha não foi persistido. Tente novamente.'
+        'O vínculo da campanha com o ciclo do mês não foi persistido. Tente novamente.'
       );
     }
     updatedBrief = fresh;
@@ -128,13 +147,16 @@ export async function launchCampanhaFromBrief({
     success: true,
     briefing: updatedBrief || briefing,
     cyclePlan,
-    service: cycleResult?.service || null,
-    tasksCreated: cycleResult?.tasksCreated || 0,
-    tasks: cycleResult?.tasks || [],
+    service,
+    tasksCreated,
+    tasks,
     tipo_campanha,
     ciclo_comercial,
     linha_focal,
     startDate,
+    cycleReused: !ensured.created,
+    cycleTitle: ensured.title || cyclePlan.title || cyclePlan.cyclePeriod,
+    campaignName,
   };
 }
 

@@ -143,8 +143,6 @@ export function deriveActiveCampaigns({
       const cycleLabel =
         cycle?.title ||
         cycle?.cyclePeriod ||
-        brief.nome_campanha ||
-        brief.title ||
         null;
 
       return {
