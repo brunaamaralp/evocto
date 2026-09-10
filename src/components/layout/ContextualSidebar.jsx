@@ -82,6 +82,7 @@ export default function ContextualSidebar({
           href: `/client-detail?clientId=${clientId}#campanhas`,
           isActive:
             currentPage === 'briefing-campanha' ||
+            currentPage === 'client-campaign' ||
             (typeof window !== 'undefined' && window.location.hash === '#campanhas'),
         },
         {

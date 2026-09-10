@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Menu } from 'lucide-react';
+import { User, LogOut, Building2, Menu, ChevronRight, Megaphone } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -9,15 +9,21 @@ import GlobalSearch, { GlobalSearchTrigger } from '@/components/search/GlobalSea
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 
 export default function ModernHeader({
   context,
   contextClient,
+  contextCampaign,
   onMenuClick,
 }) {
   const { user, agencyId, logout } = useSession();
   const isClientContext = context?.type === 'client' && Boolean(context?.clientId);
+  const showCampaignCrumb =
+    isClientContext &&
+    Boolean(context?.briefingId) &&
+    Boolean(contextCampaign?.name);
 
   useEffect(() => {
     const uid = user?.id || user?.data?.id;
@@ -70,19 +76,36 @@ export default function ModernHeader({
             </Button>
 
             {isClientContext ? (
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <span
-                  className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${CLIENT_CONTEXT.chip}`}
+                  className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shrink-0 ${CLIENT_CONTEXT.chip}`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
                   Cliente
                 </span>
                 <Link
                   to={createPageUrl(`client-detail?clientId=${context.clientId}`)}
-                  className="text-sm font-semibold text-teal-950 truncate hover:underline"
+                  className="text-sm font-semibold text-teal-950 truncate hover:underline max-w-[140px] sm:max-w-[200px]"
                 >
                   {contextClient?.name || 'Perfil do cliente'}
                 </Link>
+                {showCampaignCrumb && (
+                  <>
+                    <ChevronRight className="w-3.5 h-3.5 text-teal-700/60 shrink-0" />
+                    <Megaphone className="w-3.5 h-3.5 text-teal-700/70 shrink-0 hidden sm:block" />
+                    <Link
+                      to={createPageUrl(
+                        buildClientCampaignHref({
+                          clientId: context.clientId,
+                          briefingId: context.briefingId,
+                        })
+                      )}
+                      className="text-sm font-semibold text-teal-900 truncate hover:underline max-w-[160px] sm:max-w-[240px]"
+                    >
+                      {contextCampaign.name}
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <div className="hidden md:flex items-center flex-1 max-w-md">

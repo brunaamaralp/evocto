@@ -15,6 +15,7 @@ import {
   getTaskBriefIds,
   getTaskCycleIds,
 } from '@/lib/taskScope';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 
 const DONE_TASK_STATUSES = new Set(['completed', 'done']);
 const CANCELLED_TASK_STATUSES = new Set(['cancelled', 'canceled']);
@@ -142,6 +143,12 @@ export function deriveActiveCampaigns({
               ? 'service'
               : 'none',
         href: createPageUrl(
+          buildClientCampaignHref({
+            clientId,
+            briefingId: brief.id,
+          })
+        ),
+        briefingHref: createPageUrl(
           `client-briefing?clientId=${clientId}&briefingId=${brief.id}`
         ),
         tasksHref: createPageUrl(

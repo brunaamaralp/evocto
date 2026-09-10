@@ -1,6 +1,8 @@
 import { Brief, Profile } from '@/api/entities';
 import { NotificationService } from '@/components/notifications/NotificationService';
 import { configFromEmpresa, normalizeFormato } from '@/lib/empresaConfig';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { createPageUrl } from '@/utils';
 
 export const EMPTY_CAMPANHA_FORM = {
   nome_campanha: '',
@@ -166,7 +168,12 @@ export async function notifyNovoBriefing({
 
   const nome = briefing.nome_campanha || briefing.title || 'Campanha';
   const empresa = empresaNome || 'Cliente';
-  const href = `/client-briefing?clientId=${briefing.clientId}&briefingId=${briefing.id}`;
+  const href = createPageUrl(
+    buildClientCampaignHref({
+      clientId: briefing.clientId,
+      briefingId: briefing.id,
+    })
+  );
 
   const created = [];
   for (const profile of recipients) {
@@ -178,7 +185,7 @@ export async function notifyNovoBriefing({
         agencyId,
         type: 'novo_briefing',
         subject: 'briefing',
-        title: `Novo briefing: ${nome} (${empresa})`,
+        title: `Nova campanha: ${nome} (${empresa})`,
         context: 'Campanha mensal criada',
         href,
         severity: 'info',

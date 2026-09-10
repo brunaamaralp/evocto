@@ -59,7 +59,12 @@ function CampaignRow({ campaign }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <Megaphone className="w-4 h-4 text-[#6C47D8] shrink-0" />
-            <p className="font-semibold text-[#18162A] truncate">{campaign.name}</p>
+            <Link
+              to={campaign.href}
+              className="font-semibold text-[#18162A] truncate hover:text-[#6C47D8]"
+            >
+              {campaign.name}
+            </Link>
           </div>
           <p className="text-xs text-[#7A7595]">{progressScopeLabel(campaign.progressScope)}</p>
         </div>
@@ -93,14 +98,17 @@ function CampaignRow({ campaign }) {
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button asChild size="sm" variant="outline" className="h-8">
-          <Link to={campaign.tasksHref}>
-            Tarefas
+        <Button asChild size="sm" className="h-8">
+          <Link to={campaign.href}>
+            Abrir campanha
             <ArrowRight className="w-3.5 h-3.5 ml-1" />
           </Link>
         </Button>
+        <Button asChild size="sm" variant="outline" className="h-8">
+          <Link to={campaign.tasksHref}>Tarefas</Link>
+        </Button>
         <Button asChild size="sm" variant="ghost" className="h-8">
-          <Link to={campaign.href}>
+          <Link to={campaign.briefingHref || campaign.href}>
             <FileText className="w-3.5 h-3.5 mr-1" />
             Briefing
           </Link>

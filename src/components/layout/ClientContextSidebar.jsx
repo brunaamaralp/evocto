@@ -90,6 +90,7 @@ export default function ClientContextSidebar({
       href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
       active:
         location.pathname.includes('briefing-campanha') ||
+        location.pathname.includes('client-campaign') ||
         location.hash === '#campanhas',
     },
     {

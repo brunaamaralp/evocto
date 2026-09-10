@@ -17,6 +17,7 @@ import { Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
 import { buildClientTasksHref } from '@/lib/taskScope';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import BriefingFormSimples from '@/components/briefing/campanha/BriefingFormSimples';
 import BriefingTextLivre from '@/components/briefing/campanha/BriefingTextLivre';
@@ -124,6 +125,14 @@ export default function BriefingCampanhaPage() {
   const savedBriefing = launchResult?.briefing;
   const serviceId = launchResult?.service?.id || savedBriefing?.serviceId;
   const cycleId = launchResult?.cyclePlan?.id || savedBriefing?.ciclo_id;
+  const campaignHref = savedBriefing?.id
+    ? createPageUrl(
+        buildClientCampaignHref({
+          clientId,
+          briefingId: savedBriefing.id,
+        })
+      )
+    : null;
   const tasksHref = createPageUrl(
     buildClientTasksHref({
       clientId,
@@ -155,9 +164,17 @@ export default function BriefingCampanhaPage() {
                 : 'Briefing salvo. O ciclo ainda precisa ser aberto.'}
             </p>
             <div className="flex flex-wrap gap-2 justify-center pt-2">
-              <Button onClick={backToClient}>
+              {campaignHref && (
+                <Button onClick={() => navigate(campaignHref)}>
+                  Abrir campanha
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              )}
+              <Button
+                variant={campaignHref ? 'outline' : 'default'}
+                onClick={backToClient}
+              >
                 Ver no cliente
-                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
               <Button variant="outline" onClick={() => navigate(tasksHref)}>
                 <CheckSquare className="w-4 h-4 mr-1" />

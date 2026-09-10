@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
 import ModernHeader from './ModernHeader';
 import ClientContextBanner from './ClientContextBanner';
-import { Client } from '@/api/entities';
+import { Brief, Client } from '@/api/entities';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
 /**
@@ -15,10 +15,13 @@ export default function ContextualLayout({ user, children }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [contextClient, setContextClient] = useState(null);
+  const [contextCampaign, setContextCampaign] = useState(null);
 
   const urlParams = new URLSearchParams(location.search);
   const clientId = urlParams.get('clientId');
   const serviceId = urlParams.get('serviceId');
+  const briefingId =
+    urlParams.get('briefingId') || urlParams.get('campaignId') || null;
 
   const getCurrentContext = () => {
     const pathname = location.pathname;
@@ -28,6 +31,7 @@ export default function ContextualLayout({ user, children }) {
         type: 'client',
         clientId,
         serviceId: serviceId || null,
+        briefingId,
       };
     }
 
@@ -36,28 +40,14 @@ export default function ContextualLayout({ user, children }) {
         type: 'service',
         serviceId,
         clientId: null,
-      };
-    }
-
-    if (pathname.includes('/client') && clientId) {
-      return {
-        type: 'client',
-        clientId,
-        serviceId: serviceId || null,
-      };
-    }
-
-    if (pathname.includes('/service') && serviceId) {
-      return {
-        type: 'service',
-        serviceId,
-        clientId: clientId || null,
+        briefingId: null,
       };
     }
 
     const clientContextPages = [
       'briefing-editor',
       'client-briefing',
+      'client-campaign',
       'client-services',
       'client-tasks',
       'client-documents',
@@ -68,6 +58,7 @@ export default function ContextualLayout({ user, children }) {
       'client-settings',
       'insights-editor',
       'scope-editor',
+      'briefing-campanha',
     ];
 
     const currentPage = pathname.split('/').pop() || pathname.substring(1);
@@ -77,6 +68,7 @@ export default function ContextualLayout({ user, children }) {
         type: 'client',
         clientId,
         serviceId: serviceId || null,
+        briefingId,
       };
     }
 
@@ -84,12 +76,15 @@ export default function ContextualLayout({ user, children }) {
       type: 'global',
       clientId: null,
       serviceId: null,
+      briefingId: null,
     };
   };
 
   const context = getCurrentContext();
   const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
   const isClientShell = context.type === 'client' && Boolean(context.clientId);
+  const isCampaignPage =
+    currentPage === 'client-campaign' && Boolean(context.briefingId);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,6 +103,29 @@ export default function ContextualLayout({ user, children }) {
       cancelled = true;
     };
   }, [isClientShell, context.clientId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isCampaignPage || !context.briefingId) {
+      setContextCampaign(null);
+      return undefined;
+    }
+    Brief.get(context.briefingId)
+      .then((data) => {
+        if (!cancelled) {
+          setContextCampaign({
+            id: data?.id,
+            name: data?.nome_campanha || data?.title || 'Campanha',
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setContextCampaign(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isCampaignPage, context.briefingId]);
 
   return (
     <div className={`evocto-shell ${isClientShell ? CLIENT_CONTEXT.shellBg : ''}`}>
@@ -139,6 +157,7 @@ export default function ContextualLayout({ user, children }) {
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           context={context}
           contextClient={contextClient}
+          contextCampaign={contextCampaign}
         />
 
         <main
