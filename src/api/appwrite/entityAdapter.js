@@ -27,7 +27,7 @@ function coerceValue(key, value) {
   if (value === undefined) return undefined;
   if (BOOLEAN_COLUMNS.has(key)) return Boolean(value);
   if (DATETIME_COLUMNS.has(key)) {
-    if (!value) return undefined;
+    if (value === null || value === '') return null;
     return typeof value === 'string' ? value : new Date(value).toISOString();
   }
   if (INTEGER_COLUMNS.has(key)) {
@@ -62,6 +62,7 @@ function splitPayload(tableId, data = {}) {
     if (known.has(key)) {
       const coerced = coerceValue(key, value);
       if (coerced !== undefined) row[key] = coerced;
+      else if (value === null) row[key] = null;
       else extra[key] = value;
     } else {
       extra[key] = value;

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { 
   Calendar,
   MoreVertical,
-  Eye,
   Target,
   Lightbulb,
   CheckCircle,
@@ -275,17 +274,6 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
 
   return (
     <div className="space-y-4">
-      {/* Instruções */}
-      <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-        <div className="flex items-center gap-2">
-          <Eye className="w-4 h-4 text-blue-600" />
-          <span>
-            <strong>Dica:</strong> Arraste as tarefas entre as colunas para alterar o status. 
-            Tarefas com bordas coloridas têm características especiais (KPI, Aprendizado, Aprovação).
-          </span>
-        </div>
-      </div>
-
       {/* Kanban Board - Mobile Optimized */}
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">

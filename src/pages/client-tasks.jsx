@@ -8,15 +8,11 @@ import { CyclePlan } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
   CheckSquare,
   ArrowLeft,
   Plus,
   Target,
-  AlertCircle,
-  Clock,
-  CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -25,62 +21,12 @@ import TaskManager from '@/components/tasks/TaskManager';
 import TaskForm from '@/components/tasks/TaskForm';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
-import { getCardPastel } from '@/lib/modulePastels';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import {
   buildClientTasksHref,
   filterTasksByScope,
 } from '@/lib/taskScope';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
-
-const TaskStats = React.memo(function TaskStats({ tasks }) {
-  const stats = {
-    total: tasks.length,
-    completed: tasks.filter((t) => t.status === 'completed').length,
-    inProgress: tasks.filter((t) => t.status === 'in_progress').length,
-    overdue: tasks.filter(
-      (t) =>
-        t.dueDate &&
-        new Date(t.dueDate) < new Date() &&
-        t.status !== 'completed'
-    ).length,
-  };
-
-  const statItems = [
-    { icon: Target, label: 'Total', value: stats.total, idx: 0 },
-    { icon: CheckCircle, label: 'Concluídas', value: stats.completed, idx: 2 },
-    { icon: Clock, label: 'Em Progresso', value: stats.inProgress, idx: 1 },
-    { icon: AlertCircle, label: 'Atrasadas', value: stats.overdue, idx: 4 },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {statItems.map(({ icon: Icon, label, value, idx }) => {
-        const pastel = getCardPastel(idx);
-        return (
-          <Card
-            key={label}
-            className={`rounded-2xl border-transparent shadow-none ${pastel.bg}`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${pastel.tag}`}
-                >
-                  <Icon className={`w-4 h-4 ${pastel.text}`} />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-[#18162A]">{value}</div>
-                  <div className="text-sm text-[#7A7595]">{label}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-});
 
 function readTasksUrlContext() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -119,7 +65,6 @@ export default function ClientTasksPage() {
   const [selectedServiceId, setSelectedServiceId] = useState(null);
   const [cycle, setCycle] = useState(null);
   const [campaign, setCampaign] = useState(null);
-  const [tasks, setTasks] = useState([]);
   const [scopeMeta, setScopeMeta] = useState({
     scope: 'none',
     sharedCycleFallback: false,
@@ -128,6 +73,7 @@ export default function ClientTasksPage() {
   const [error, setError] = useState(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
 
   const { generateTasksWithFeedback } = useTaskGeneration();
   const { handleError } = useErrorHandling();
@@ -155,7 +101,6 @@ export default function ClientTasksPage() {
         '-created_date'
       );
       const scoped = filterTasksByScope(tasksData, { cycleId, briefingId });
-      setTasks(scoped.tasks);
       setScopeMeta({
         scope: scoped.scope,
         sharedCycleFallback: scoped.sharedCycleFallback,
@@ -279,16 +224,17 @@ export default function ClientTasksPage() {
     if (selectedServiceId) {
       await loadTasksForService(selectedServiceId);
     }
+    // TaskManager mantém estado próprio — força reload da lista embutida
+    setListRefreshKey((k) => k + 1);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('task:refresh'));
+    }
   };
 
   const campaignName = campaign?.nome_campanha || campaign?.title || 'Campanha';
   const campaignHref = briefingId
     ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
     : overviewHref;
-
-  const completedCount = tasks.filter((t) => t.status === 'completed').length;
-  const progressPct =
-    tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   if (loading) {
     return <LoadingState message="Carregando tarefas..." />;
@@ -341,9 +287,6 @@ export default function ClientTasksPage() {
                     {campaignName}
                   </Link>
                   {showCycleLabel ? ` · ${cycleLabel}` : ''}
-                  <span className="mx-1.5">·</span>
-                  {tasks.length} tarefa{tasks.length === 1 ? '' : 's'}
-                  {tasks.length > 0 ? ` · ${progressPct}%` : ''}
                   {scopeMeta.sharedCycleFallback ? ' · ciclo compartilhado' : ''}
                 </p>
               </div>
@@ -355,7 +298,6 @@ export default function ClientTasksPage() {
               </Button>
             </div>
           </div>
-          {tasks.length > 0 && <Progress value={progressPct} className="h-1" />}
         </div>
       ) : (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -420,8 +362,6 @@ export default function ClientTasksPage() {
         </Card>
       )}
 
-      {!isCampaignScope && <TaskStats tasks={tasks} />}
-
       {selectedServiceId ? (
         <TaskManager
           clientId={clientId}
@@ -429,8 +369,9 @@ export default function ClientTasksPage() {
           cycleId={cycleId}
           briefingId={briefingId}
           userRole={user?.role || 'consultor'}
-          embedded={isCampaignScope}
-          hideCreate={isCampaignScope}
+          embedded
+          hideCreate
+          refreshKey={listRefreshKey}
         />
       ) : (
         <EmptyState

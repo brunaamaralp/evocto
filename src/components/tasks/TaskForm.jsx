@@ -521,6 +521,9 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
       }
 
       onSave(savedTask);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('task:refresh'));
+      }
       onClose();
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);

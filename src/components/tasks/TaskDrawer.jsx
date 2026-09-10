@@ -22,15 +22,25 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Loader2, Calendar, Paperclip, CheckSquare, Send, 
-  User as UserIcon, AlertCircle, MessageCircle, Clock,
-  Flag, Eye, AtSign, Check, Save,
-  Building2, MoreVertical, Edit, Trash2, Plus, Link2, History
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Loader2, Calendar, Paperclip, CheckSquare, Send,
+  AlertCircle, MessageCircle, Clock,
+  Flag, Eye, AtSign, Check, Download, Trash2, Plus, Link2, History,
+  MoreVertical, Copy, X, Upload
 } from "lucide-react";
-// import ReactQuill from "react-quill"; // Removido - não instalado
 import { toast } from "sonner";
 import TaskTimerButton from "@/components/tasks/TaskTimerButton";
 import TaskTimeSessionsPanel from "@/components/tasks/TaskTimeSessionsPanel";
@@ -41,58 +51,83 @@ import { appendAssignmentHistoryEntry } from "@/lib/taskActivityHistory";
 import TaskNotificationService from "@/components/notifications/TaskNotificationService";
 import { syncPipelineAfterTaskComplete } from "@/api/functions/transitionPipelinePhase";
 
-// Status mapping para o Kanban
+const UNASSIGNED = "unassigned";
+
 const STATUS_CONFIG = {
-  backlog: { label: 'Backlog', color: 'bg-gray-100 text-gray-800', kanbanColor: 'bg-gray-500' },
-  todo: { label: 'A Fazer', color: 'bg-blue-100 text-blue-800', kanbanColor: 'bg-blue-500' },
-  in_progress: { label: 'Em Progresso', color: 'bg-yellow-100 text-yellow-800', kanbanColor: 'bg-yellow-500' },
-  in_review: { label: 'Em Revisão', color: 'bg-purple-100 text-purple-800', kanbanColor: 'bg-purple-500' },
-  completed: { label: 'Concluído', color: 'bg-green-100 text-green-800', kanbanColor: 'bg-green-500' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800', kanbanColor: 'bg-red-500' },
-  blocked: { label: 'Bloqueado', color: 'bg-orange-100 text-orange-800', kanbanColor: 'bg-orange-500' }
+  backlog: { label: "Backlog", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-500" },
+  todo: { label: "A Fazer", color: "bg-blue-100 text-blue-800", kanbanColor: "bg-blue-500" },
+  in_progress: { label: "Em Progresso", color: "bg-yellow-100 text-yellow-800", kanbanColor: "bg-yellow-500" },
+  in_review: { label: "Em Revisão", color: "bg-purple-100 text-purple-800", kanbanColor: "bg-purple-500" },
+  completed: { label: "Concluído", color: "bg-green-100 text-green-800", kanbanColor: "bg-green-500" },
+  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800", kanbanColor: "bg-red-500" },
+  blocked: { label: "Bloqueado", color: "bg-orange-100 text-orange-800", kanbanColor: "bg-orange-500" },
 };
 
 const PRIORITY_CONFIG = {
-  low: { label: 'Baixa', color: 'bg-blue-100 text-blue-800' },
-  medium: { label: 'Média', color: 'bg-yellow-100 text-yellow-800' },
-  high: { label: 'Alta', color: 'bg-orange-100 text-orange-800' },
-  urgent: { label: 'Urgente', color: 'bg-red-100 text-red-800' }
+  low: { label: "Baixa", color: "bg-blue-100 text-blue-800" },
+  medium: { label: "Média", color: "bg-yellow-100 text-yellow-800" },
+  high: { label: "Alta", color: "bg-orange-100 text-orange-800" },
+  urgent: { label: "Urgente", color: "bg-red-100 text-red-800" },
 };
+
+function formatDueShort(dateStr) {
+  if (!dateStr) return "Sem prazo";
+  try {
+    return new Date(dateStr).toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "short",
+    });
+  } catch {
+    return "Sem prazo";
+  }
+}
+
+function formatFileSize(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function notifyLists(taskId, extra = {}) {
+  window.dispatchEvent(new CustomEvent("task:updated", { detail: { taskId, ...extra } }));
+  window.dispatchEvent(new Event("task:refresh"));
+}
 
 export default function TaskDrawer() {
   const { user } = useSession();
+  const currentUserId = user?.id || user?.data?.id;
+
   const [open, setOpen] = React.useState(false);
   const [taskId, setTaskId] = React.useState(null);
   const [task, setTask] = React.useState(null);
   const [client, setClient] = React.useState(null);
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
+  const [savingField, setSavingField] = React.useState("");
   const [error, setError] = React.useState("");
-  const [descHTML, setDescHTML] = React.useState("");
-  const [assignee, setAssignee] = React.useState("");
-  const [dueDate, setDueDate] = React.useState("");
-  const [priority, setPriority] = React.useState("medium");
-  const [currentStatus, setCurrentStatus] = React.useState("todo");
+
+  const [editingTitle, setEditingTitle] = React.useState(false);
+  const [titleDraft, setTitleDraft] = React.useState("");
+  const [descDraft, setDescDraft] = React.useState("");
+  const [editingDesc, setEditingDesc] = React.useState(false);
+
   const [commentText, setCommentText] = React.useState("");
   const [commentSending, setCommentSending] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState(0);
-  const [activeTab, setActiveTab] = React.useState("details");
-  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("more");
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [dragOver, setDragOver] = React.useState(false);
 
-  // Estados para checklist avançado
   const [newChecklistItem, setNewChecklistItem] = React.useState("");
-  const [checklistItemAssignee, setChecklistItemAssignee] = React.useState("");
+  const [checklistItemAssignee, setChecklistItemAssignee] = React.useState(UNASSIGNED);
   const [checklistItemDueDate, setChecklistItemDueDate] = React.useState("");
-  const [editingItemId, setEditingItemId] = React.useState(null);
-  const [editingItemText, setEditingItemText] = React.useState("");
-  const [editingItemAssignee, setEditingItemAssignee] = React.useState("");
-  const [editingItemDueDate, setEditingItemDueDate] = React.useState("");
 
-  const firstFieldRef = React.useRef(null);
+  const titleInputRef = React.useRef(null);
+  const fileInputRef = React.useRef(null);
+  const descRef = React.useRef(null);
 
-  // Listener global: abrir drawer
   React.useEffect(() => {
     const handler = (e) => {
       const id = e?.detail?.taskId;
@@ -108,58 +143,35 @@ export default function TaskDrawer() {
   const fetchAll = async (id) => {
     setLoading(true);
     setError("");
-    setHasUnsavedChanges(false);
-    
+    setEditingTitle(false);
+    setEditingDesc(false);
     try {
       const [t, us] = await Promise.all([
         Task.get(id),
-        User.list("-updated_date", 100)
+        User.list("-updated_date", 100),
       ]);
-
       setTask(t);
+      setTitleDraft(t.title || "");
+      setDescDraft(t.description || "");
       setUsers(us || []);
-      setDescHTML(t.description || "");
-      setAssignee(t.assignedTo || "");
-      setDueDate(t.dueDate ? t.dueDate.split("T")[0] : "");
-      setPriority(t.priority || "medium");
-      setCurrentStatus(t.status || "todo");
-
-      // Carregar dados do cliente
       if (t.clientId) {
         try {
-          const clientData = await Client.get(t.clientId);
-          setClient(clientData);
-        } catch (clientError) {
-          console.warn("Não foi possível carregar dados do cliente:", clientError);
+          setClient(await Client.get(t.clientId));
+        } catch {
           setClient(null);
         }
       } else {
         setClient(null);
       }
-
-      // Auto-focus no primeiro campo após carregar
-      setTimeout(() => {
-        try {
-          if (firstFieldRef.current) firstFieldRef.current.focus();
-        } catch (_err) {
-          // ignore focus failures
-        }
-      }, 100);
-      
     } catch (e) {
       setError("Não foi possível carregar a tarefa. Tente novamente.");
-      console.error("Erro ao carregar tarefa:", e);
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
   const closeDrawer = () => {
-    if (hasUnsavedChanges) {
-      const confirmClose = window.confirm("Você tem alterações não salvas. Deseja realmente fechar?");
-      if (!confirmClose) return;
-    }
-    
     setOpen(false);
     setTaskId(null);
     setTask(null);
@@ -168,335 +180,189 @@ export default function TaskDrawer() {
     setUploadProgress(0);
     setUploading(false);
     setCommentText("");
-    setActiveTab("details");
-    setHasUnsavedChanges(false);
-    
-    // Reset checklist states
+    setActiveTab("more");
+    setEditingTitle(false);
+    setEditingDesc(false);
+    setDeleteOpen(false);
     setNewChecklistItem("");
-    setChecklistItemAssignee("");
+    setChecklistItemAssignee(UNASSIGNED);
     setChecklistItemDueDate("");
-    setEditingItemId(null);
-    setEditingItemText("");
-    setEditingItemAssignee("");
-    setEditingItemDueDate("");
   };
 
-  // Detectar mudanças nos campos
-  React.useEffect(() => {
-    if (!task) return;
-    
-    const hasChanges = 
-      descHTML !== (task.description || "") ||
-      assignee !== (task.assignedTo || "") ||
-      dueDate !== (task.dueDate ? task.dueDate.split("T")[0] : "") ||
-      priority !== (task.priority || "medium") ||
-      currentStatus !== (task.status || "todo");
-      
-    setHasUnsavedChanges(hasChanges);
-  }, [task, descHTML, assignee, dueDate, priority, currentStatus]);
+  const teamUsers = React.useMemo(
+    () => (users || []).filter((u) => ["owner", "admin", "team"].includes(u.role)),
+    [users]
+  );
 
-  // Função para mudança rápida de status
-  const handleQuickStatusChange = async (newStatus) => {
-    if (!task || newStatus === currentStatus) return;
-    
-    setSaving(true);
-    setError("");
-    
+  const getAssignedUser = (userId) => users.find((u) => u.id === userId);
+
+  const patchTask = async (partial, opts = {}) => {
+    if (!task?.id) return null;
+    const prev = task;
+    const optimistic = { ...task, ...partial };
+    setTask(optimistic);
+    setSavingField(opts.field || "field");
+    try {
+      const updated = await Task.update(task.id, partial);
+      setTask(updated);
+      notifyLists(task.id, partial);
+      if (!opts.silent) {
+        toast.success("Salvo", { duration: 1400 });
+      }
+      return updated;
+    } catch (e) {
+      setTask(prev);
+      console.error(e);
+      toast.error(opts.errorMessage || "Não foi possível salvar");
+      throw e;
+    } finally {
+      setSavingField("");
+    }
+  };
+
+  const saveTitle = async () => {
+    const next = titleDraft.trim();
+    if (!task) return;
+    if (!next) {
+      setTitleDraft(task.title || "");
+      setEditingTitle(false);
+      toast.error("Título é obrigatório");
+      return;
+    }
+    if (next === (task.title || "")) {
+      setEditingTitle(false);
+      return;
+    }
+    setEditingTitle(false);
+    await patchTask({ title: next }, { field: "title" });
+  };
+
+  const cancelTitleEdit = () => {
+    setTitleDraft(task?.title || "");
+    setEditingTitle(false);
+  };
+
+  const saveDescription = async () => {
+    if (!task) return;
+    const next = descDraft;
+    if (next === (task.description || "")) {
+      setEditingDesc(false);
+      return;
+    }
+    setEditingDesc(false);
+    await patchTask({ description: next }, { field: "description" });
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!task || newStatus === task.status) return;
+    const prev = task;
+    setSavingField("status");
     try {
       const result = await transitionTaskStatus(task, newStatus, {
         agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
         user,
       });
-
       if (!result.success) {
-        toast.error(result.message || 'Não é possível alterar o status');
-        setError(result.message || 'Dependências não resolvidas');
+        toast.error(result.message || "Não é possível alterar o status");
         return;
       }
-
-      const updated = result.task;
+      let updated = result.task;
       setTask(updated);
-      setCurrentStatus(newStatus);
-      setHasUnsavedChanges(false);
-
       const statusLabel = STATUS_CONFIG[newStatus]?.label || newStatus;
-      toast.success(`Tarefa movida para "${statusLabel}"`, {
-        description: `${task.title} foi atualizada com sucesso`,
-        duration: 3000
-      });
+      toast.success(`Status: ${statusLabel}`, { duration: 1600 });
 
       const systemComment = {
         id: `sys_${Date.now()}`,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.full_name || user.email,
+        userId: currentUserId,
+        userEmail: user?.email,
+        userName: user?.full_name || user?.email,
         content: `Status alterado para: ${statusLabel}`,
-        type: 'system',
-        createdAt: new Date().toISOString()
+        type: "system",
+        createdAt: new Date().toISOString(),
       };
-      
-      const updatedWithComment = await Task.update(task.id, {
-        comments: [...(updated.comments || []), systemComment]
+      updated = await Task.update(task.id, {
+        comments: [...(updated.comments || []), systemComment],
       });
-      setTask(updatedWithComment);
+      setTask(updated);
+      notifyLists(task.id, { status: newStatus });
 
-      window.dispatchEvent(new CustomEvent('task:updated', { 
-        detail: { taskId: task.id, status: newStatus } 
-      }));
-
-      if (newStatus === 'completed' && task.serviceId) {
+      if (newStatus === "completed" && task.serviceId) {
         syncPipelineAfterTaskComplete({
           serviceId: task.serviceId,
           taskId: task.id,
-          actorId: user?.id || user?.data?.id,
+          actorId: currentUserId,
         })
           .then((sync) => {
             if (sync?.transitions?.length) {
-              toast.message('Pipeline avançou automaticamente', {
+              toast.message("Pipeline avançou automaticamente", {
                 description: `${sync.transitions.length} fase(s)`,
               });
-              window.dispatchEvent(
-                new CustomEvent('pipeline:updated', {
-                  detail: { serviceId: task.serviceId, transitions: sync.transitions },
-                })
-              );
             }
           })
           .catch(() => {});
       }
-
     } catch (e) {
-      setError("Falha ao alterar status. Tente novamente.");
-      console.error("Erro ao alterar status:", e);
-      toast.error("Erro ao alterar status da tarefa");
+      setTask(prev);
+      console.error(e);
+      toast.error("Erro ao alterar status");
     } finally {
-      setSaving(false);
+      setSavingField("");
     }
   };
 
-  const handleMarkCompleted = () => {
-    handleQuickStatusChange('completed');
-  };
-
-  const saveEdits = async () => {
+  const handleAssigneeChange = async (value) => {
     if (!task) return;
-    setSaving(true);
-    setError("");
-    
-    try {
-      const previousAssignee = task.assignedTo || task.assigneeId || null;
-      const payload = {
-        description: descHTML,
-        assignedTo: assignee || null,
-        assigneeId: assignee || null,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-        priority: priority || "medium",
-        status: currentStatus
-      };
+    const assigneeId = !value || value === UNASSIGNED ? null : value;
+    const previousAssignee = task.assignedTo || task.assigneeId || null;
+    if (String(previousAssignee || "") === String(assigneeId || "")) return;
 
-      if (String(previousAssignee || '') !== String(assignee || '')) {
-        payload.statusHistory = appendAssignmentHistoryEntry(task, {
-          assigneeId: assignee || null,
-          previousAssigneeId: previousAssignee,
-          user,
-        });
-      }
-      
-      const updated = await Task.update(task.id, payload);
-      setTask(updated);
-      setHasUnsavedChanges(false);
-
-      toast.success("Tarefa salva com sucesso!", {
-        description: "Todas as alterações foram aplicadas",
-        duration: 2000
-      });
-
-      const changes = [];
-      if (String(previousAssignee || '') !== String(assignee || '')) {
-        const newUser = users.find(u => u.id === assignee);
-        const oldUser = users.find(u => u.id === previousAssignee);
-        changes.push(`Responsável: ${oldUser?.full_name || 'Sem responsável'} → ${newUser?.full_name || 'Sem responsável'}`);
-        await TaskNotificationService.createTaskAssignedNotification(
-          { ...updated, assignedTo: assignee },
-          user
-        ).catch(() => {});
-      }
-      if (task.priority !== priority) {
-        changes.push(`Prioridade: ${PRIORITY_CONFIG[task.priority]?.label || task.priority} → ${PRIORITY_CONFIG[priority]?.label || priority}`);
-      }
-      if ((task.dueDate ? task.dueDate.split("T")[0] : "") !== dueDate) {
-        const oldDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString('pt-BR') : 'Sem prazo';
-        const newDate = payload.dueDate ? new Date(payload.dueDate).toLocaleDateString('pt-BR') : 'Sem prazo';
-        changes.push(`Prazo: ${oldDate} → ${newDate}`);
-      }
-      
-      if (changes.length > 0) {
-        const systemComment = {
-          id: `sys_${Date.now()}`,
-          userId: user.id,
-          userEmail: user.email,
-          userName: user.full_name || user.email,
-          content: changes.join('\n'),
-          type: 'system',
-          createdAt: new Date().toISOString()
-        };
-        
-        const updatedWithComment = await Task.update(task.id, {
-          comments: [...(updated.comments || []), systemComment]
-        });
-        setTask(updatedWithComment);
-      }
-
-    } catch (e) {
-      setError("Falha ao salvar alterações. Tente novamente.");
-      console.error("Erro ao salvar:", e);
-      toast.error("Erro ao salvar alterações");
-    } finally {
-      setSaving(false);
+    const partial = {
+      assignedTo: assigneeId,
+      assigneeId,
+      statusHistory: appendAssignmentHistoryEntry(task, {
+        assigneeId,
+        previousAssigneeId: previousAssignee,
+        user,
+      }),
+    };
+    const updated = await patchTask(partial, { field: "assignee" });
+    if (assigneeId && assigneeId !== currentUserId) {
+      await TaskNotificationService.createTaskAssignedNotification(
+        { ...updated, assignedTo: assigneeId },
+        user
+      ).catch(() => {});
     }
   };
 
-  // NOVO: Funções do Checklist Avançado
-  const addChecklistItem = async () => {
-    if (!task || !newChecklistItem.trim()) return;
-    
-    try {
-      const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
-      const newItem = {
-        id: `checklist_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        text: newChecklistItem.trim(),
-        completed: false,
-        order: checklist.length,
-        required: false,
-        evidenceRequired: false,
-        evidenceUrls: [],
-        assignedTo: checklistItemAssignee || null,
-        dueDate: checklistItemDueDate ? new Date(checklistItemDueDate).toISOString() : null
-      };
-
-      checklist.push(newItem);
-      const updated = await Task.update(task.id, { checklist });
-      setTask(updated);
-
-      // Reset form
-      setNewChecklistItem("");
-      setChecklistItemAssignee("");
-      setChecklistItemDueDate("");
-
-      toast.success("Item adicionado ao checklist!");
-    } catch (e) {
-      console.error("Erro ao adicionar item:", e);
-      toast.error("Erro ao adicionar item ao checklist");
-    }
-  };
-
-  const toggleChecklistItem = async (itemId) => {
+  const handleDueDateChange = async (value) => {
     if (!task) return;
-    
-    try {
-      const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
-      const itemIndex = checklist.findIndex(item => item.id === itemId);
-      if (itemIndex === -1) return;
-
-      const now = new Date().toISOString();
-      checklist[itemIndex] = {
-        ...checklist[itemIndex],
-        completed: !checklist[itemIndex].completed,
-        completedAt: !checklist[itemIndex].completed ? now : null,
-        completedBy: !checklist[itemIndex].completed ? user.id : null,
-        completedByName: !checklist[itemIndex].completed ? (user.full_name || user.email) : null
-      };
-
-      const updated = await Task.update(task.id, { checklist });
-      setTask(updated);
-
-      toast.success(checklist[itemIndex].completed ? "Item marcado como concluído!" : "Item desmarcado");
-    } catch (e) {
-      console.error("Erro ao atualizar item:", e);
-      toast.error("Erro ao atualizar item do checklist");
-    }
+    const prevYmd = task.dueDate ? String(task.dueDate).slice(0, 10) : "";
+    if (value === prevYmd) return;
+    await patchTask(
+      { dueDate: value ? new Date(`${value}T12:00:00`).toISOString() : null },
+      { field: "dueDate" }
+    );
   };
 
-  const startEditingItem = (item) => {
-    setEditingItemId(item.id);
-    setEditingItemText(item.text);
-    setEditingItemAssignee(item.assignedTo || "");
-    setEditingItemDueDate(item.dueDate ? item.dueDate.split("T")[0] : "");
+  const handlePriorityChange = async (value) => {
+    if (!task || value === task.priority) return;
+    await patchTask({ priority: value }, { field: "priority" });
   };
 
-  const saveEditingItem = async () => {
-    if (!task || !editingItemId || !editingItemText.trim()) return;
-    
-    try {
-      const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
-      const itemIndex = checklist.findIndex(item => item.id === editingItemId);
-      if (itemIndex === -1) return;
-
-      checklist[itemIndex] = {
-        ...checklist[itemIndex],
-        text: editingItemText.trim(),
-        assignedTo: editingItemAssignee || null,
-        dueDate: editingItemDueDate ? new Date(editingItemDueDate).toISOString() : null
-      };
-
-      const updated = await Task.update(task.id, { checklist });
-      setTask(updated);
-
-      setEditingItemId(null);
-      setEditingItemText("");
-      setEditingItemAssignee("");
-      setEditingItemDueDate("");
-
-      toast.success("Item atualizado!");
-    } catch (e) {
-      console.error("Erro ao editar item:", e);
-      toast.error("Erro ao editar item do checklist");
-    }
-  };
-
-  const cancelEditingItem = () => {
-    setEditingItemId(null);
-    setEditingItemText("");
-    setEditingItemAssignee("");
-    setEditingItemDueDate("");
-  };
-
-  const deleteChecklistItem = async (itemId) => {
-    if (!task) return;
-    
-    try {
-      const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
-      const filteredChecklist = checklist.filter(item => item.id !== itemId);
-      
-      const updated = await Task.update(task.id, { checklist: filteredChecklist });
-      setTask(updated);
-
-      toast.success("Item removido do checklist");
-    } catch (e) {
-      console.error("Erro ao deletar item:", e);
-      toast.error("Erro ao remover item do checklist");
-    }
-  };
-
-  // Upload via drag and drop
-  const onDrop = async (ev) => {
-    ev.preventDefault();
-    if (!task) return;
-    const files = ev.dataTransfer?.files;
-    if (!files || files.length === 0) return;
-
+  const uploadFiles = async (fileList) => {
+    if (!task || !fileList?.length) return;
+    const files = Array.from(fileList);
     setUploading(true);
     setUploadProgress(5);
+    let attachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       try {
-        setUploadProgress(15 + (i * 40));
-        
-        const buf = await f.arrayBuffer();
-        const uint = new Uint8Array(buf);
-
-        const { file_uri } = await UploadPrivateFile({ file: uint });
+        setUploadProgress(10 + Math.round((i / files.length) * 80));
+        const uploaded = await UploadPrivateFile({ file: f });
+        const fileUrl = uploaded.file_url || uploaded.url || uploaded.file_uri;
+        if (!fileUrl) throw new Error("URL do arquivo não retornada");
 
         if (task.agencyId && task.clientId) {
           await ClientDocument.create({
@@ -508,134 +374,229 @@ export default function TaskDrawer() {
             fileName: f.name,
             title: f.name,
             description: `Anexo da tarefa: ${task.title}`,
-            fileUrl: file_uri,
+            fileUrl,
             fileType: f.type || "application/octet-stream",
-            fileSize: f.size || uint.length,
+            fileSize: f.size || 0,
             version: "1.0",
             visibility: "internal",
             status: "approved",
             metadata: { attached_to_task: task.id },
-            uploadedBy: user.id
-          });
+            uploadedBy: currentUserId,
+          }).catch(() => {});
         }
 
-        const attachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
-        attachments.unshift({
-          id: `att_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-          name: f.name,
-          url: file_uri,
-          type: "document",
-          mimeType: f.type || "application/octet-stream",
-          size: f.size || uint.length,
-          uploadedBy: user.id,
-          uploadedByName: user.full_name || user.email,
-          uploadedAt: new Date().toISOString(),
-          description: f.name,
-          isEvidence: false
-        });
-        
-        const updated = await Task.update(task.id, { attachments });
-        setTask(updated);
-        
-        setUploadProgress(90 + (i * 5));
-        toast.success(`Arquivo ${f.name} anexado com sucesso!`);
+        attachments = [
+          {
+            id: `att_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            name: f.name,
+            url: fileUrl,
+            type: f.type?.startsWith("image/") ? "image" : "document",
+            mimeType: f.type || "application/octet-stream",
+            size: f.size || 0,
+            uploadedBy: currentUserId,
+            uploadedByName: user?.full_name || user?.email,
+            uploadedAt: new Date().toISOString(),
+            description: f.name,
+            isEvidence: false,
+          },
+          ...attachments,
+        ];
       } catch (e) {
-        console.error("Upload error:", e);
-        setError(`Falha ao anexar ${f.name}. Tente novamente.`);
-        toast.error(`Falha ao anexar ${f.name}.`);
+        console.error(e);
+        toast.error(`Falha ao anexar ${f.name}`);
       }
     }
-    
-    setUploadProgress(100);
-    setTimeout(() => {
-      setUploadProgress(0);
-      setUploading(false);
-    }, 1000);
+
+    try {
+      const updated = await Task.update(task.id, { attachments });
+      setTask(updated);
+      notifyLists(task.id);
+      toast.success(
+        files.length === 1 ? "Arquivo anexado" : `${files.length} arquivos anexados`
+      );
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível salvar os anexos");
+    } finally {
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploading(false);
+      }, 400);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
-  const onDragOver = (ev) => {
-    ev.preventDefault();
+  const removeAttachment = async (attachmentId) => {
+    if (!task) return;
+    const prev = task.attachments || [];
+    const next = prev.filter((a) => a.id !== attachmentId);
+    await patchTask({ attachments: next }, { field: "attachments", silent: true });
+    toast.success("Anexo removido");
+  };
+
+  const duplicateTask = async () => {
+    if (!task) return;
+    setSavingField("duplicate");
+    try {
+      const {
+        id,
+        $id,
+        created_date,
+        updated_date,
+        completedAt,
+        statusHistory,
+        comments,
+        timeEntries,
+        ...rest
+      } = task;
+      const created = await Task.create({
+        ...rest,
+        title: `Cópia de ${task.title || "tarefa"}`,
+        status: "todo",
+        kanbanColumn: "todo",
+        progress: 0,
+        actualHours: 0,
+        comments: [],
+        statusHistory: [],
+        timeEntries: [],
+        completedAt: null,
+        assignedBy: currentUserId,
+      });
+      toast.success("Tarefa duplicada");
+      notifyLists(created.id);
+      setTaskId(created.id);
+      await fetchAll(created.id);
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível duplicar");
+    } finally {
+      setSavingField("");
+    }
+  };
+
+  const deleteTask = async () => {
+    if (!task) return;
+    setSavingField("delete");
+    try {
+      await Task.delete(task.id);
+      toast.success("Tarefa excluída");
+      notifyLists(task.id, { deleted: true });
+      setDeleteOpen(false);
+      closeDrawer();
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível excluir");
+    } finally {
+      setSavingField("");
+    }
+  };
+
+  const addChecklistItem = async () => {
+    if (!task || !newChecklistItem.trim()) return;
+    const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
+    checklist.push({
+      id: `checklist_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      text: newChecklistItem.trim(),
+      completed: false,
+      order: checklist.length,
+      required: false,
+      evidenceRequired: false,
+      evidenceUrls: [],
+      assignedTo:
+        checklistItemAssignee === UNASSIGNED ? null : checklistItemAssignee || null,
+      dueDate: checklistItemDueDate
+        ? new Date(checklistItemDueDate).toISOString()
+        : null,
+    });
+    await patchTask({ checklist }, { field: "checklist", silent: true });
+    setNewChecklistItem("");
+    setChecklistItemAssignee(UNASSIGNED);
+    setChecklistItemDueDate("");
+    toast.success("Item adicionado");
+  };
+
+  const toggleChecklistItem = async (itemId) => {
+    if (!task) return;
+    const checklist = Array.isArray(task.checklist) ? [...task.checklist] : [];
+    const idx = checklist.findIndex((item) => item.id === itemId);
+    if (idx === -1) return;
+    const now = new Date().toISOString();
+    const wasDone = checklist[idx].completed;
+    checklist[idx] = {
+      ...checklist[idx],
+      completed: !wasDone,
+      completedAt: !wasDone ? now : null,
+      completedBy: !wasDone ? currentUserId : null,
+      completedByName: !wasDone ? user?.full_name || user?.email : null,
+    };
+    await patchTask({ checklist }, { field: "checklist", silent: true });
+  };
+
+  const deleteChecklistItem = async (itemId) => {
+    if (!task) return;
+    const checklist = (task.checklist || []).filter((item) => item.id !== itemId);
+    await patchTask({ checklist }, { field: "checklist", silent: true });
+    toast.success("Item removido");
   };
 
   const submitComment = async () => {
     if (!task || !commentText.trim()) return;
     setCommentSending(true);
-    setError("");
-    
     try {
       const comments = Array.isArray(task.comments) ? [...task.comments] : [];
-      
       const mentions = [];
       const mentionRegex = /@(\w+)/g;
       let match;
       while ((match = mentionRegex.exec(commentText)) !== null) {
         const mentionedUsername = match[1];
-        const mentionedUser = users.find(u => 
-          u.full_name?.toLowerCase().includes(mentionedUsername.toLowerCase()) ||
-          u.email?.toLowerCase().includes(mentionedUsername.toLowerCase())
+        const mentionedUser = users.find(
+          (u) =>
+            u.full_name?.toLowerCase().includes(mentionedUsername.toLowerCase()) ||
+            u.email?.toLowerCase().includes(mentionedUsername.toLowerCase())
         );
         if (mentionedUser && !mentions.includes(mentionedUser.id)) {
           mentions.push(mentionedUser.id);
         }
       }
-      
-      const newComment = {
+
+      comments.unshift({
         id: `c_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.full_name || user.email,
+        userId: currentUserId,
+        userEmail: user?.email,
+        userName: user?.full_name || user?.email,
         content: commentText.trim(),
         type: "comment",
-        mentions: mentions,
+        mentions,
         attachments: [],
         createdAt: new Date().toISOString(),
-        isEdited: false
-      };
-      
-      comments.unshift(newComment);
+        isEdited: false,
+      });
+
       const updated = await Task.update(task.id, { comments });
       setTask(updated);
 
       for (const mentionedUserId of mentions) {
-        try {
-          await Notification.create({
-            agencyId: task.agencyId,
-            userId: mentionedUserId,
-            type: "task_mentioned",
-            subject: { type: "task", id: task.id },
-            title: `Você foi mencionado em "${task.title}"`,
-            context: commentText.length > 180 ? commentText.slice(0, 180) + "..." : commentText,
-            href: `/tasks-manager?taskId=${task.id}`,
-            severity: "info"
-          });
-        } catch (_) {
-          // tolerante a falha de notificação
-        }
-      }
-
-      if (task.assignedTo && task.assignedTo !== user.id && !mentions.includes(task.assignedTo)) {
-        try {
-          await Notification.create({
-            agencyId: task.agencyId,
-            userId: task.assignedTo,
-            type: "task_commented",
-            subject: { type: "task", id: task.id },
-            title: `Novo comentário em "${task.title}"`,
-            context: commentText.length > 180 ? commentText.slice(0, 180) + "..." : commentText,
-            href: `/tasks-manager?taskId=${task.id}`,
-            severity: "info"
-          });
-        } catch (_) {
-          // tolerante a falha
-        }
+        await Notification.create({
+          agencyId: task.agencyId,
+          userId: mentionedUserId,
+          type: "task_mentioned",
+          subject: { type: "task", id: task.id },
+          title: `Você foi mencionado em "${task.title}"`,
+          context:
+            commentText.length > 180
+              ? `${commentText.slice(0, 180)}...`
+              : commentText,
+          href: `/tasks-manager?taskId=${task.id}`,
+          severity: "info",
+        }).catch(() => {});
       }
 
       setCommentText("");
-      toast.success("Comentário enviado!");
-      
-    } catch (_e) {
-      setError("Não foi possível enviar o comentário. Tente novamente.");
-      toast.error("Erro ao enviar comentário.");
+      toast.success("Comentário enviado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao enviar comentário");
     } finally {
       setCommentSending(false);
     }
@@ -643,664 +604,606 @@ export default function TaskDrawer() {
 
   const progressChecklist = React.useMemo(() => {
     const list = Array.isArray(task?.checklist) ? task.checklist : [];
-    if (list.length === 0) return 0;
-    const done = list.filter((c) => c.completed).length;
-    return Math.round((done / list.length) * 100);
+    if (!list.length) return 0;
+    return Math.round((list.filter((c) => c.completed).length / list.length) * 100);
   }, [task]);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'Não definida';
-    try {
-      return new Date(dateStr).toLocaleDateString('pt-BR', {
-        weekday: 'short',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return 'Data inválida';
-    }
-  };
+  const assigneeValue = task?.assigneeId || task?.assignedTo || UNASSIGNED;
+  const dueValue = task?.dueDate ? String(task.dueDate).slice(0, 10) : "";
+  const assignedUser = getAssignedUser(task?.assigneeId || task?.assignedTo);
 
-  const getAssignedUser = (userId) => {
-    return users.find(u => u.id === userId);
-  };
+  React.useEffect(() => {
+    if (editingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [editingTitle]);
+
+  React.useEffect(() => {
+    if (editingDesc && !(descDraft && descDraft.length > 0)) {
+      descRef.current?.focus();
+    }
+  }, [editingDesc, descDraft]);
 
   return (
-    <Sheet open={open} onOpenChange={(v) => v ? setOpen(true) : closeDrawer()}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl flex flex-col p-0 gap-0">
-        {/* Cabeçalho Contextual Dinâmico */}
-        <SheetHeader className="border-b pb-4 px-4 sm:px-6 pt-4 sm:pt-6 space-y-0 text-left">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex-1 min-w-0">
-              {/* Contexto da Tarefa */}
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                {client && (
-                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                    <Building2 className="w-3 h-3 mr-1" />
-                    {client.name}
-                  </Badge>
+    <>
+      <Sheet open={open} onOpenChange={(v) => (v ? setOpen(true) : closeDrawer())}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 gap-0"
+        >
+          <SheetHeader className="border-b px-4 sm:px-5 pt-4 pb-3 space-y-0 text-left">
+            <div className="flex items-start gap-2 pr-8">
+              <div className="flex-1 min-w-0">
+                {editingTitle ? (
+                  <Input
+                    ref={titleInputRef}
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onBlur={saveTitle}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        saveTitle();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelTitleEdit();
+                      }
+                    }}
+                    className="text-lg sm:text-xl font-semibold h-auto py-1 px-2"
+                    disabled={savingField === "title"}
+                  />
+                ) : (
+                  <SheetTitle
+                    className="text-lg sm:text-xl font-semibold leading-snug cursor-text rounded-md px-1 -mx-1 hover:bg-muted/60"
+                    onClick={() => {
+                      if (!task) return;
+                      setTitleDraft(task.title || "");
+                      setEditingTitle(true);
+                    }}
+                  >
+                    {task ? task.title : "Carregando…"}
+                  </SheetTitle>
                 )}
-                
-                <Badge className={`text-xs ${STATUS_CONFIG[currentStatus]?.color || 'bg-gray-100 text-gray-800'}`}>
-                  <div className={`w-2 h-2 rounded-full mr-1 ${STATUS_CONFIG[currentStatus]?.kanbanColor || 'bg-gray-500'}`} />
-                  {STATUS_CONFIG[currentStatus]?.label || currentStatus}
-                </Badge>
-
-                {task && (
-                  <Badge className={`text-xs ${PRIORITY_CONFIG[priority]?.color || 'bg-gray-100 text-gray-800'}`}>
-                    <Flag className="w-3 h-3 mr-1" />
-                    {PRIORITY_CONFIG[priority]?.label || priority}
-                  </Badge>
-                )}
-
-                {task?.id && (
-                  <Badge variant="outline" className="text-xs font-mono">
-                    #{task.id.slice(-8)}
-                  </Badge>
-                )}
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  {client?.name && <span className="truncate max-w-[160px]">{client.name}</span>}
+                  {task?.deliverableName && (
+                    <>
+                      {client?.name ? <span>·</span> : null}
+                      <span className="truncate max-w-[180px]">{task.deliverableName}</span>
+                    </>
+                  )}
+                  {savingField ? (
+                    <span className="inline-flex items-center gap-1 text-teal-700">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Salvando…
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
-              {/* Título */}
-              <SheetTitle className="text-lg sm:text-xl font-semibold leading-tight pr-8 sm:pr-4">
-                {task ? task.title : "Carregando tarefa..."}
-              </SheetTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    aria-label="Mais ações"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={duplicateTask} disabled={!!savingField}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicar tarefa
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir tarefa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </SheetHeader>
 
-              {/* Ações Rápidas de Status */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
-                <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-none">
-                  <label className="text-sm font-medium text-gray-700 sr-only sm:not-sr-only">Status:</label>
-                  <Select value={currentStatus} onValueChange={handleQuickStatusChange} disabled={saving}>
-                    <SelectTrigger className="w-full min-w-0 h-8 text-xs sm:w-40">
+          {loading && (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-teal-700" />
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="flex-1 flex items-center justify-center p-6 text-center space-y-3">
+              <AlertCircle className="h-10 w-10 text-red-500 mx-auto" />
+              <p className="text-sm text-muted-foreground">{error}</p>
+              <Button onClick={() => fetchAll(taskId)} variant="outline" size="sm">
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+
+          {!loading && task && (
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-5">
+              {/* Property rows */}
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Status</span>
+                  <Select
+                    value={task.status || "todo"}
+                    onValueChange={handleStatusChange}
+                    disabled={savingField === "status"}
+                  >
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                        <SelectItem key={key} value={key} className="text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${config.kanbanColor}`} />
+                        <SelectItem key={key} value={key}>
+                          <span className="inline-flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${config.kanbanColor}`} />
                             {config.label}
-                          </div>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {currentStatus !== 'completed' && (
-                  <Button 
-                    size="sm" 
-                    onClick={handleMarkCompleted} 
-                    disabled={saving}
-                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 text-xs shrink-0"
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Responsável</span>
+                  <Select
+                    value={assigneeValue || UNASSIGNED}
+                    onValueChange={handleAssigneeChange}
+                    disabled={savingField === "assignee"}
                   >
-                    {saving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
-                    Concluir
-                  </Button>
-                )}
-
-                {task ? <TaskTimerButton task={task} /> : null}
-              </div>
-            </div>
-
-            {/* Metadados — abaixo no mobile */}
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground sm:flex-col sm:text-right sm:min-w-[120px] sm:shrink-0">
-              {task?.dueDate && (
-                <div className="flex items-center gap-1 sm:justify-end">
-                  <Calendar className="w-3 h-3 shrink-0" />
-                  <span>{formatDate(task.dueDate)}</span>
-                </div>
-              )}
-              {task?.estimatedHours && (
-                <div className="flex items-center gap-1 sm:justify-end">
-                  <Clock className="w-3 h-3 shrink-0" />
-                  <span>{task.estimatedHours}h estimadas</span>
-                </div>
-              )}
-              {getAssignedUser(task?.assignedTo) && (
-                <div className="flex items-center gap-1 sm:justify-end min-w-0">
-                  <Avatar className="w-4 h-4 shrink-0">
-                    <AvatarFallback className="text-xs">
-                      {getAssignedUser(task.assignedTo).full_name?.charAt(0) || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="truncate">{getAssignedUser(task.assignedTo).full_name || getAssignedUser(task.assignedTo).email}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Indicador de Mudanças Não Salvas */}
-          {hasUnsavedChanges && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2 mt-3">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">Você tem alterações não salvas</span>
-              </div>
-            </div>
-          )}
-        </SheetHeader>
-
-        {/* Loading/Error States */}
-        {loading && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
-              <p className="text-gray-600">Carregando detalhes da tarefa...</p>
-            </div>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center max-w-md space-y-4">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
-              <h3 className="text-lg font-semibold text-gray-900">Erro ao carregar</h3>
-              <p className="text-gray-600">{error}</p>
-              <Button onClick={() => fetchAll(taskId)} className="gap-2">
-                <Loader2 className="w-4 h-4" />
-                Tentar novamente
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Content Area com Scroll Independente */}
-        {!loading && task && (
-          <>
-            <div className="flex-1 overflow-hidden px-4 sm:px-6 pt-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <div className="overflow-x-auto -mx-1 px-1 mb-4">
-                  <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:grid-cols-5 gap-1 h-auto">
-                    <TabsTrigger value="details" className="flex items-center gap-2 shrink-0" aria-label="Detalhes">
-                      <Eye className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Detalhes</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="checklist" className="flex items-center gap-2 shrink-0" aria-label="Checklist">
-                      <CheckSquare className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Checklist</span>
-                      {task.checklist?.length > 0 && (
-                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                          {progressChecklist}%
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger value="dependencies" className="flex items-center gap-2 shrink-0" aria-label="Dependências">
-                      <Link2 className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Deps</span>
-                      {task.dependencies?.length > 0 && (
-                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                          {task.dependencies.length}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger value="history" className="flex items-center gap-2 shrink-0" aria-label="Histórico">
-                      <History className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Histórico</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="comments" className="flex items-center gap-2 shrink-0" aria-label="Comentários">
-                      <MessageCircle className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Comentários</span>
-                      {task.comments?.length > 0 && (
-                        <Badge variant="secondary" className="text-xs h-4 px-1 ml-1">
-                          {task.comments.length}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Sem responsável">
+                        {assignedUser ? (
+                          <span className="inline-flex items-center gap-2 min-w-0">
+                            <Avatar className="w-5 h-5">
+                              <AvatarFallback className="text-[10px]">
+                                {(assignedUser.full_name || assignedUser.email || "?").charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">
+                              {assignedUser.full_name || assignedUser.email}
+                            </span>
+                          </span>
+                        ) : (
+                          "Sem responsável"
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      <SelectItem value={UNASSIGNED}>Sem responsável</SelectItem>
+                      {teamUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.full_name || u.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Tabs Content com Scroll */}
-                <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                  <TabsContent value="details" className="space-y-4 pb-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Descrição</label>
-                      <Textarea
-                        ref={firstFieldRef}
-                        value={descHTML}
-                        onChange={(e) => setDescHTML(e.target.value)}
-                        placeholder="Descreva a tarefa..."
-                        rows={4}
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Prazo</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="relative flex-1 min-w-0">
+                      <Calendar className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                      <Input
+                        type="date"
+                        value={dueValue}
+                        onChange={(e) => handleDueDateChange(e.target.value)}
+                        className="h-9 pl-8"
+                        disabled={savingField === "dueDate"}
+                        aria-label={`Prazo: ${formatDueShort(task.dueDate)}`}
                       />
                     </div>
+                    {task.dueDate && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        onClick={() => handleDueDateChange("")}
+                        aria-label="Remover prazo"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-                          <UserIcon className="w-4 h-4" />Responsável
-                        </label>
-                        <Select value={assignee || ""} onValueChange={setAssignee}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60 overflow-auto">
-                            <SelectItem value={null}>Sem responsável</SelectItem>
-                            {users.filter(u => ["owner", "admin", "team"].includes(u.role)).map(u => (
-                              <SelectItem key={u.id} value={u.id}>
-                                {u.full_name || u.email}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Prioridade</span>
+                  <Select
+                    value={task.priority || "medium"}
+                    onValueChange={handlePriorityChange}
+                    disabled={savingField === "priority"}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
+                        <SelectItem key={key} value={key}>
+                          <span className="inline-flex items-center gap-2">
+                            <Flag className="w-3 h-3" />
+                            {config.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  {task.status !== "completed" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => handleStatusChange("completed")}
+                      disabled={!!savingField}
+                    >
+                      <Check className="w-3.5 h-3.5 mr-1" />
+                      Concluir
+                    </Button>
+                  )}
+                  <TaskTimerButton task={task} />
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-2">
+                <h3 className="text-sm font-semibold text-[#18162A]">Descrição</h3>
+                {editingDesc || (descDraft && descDraft.length > 0) ? (
+                  <Textarea
+                    ref={descRef}
+                    value={descDraft}
+                    onChange={(e) => {
+                      setDescDraft(e.target.value);
+                      setEditingDesc(true);
+                    }}
+                    onBlur={saveDescription}
+                    onFocus={() => setEditingDesc(true)}
+                    placeholder="Adicionar descrição…"
+                    rows={4}
+                    className="resize-y min-h-[96px]"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="w-full text-left text-sm text-muted-foreground rounded-md border border-dashed px-3 py-3 hover:bg-muted/40"
+                    onClick={() => {
+                      setEditingDesc(true);
+                      requestAnimationFrame(() => descRef.current?.focus());
+                    }}
+                  >
+                    Adicionar descrição…
+                  </button>
+                )}
+              </div>
+
+              <div className="border-t pt-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-[#18162A]">Anexos</h3>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    Adicionar arquivo
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => uploadFiles(e.target.files)}
+                  />
+                </div>
+
+                <div
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    uploadFiles(e.dataTransfer?.files);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
+                    dragOver
+                      ? "border-teal-500 bg-teal-50/50"
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground/60" />
+                  <p className="text-sm text-muted-foreground">
+                    Arraste arquivos aqui ou use Adicionar arquivo
+                  </p>
+                  {uploading && (
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-center justify-center gap-2 text-xs">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Enviando… {uploadProgress}%
                       </div>
+                      <Progress value={uploadProgress} className="h-1.5" />
+                    </div>
+                  )}
+                </div>
 
-                      <div>
-                        <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />Prazo
-                        </label>
-                        <Input 
-                          type="date" 
-                          value={dueDate} 
-                          onChange={(e) => setDueDate(e.target.value)} 
-                        />
+                <div className="space-y-2">
+                  {(task.attachments || []).map((a) => (
+                    <div
+                      key={`${a.id}-${a.name}`}
+                      className="flex items-center gap-3 p-2.5 rounded-lg border bg-white"
+                    >
+                      <Paperclip className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{a.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {[
+                            a.mimeType || a.type,
+                            a.size != null ? formatFileSize(a.size) : null,
+                            a.uploadedAt
+                              ? new Date(a.uploadedAt).toLocaleDateString("pt-BR")
+                              : null,
+                            a.uploadedByName,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
                       </div>
-
-                      <div>
-                        <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-                          <Flag className="w-4 h-4" />Prioridade
-                        </label>
-                        <Select value={priority} onValueChange={setPriority}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
-                              <SelectItem key={key} value={key}>
-                                {config.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <a href={a.url} target="_blank" rel="noreferrer" aria-label="Abrir">
+                            <Eye className="w-4 h-4" />
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <a href={a.url} download={a.name} aria-label="Baixar">
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700"
+                          onClick={() => removeAttachment(a.id)}
+                          aria-label="Remover"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
+                  ))}
+                  {!(task.attachments || []).length && !uploading && (
+                    <p className="text-xs text-muted-foreground text-center py-1">
+                      Nenhum anexo ainda
+                    </p>
+                  )}
+                </div>
+              </div>
 
-                    {task?.id ? (
-                      <div className="pt-2 border-t border-slate-100">
-                        <TaskTimeSessionsPanel taskId={task.id} />
-                      </div>
-                    ) : null}
+              <div className="border-t pt-3">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <div className="overflow-x-auto -mx-1 px-1 mb-3">
+                    <TabsList className="inline-flex w-max min-w-full h-auto gap-1">
+                      <TabsTrigger value="more" className="text-xs shrink-0 gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        Tempo
+                      </TabsTrigger>
+                      <TabsTrigger value="checklist" className="text-xs shrink-0 gap-1">
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        Checklist
+                        {task.checklist?.length > 0 && (
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                            {progressChecklist}%
+                          </Badge>
+                        )}
+                      </TabsTrigger>
+                      <TabsTrigger value="comments" className="text-xs shrink-0 gap-1">
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Comentários
+                      </TabsTrigger>
+                      <TabsTrigger value="dependencies" className="text-xs shrink-0 gap-1">
+                        <Link2 className="w-3.5 h-3.5" />
+                        Deps
+                      </TabsTrigger>
+                      <TabsTrigger value="history" className="text-xs shrink-0 gap-1">
+                        <History className="w-3.5 h-3.5" />
+                        Histórico
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <TabsContent value="more" className="mt-0">
+                    <TaskTimeSessionsPanel taskId={task.id} />
                   </TabsContent>
 
-                  {/* Checklist Avançado */}
-                  <TabsContent value="checklist" className="space-y-4 pb-4">
-                    {/* Barra de Progresso */}
+                  <TabsContent value="checklist" className="mt-0 space-y-3">
                     {task.checklist?.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Progresso</span>
-                          <Badge variant="secondary" className="text-sm">
-                            {task.checklist.filter(c => c.completed).length}/{task.checklist.length} ({progressChecklist}%)
-                          </Badge>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span>Progresso</span>
+                          <span>
+                            {task.checklist.filter((c) => c.completed).length}/
+                            {task.checklist.length}
+                          </span>
                         </div>
-                        <Progress value={progressChecklist} className="w-full" />
+                        <Progress value={progressChecklist} className="h-1.5" />
                       </div>
                     )}
-
-                    {/* Formulário de Adicionar Item */}
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={newChecklistItem}
-                            onChange={(e) => setNewChecklistItem(e.target.value)}
-                            placeholder="Adicionar item ao checklist..."
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                addChecklistItem();
-                              }
-                            }}
-                            className="flex-1"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={addChecklistItem}
-                            disabled={!newChecklistItem.trim()}
-                            className="px-3"
+                    <div className="flex gap-2">
+                      <Input
+                        value={newChecklistItem}
+                        onChange={(e) => setNewChecklistItem(e.target.value)}
+                        placeholder="Adicionar item…"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addChecklistItem();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="icon"
+                        onClick={addChecklistItem}
+                        disabled={!newChecklistItem.trim()}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {(task.checklist || []).map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-start gap-2 p-2 rounded-md border"
+                        >
+                          <button
+                            type="button"
+                            className="mt-0.5"
+                            onClick={() => toggleChecklistItem(item.id)}
                           >
-                            <Plus className="w-4 h-4" />
+                            {item.completed ? (
+                              <CheckSquare className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <div className="w-4 h-4 rounded border border-muted-foreground/40" />
+                            )}
+                          </button>
+                          <span
+                            className={`flex-1 text-sm ${
+                              item.completed ? "line-through text-muted-foreground" : ""
+                            }`}
+                          >
+                            {item.text}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            onClick={() => deleteChecklistItem(item.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
+                      ))}
+                    </div>
+                  </TabsContent>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
-                          <div className="flex items-center gap-1 min-w-0 flex-1">
-                            <UserIcon className="w-3 h-3 shrink-0" />
-                            <Select 
-                              value={checklistItemAssignee} 
-                              onValueChange={setChecklistItemAssignee}
-                            >
-                              <SelectTrigger className="h-8 w-full sm:w-32 text-xs">
-                                <SelectValue placeholder="Responsável" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={null}>Nenhum</SelectItem>
-                                {users.filter(u => ["owner", "admin", "team"].includes(u.role)).map(u => (
-                                  <SelectItem key={u.id} value={u.id} className="text-xs">
-                                    {u.full_name || u.email}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="flex items-center gap-1 min-w-0 flex-1">
-                            <Calendar className="w-3 h-3 shrink-0" />
-                            <Input
-                              type="date"
-                              value={checklistItemDueDate}
-                              onChange={(e) => setChecklistItemDueDate(e.target.value)}
-                              className="h-8 w-full sm:w-32 text-xs"
-                            />
-                          </div>
-                        </div>
+                  <TabsContent value="comments" className="mt-0 space-y-3">
+                    <div className="space-y-2">
+                      <Textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Escreva um comentário… Use @nome para mencionar"
+                        rows={3}
+                      />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                          <AtSign className="w-3 h-3" />
+                          Use @ para mencionar
+                        </span>
+                        <Button
+                          size="sm"
+                          onClick={submitComment}
+                          disabled={commentSending || !commentText.trim()}
+                        >
+                          {commentSending ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                          ) : (
+                            <Send className="w-4 h-4 mr-1" />
+                          )}
+                          Enviar
+                        </Button>
                       </div>
                     </div>
-
-                    {/* Lista de Itens */}
                     <div className="space-y-2">
-                      {(task.checklist || []).map(item => (
-                        <div key={item.id} className="border rounded p-3 hover:bg-gray-50">
-                          {editingItemId === item.id ? (
-                            // Modo de edição
-                            <div className="space-y-3">
-                              <Input
-                                value={editingItemText}
-                                onChange={(e) => setEditingItemText(e.target.value)}
-                                className="text-sm"
-                                autoFocus
-                              />
-                              
-                              <div className="flex items-center gap-2">
-                                <Select 
-                                  value={editingItemAssignee} 
-                                  onValueChange={setEditingItemAssignee}
-                                >
-                                  <SelectTrigger className="h-8 w-40 text-xs">
-                                    <SelectValue placeholder="Responsável" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={null}>Nenhum</SelectItem>
-                                    {users.filter(u => ["owner", "admin", "team"].includes(u.role)).map(u => (
-                                      <SelectItem key={u.id} value={u.id} className="text-xs">
-                                        {u.full_name || u.email}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-
-                                <Input
-                                  type="date"
-                                  value={editingItemDueDate}
-                                  onChange={(e) => setEditingItemDueDate(e.target.value)}
-                                  className="h-8 w-40 text-xs"
-                                />
-                              </div>
-
-                              <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={cancelEditingItem}>
-                                  Cancelar
-                                </Button>
-                                <Button size="sm" onClick={saveEditingItem}>
-                                  Salvar
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            // Modo de visualização
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start gap-3 flex-1">
-                                <input
-                                  type="checkbox"
-                                  className="mt-1"
-                                  checked={!!item.completed}
-                                  onChange={() => toggleChecklistItem(item.id)}
-                                />
-                                <div className="flex-1">
-                                  <span className={item.completed ? "line-through text-gray-500" : ""}>
-                                    {item.text}
-                                  </span>
-                                  
-                                  {/* Detalhes do item */}
-                                  <div className="flex items-center gap-3 mt-1">
-                                    {item.assignedTo && (
-                                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                                        <Avatar className="w-4 h-4">
-                                          <AvatarFallback className="text-xs">
-                                            {getAssignedUser(item.assignedTo)?.full_name?.charAt(0) || '?'}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <span>{getAssignedUser(item.assignedTo)?.full_name || getAssignedUser(item.assignedTo)?.email}</span>
-                                      </div>
-                                    )}
-                                    
-                                    {item.dueDate && (
-                                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                                        <Calendar className="w-3 h-3" />
-                                        <span>{new Date(item.dueDate).toLocaleDateString('pt-BR')}</span>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {item.completed && item.completedByName && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      Concluído por {item.completedByName} em {formatDate(item.completedAt)}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => startEditingItem(item)}>
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => deleteChecklistItem(item.id)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Excluir
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          )}
+                      {(task.comments || []).map((c) => (
+                        <div
+                          key={c.id}
+                          className={`rounded-md border p-3 ${
+                            c.type === "system" ? "bg-blue-50/60 border-blue-100" : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Avatar className="w-6 h-6">
+                              <AvatarFallback className="text-[10px]">
+                                {(c.userName || c.userEmail || "?").charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-medium">
+                              {c.userName || c.userEmail}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {c.createdAt
+                                ? new Date(c.createdAt).toLocaleString("pt-BR")
+                                : ""}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{c.content}</p>
                         </div>
                       ))}
-
-                      {(!task.checklist || task.checklist.length === 0) && (
-                        <div className="text-center py-8 text-gray-500">
-                          <CheckSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                          <p>Nenhum item no checklist</p>
-                          <p className="text-sm">Adicione itens para quebrar esta tarefa em passos menores</p>
-                        </div>
+                      {!(task.comments || []).length && (
+                        <p className="text-sm text-muted-foreground text-center py-6">
+                          Nenhum comentário ainda
+                        </p>
                       )}
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="dependencies" className="space-y-4 pb-4">
+                  <TabsContent value="dependencies" className="mt-0">
                     <TaskDependencies
                       task={task}
-                      onUpdate={async (updatedTask) => {
-                        if (updatedTask?.id) {
-                          setTask(updatedTask);
-                          return;
-                        }
-                        const refreshed = await Task.get(task.id);
-                        setTask(refreshed);
-                      }}
+                      onUpdate={(updated) => setTask(updated)}
                     />
                   </TabsContent>
 
-                  <TabsContent value="history" className="space-y-4 pb-4">
+                  <TabsContent value="history" className="mt-0">
                     <TaskHistory task={task} />
                   </TabsContent>
-
-                  {/* Comentários Tab */}
-                  <TabsContent value="comments" className="space-y-4 pb-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Textarea
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Escreva um comentário... Use @nome para mencionar alguém"
-                          rows={3}
-                        />
-                        <div className="flex justify-between items-center">
-                          <div className="text-xs text-gray-500">
-                            <AtSign className="w-3 h-3 inline mr-1" />
-                            Use @ para mencionar pessoas
-                          </div>
-                          <Button 
-                            size="sm" 
-                            onClick={submitComment} 
-                            disabled={commentSending || !commentText.trim()} 
-                            className="gap-2"
-                          >
-                            {commentSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                            {commentSending ? "Enviando..." : "Enviar"}
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {(task.comments || []).map(c => (
-                          <div key={c.id} className={`border rounded p-3 ${c.type === 'system' ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
-                            <div className="flex items-start gap-3">
-                              <Avatar className="w-8 h-8">
-                                <AvatarFallback className="text-xs">
-                                  {c.userName?.charAt(0) || c.userEmail?.charAt(0) || '?'}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-medium">{c.userName || c.userEmail}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(c.createdAt || task.updated_date || Date.now()).toLocaleString('pt-BR')}
-                                  </span>
-                                  {c.type === 'system' && (
-                                    <Badge variant="outline" className="text-xs">Sistema</Badge>
-                                  )}
-                                </div>
-                                <div className="text-sm whitespace-pre-wrap">{c.content}</div>
-                                {c.mentions?.length > 0 && (
-                                  <div className="mt-2 text-xs text-blue-600">
-                                    Mencionou: {c.mentions.map(id => {
-                                      const user = users.find(u => u.id === id);
-                                      return user?.full_name || user?.email || id;
-                                    }).join(', ')}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        {(!task.comments || task.comments.length === 0) && (
-                          <div className="text-center py-8 text-gray-500">
-                            <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                            <p>Nenhum comentário ainda</p>
-                            <p className="text-sm">Inicie uma conversa sobre esta tarefa</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  {/* Anexos (drag and drop zone) */}
-                  <div 
-                    onDrop={onDrop} 
-                    onDragOver={onDragOver} 
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors mt-6"
-                  >
-                    <Paperclip className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="text-gray-600 mb-1">Arraste arquivos aqui para anexar</p>
-                    <p className="text-sm text-gray-500">ou clique para selecionar</p>
-                    
-                    {uploading && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Enviando... {uploadProgress}%
-                        </div>
-                        <Progress value={uploadProgress} className="w-full mt-2" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 mt-4">
-                    {(task.attachments || []).map(a => (
-                      <div key={`${a.id}-${a.name}`} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <Paperclip className="w-4 h-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium">{a.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {a.uploadedByName} • {new Date(a.uploadedAt).toLocaleDateString('pt-BR')}
-                              {a.size && ` • ${(a.size / 1024 / 1024).toFixed(1)} MB`}
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="gap-2">
-                            <Eye className="w-4 h-4" />
-                            Ver
-                          </a>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Tabs>
-            </div>
-
-            {/* Rodapé Fixo com Ações */}
-            <div className="border-t bg-white p-3 sm:p-4 px-4 sm:px-6 mt-auto pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>Tarefa #{task.id?.slice(-8)}</span>
-                  <span className="hidden sm:inline">•</span>
-                  <span className="hidden sm:inline">ESC para fechar</span>
-                  {hasUnsavedChanges && (
-                    <>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="text-yellow-600 font-medium">Alterações pendentes</span>
-                    </>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <Button 
-                    variant="outline" 
-                    onClick={closeDrawer}
-                    className="text-sm flex-1 sm:flex-none"
-                  >
-                    Fechar
-                  </Button>
-                  
-                  <Button 
-                    onClick={saveEdits} 
-                    disabled={saving || !hasUnsavedChanges} 
-                    className="gap-2 text-sm flex-1 sm:flex-none"
-                  >
-                    {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    {saving ? "Salvando..." : hasUnsavedChanges ? "Salvar" : "Salvo"}
-                  </Button>
-                </div>
+                </Tabs>
               </div>
             </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir esta tarefa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não poderá ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteTask}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {savingField === "delete" ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

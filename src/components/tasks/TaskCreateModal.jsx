@@ -186,6 +186,10 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
       if (onSuccess) {
         onSuccess(createdTask);
       }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('task:refresh'));
+      }
       
       // Close modal
       onOpenChange(false);

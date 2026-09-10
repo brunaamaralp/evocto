@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import TaskFilters from "@/components/tasks/TaskFilters";
 import TaskCreateModal from "@/components/tasks/TaskCreateModal";
 import TimeTracker from "@/components/tasks/TimeTracker";
-import { Input } from "@/components/ui/input";
-import { GripVertical, Plus, Save } from "lucide-react";
+import { GripVertical, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/components/auth/SessionManager";
 import {
@@ -26,50 +25,31 @@ const STATUS_LABELS = {
   completed: "Concluído",
 };
 
-function TaskCard({ task, onUpdateTitle }) {
-  const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-
+function TaskCard({ task, onOpen }) {
   return (
-    <div className="bg-white rounded-xl border border-white/60 p-3 space-y-2 shadow-sm">
+    <button
+      type="button"
+      onClick={() => onOpen?.(task)}
+      className="w-full text-left bg-white rounded-xl border border-white/60 p-3 space-y-2 shadow-sm hover:shadow-md transition-shadow"
+    >
       <div className="flex items-start gap-2">
-        <button type="button" className="cursor-grab text-[#7A7595] shrink-0 mt-0.5" aria-label="Arrastar">
+        <span className="cursor-grab text-[#7A7595] shrink-0 mt-0.5" aria-hidden>
           <GripVertical className="w-4 h-4" />
-        </button>
-        {editing ? (
-          <div className="flex flex-col gap-2 w-full min-w-0">
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8" />
-            <Button
-              size="sm"
-              className="gap-1 w-full"
-              onClick={() => {
-                onUpdateTitle(title);
-                setEditing(false);
-              }}
-            >
-              <Save className="w-4 h-4" /> Salvar
-            </Button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="text-left font-medium text-[#18162A] flex-1 min-w-0 break-words"
-          >
-            {task.title}
-          </button>
-        )}
+        </span>
+        <span className="font-medium text-[#18162A] flex-1 min-w-0 break-words">
+          {task.title}
+        </span>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge variant="outline" className="bg-white/60 shrink-0">{task.priority}</Badge>
-        <div className="min-w-0 overflow-hidden">
+        <div className="min-w-0 overflow-hidden" onClick={(e) => e.stopPropagation()}>
           <TimeTracker task={task} />
         </div>
       </div>
       {task.clientId && (
         <div className="text-xs text-[#7A7595] truncate">Cliente: {task.client?.name || task.clientId}</div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -132,9 +112,11 @@ export default function TasksBoardPage() {
     await load();
   };
 
-  const updateTitle = async (taskId, title) => {
-    await Task.update(taskId, { title });
-    await load();
+  const openTask = (task) => {
+    if (!task?.id) return;
+    window.dispatchEvent(
+      new CustomEvent("task:open", { detail: { taskId: task.id } })
+    );
   };
 
   const totalHours = useMemo(() => {
@@ -186,7 +168,7 @@ export default function TasksBoardPage() {
                   <TaskCard
                     key={t.id}
                     task={t}
-                    onUpdateTitle={(title) => updateTitle(t.id, title)}
+                    onOpen={openTask}
                   />
                 ))}
               </div>

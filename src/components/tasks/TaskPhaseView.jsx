@@ -12,8 +12,7 @@ import {
   Lightbulb,
   CheckCircle,
   AlertCircle,
-  Layers,
-  Clock
+  Layers
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -338,17 +337,6 @@ export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loadin
       ) : (
         phaseNames.map(phaseName => renderPhase(phaseName, tasksByPhase[phaseName]))
       )}
-
-      {/* Instruções */}
-      <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-600" />
-          <span>
-            <strong>Dica:</strong> Clique nas fases para expandir/recolher as tarefas. 
-            Tarefas com bordas coloridas têm características especiais (KPI, Aprendizado, Aprovação).
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

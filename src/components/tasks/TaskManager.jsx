@@ -43,6 +43,8 @@ export default function TaskManager({
   userRole = 'consultor',
   embedded = false,
   hideCreate = false,
+  /** Incrementar após criar/editar fora deste componente para forçar reload da lista */
+  refreshKey = 0,
 }) {
   const { user } = useSession();
   const [tasks, setTasks] = useState([]);
@@ -91,6 +93,18 @@ export default function TaskManager({
 
   useEffect(() => {
     loadTasks();
+  }, [loadTasks, refreshKey]);
+
+  useEffect(() => {
+    const handler = () => {
+      loadTasks();
+    };
+    window.addEventListener('task:refresh', handler);
+    window.addEventListener('task:updated', handler);
+    return () => {
+      window.removeEventListener('task:refresh', handler);
+      window.removeEventListener('task:updated', handler);
+    };
   }, [loadTasks]);
 
   // Aplicar filtros
@@ -120,8 +134,10 @@ export default function TaskManager({
   };
 
   const handleEditTask = (task) => {
-    setEditingTask(task);
-    setShowTaskForm(true);
+    if (!task?.id) return;
+    window.dispatchEvent(
+      new CustomEvent('task:open', { detail: { taskId: task.id } })
+    );
   };
 
   const handleTaskSaved = async () => {

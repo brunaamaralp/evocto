@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Building2, Menu, ChevronRight, Megaphone, Users, ChevronDown } from 'lucide-react';
+import { User, LogOut, Menu, Megaphone, Users, ChevronDown } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -18,11 +18,10 @@ import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotificatio
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
-import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
+import { GLOBAL_SHELL } from '@/lib/clientContextTheme';
 
 export default function ModernHeader({
   context,
-  contextClient,
   contextCampaign,
   onMenuClick,
 }) {
@@ -85,37 +84,20 @@ export default function ModernHeader({
             </Button>
 
             {isClientContext ? (
-              <div className="flex flex-col min-w-0 gap-0.5">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shrink-0 ${CLIENT_CONTEXT.chip}`}
-                  >
-                    <Building2 className="w-3.5 h-3.5" />
-                    Cliente
-                  </span>
-                  <Link
-                    to={createPageUrl(`client-detail?clientId=${context.clientId}`)}
-                    className="text-sm font-semibold text-teal-950 truncate hover:underline min-w-0"
-                  >
-                    {contextClient?.name || 'Perfil do cliente'}
-                  </Link>
-                </div>
-                {showCampaignCrumb && (
-                  <Link
-                    to={createPageUrl(
-                      buildClientCampaignHref({
-                        clientId: context.clientId,
-                        briefingId: context.briefingId,
-                      })
-                    )}
-                    className="flex items-center gap-1 min-w-0 text-xs sm:text-sm font-medium text-teal-800/90 truncate hover:underline"
-                  >
-                    <ChevronRight className="w-3 h-3 text-teal-700/50 shrink-0 hidden sm:block" />
-                    <Megaphone className="w-3 h-3 text-teal-700/70 shrink-0" />
-                    <span className="truncate">{contextCampaign.name}</span>
-                  </Link>
-                )}
-              </div>
+              showCampaignCrumb ? (
+                <Link
+                  to={createPageUrl(
+                    buildClientCampaignHref({
+                      clientId: context.clientId,
+                      briefingId: context.briefingId,
+                    })
+                  )}
+                  className="flex items-center gap-1.5 min-w-0 text-sm font-semibold text-teal-900 truncate hover:underline"
+                >
+                  <Megaphone className="w-3.5 h-3.5 text-teal-700/70 shrink-0" />
+                  <span className="truncate">{contextCampaign.name}</span>
+                </Link>
+              ) : null
             ) : (
               <div className="hidden md:flex items-center flex-1 max-w-md min-w-0">
                 <GlobalSearchTrigger />
