@@ -1,28 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Plus,
-  Zap,
-  FileText,
   CheckCircle,
   Circle,
   AlertCircle,
   Loader2,
-  Target,
-  Clock,
-  Megaphone,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import ClientActiveCampaignsPanel from '@/components/client/ClientActiveCampaignsPanel';
-import ClientExecutionPanel from '@/components/client/ClientExecutionPanel';
-import ClientKnowledgeSummary from '@/components/client/ClientKnowledgeSummary';
 import InviteClientModal from '@/components/client/InviteClientModal';
 
 export default function ClientDetailPage() {
@@ -47,8 +38,6 @@ export default function ClientDetailPage() {
     loading,
     error,
     reload,
-    activeServices,
-    activeCycles,
     activeCampaigns,
     attentionItems,
     counts,
@@ -65,10 +54,10 @@ export default function ClientDetailPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Verificando autenticação...</p>
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
+          <p className="text-sm text-[#555]">Verificando autenticação…</p>
         </div>
       </div>
     );
@@ -76,18 +65,18 @@ export default function ClientDetailPage() {
 
   if (!clientId) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
+          <h2 className="mb-2 text-xl font-semibold text-[#111]">
             ID do cliente não encontrado
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-5 text-sm text-[#555]">
             Abra o perfil a partir da lista de clientes.
           </p>
           <Button asChild variant="outline">
             <Link to={createPageUrl('clients')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar aos Clientes
             </Link>
           </Button>
@@ -98,10 +87,10 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Carregando perfil do cliente...</p>
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
+          <p className="text-sm text-[#555]">Carregando cliente…</p>
         </div>
       </div>
     );
@@ -109,21 +98,21 @@ export default function ClientDetailPage() {
 
   if (error || !client) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Erro ao Carregar Cliente
-          </h2>
-          <p className="text-red-600 mb-4">{error || 'Cliente não encontrado'}</p>
-          <div className="flex gap-2 justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
+          <h2 className="mb-2 text-xl font-semibold text-[#111]">Erro ao carregar cliente</h2>
+          <p className="mb-5 text-sm text-[#c0392b]">{error || 'Cliente não encontrado'}</p>
+          <div className="flex justify-center gap-2">
             <Button asChild variant="outline">
               <Link to={createPageUrl('clients')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Clientes
               </Link>
             </Button>
-            <Button onClick={reload}>Tentar novamente</Button>
+            <Button onClick={reload} className="bg-[#007bff] hover:bg-[#0056b3]">
+              Tentar novamente
+            </Button>
           </div>
         </div>
       </div>
@@ -153,186 +142,148 @@ export default function ClientDetailPage() {
       title: 'Convidar cliente para o portal',
       description: 'Permita que o cliente acesse seu portal exclusivo',
       completed: Boolean(client.portal_enabled || client.has_portal_access),
-      action: 'Enviar Convite',
+      action: 'Enviar convite',
       onClick: () => setInviteModalOpen(true),
     },
   ];
 
   const showSetup = !hasCampaigns;
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
+  const statusLabel = client.status
+    ? String(client.status).charAt(0).toUpperCase() + String(client.status).slice(1)
+    : null;
+
+  const metaParts = [
+    statusLabel,
+    `${counts.campaignsActive} campanha${counts.campaignsActive === 1 ? '' : 's'}`,
+    counts.tasksPending > 0
+      ? `${counts.tasksPending} tarefa${counts.tasksPending === 1 ? '' : 's'}`
+      : null,
+    counts.approvalsPending > 0
+      ? `${counts.approvalsPending} aprovação${counts.approvalsPending === 1 ? '' : 'ões'}`
+      : null,
+    client.legal_name || client.email || null,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">
-              Visão geral
-            </h1>
-            {(client.legal_name || client.email) && (
-              <p className="text-xs sm:text-sm text-[#7A7595] truncate">
-                {client.legal_name || client.email}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={client.status === 'ativo' ? 'default' : 'secondary'}>
-              {client.status || '—'}
-            </Badge>
-            {counts.attention > 0 && (
-              <Badge className="bg-[#FFF8E6] text-[#7A5A10] hover:bg-[#FFF8E6]">
-                {counts.attention} atenção
-              </Badge>
-            )}
-            <Button asChild size="sm">
-              <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
-                <Plus className="w-4 h-4 mr-1" />
-                Nova campanha
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
-                <FileText className="w-4 h-4 mr-1" />
-                Briefings
-              </Link>
-            </Button>
-          </div>
+    <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <h1 className="truncate text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
+            {client.name || 'Cliente'}
+          </h1>
+          <p className="text-sm text-[#555]">{metaParts.join(' · ')}</p>
         </div>
+        <Button
+          asChild
+          className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+        >
+          <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Nova campanha
+          </Link>
+        </Button>
+      </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-[#E6F7F0] border-transparent shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#085041]">Campanhas ativas</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.campaignsActive}</p>
-              </div>
-              <Megaphone className="h-7 w-7 text-[#22C98A]" />
-            </CardContent>
-          </Card>
-          <Card className="bg-[#FFF8E6] border-transparent shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#7A5A10]">Tarefas pendentes</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.tasksPending}</p>
-              </div>
-              <Clock className="h-7 w-7 text-[#E0B84A]" />
-            </CardContent>
-          </Card>
-          <Card className="bg-[#EDE9FB] border-transparent shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#4A2FA3]">Aprovações</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.approvalsPending}</p>
-              </div>
-              <Target className="h-7 w-7 text-[#6C47D8]" />
-            </CardContent>
-          </Card>
-        </div>
-
-        {showSetup && (
-          <Card className="border-[#C5DBF0] bg-[#EAF2FB]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#2E5A7A] text-base">
-                <Zap className="w-5 h-5" />
-                Configuração inicial ({completedSteps}/{setupChecklist.length})
-              </CardTitle>
-              <p className="text-[#2E5A7A]/80 text-sm">
-                Complete estas etapas para começar a operar com {client.name}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {setupChecklist.map((step) => (
-                  <div
-                    key={step.id}
-                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-white rounded-xl border border-[#E8E5F5]/80"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      {step.completed ? (
-                        <CheckCircle className="w-5 h-5 text-[#22C98A] shrink-0 mt-0.5" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-[#7A7595] shrink-0 mt-0.5" />
-                      )}
-                      <div className="min-w-0">
-                        <h4 className="font-medium text-[#18162A]">{step.title}</h4>
-                        <p className="text-sm text-[#7A7595]">{step.description}</p>
-                      </div>
-                    </div>
-                    {!step.completed && (
-                      step.onClick ? (
-                        <Button size="sm" className="w-full sm:w-auto shrink-0" onClick={step.onClick}>
-                          <Plus className="w-4 h-4 mr-1" />
-                          {step.action}
-                        </Button>
-                      ) : (
-                        <Button asChild size="sm" className="w-full sm:w-auto shrink-0">
-                          <Link to={step.href}>
-                            <Plus className="w-4 h-4 mr-1" />
-                            {step.action}
-                          </Link>
-                        </Button>
-                      )
-                    )}
+      {showSetup ? (
+        <section
+          aria-labelledby="setup-heading"
+          className="rounded-xl border border-[#eee] bg-[#fafafa] p-5 sm:p-6"
+        >
+          <h2 id="setup-heading" className="text-base font-semibold text-[#111]">
+            Configuração inicial ({completedSteps}/{setupChecklist.length})
+          </h2>
+          <p className="mt-1 text-sm text-[#555]">
+            Complete estas etapas para começar a operar com {client.name}
+          </p>
+          <ul className="mt-5 space-y-3">
+            {setupChecklist.map((step) => (
+              <li
+                key={step.id}
+                className="flex flex-col gap-3 rounded-xl border border-[#eee] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 items-start gap-3">
+                  {step.completed ? (
+                    <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#27ae60]" aria-hidden />
+                  ) : (
+                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-[#555]" aria-hidden />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-[#111]">{step.title}</h3>
+                    <p className="text-sm text-[#555]">{step.description}</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </div>
+                {!step.completed ? (
+                  step.onClick ? (
+                    <Button
+                      size="sm"
+                      className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+                      onClick={step.onClick}
+                    >
+                      {step.action}
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+                    >
+                      <Link to={step.href}>{step.action}</Link>
+                    </Button>
+                  )
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-        <div id="campanhas">
-          <ClientActiveCampaignsPanel
-            clientId={clientId}
-            campaigns={activeCampaigns}
-            showCreateCta={activeCampaigns.length === 0}
-          />
-        </div>
+      <div id="campanhas">
+        <ClientActiveCampaignsPanel
+          clientId={clientId}
+          campaigns={activeCampaigns}
+          showCreateCta={activeCampaigns.length === 0}
+        />
+      </div>
 
+      {attentionItems.length > 0 ? (
         <ClientAttentionPanel items={attentionItems} />
+      ) : null}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <ClientExecutionPanel
-            clientId={clientId}
-            activeServices={activeServices}
-            activeCycles={activeCycles}
-          />
-          <ClientKnowledgeSummary clientId={clientId} briefs={briefs} kpisCount={counts.kpis} />
+      <section
+        aria-labelledby="more-heading"
+        className="border-t border-[#eee] pt-8"
+      >
+        <h2 id="more-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#555]">
+          Mais neste cliente
+        </h2>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link
+            to={createPageUrl(`client-briefing?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Briefings
+          </Link>
+          <Link
+            to={createPageUrl(`client-tasks?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Tarefas
+          </Link>
+          <Link
+            to={createPageUrl(`client-services?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Serviços e ciclos
+          </Link>
+          <Link
+            to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
+          </Link>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ações rápidas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#EDE9FB] rounded-xl">
-                      <FileText className="w-5 h-5 text-[#6C47D8]" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">Briefings</div>
-                      <div className="text-sm text-[#7A7595]">Contexto e histórico</div>
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`client-tasks?clientId=${clientId}`)}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#FFF8E6] rounded-xl">
-                      <Clock className="w-5 h-5 text-[#E0B84A]" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">Tarefas</div>
-                      <div className="text-sm text-[#7A7595]">Fila deste cliente</div>
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      </section>
 
       <InviteClientModal
         isOpen={inviteModalOpen}

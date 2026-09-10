@@ -23,6 +23,14 @@ async function postAgent(route, body) {
 const ROTEIROS_PROMPT =
   'Com base no que alinhamos até agora, gere os ROTEIROS detalhados da campanha (hooks, cenas, falas, CTAs) e, se já estiver completo, finalize com o JSON das 9 dimensões.';
 
+function statusPillLabel(status) {
+  const s = String(status || '').toLowerCase();
+  if (s === 'refinada') return 'Refinada';
+  if (s === 'finalizada') return 'Finalizada';
+  if (s === 'arquivada') return 'Arquivada';
+  return 'Explorando';
+}
+
 /**
  * Chat do agent — adaptado para Brainstorm.
  *
@@ -126,7 +134,7 @@ export default function ChatInterface({
     if (loading || !conversationId) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') {
-      alert('Nenhuma resposta do agente pra salvar');
+      setError('Nenhuma resposta do agente pra salvar');
       return;
     }
 
@@ -163,14 +171,19 @@ export default function ChatInterface({
 
   if (!conversationId) {
     return (
-      <div style={{ padding: 24, color: '#888', textAlign: 'center' }}>
+      <div style={{ padding: 24, color: '#555', textAlign: 'center' }}>
         conversationId é obrigatório
       </div>
     );
   }
 
+  const statusRaw = String(contextoEnriquecido?.status || '').toLowerCase();
+  const isRefinada = statusRaw === 'refinada';
+  const isFinalizada = statusRaw === 'finalizada';
+  const canSaveBrief = isRefinada && !isFinalizada && !loading && Boolean(conversationId);
+  const assistantCount = messages.filter((m) => m.role === 'assistant').length;
+  const showGerarRoteiros = assistantCount >= 2;
   const canSend = Boolean(inputValue.trim()) && !loading && Boolean(conversationId);
-  const isRefinada = String(contextoEnriquecido?.status || '').toLowerCase() === 'refinada';
   const empresaNome = contextoEnriquecido?.empresa?.nome;
   const ciclo = contextoEnriquecido?.ciclo_proximo;
   const mesAno =
@@ -180,16 +193,11 @@ export default function ChatInterface({
 
   return (
     <div className="chat-interface" style={styles.root}>
-      {/* Header */}
       <header style={styles.header}>
         <div style={{ minWidth: 0 }}>
           <div style={styles.headerTitle}>
             {empresaNome || 'Brainstorm'}
-            {isRefinada ? (
-              <span className="chat-refinada-badge" style={styles.badge}>
-                ✓ Refinada
-              </span>
-            ) : null}
+            <span style={styles.statusPill}>{statusPillLabel(statusRaw)}</span>
           </div>
           {(mesAno || ciclo) && (
             <div style={styles.headerMeta}>
@@ -201,7 +209,6 @@ export default function ChatInterface({
         </div>
       </header>
 
-      {/* Message list */}
       <div ref={listRef} style={styles.list}>
         {messages.length === 0 && !loading ? (
           <p style={styles.empty}>Comece descrevendo o que precisa para a campanha.</p>
@@ -222,7 +229,7 @@ export default function ChatInterface({
                 style={{
                   ...styles.bubble,
                   background: isUser ? '#007bff' : '#f0f0f0',
-                  color: isUser ? '#fff' : '#000',
+                  color: isUser ? '#fff' : '#111',
                 }}
               >
                 {msg.content}
@@ -235,7 +242,7 @@ export default function ChatInterface({
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <div style={styles.loadingBubble}>
               <span style={spinnerStyle} aria-hidden />
-              Pensando…
+              Gerando ideias…
             </div>
           </div>
         ) : null}
@@ -249,7 +256,20 @@ export default function ChatInterface({
         </p>
       ) : null}
 
-      {/* Input */}
+      {showGerarRoteiros ? (
+        <div style={styles.secondaryRow}>
+          <button
+            type="button"
+            className="chat-secondary-btn"
+            onClick={handleGerarRoteiros}
+            disabled={loading || !conversationId}
+            style={styles.secondaryBtn}
+          >
+            Gerar Roteiros
+          </button>
+        </div>
+      ) : null}
+
       <div style={styles.inputArea}>
         <textarea
           value={inputValue}
@@ -267,52 +287,51 @@ export default function ChatInterface({
           type="button"
           onClick={handleSend}
           disabled={!canSend}
-          style={btnPrimary(!canSend)}
+          style={btnSend(!canSend)}
         >
           Enviar
         </button>
       </div>
 
-      {/* Floating actions */}
-      <div className="chat-actions" style={styles.chatActions}>
+      <div style={styles.stickyBar}>
         <button
           type="button"
-          className="chat-action-btn"
+          className="chat-primary-btn"
           onClick={handleSaveBrief}
-          disabled={loading || !conversationId}
-          style={styles.floatBtn}
+          disabled={!canSaveBrief}
+          style={btnSave(!canSaveBrief)}
+          title={
+            isFinalizada
+              ? 'Brief já finalizado'
+              : !isRefinada
+                ? 'Disponível quando a conversa estiver refinada'
+                : undefined
+          }
         >
           Salvar como Brief
         </button>
-        <button
-          type="button"
-          className="chat-action-btn"
-          onClick={handleGerarRoteiros}
-          disabled={loading || !conversationId}
-          style={styles.floatBtn}
-        >
-          Gerar Roteiros
-        </button>
+        {!isRefinada && !isFinalizada ? (
+          <p style={styles.saveHint}>Disponível quando a ideia estiver refinada</p>
+        ) : null}
       </div>
 
       <style>{`
-        .chat-action-btn:hover:not(:disabled) {
-          background: #0056b3 !important;
+        .chat-secondary-btn:hover:not(:disabled) {
+          background: #f5f5f5 !important;
         }
-        .chat-action-btn:disabled {
+        .chat-secondary-btn:disabled,
+        .chat-primary-btn:disabled {
           opacity: 0.55;
           cursor: not-allowed;
+        }
+        .chat-primary-btn:hover:not(:disabled) {
+          background: #0056b3 !important;
         }
         @media (max-width: 640px) {
           .agent-chat-bubble {
             font-size: 13px !important;
             padding: 0.6rem 0.85rem !important;
             max-width: 92% !important;
-          }
-          .chat-actions {
-            left: 12px !important;
-            right: 12px !important;
-            bottom: 12px !important;
           }
         }
         @keyframes agent-spin {
@@ -340,9 +359,8 @@ const styles = {
     flexDirection: 'column',
     height: '100%',
     minHeight: 320,
-    gap: '0.75rem',
-    color: '#333',
-    paddingBottom: 56,
+    gap: '0.85rem',
+    color: '#1a1a1a',
   },
   header: {
     display: 'flex',
@@ -359,17 +377,18 @@ const styles = {
     gap: 8,
     fontSize: 16,
     fontWeight: 700,
+    color: '#111',
   },
-  headerMeta: { marginTop: 2, fontSize: 12, color: '#666' },
-  badge: {
+  headerMeta: { marginTop: 2, fontSize: 12, color: '#555' },
+  statusPill: {
     display: 'inline-flex',
     alignItems: 'center',
-    padding: '0.15rem 0.5rem',
+    padding: '0.15rem 0.55rem',
     borderRadius: 999,
-    background: '#e8f8ef',
-    color: '#1e7e34',
+    background: '#f0f0f0',
+    color: '#111',
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
   },
   list: {
     flex: 1,
@@ -377,9 +396,9 @@ const styles = {
     padding: '0.5rem 0.25rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.65rem',
+    gap: '0.85rem',
   },
-  empty: { margin: 0, fontSize: 13, color: '#888', textAlign: 'center' },
+  empty: { margin: 0, fontSize: 13, color: '#555', textAlign: 'center' },
   bubble: {
     maxWidth: 'min(85%, 520px)',
     padding: '0.75rem 1rem',
@@ -400,14 +419,29 @@ const styles = {
     color: '#555',
   },
   error: { margin: 0, fontSize: 12, color: '#c0392b' },
+  secondaryRow: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+  },
+  secondaryBtn: {
+    padding: '0.45rem 0.85rem',
+    borderRadius: 8,
+    border: '1px solid #ccc',
+    background: '#fff',
+    color: '#111',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
   inputArea: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
+    alignItems: 'flex-end',
   },
   textarea: {
     width: '100%',
-    minHeight: 80,
+    minHeight: 96,
     padding: '1rem',
     borderRadius: 8,
     border: '1px solid #ddd',
@@ -415,34 +449,41 @@ const styles = {
     fontSize: 14,
     fontFamily: 'inherit',
     boxSizing: 'border-box',
+    color: '#111',
   },
-  chatActions: {
-    position: 'fixed',
-    right: 24,
-    bottom: 24,
-    zIndex: 40,
+  stickyBar: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 8,
+    gap: 6,
+    paddingTop: 4,
+    borderTop: '1px solid #eee',
   },
-  floatBtn: {
-    padding: '0.65rem 1rem',
-    borderRadius: 8,
-    border: 'none',
-    background: '#007bff',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0, 123, 255, 0.35)',
-    whiteSpace: 'nowrap',
+  saveHint: {
+    margin: 0,
+    fontSize: 12,
+    color: '#555',
+    textAlign: 'center',
   },
 };
 
-function btnPrimary(disabled) {
+function btnSend(disabled) {
   return {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
     padding: '0.55rem 1rem',
+    borderRadius: 8,
+    border: 'none',
+    background: disabled ? '#d0d0d0' : '#007bff',
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: 14,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  };
+}
+
+function btnSave(disabled) {
+  return {
+    width: '100%',
+    padding: '0.7rem 1rem',
     borderRadius: 8,
     border: 'none',
     background: disabled ? '#9ec9f5' : '#007bff',

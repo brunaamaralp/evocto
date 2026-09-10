@@ -1,86 +1,64 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  FileText,
-  ArrowRight,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-const TYPE_STYLES = {
-  task_overdue: { icon: AlertTriangle, badge: 'Atrasada', className: 'text-red-600' },
-  task_urgent: { icon: AlertTriangle, badge: 'Urgente', className: 'text-orange-600' },
-  approval_pending: { icon: Clock, badge: 'Aprovação', className: 'text-amber-600' },
-  cycle_pending: { icon: Clock, badge: 'Ciclo', className: 'text-blue-600' },
-  brief_incomplete: { icon: FileText, badge: 'Briefing', className: 'text-purple-600' },
+const TYPE_LABELS = {
+  task_overdue: 'Atrasada',
+  task_urgent: 'Urgente',
+  approval_pending: 'Aprovação',
+  cycle_pending: 'Ciclo',
+  brief_incomplete: 'Briefing',
 };
 
 export default function ClientAttentionPanel({ items = [] }) {
+  if (!items.length) return null;
+
   return (
-    <Card className="h-full border-amber-200/80">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
-          <span className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
-            Merece atenção
-          </span>
-          {items.length > 0 && (
-            <Badge variant="secondary">{items.length}</Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {items.length === 0 ? (
-          <div className="flex items-start gap-3 rounded-lg bg-emerald-50 border border-emerald-100 p-4">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-emerald-900">Nada pendente</p>
-              <p className="text-sm text-emerald-700 mt-0.5">
-                Sem tarefas atrasadas, aprovações ou briefings travados neste cliente.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item) => {
-              const style = TYPE_STYLES[item.type] || TYPE_STYLES.task_urgent;
-              const Icon = style.icon;
-              return (
-                <li key={item.id}>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full h-auto justify-between px-3 py-3"
-                  >
-                    <Link to={item.href}>
-                      <div className="flex items-start gap-3 text-left min-w-0">
-                        <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${style.className}`} />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                              {style.badge}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {item.label}
-                            </span>
-                          </div>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {item.title}
-                          </p>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
-                    </Link>
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+    <section
+      aria-labelledby="attention-heading"
+      className="border-t border-[#eee] pt-8"
+    >
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <h2
+          id="attention-heading"
+          className="text-sm font-semibold uppercase tracking-wide text-[#555]"
+        >
+          Merece atenção · {items.length}
+        </h2>
+      </div>
+
+      <ul className="space-y-1">
+        {items.map((item) => {
+          const badge = TYPE_LABELS[item.type] || 'Atenção';
+          const isUrgent =
+            item.type === 'task_overdue' || item.type === 'task_urgent';
+
+          return (
+            <li key={item.id}>
+              <Link
+                to={item.href}
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+              >
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                    <span
+                      className={`text-xs font-semibold ${
+                        isUrgent ? 'text-[#c0392b]' : 'text-[#555]'
+                      }`}
+                    >
+                      {badge}
+                    </span>
+                    {item.label ? (
+                      <span className="truncate text-xs text-[#555]">{item.label}</span>
+                    ) : null}
+                  </div>
+                  <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#555]" aria-hidden />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

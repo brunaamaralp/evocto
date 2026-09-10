@@ -16,22 +16,13 @@ const MES_NOMES = [
   'dez',
 ];
 
-const CICLO_COLORS = {
-  autoridade: '#5b8def',
-  vendas: '#e67e22',
-  engajamento: '#27ae60',
-  reconhecimento: '#9b59b6',
-};
-
 function produtoNome(p) {
   if (p == null) return '';
   if (typeof p === 'string') return p;
   return p.nome || p.name || p.linha || '';
 }
 
-function cicloBadgeStyle(ciclo) {
-  const key = String(ciclo || '').toLowerCase();
-  const bg = CICLO_COLORS[key] || '#007bff';
+function cicloBadgeStyle() {
   return {
     display: 'inline-block',
     padding: '0.2rem 0.55rem',
@@ -39,7 +30,7 @@ function cicloBadgeStyle(ciclo) {
     fontSize: 12,
     fontWeight: 600,
     color: '#fff',
-    background: bg,
+    background: '#007bff',
     textTransform: 'uppercase',
     letterSpacing: '0.02em',
   };
@@ -55,13 +46,11 @@ function campaignKey(c, index) {
  * @param {{
  *   contextoEnriquecido: object,
  *   conversationStatus?: string,
- *   onSaveAsBrief?: () => void,
  * }} props
  */
 export default function ContextSidebar({
   contextoEnriquecido,
   conversationStatus,
-  onSaveAsBrief,
 }) {
   const ctx = contextoEnriquecido || {};
   const ultima = ctx.ultima_campanha || null;
@@ -100,25 +89,23 @@ export default function ContextSidebar({
         maxWidth: 300,
         padding: '1.5rem',
         borderRadius: 8,
-        color: '#333',
+        color: '#1a1a1a',
         overflowY: 'auto',
         maxHeight: '100%',
         boxSizing: 'border-box',
       }}
     >
-      {/* 1. Resumo */}
       <section style={{ marginBottom: '1.25rem' }}>
         <h3 style={sectionTitle}>Resumo</h3>
-        <p style={{ margin: '0 0 0.35rem', fontWeight: 700, fontSize: 15 }}>
+        <p style={{ margin: '0 0 0.35rem', fontWeight: 700, fontSize: 15, color: '#111' }}>
           {ctx.empresa?.nome || '—'}
         </p>
         <p style={{ margin: '0 0 0.5rem', fontSize: 13, color: '#555' }}>{mesLabel}</p>
         {ctx.ciclo_proximo ? (
-          <span style={cicloBadgeStyle(ctx.ciclo_proximo)}>{ctx.ciclo_proximo}</span>
+          <span style={cicloBadgeStyle()}>{ctx.ciclo_proximo}</span>
         ) : null}
       </section>
 
-      {/* 2. Última Campanha */}
       <section style={{ marginBottom: '1.25rem' }}>
         <h3 style={sectionTitle}>Última Campanha</h3>
         {ultima ? (
@@ -140,13 +127,13 @@ export default function ContextSidebar({
               cursor: 'pointer',
             }}
           >
-            <div style={{ fontWeight: 700 }}>{ultima.nome_campanha || '—'}</div>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+            <div style={{ fontWeight: 700, color: '#111' }}>{ultima.nome_campanha || '—'}</div>
+            <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}>
               {ultima.ciclo_comercial || '—'}
             </div>
-            <div style={{ marginTop: 6, fontSize: 13 }}>
+            <div style={{ marginTop: 6, fontSize: 13, color: '#111' }}>
               Nota:{' '}
-              <span style={{ color: '#e67e22', fontWeight: 700 }}>
+              <span style={{ fontWeight: 700 }}>
                 {ultima.resultado?.nota_geral ?? '—'}/10
               </span>
             </div>
@@ -162,23 +149,22 @@ export default function ContextSidebar({
                 opacity: hoverUltima || expandedUltima ? 1 : 0,
               }}
             >
-              <div style={{ paddingTop: 8, fontSize: 12, color: '#444' }}>
+              <div style={{ paddingTop: 8, fontSize: 12, color: '#1a1a1a' }}>
                 <strong>O que funcionou:</strong>{' '}
                 {ultima.resultado?.o_que_funcionou || '—'}
               </div>
             </div>
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: 13, color: '#777' }}>Nenhuma campanha anterior</p>
+          <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Nenhuma campanha anterior</p>
         )}
       </section>
 
-      {/* 3. Histórico */}
       <section style={{ marginBottom: '1.25rem' }}>
         <h3 style={sectionTitle}>Histórico</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {historico.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, color: '#777' }}>Sem histórico</p>
+            <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Sem histórico</p>
           ) : (
             historico.map((c, index) => {
               const key = campaignKey(c, index);
@@ -203,14 +189,14 @@ export default function ContextSidebar({
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontWeight: 600, fontSize: 13 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#111' }}>
                       {c.nome_campanha || '—'}
                     </span>
-                    <span style={{ fontSize: 12, color: '#e67e22', fontWeight: 600 }}>
+                    <span style={{ fontSize: 12, color: '#111', fontWeight: 700 }}>
                       {c.resultado?.nota_geral ?? '—'}
                     </span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>
                     {c.mes}/{c.ano}
                   </div>
 
@@ -221,7 +207,7 @@ export default function ContextSidebar({
                       opacity: open ? 1 : 0,
                     }}
                   >
-                    <div style={{ paddingTop: 8, fontSize: 12, color: '#444', lineHeight: 1.45 }}>
+                    <div style={{ paddingTop: 8, fontSize: 12, color: '#1a1a1a', lineHeight: 1.45 }}>
                       <div>
                         <strong>Ciclo:</strong> {c.ciclo_comercial || '—'}
                       </div>
@@ -248,10 +234,9 @@ export default function ContextSidebar({
         </div>
       </section>
 
-      {/* 4. Padrões */}
       <section style={{ marginBottom: '1.25rem' }}>
         <h3 style={sectionTitle}>Padrões</h3>
-        <p style={{ margin: '0 0 0.35rem', fontSize: 13 }}>
+        <p style={{ margin: '0 0 0.35rem', fontSize: 13, color: '#1a1a1a' }}>
           Melhor VENDAS:{' '}
           <strong>
             {ctx.padroes_performance?.melhor_ciclo_vendas ||
@@ -259,7 +244,7 @@ export default function ContextSidebar({
               '—'}
           </strong>
         </p>
-        <p style={{ margin: 0, fontSize: 13 }}>
+        <p style={{ margin: 0, fontSize: 13, color: '#1a1a1a' }}>
           Melhor ENGAJAMENTO:{' '}
           <strong>
             {ctx.padroes_performance?.melhor_ciclo_engajamento ||
@@ -269,13 +254,12 @@ export default function ContextSidebar({
         </p>
       </section>
 
-      {/* 5. Produtos */}
-      <section style={{ marginBottom: onSaveAsBrief ? '1.25rem' : 0 }}>
+      <section style={{ marginBottom: conversationStatus ? '1.25rem' : 0 }}>
         <h3 style={sectionTitle}>Produtos</h3>
         {produtos.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 13, color: '#777' }}>Nenhum produto</p>
+          <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Nenhum produto</p>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: 13, lineHeight: 1.6 }}>
+          <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: 13, lineHeight: 1.6, color: '#1a1a1a' }}>
             {produtos.map((nome) => (
               <li key={nome}>{nome}</li>
             ))}
@@ -283,42 +267,16 @@ export default function ContextSidebar({
         )}
       </section>
 
-      {(conversationStatus || onSaveAsBrief) && (
+      {conversationStatus ? (
         <section>
-          {conversationStatus ? (
-            <p style={{ margin: '0 0 0.75rem', fontSize: 12, color: '#555' }}>
-              Status:{' '}
-              <strong style={{ textTransform: 'capitalize' }}>{conversationStatus}</strong>
-            </p>
-          ) : null}
-          {onSaveAsBrief ? (
-            <button
-              type="button"
-              onClick={onSaveAsBrief}
-              disabled={String(conversationStatus || '').toLowerCase() === 'finalizada'}
-              style={{
-                width: '100%',
-                padding: '0.6rem 0.75rem',
-                borderRadius: 8,
-                border: 'none',
-                background:
-                  String(conversationStatus || '').toLowerCase() === 'finalizada'
-                    ? '#9ec9f5'
-                    : '#007bff',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: 13,
-                cursor:
-                  String(conversationStatus || '').toLowerCase() === 'finalizada'
-                    ? 'not-allowed'
-                    : 'pointer',
-              }}
-            >
-              Salvar como Brief
-            </button>
-          ) : null}
+          <p style={{ margin: 0, fontSize: 12, color: '#555' }}>
+            Status:{' '}
+            <strong style={{ textTransform: 'capitalize', color: '#111' }}>
+              {conversationStatus}
+            </strong>
+          </p>
         </section>
-      )}
+      ) : null}
     </aside>
   );
 }
@@ -336,7 +294,6 @@ const cardBase = {
   background: '#fff',
   borderRadius: 6,
   padding: '0.75rem 0.85rem',
-  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
 };
 
 const detailsBox = {

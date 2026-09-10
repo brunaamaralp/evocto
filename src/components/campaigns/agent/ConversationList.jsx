@@ -41,7 +41,7 @@ function statusLabel(status) {
   return { text: s || 'explorando', badge: false };
 }
 
-function exportConversationPdf(conversation, contextData) {
+function exportConversationPdf(conversation, contextData, onError) {
   const titulo = conversation?.titulo || 'Conversa';
   const ctx = contextData || conversation?.contextoEnriquecido || {};
   const campanhas = (ctx.campanhas_anteriores || []).slice(0, 3);
@@ -63,12 +63,12 @@ function exportConversationPdf(conversation, contextData) {
   ];
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${titulo}</title>
-    <style>body{font-family:system-ui,sans-serif;padding:24px;color:#333} h1{font-size:18px} pre{white-space:pre-wrap}</style>
+    <style>body{font-family:system-ui,sans-serif;padding:24px;color:#1a1a1a} h1{font-size:18px} pre{white-space:pre-wrap}</style>
     </head><body><h1>${titulo}</h1><pre>${lines.join('\n')}</pre>
     <script>window.onload=()=>{window.print()}</script></body></html>`;
   const w = window.open('', '_blank');
   if (!w) {
-    alert('Permita pop-ups para exportar PDF');
+    onError?.('Permita pop-ups para exportar PDF');
     return;
   }
   w.document.write(html);
@@ -86,6 +86,9 @@ function exportConversationPdf(conversation, contextData) {
  *   contextData?: object,
  *   empresas?: Array<{ id?: string, nome?: string, name?: string } | string>,
  *   onRefresh?: () => void,
+ *   onError?: (message: string) => void,
+ *   createOpen?: boolean,
+ *   onCreateOpenChange?: (open: boolean) => void,
  * }} props
  */
 export default function ConversationList({
@@ -96,13 +99,27 @@ export default function ConversationList({
   contextData,
   empresas = [],
   onRefresh,
+  onError,
+  createOpen,
+  onCreateOpenChange,
 }) {
   const [menuOpenId, setMenuOpenId] = useState(null);
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [internalCreating, setInternalCreating] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [formEmpresa, setFormEmpresa] = useState('');
   const [formMes, setFormMes] = useState(new Date().getMonth() + 1);
   const [formAno, setFormAno] = useState(new Date().getFullYear());
+
+  const isControlled = createOpen !== undefined;
+  const isCreatingNew = isControlled ? Boolean(createOpen) : internalCreating;
+
+  const setIsCreatingNew = (open) => {
+    if (isControlled) {
+      onCreateOpenChange?.(Boolean(open));
+    } else {
+      setInternalCreating(Boolean(open));
+    }
+  };
 
   const empresaOptions = useMemo(() => {
     if (Array.isArray(empresas) && empresas.length) {
@@ -136,17 +153,17 @@ export default function ConversationList({
 
   const active = conversations.find((c) => c.id === activeConversationId);
   const ctx = contextData || active?.contextoEnriquecido || {};
-  const campanhas = Array.isArray(ctx.campanhas_anteriores)
-    ? ctx.campanhas_anteriores.slice(0, 3)
-    : [];
-  const padroes = ctx.padroes || ctx.padroes_performance || {};
 
   const runMenuAction = async (action, conversation) => {
     setMenuOpenId(null);
     if (!conversation?.id) return;
 
     if (action === 'export') {
-      exportConversationPdf(conversation, conversation.id === activeConversationId ? ctx : conversation.contextoEnriquecido);
+      exportConversationPdf(
+        conversation,
+        conversation.id === activeConversationId ? ctx : conversation.contextoEnriquecido,
+        onError
+      );
       return;
     }
 
@@ -175,7 +192,7 @@ export default function ConversationList({
       }
     } catch (err) {
       console.error('[ConversationList]', action, err);
-      alert(err?.message || `Falha ao ${action}`);
+      onError?.(err?.message || `Falha ao ${action}`);
     } finally {
       setBusyId(null);
     }
@@ -195,7 +212,7 @@ export default function ConversationList({
   return (
     <aside style={styles.sidebar}>
       <header style={styles.header}>
-        <h2 style={styles.headerTitle}>💡 Minhas Conversas</h2>
+        <h2 style={styles.headerTitle}>Conversas</h2>
       </header>
 
       <button type="button" style={styles.newBtn} onClick={() => setIsCreatingNew(true)}>
@@ -278,58 +295,10 @@ export default function ConversationList({
         )}
       </div>
 
-      {/* Contexto da conversa ativa */}
-      <section style={styles.contextBox}>
-        <h3 style={styles.sectionTitle}>Contexto</h3>
-        {active || contextData ? (
-          <>
-            <p style={styles.ctxLine}>
-              <strong>{ctx.empresa?.nome || active?.empresa || '—'}</strong>
-            </p>
-            <p style={styles.ctxLine}>
-              {MES_NOMES[ctx.mesAtual || active?.mes] || ctx.mesAtual || active?.mes || '—'}/
-              {ctx.anoAtual || active?.ano || '—'} · ciclo{' '}
-              <span style={styles.ciclo}>{String(ctx.ciclo_proximo || '—').toUpperCase()}</span>
-            </p>
-
-            <div style={{ marginTop: 10 }}>
-              <div style={styles.miniLabel}>Últimas campanhas</div>
-              {campanhas.length === 0 ? (
-                <p style={styles.emptyMini}>Sem histórico</p>
-              ) : (
-                campanhas.map((c, i) => (
-                  <div key={`${c.mes}-${c.ano}-${i}`} style={styles.miniCard}>
-                    <div style={{ fontWeight: 600, fontSize: 12 }}>
-                      {c.nome_campanha || '—'}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#666' }}>
-                      {c.mes}/{c.ano} · {c.ciclo_comercial || '—'} · nota{' '}
-                      {c.resultado?.nota_geral ?? '—'}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-              <div style={styles.miniLabel}>Padrões</div>
-              <p style={styles.ctxLine}>
-                Melhor VENDAS: <strong>{padroes.melhor_ciclo_vendas || '—'}</strong>
-              </p>
-              <p style={styles.ctxLine}>
-                Melhor ENGAJAMENTO: <strong>{padroes.melhor_ciclo_engajamento || '—'}</strong>
-              </p>
-            </div>
-          </>
-        ) : (
-          <p style={styles.emptyMini}>Selecione uma conversa</p>
-        )}
-      </section>
-
       {isCreatingNew ? (
         <div style={styles.overlay} role="dialog" aria-modal="true">
           <form style={styles.modal} onSubmit={submitNew}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: 16 }}>Nova conversa</h3>
+            <h3 style={{ margin: '0 0 1rem', fontSize: 16, color: '#111' }}>Nova conversa</h3>
 
             <label style={styles.label}>
               Empresa
@@ -405,18 +374,19 @@ export default function ConversationList({
 
 const styles = {
   sidebar: {
-    width: 300,
+    width: '100%',
+    maxWidth: 300,
     background: '#f9f9f9',
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
     boxSizing: 'border-box',
     padding: '1rem',
-    color: '#333',
+    color: '#1a1a1a',
     overflow: 'hidden',
   },
   header: { marginBottom: '0.75rem' },
-  headerTitle: { margin: 0, fontSize: 16, fontWeight: 700 },
+  headerTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111' },
   newBtn: {
     width: '100%',
     padding: '0.55rem 0.75rem',
@@ -436,7 +406,7 @@ const styles = {
     gap: 8,
     minHeight: 0,
   },
-  empty: { margin: 0, fontSize: 13, color: '#888' },
+  empty: { margin: 0, fontSize: 13, color: '#555' },
   item: {
     position: 'relative',
     display: 'flex',
@@ -444,7 +414,6 @@ const styles = {
     background: '#fff',
     borderLeft: '3px solid #999',
     borderRadius: 6,
-    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
   itemActive: {
     background: '#e3f2fd',
@@ -459,8 +428,8 @@ const styles = {
     cursor: 'pointer',
     color: 'inherit',
   },
-  itemTitle: { fontWeight: 600, fontSize: 13, lineHeight: 1.3 },
-  itemMeta: { fontSize: 11, color: '#666', marginTop: 2 },
+  itemTitle: { fontWeight: 600, fontSize: 13, lineHeight: 1.3, color: '#111' },
+  itemMeta: { fontSize: 11, color: '#555', marginTop: 2 },
   statusRow: { display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 },
   statusText: { fontSize: 11, color: '#555', textTransform: 'capitalize' },
   badge: {
@@ -483,7 +452,7 @@ const styles = {
     fontSize: 18,
     lineHeight: 1,
     padding: '0.35rem 0.45rem',
-    color: '#666',
+    color: '#555',
   },
   menu: {
     position: 'absolute',
@@ -506,32 +475,6 @@ const styles = {
     padding: '0.5rem 0.75rem',
     fontSize: 13,
     cursor: 'pointer',
-  },
-  contextBox: {
-    marginTop: '0.85rem',
-    paddingTop: '0.85rem',
-    borderTop: '1px solid #e0e0e0',
-    overflowY: 'auto',
-    maxHeight: '42%',
-  },
-  sectionTitle: {
-    margin: '0 0 0.5rem',
-    fontSize: 11,
-    fontWeight: 700,
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase',
-    color: '#007bff',
-  },
-  ctxLine: { margin: '0 0 0.25rem', fontSize: 12 },
-  ciclo: { color: '#007bff', fontWeight: 700 },
-  miniLabel: { fontSize: 11, fontWeight: 600, color: '#666', marginBottom: 4 },
-  emptyMini: { margin: 0, fontSize: 12, color: '#888' },
-  miniCard: {
-    background: '#fff',
-    borderLeft: '3px solid #007bff',
-    borderRadius: 4,
-    padding: '0.4rem 0.55rem',
-    marginBottom: 6,
   },
   overlay: {
     position: 'fixed',
@@ -558,6 +501,7 @@ const styles = {
     fontSize: 13,
     fontWeight: 600,
     marginBottom: 10,
+    color: '#111',
   },
   input: {
     padding: '0.55rem 0.65rem',

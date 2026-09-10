@@ -1,19 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
   AlertCircle,
   ArrowRight,
-  CheckSquare,
-  Clock,
-  FileText,
   Loader2,
-  Megaphone,
   Plus,
   RefreshCw,
-  Users,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
@@ -74,7 +67,7 @@ function groupCampaignsByClient(clients, briefs, cycles, tasks, services) {
 }
 
 /**
- * Dashboard operacional — campanhas ativas por cliente.
+ * Home operacional — campanhas ativas (filosofia Apple: 1 foco, 1 CTA).
  */
 export default function DashboardPage() {
   const { agencyId, loading: sessionLoading } = useSession();
@@ -175,10 +168,10 @@ export default function DashboardPage() {
 
   if (sessionLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando dashboard...</p>
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
+          <p className="text-sm text-[#555]">Carregando campanhas…</p>
         </div>
       </div>
     );
@@ -186,13 +179,13 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={loadDashboardData} className="flex items-center mx-auto">
-            <RefreshCw className="w-4 h-4 mr-2" />
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
+          <h2 className="mb-2 text-xl font-semibold text-[#111]">Erro ao carregar</h2>
+          <p className="mb-5 text-sm text-[#555]">{error}</p>
+          <Button onClick={loadDashboardData} className="bg-[#007bff] hover:bg-[#0056b3]">
+            <RefreshCw className="mr-2 h-4 w-4" />
             Tentar novamente
           </Button>
         </div>
@@ -201,222 +194,179 @@ export default function DashboardPage() {
   }
 
   const { stats, campaignGroups, upcomingTasks } = dashboardData;
+  const hasCampaigns = campaignGroups.length > 0;
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Dashboard</h1>
-          <p className="text-[#7A7595] mt-1">
-            Campanhas ativas por cliente
+    <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
+      {/* Header — 1 título, meta discreta, 1 CTA */}
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
+            Campanhas
+          </h1>
+          <p className="text-sm text-[#555]">
+            {stats.activeCampaigns} ativa{stats.activeCampaigns === 1 ? '' : 's'}
+            {' · '}
+            {stats.clientsWithCampaigns} cliente{stats.clientsWithCampaigns === 1 ? '' : 's'}
+            {stats.pendingTasks > 0
+              ? ` · ${stats.pendingTasks} tarefa${stats.pendingTasks === 1 ? '' : 's'} pendente${stats.pendingTasks === 1 ? '' : 's'}`
+              : ''}
           </p>
         </div>
-        <div className="flex flex-wrap gap-6 sm:gap-8">
-          <div className="evocto-kpi">
-            <span className="evocto-kpi-value">{stats.activeCampaigns}</span>
-            <span className="evocto-kpi-label">Campanhas ativas</span>
-          </div>
-          <div className="evocto-kpi">
-            <span className="evocto-kpi-value">{stats.clientsWithCampaigns}</span>
-            <span className="evocto-kpi-label">Clientes com campanha</span>
-          </div>
-          <div className="evocto-kpi">
-            <span className="evocto-kpi-value">{stats.pendingTasks}</span>
-            <span className="evocto-kpi-label">Tarefas pendentes</span>
-          </div>
-        </div>
-      </div>
+        <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
+          <Link to={createPageUrl('clients')}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            {hasCampaigns ? 'Nova campanha' : 'Começar'}
+          </Link>
+        </Button>
+      </header>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-          <CardTitle className="flex items-center text-base">
-            <Megaphone className="h-5 w-5 mr-2 text-[#6C47D8]" />
-            Campanhas em andamento
-          </CardTitle>
-          <Button asChild size="sm" variant="outline" className="rounded-xl">
-            <Link to={createPageUrl('clients')}>
-              <Users className="h-4 w-4 mr-1" />
-              Ver clientes
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {campaignGroups.length === 0 ? (
-            <div className="text-center py-10 border border-dashed rounded-xl">
-              <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-[#18162A] font-medium mb-1">
-                Nenhuma campanha ativa no momento
-              </p>
-              <p className="text-sm text-[#7A7595] mb-4">
-                Abra um cliente e crie a campanha do mês para começar a operar.
-              </p>
-              <Button asChild size="sm">
-                <Link to={createPageUrl('clients')}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  Ir para clientes
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            campaignGroups.map((group) => (
-              <section key={group.clientId} className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <Link
-                      to={group.href}
-                      className="text-sm font-semibold text-[#18162A] hover:text-[#6C47D8] truncate block"
-                    >
-                      {group.clientName}
-                    </Link>
-                    <p className="text-[11px] text-[#7A7595]">
-                      {group.campaigns.length} campanha
-                      {group.campaigns.length === 1 ? '' : 's'} ativa
-                      {group.campaigns.length === 1 ? '' : 's'}
-                    </p>
-                  </div>
-                  <Button asChild size="sm" variant="ghost" className="h-8 gap-1">
-                    <Link to={createPageUrl(`briefing-campanha?clientId=${group.clientId}`)}>
-                      <Plus className="w-3.5 h-3.5" />
-                      Nova campanha
-                    </Link>
-                  </Button>
+      {/* Foco principal: lista de campanhas */}
+      <section aria-labelledby="campaigns-heading">
+        <h2 id="campaigns-heading" className="sr-only">
+          Campanhas em andamento
+        </h2>
+
+        {!hasCampaigns ? (
+          <div className="mx-auto max-w-sm py-16 text-center">
+            <h3 className="mb-2 text-lg font-semibold text-[#111]">
+              Nenhuma campanha ativa
+            </h3>
+            <p className="mb-6 text-sm leading-relaxed text-[#555]">
+              Abra um cliente e crie a campanha do mês para começar a operar.
+            </p>
+            <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+              <Link to={createPageUrl('clients')}>
+                Ir para clientes
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-10">
+            {campaignGroups.map((group) => (
+              <section key={group.clientId} className="space-y-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#eee] pb-2">
+                  <Link
+                    to={group.href}
+                    className="text-[15px] font-semibold text-[#111] hover:text-[#007bff]"
+                  >
+                    {group.clientName}
+                  </Link>
+                  <span className="text-xs text-[#555]">
+                    {group.campaigns.length} campanha
+                    {group.campaigns.length === 1 ? '' : 's'}
+                  </span>
                 </div>
-                <ul className="space-y-2">
+
+                <ul className="space-y-3">
                   {group.campaigns.map((campaign) => (
                     <li
                       key={campaign.id}
-                      className="rounded-xl border border-[#E8E5F5]/80 bg-[#FAFAFC] p-4"
+                      className="rounded-xl border border-[#eee] bg-white p-5 transition-colors hover:border-[#ddd]"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <Link
                             to={campaign.href}
-                            className="font-medium text-[#18162A] hover:text-[#6C47D8] truncate block"
+                            className="block truncate text-base font-semibold text-[#111] hover:text-[#007bff]"
                           >
                             {campaign.name}
                           </Link>
-                          <p className="text-xs text-[#7A7595] mt-0.5">
+                          <p className="mt-1 text-sm text-[#555]">
                             {campaign.cycleTitle || campaign.cyclePeriod || 'Sem ciclo vinculado'}
                             {campaign.progress.total > 0
                               ? ` · ${campaign.progress.completed}/${campaign.progress.total} tarefas`
-                              : ' · Sem tarefas vinculadas'}
+                              : ''}
                           </p>
                         </div>
-                        <p className="text-xl font-bold text-[#18162A] tabular-nums shrink-0">
+                        <p className="shrink-0 text-xl font-bold tabular-nums text-[#111]">
                           {campaign.progress.percentComplete}%
                         </p>
                       </div>
+
                       {campaign.progress.total > 0 && (
                         <Progress
                           value={campaign.progress.percentComplete}
-                          className="h-1.5 mt-3"
+                          className="mt-4 h-1.5"
                         />
                       )}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Button asChild size="sm" className="h-8">
+
+                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <Button asChild size="sm" className="bg-[#007bff] hover:bg-[#0056b3]">
                           <Link to={campaign.href}>
-                            Abrir campanha
-                            <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                            Abrir
+                            <ArrowRight className="ml-1 h-3.5 w-3.5" />
                           </Link>
                         </Button>
-                        <Button asChild size="sm" variant="outline" className="h-8">
-                          <Link to={campaign.tasksHref}>Tarefas</Link>
-                        </Button>
-                        <Button asChild size="sm" variant="ghost" className="h-8">
-                          <Link to={group.href}>Cliente</Link>
-                        </Button>
+                        <Link
+                          to={campaign.tasksHref}
+                          className="text-sm font-medium text-[#555] hover:text-[#111]"
+                        >
+                          Tarefas
+                        </Link>
+                        <Link
+                          to={group.href}
+                          className="text-sm font-medium text-[#555] hover:text-[#111]"
+                        >
+                          Cliente
+                        </Link>
                       </div>
                     </li>
                   ))}
                 </ul>
-              </section>
-            ))
-          )}
-        </CardContent>
-      </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-base">
-              <Clock className="h-5 w-5 mr-2 text-[#E8955A]" />
-              Próximas tarefas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {upcomingTasks.length === 0 ? (
-              <p className="text-sm text-[#7A7595]">Nenhuma tarefa com prazo próximo.</p>
-            ) : (
-              <div className="space-y-4">
-                {upcomingTasks.map((task) => (
+                <div>
                   <Link
-                    key={task.id}
-                    to={task.href}
-                    className="flex items-center justify-between gap-3 rounded-xl hover:bg-[#FAFAFC] -mx-2 px-2 py-1.5 transition-colors"
+                    to={createPageUrl(`briefing-campanha?clientId=${group.clientId}`)}
+                    className="text-sm font-medium text-[#007bff] hover:underline"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#18162A] truncate">{task.title}</p>
-                      <p className="text-xs text-[#7A7595]">
-                        {task.clientName ? `${task.clientName} · ` : ''}
-                        Vence em {task.dueDate}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        task.priority === 'high'
-                          ? 'destructive'
-                          : task.priority === 'medium'
-                            ? 'default'
-                            : 'secondary'
-                      }
-                    >
-                      {task.priority === 'high'
-                        ? 'Alta'
-                        : task.priority === 'medium'
-                          ? 'Média'
-                          : 'Baixa'}
-                    </Badge>
+                    + Nova campanha neste cliente
                   </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+      </section>
 
-        <Card className="bg-[#F5F2FC]/60 border-[#E8E5F5]">
-          <CardHeader>
-            <CardTitle className="text-base">Ações rápidas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link to={createPageUrl('clients')}>
-                <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Clientes
-                </Button>
-              </Link>
-              <Link to={createPageUrl('tasks-manager')}>
-                <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  Tarefas
-                </Button>
-              </Link>
-              <Link to={createPageUrl('campaigns-performance')}>
-                <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
-                  <Megaphone className="h-4 w-4 mr-2" />
-                  Performance
-                </Button>
-              </Link>
-              <Link to={createPageUrl('library')}>
-                <Button variant="outline" className="w-full justify-start rounded-xl bg-white">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Biblioteca
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Secundário: próximas tarefas — só se houver */}
+      {upcomingTasks.length > 0 ? (
+        <section aria-labelledby="tasks-heading" className="border-t border-[#eee] pt-8">
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2 id="tasks-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
+              Próximas tarefas
+            </h2>
+            <Link
+              to={createPageUrl('tasks-manager')}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              Ver todas
+            </Link>
+          </div>
+          <ul className="space-y-1">
+            {upcomingTasks.map((task) => (
+              <li key={task.id}>
+                <Link
+                  to={task.href}
+                  className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[#111]">{task.title}</p>
+                    <p className="text-xs text-[#555]">
+                      {task.clientName ? `${task.clientName} · ` : ''}
+                      Vence em {task.dueDate}
+                    </p>
+                  </div>
+                  {task.priority === 'high' ? (
+                    <span className="shrink-0 text-xs font-semibold text-[#c0392b]">Alta</span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }

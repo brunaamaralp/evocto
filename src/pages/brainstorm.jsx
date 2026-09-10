@@ -37,8 +37,10 @@ export default function BrainstormPage() {
   const [contextoEnriquecido, setContextoEnriquecido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [mobilePanel, setMobilePanel] = useState('center'); // left | center | right
   const [savingBrief, setSavingBrief] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) || null,
@@ -99,6 +101,7 @@ export default function BrainstormPage() {
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       const data = await agentFetch('init', {
         method: 'POST',
@@ -118,7 +121,6 @@ export default function BrainstormPage() {
         mensagem_inicial: data.mensagem_inicial,
       };
 
-      // Seed assistant greeting if provided
       if (data.mensagem_inicial) {
         nova.historicoMensagens = [
           { role: 'assistant', content: data.mensagem_inicial },
@@ -132,7 +134,6 @@ export default function BrainstormPage() {
     } catch (err) {
       console.error('[Brainstorm] init', err);
       setError(err?.message || 'Falha ao criar conversa');
-      alert(err?.message || 'Falha ao criar conversa');
     } finally {
       setLoading(false);
     }
@@ -142,6 +143,7 @@ export default function BrainstormPage() {
     if (!activeConversationId || savingBrief) return;
     setSavingBrief(true);
     setError(null);
+    setSuccess(null);
     try {
       const data = await agentFetch('save-brief', {
         method: 'POST',
@@ -152,6 +154,8 @@ export default function BrainstormPage() {
           c.id === activeConversationId ? { ...c, status: 'finalizada' } : c
         )
       );
+      setSuccess('Brief salvo');
+      await new Promise((r) => setTimeout(r, 800));
       if (data.cycleId) {
         navigate(`/campaigns/cycles/${data.cycleId}`);
       } else if (data.briefId) {
@@ -160,7 +164,6 @@ export default function BrainstormPage() {
     } catch (err) {
       console.error('[Brainstorm] save-brief', err);
       setError(err?.message || 'Falha ao salvar brief');
-      alert(err?.message || 'Falha ao salvar brief');
     } finally {
       setSavingBrief(false);
     }
@@ -175,6 +178,11 @@ export default function BrainstormPage() {
   }, [contextoEnriquecido, activeConversation]);
 
   const initialMessages = activeConversation?.historicoMensagens || [];
+
+  const openCreateFromEmpty = () => {
+    setCreateOpen(true);
+    setMobilePanel('left');
+  };
 
   return (
     <div style={styles.page}>
@@ -210,6 +218,11 @@ export default function BrainstormPage() {
           {error}
         </p>
       ) : null}
+      {success ? (
+        <p style={styles.success} role="status">
+          {success}
+        </p>
+      ) : null}
 
       <div
         className={`brainstorm-grid panel-${mobilePanel}`}
@@ -223,6 +236,9 @@ export default function BrainstormPage() {
             onNewConversation={handleNewConversation}
             contextData={contextoEnriquecido}
             onRefresh={loadConversations}
+            onError={(msg) => setError(msg)}
+            createOpen={createOpen}
+            onCreateOpenChange={setCreateOpen}
           />
         </div>
 
@@ -247,12 +263,18 @@ export default function BrainstormPage() {
               }}
             />
           ) : (
-            <div style={styles.placeholder}>
-              Selecione uma conversa ou crie uma nova para começar.
+            <div style={styles.emptyState}>
+              <h2 style={styles.emptyTitle}>Comece um brainstorm</h2>
+              <p style={styles.emptyText}>
+                Crie uma conversa para gerar ideias de campanha com contexto da empresa.
+              </p>
+              <button type="button" style={styles.emptyCta} onClick={openCreateFromEmpty}>
+                Começar brainstorm
+              </button>
             </div>
           )}
           {savingBrief ? (
-            <p style={{ margin: '0.5rem 0 0', fontSize: 12, color: '#666' }}>
+            <p style={{ margin: '0.5rem 0 0', fontSize: 12, color: '#555' }}>
               Salvando brief e criando ciclo…
             </p>
           ) : null}
@@ -262,7 +284,6 @@ export default function BrainstormPage() {
           <ContextSidebar
             contextoEnriquecido={contextoEnriquecido}
             conversationStatus={activeConversation?.status}
-            onSaveAsBrief={activeConversationId ? handleSaveAsBrief : undefined}
           />
         </div>
       </div>
@@ -271,29 +292,16 @@ export default function BrainstormPage() {
         .brainstorm-mobile-toggles { display: none; }
         @media (max-width: 1024px) {
           .brainstorm-grid {
-            grid-template-columns: 300px 1fr !important;
+            grid-template-columns: 1fr !important;
           }
+          .brainstorm-left,
           .brainstorm-right { display: none !important; }
-          .brainstorm-grid.panel-right {
-            grid-template-columns: 1fr !important;
-          }
-          .brainstorm-grid.panel-right .brainstorm-left,
-          .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
-          .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
-          .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
-          .brainstorm-grid.panel-center .brainstorm-left { display: none !important; }
-          .brainstorm-mobile-toggles { display: flex !important; }
-        }
-        @media (max-width: 768px) {
-          .brainstorm-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .brainstorm-left, .brainstorm-right { display: none !important; }
           .brainstorm-grid.panel-left .brainstorm-left { display: flex !important; }
           .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
           .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
           .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
           .brainstorm-grid.panel-center .brainstorm-center { display: flex !important; }
+          .brainstorm-mobile-toggles { display: flex !important; }
         }
       `}</style>
     </div>
@@ -307,41 +315,49 @@ const styles = {
     height: 'calc(100vh - 64px)',
     minHeight: 480,
     background: '#fff',
-    color: '#333',
+    color: '#1a1a1a',
   },
   topBar: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    padding: '0.75rem 1rem',
+    padding: '0.85rem 1.25rem',
     borderBottom: '1px solid #eee',
   },
-  title: { margin: 0, fontSize: 18, fontWeight: 700 },
+  title: { margin: 0, fontSize: 22, fontWeight: 700, color: '#111' },
   mobileToggles: { gap: 6 },
   toggle: {
-    padding: '0.35rem 0.65rem',
+    padding: '0.5rem 0.85rem',
     borderRadius: 6,
     border: '1px solid #ccc',
     background: '#fff',
-    fontSize: 12,
+    fontSize: 13,
     cursor: 'pointer',
+    color: '#1a1a1a',
   },
   toggleActive: {
-    padding: '0.35rem 0.65rem',
+    padding: '0.5rem 0.85rem',
     borderRadius: 6,
     border: '1px solid #007bff',
     background: '#e3f2fd',
     color: '#007bff',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
   },
   error: {
     margin: 0,
-    padding: '0.5rem 1rem',
+    padding: '0.5rem 1.25rem',
     background: '#fdecea',
     color: '#c0392b',
+    fontSize: 13,
+  },
+  success: {
+    margin: 0,
+    padding: '0.5rem 1.25rem',
+    background: '#e8f8ef',
+    color: '#1e7e34',
     fontSize: 13,
   },
   grid: {
@@ -362,14 +378,42 @@ const styles = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    padding: '1rem',
+    padding: '1.5rem',
     borderRight: '1px solid #eee',
   },
   placeholder: {
     margin: 'auto',
     textAlign: 'center',
-    color: '#888',
+    color: '#555',
     fontSize: 14,
     padding: 24,
+  },
+  emptyState: {
+    margin: 'auto',
+    textAlign: 'center',
+    maxWidth: 360,
+    padding: 24,
+  },
+  emptyTitle: {
+    margin: '0 0 0.5rem',
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#111',
+  },
+  emptyText: {
+    margin: '0 0 1.25rem',
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 1.45,
+  },
+  emptyCta: {
+    padding: '0.7rem 1.25rem',
+    borderRadius: 8,
+    border: 'none',
+    background: '#007bff',
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: 14,
+    cursor: 'pointer',
   },
 };
