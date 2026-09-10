@@ -38,7 +38,6 @@ export default function NaviBrandLockup({
         height,
         width: 'auto',
         maxWidth: '100%',
-        display: 'block',
         objectFit: 'contain',
         background: 'transparent',
       }}

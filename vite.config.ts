@@ -156,5 +156,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    // Browser shim for legacy `process.env.*` reads (e.g. aiConfig.js)
+    'process.env': '{}',
   },
 })

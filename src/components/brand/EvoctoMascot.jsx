@@ -12,6 +12,7 @@ const SIZES = {
 
 /**
  * Mascote oficial (polvo) — PNG com fundo transparente.
+ * Largura controlável via className (ex.: w-[8.5rem] sm:w-[12rem]).
  * @param {boolean} mark — versão enquadrada (square) para chips/avatar
  */
 export default function EvoctoMascot({
@@ -29,11 +30,10 @@ export default function EvoctoMascot({
       height={mark ? px : undefined}
       className={className}
       style={{
-        width: px,
         height: mark ? px : 'auto',
-        maxWidth: '100%',
+        width: mark ? px : undefined,
+        maxWidth: mark ? px : '100%',
         objectFit: 'contain',
-        display: 'block',
         background: 'transparent',
       }}
       decoding="async"

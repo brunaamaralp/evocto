@@ -77,12 +77,14 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-          <Link to="/" className="flex items-center min-w-0 shrink" aria-label={BRAND.name}>
-            <NaviBrandLockup height={32} className="sm:hidden max-w-[140px]" />
-            <NaviBrandLockup height={36} className="hidden sm:block" />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
+          <Link to="/" className="flex min-w-0 items-center shrink" aria-label={BRAND.name}>
+            <NaviBrandLockup
+              height={28}
+              className="max-w-[112px] sm:max-w-[168px]"
+            />
           </Link>
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {isAuthenticated ? (
               <Button asChild size="sm" className="sm:h-10 sm:px-4 sm:text-sm">
                 <Link to={appHome}>Ir ao painel</Link>
@@ -93,7 +95,7 @@ export default function WelcomePage() {
                   variant="ghost"
                   asChild
                   size="sm"
-                  className="text-[var(--color-sidebar-text,#7A7595)] px-2 sm:px-4"
+                  className="text-[var(--color-sidebar-text,#7A7595)] px-2.5 sm:px-4"
                 >
                   <Link to="/login">Entrar</Link>
                 </Button>
@@ -116,20 +118,20 @@ export default function WelcomePage() {
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(108,71,216,0.07),transparent_45%)]"
           />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
-            <div className="space-y-8">
-              <div className="space-y-5">
-                <h1 className="max-w-xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 sm:gap-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="space-y-4 sm:space-y-5">
+                <h1 className="max-w-xl text-[1.75rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.1] lg:text-[3.25rem]">
                   {HERO.title}
                 </h1>
-                <p className="max-w-lg text-lg leading-relaxed text-[var(--color-sidebar-text,#7A7595)]">
+                <p className="max-w-lg text-base leading-relaxed text-[var(--color-sidebar-text,#7A7595)] sm:text-lg">
                   {HERO.subtitle}
                 </p>
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {isAuthenticated ? (
-                  <Button size="lg" className="px-7" asChild>
+                  <Button size="lg" className="w-full px-7 sm:w-auto" asChild>
                     <Link to={appHome}>
                       Ir ao painel
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -137,13 +139,13 @@ export default function WelcomePage() {
                   </Button>
                 ) : (
                   <>
-                    <Button size="lg" className="px-7" asChild>
+                    <Button size="lg" className="w-full px-7 sm:w-auto" asChild>
                       <Link to="/create-account">
                         {trialMarketing.ctaPrimary}
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
-                    <Button variant="outline" size="lg" className="px-7" asChild>
+                    <Button variant="outline" size="lg" className="w-full px-7 sm:w-auto" asChild>
                       <Link to="/login">Já tenho conta</Link>
                     </Button>
                   </>
@@ -151,14 +153,18 @@ export default function WelcomePage() {
               </div>
 
               {!isAuthenticated && (
-                <p className="text-sm text-[var(--color-sidebar-text,#7A7595)]">
+                <p className="text-center text-xs text-[var(--color-sidebar-text,#7A7595)] sm:text-left sm:text-sm">
                   {trialMarketing.heroHint}
                 </p>
               )}
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <EvoctoMascot size="xl" className="max-w-full" alt={`${BRAND.name} — mascote`} />
+              <EvoctoMascot
+                size="xl"
+                className="w-[6.75rem] sm:w-[11rem] lg:w-[15rem]"
+                alt={`${BRAND.name} — mascote`}
+              />
             </div>
           </div>
         </section>
