@@ -14,6 +14,7 @@ import {
   notifyNovoBriefing,
   saveCampanhaBriefing,
 } from '@/lib/campanhaBriefing';
+import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 
 function ConfidenceBar({ value }) {
   const pct = Math.max(0, Math.min(100, Number(value) || 0));
@@ -92,11 +93,35 @@ export default function BriefingReviewSimples({
         empresaNome: empresa?.nome,
         actorUserId: user?.id || user?.$id,
       });
-      toast.success('Briefing confirmado');
-      onSuccess?.(briefing);
+
+      let launchResult = null;
+      try {
+        launchResult = await launchCampanhaFromBrief({
+          briefing,
+          agencyId,
+          clientId,
+          userId: user?.id || user?.$id || null,
+          generateTasks: true,
+          empresaNome: empresa?.nome,
+        });
+        toast.success(
+          `Campanha criada${
+            launchResult.tasksCreated
+              ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
+              : ''
+          }`
+        );
+      } catch (launchErr) {
+        console.error(launchErr);
+        toast.warning(
+          'Briefing salvo, mas não foi possível criar o ciclo. Abra o cliente e tente de novo.'
+        );
+      }
+
+      onSuccess?.(launchResult || { briefing, tasksCreated: 0 });
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao salvar. Tente novamente');
+      toast.error('Erro ao criar campanha. Tente novamente');
     } finally {
       setSaving(false);
     }
@@ -190,7 +215,7 @@ export default function BriefingReviewSimples({
       <div className="flex flex-wrap gap-2">
         <Button disabled={!canConfirm} onClick={handleConfirm}>
           {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          Confirmar Briefing
+          Criar campanha
         </Button>
         <Button type="button" variant="outline" onClick={onBack}>
           ← Voltar

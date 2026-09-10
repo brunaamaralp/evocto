@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Activity, ArrowRight, Plus, Target } from 'lucide-react';
+import { ArrowRight, Megaphone, Settings2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 function cycleStatusLabel(status) {
@@ -16,13 +16,15 @@ function cycleStatusLabel(status) {
   }
 }
 
+/** Painel secundário: serviços/ciclos como infraestrutura, não foco operacional. */
 export default function ClientExecutionPanel({
   clientId,
   activeServices = [],
   activeCycles = [],
 }) {
   const servicesHref = createPageUrl(`client-services?clientId=${clientId}`);
-  const topServices = activeServices.slice(0, 5);
+  const newCampaignHref = createPageUrl(`briefing-campanha?clientId=${clientId}`);
+  const topServices = activeServices.slice(0, 4);
   const cyclesByService = activeCycles.reduce((acc, cycle) => {
     const key = cycle.serviceId || '_none';
     if (!acc[key]) acc[key] = [];
@@ -33,39 +35,33 @@ export default function ClientExecutionPanel({
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
+        <CardTitle className="flex items-center justify-between text-base gap-2">
           <span className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-600" />
-            Em execução
+            <Settings2 className="w-5 h-5 text-[#7A7595]" />
+            Serviços e ciclos
           </span>
           <Button asChild variant="ghost" size="sm" className="gap-1">
             <Link to={servicesHref}>
-              Ver serviços
+              Gerenciar
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </Button>
         </CardTitle>
+        <p className="text-xs text-[#7A7595] font-normal">
+          Infraestrutura por trás das campanhas
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-4 text-sm">
-          <div className="rounded-lg bg-blue-50 px-3 py-2 flex-1">
-            <p className="text-blue-700 text-xs font-medium">Serviços ativos</p>
-            <p className="text-xl font-semibold text-blue-900">{activeServices.length}</p>
-          </div>
-          <div className="rounded-lg bg-green-50 px-3 py-2 flex-1">
-            <p className="text-green-700 text-xs font-medium">Ciclos ativos</p>
-            <p className="text-xl font-semibold text-green-900">{activeCycles.length}</p>
-          </div>
-        </div>
-
         {topServices.length === 0 ? (
           <div className="text-center py-6 border border-dashed rounded-lg">
-            <Target className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-3">Nenhum serviço em execução</p>
+            <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 mb-3">
+              Ainda sem serviço vinculado — comece pela campanha
+            </p>
             <Button asChild size="sm">
-              <Link to={createPageUrl(`services?action=new&clientId=${clientId}`)}>
-                <Plus className="w-4 h-4 mr-1" />
-                Criar serviço
+              <Link to={newCampaignHref}>
+                <Megaphone className="w-4 h-4 mr-1" />
+                Nova campanha
               </Link>
             </Button>
           </div>

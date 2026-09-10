@@ -14,8 +14,6 @@ import {
   Loader2,
   Target,
   Clock,
-  Database,
-  Briefcase,
   Megaphone,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -123,23 +121,24 @@ export default function ClientDetailPage() {
     );
   }
 
+  const hasCampaigns = activeCampaigns.length > 0;
   const hasServices = activeServices.length > 0;
   const setupChecklist = [
     {
-      id: 'services',
-      title: 'Criar primeiro serviço',
-      description: 'Defina qual serviço será prestado para este cliente',
-      completed: hasServices,
-      action: 'Criar Serviço',
-      href: createPageUrl(`services?action=new&clientId=${clientId}`),
+      id: 'campaign',
+      title: 'Criar primeira campanha',
+      description: 'Defina a campanha do mês para este cliente',
+      completed: hasCampaigns || hasServices,
+      action: 'Nova campanha',
+      href: createPageUrl(`briefing-campanha?clientId=${clientId}`),
     },
     {
       id: 'briefing',
-      title: 'Preencher briefing',
-      description: 'Colete informações detalhadas sobre o negócio do cliente',
+      title: 'Completar briefing',
+      description: 'Detalhe objetivo, público e entregas da campanha',
       completed: briefs.length > 0,
-      action: 'Preencher Briefing',
-      href: createPageUrl(`briefing-campanha?clientId=${clientId}`),
+      action: 'Abrir briefing',
+      href: createPageUrl(`client-briefing?clientId=${clientId}`),
     },
     {
       id: 'invite',
@@ -151,7 +150,7 @@ export default function ClientDetailPage() {
     },
   ];
 
-  const showSetup = !hasServices;
+  const showSetup = !hasCampaigns && !hasServices;
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
 
   return (
@@ -173,30 +172,21 @@ export default function ClientDetailPage() {
               </Badge>
             )}
             <Button asChild size="sm">
-              <Link to={createPageUrl(`services?action=new&clientId=${clientId}`)}>
+              <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
                 <Plus className="w-4 h-4 mr-1" />
-                Novo serviço
+                Nova campanha
               </Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
+              <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
                 <FileText className="w-4 h-4 mr-1" />
-                Novo briefing
+                Briefings
               </Link>
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-[#EAF2FB] border-transparent shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#2E5A7A]">Serviços ativos</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.services}</p>
-              </div>
-              <Briefcase className="h-7 w-7 text-[#5B9BD5]" />
-            </CardContent>
-          </Card>
           <Card className="bg-[#E6F7F0] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
@@ -209,10 +199,19 @@ export default function ClientDetailPage() {
           <Card className="bg-[#FFF8E6] border-transparent shadow-none">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#7A5A10]">Aprovações</p>
-                <p className="text-2xl font-bold text-[#18162A]">{counts.approvalsPending}</p>
+                <p className="text-sm text-[#7A5A10]">Tarefas pendentes</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.tasksPending}</p>
               </div>
               <Clock className="h-7 w-7 text-[#E0B84A]" />
+            </CardContent>
+          </Card>
+          <Card className="bg-[#EDE9FB] border-transparent shadow-none">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#4A2FA3]">Aprovações</p>
+                <p className="text-2xl font-bold text-[#18162A]">{counts.approvalsPending}</p>
+              </div>
+              <Target className="h-7 w-7 text-[#6C47D8]" />
             </CardContent>
           </Card>
         </div>
@@ -273,16 +272,16 @@ export default function ClientDetailPage() {
           campaigns={activeCampaigns}
         />
 
+        <ClientAttentionPanel items={attentionItems} />
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <ClientAttentionPanel items={attentionItems} />
           <ClientExecutionPanel
             clientId={clientId}
             activeServices={activeServices}
             activeCycles={activeCycles}
           />
+          <ClientKnowledgeSummary clientId={clientId} briefs={briefs} kpisCount={counts.kpis} />
         </div>
-
-        <ClientKnowledgeSummary clientId={clientId} briefs={briefs} kpisCount={counts.kpis} />
 
         <Card>
           <CardHeader>
@@ -291,14 +290,14 @@ export default function ClientDetailPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`client-services?clientId=${clientId}`)}>
+                <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#EAF2FB] rounded-xl">
-                      <Target className="w-5 h-5 text-[#5B9BD5]" />
+                    <div className="p-2 bg-[#E6F7F0] rounded-xl">
+                      <Megaphone className="w-5 h-5 text-[#22C98A]" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Serviços</div>
-                      <div className="text-sm text-[#7A7595]">Operação e ciclos</div>
+                      <div className="font-medium">Nova campanha</div>
+                      <div className="text-sm text-[#7A7595]">Briefing do mês</div>
                     </div>
                   </div>
                 </Link>
@@ -306,25 +305,25 @@ export default function ClientDetailPage() {
               <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
                 <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#E6F7F0] rounded-xl">
-                      <FileText className="w-5 h-5 text-[#22C98A]" />
+                    <div className="p-2 bg-[#EDE9FB] rounded-xl">
+                      <FileText className="w-5 h-5 text-[#6C47D8]" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Briefing</div>
-                      <div className="text-sm text-[#7A7595]">Contexto do negócio</div>
+                      <div className="font-medium">Briefings</div>
+                      <div className="text-sm text-[#7A7595]">Contexto e histórico</div>
                     </div>
                   </div>
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-auto p-4 justify-start rounded-xl">
-                <Link to={createPageUrl(`client-learnings?clientId=${clientId}`)}>
+                <Link to={createPageUrl(`client-services?clientId=${clientId}`)}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#EDE9FB] rounded-xl">
-                      <Database className="w-5 h-5 text-[#6C47D8]" />
+                    <div className="p-2 bg-[#EAF2FB] rounded-xl">
+                      <Target className="w-5 h-5 text-[#5B9BD5]" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Aprendizados</div>
-                      <div className="text-sm text-[#7A7595]">Base de conhecimento</div>
+                      <div className="font-medium">Serviços</div>
+                      <div className="text-sm text-[#7A7595]">Templates e ciclos</div>
                     </div>
                   </div>
                 </Link>

@@ -2,18 +2,28 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, FileText, Keyboard, Loader2, ArrowLeft, Building2 } from 'lucide-react';
+import {
+  CheckCircle2,
+  FileText,
+  Keyboard,
+  Loader2,
+  ArrowLeft,
+  Building2,
+  ArrowRight,
+  CheckSquare,
+} from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
+import { buildClientTasksHref } from '@/lib/taskScope';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import BriefingFormSimples from '@/components/briefing/campanha/BriefingFormSimples';
 import BriefingTextLivre from '@/components/briefing/campanha/BriefingTextLivre';
 import BriefingReviewSimples from '@/components/briefing/campanha/BriefingReviewSimples';
 
 /**
- * Fluxo completo: escolha de modo → formulário / texto livre → review → sucesso.
+ * Nova campanha: escolha de modo → formulário / texto → review → ciclo + tarefas.
  */
 export default function BriefingCampanhaPage() {
   const { agencyId, isAuthenticated } = useSession();
@@ -33,7 +43,7 @@ export default function BriefingCampanhaPage() {
   const [textoLivre, setTextoLivre] = useState('');
   const [parsed, setParsed] = useState(null);
   const [reviewForm, setReviewForm] = useState(null);
-  const [savedBriefing, setSavedBriefing] = useState(null);
+  const [launchResult, setLaunchResult] = useState(null);
 
   const load = useCallback(async () => {
     if (!clientId || !agencyId) return;
@@ -60,6 +70,17 @@ export default function BriefingCampanhaPage() {
   useEffect(() => {
     if (isAuthenticated) load();
   }, [isAuthenticated, load]);
+
+  const handleCampaignCreated = (result) => {
+    const normalized =
+      result?.briefing
+        ? result
+        : result?.id
+          ? { briefing: result, tasksCreated: 0 }
+          : null;
+    setLaunchResult(normalized);
+    setStep('sucesso');
+  };
 
   if (!isAuthenticated) {
     return (
@@ -96,9 +117,24 @@ export default function BriefingCampanhaPage() {
     );
   }
 
-  const backToList = () => {
-    navigate(`${createPageUrl('client-briefing')}?clientId=${clientId}`);
+  const backToClient = () => {
+    navigate(`${createPageUrl('client-detail')}?clientId=${clientId}`);
   };
+
+  const savedBriefing = launchResult?.briefing;
+  const serviceId = launchResult?.service?.id || savedBriefing?.serviceId;
+  const cycleId = launchResult?.cyclePlan?.id || savedBriefing?.ciclo_id;
+  const tasksHref = createPageUrl(
+    buildClientTasksHref({
+      clientId,
+      cycleId,
+      briefingId: savedBriefing?.id,
+      serviceId,
+    })
+  );
+  const workspaceHref = serviceId
+    ? createPageUrl(`delivery-workspace?serviceId=${serviceId}&section=tasks`)
+    : null;
 
   if (step === 'sucesso' && savedBriefing) {
     return (
@@ -106,29 +142,49 @@ export default function BriefingCampanhaPage() {
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardContent className="pt-8 pb-8 text-center space-y-4">
             <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto" />
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">Briefing criado</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
+              Campanha criada
+            </h1>
             <p className="text-[#7A7595]">
               <strong>{savedBriefing.nome_campanha || savedBriefing.title}</strong> —{' '}
               {empresa?.nome || client?.name}
             </p>
             <p className="text-sm text-slate-500">
-              Configuração da empresa herdada. Equipe notificada.
+              {launchResult?.cyclePlan
+                ? `${launchResult.tasksCreated || 0} tarefa(s) gerada(s) no ciclo do mês.`
+                : 'Briefing salvo. O ciclo ainda precisa ser aberto.'}
             </p>
-            <div className="flex gap-2 justify-center pt-2">
-              <Button onClick={backToList}>Ver briefings</Button>
+            <div className="flex flex-wrap gap-2 justify-center pt-2">
+              {workspaceHref && (
+                <Button onClick={() => navigate(workspaceHref)}>
+                  Abrir workspace
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              )}
               <Button
-                variant="outline"
-                onClick={() => {
-                  setSavedBriefing(null);
-                  setParsed(null);
-                  setReviewForm(null);
-                  setTextoLivre('');
-                  setStep('choose');
-                }}
+                variant={workspaceHref ? 'outline' : 'default'}
+                onClick={() => navigate(tasksHref)}
               >
-                Novo briefing
+                <CheckSquare className="w-4 h-4 mr-1" />
+                Ver tarefas
+              </Button>
+              <Button variant="outline" onClick={backToClient}>
+                Voltar ao cliente
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setLaunchResult(null);
+                setParsed(null);
+                setReviewForm(null);
+                setTextoLivre('');
+                setStep('choose');
+              }}
+            >
+              Nova campanha
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -139,15 +195,15 @@ export default function BriefingCampanhaPage() {
     <div className="max-w-2xl mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <Button variant="ghost" size="sm" className="-ml-2 mb-1" onClick={backToList}>
+          <Button variant="ghost" size="sm" className="-ml-2 mb-1" onClick={backToClient}>
             <ArrowLeft className="w-4 h-4 mr-1" />
             Voltar
           </Button>
           <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
-            Novo Briefing — {empresa?.nome || client?.name}
+            Nova campanha — {empresa?.nome || client?.name}
           </h1>
           <p className="text-sm text-[#7A7595] mt-1">
-            Só os 5 campos da campanha. Público, formato, orçamento e tom vêm da empresa.
+            Briefing + ciclo do mês + tarefas em um só fluxo.
           </p>
         </div>
         <Button
@@ -201,10 +257,7 @@ export default function BriefingCampanhaPage() {
               empresa={empresa}
               onNeedEmpresa={() => setEmpresaModalOpen(true)}
               onSwitchToText={() => setStep('texto')}
-              onSuccess={(b) => {
-                setSavedBriefing(b);
-                setStep('sucesso');
-              }}
+              onSuccess={handleCampaignCreated}
             />
           </CardContent>
         </Card>
@@ -235,7 +288,7 @@ export default function BriefingCampanhaPage() {
       {step === 'review' && (
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-[#18162A]">Briefing analisado — Revise</CardTitle>
+            <CardTitle className="text-lg text-[#18162A]">Revise e crie a campanha</CardTitle>
           </CardHeader>
           <CardContent>
             <BriefingReviewSimples
@@ -245,10 +298,7 @@ export default function BriefingCampanhaPage() {
               initialForm={reviewForm}
               textoLivre={textoLivre}
               onBack={() => setStep('texto')}
-              onSuccess={(b) => {
-                setSavedBriefing(b);
-                setStep('sucesso');
-              }}
+              onSuccess={handleCampaignCreated}
             />
           </CardContent>
         </Card>

@@ -23,6 +23,7 @@ import {
   saveCampanhaBriefing,
   validateCampanhaForm,
 } from '@/lib/campanhaBriefing';
+import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 import {
   CICLOS_COMERCIAIS_OPS,
   TIPOS_CAMPANHA,
@@ -31,6 +32,7 @@ import {
 
 /**
  * Formulário reduzido: 5 campos da campanha + tipo/ciclo/linha + herança da empresa.
+ * Ao confirmar: salva briefing + cria ciclo + gera tarefas.
  */
 export default function BriefingFormSimples({
   clientId,
@@ -86,12 +88,36 @@ export default function BriefingFormSimples({
         empresaNome: empresa.nome,
         actorUserId: user?.id || user?.$id,
       });
-      toast.success('Briefing salvo');
-      onSuccess?.(briefing);
+
+      let launchResult = null;
+      try {
+        launchResult = await launchCampanhaFromBrief({
+          briefing,
+          agencyId,
+          clientId,
+          userId: user?.id || user?.$id || null,
+          generateTasks: true,
+          empresaNome: empresa.nome,
+        });
+        toast.success(
+          `Campanha criada${
+            launchResult.tasksCreated
+              ? ` · ${launchResult.tasksCreated} tarefa(s) gerada(s)`
+              : ''
+          }`
+        );
+      } catch (launchErr) {
+        console.error(launchErr);
+        toast.warning(
+          'Briefing salvo, mas não foi possível criar o ciclo. Abra o cliente e tente de novo.'
+        );
+      }
+
+      onSuccess?.(launchResult || { briefing, tasksCreated: 0 });
     } catch (err) {
       console.error(err);
       if (err?.errors) setErrors(err.errors);
-      toast.error('Erro ao salvar. Tente novamente');
+      toast.error('Erro ao criar campanha. Tente novamente');
     } finally {
       setSaving(false);
     }
@@ -267,7 +293,7 @@ export default function BriefingFormSimples({
       <div className="flex flex-wrap gap-2">
         <Button disabled={!canSave} onClick={handleSave}>
           {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          Salvar Briefing
+          Criar campanha
         </Button>
         {onSwitchToText && (
           <Button type="button" variant="outline" onClick={onSwitchToText}>
@@ -275,6 +301,9 @@ export default function BriefingFormSimples({
           </Button>
         )}
       </div>
+      <p className="text-xs text-[#7A7595]">
+        Salva o briefing, abre o ciclo do mês e gera as tarefas do pipeline.
+      </p>
 
       <EditarConfigCampanhaModal
         open={editMesOpen}

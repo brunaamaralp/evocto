@@ -139,7 +139,7 @@ export default function ClientActiveCampaignsPanel({
             <Button asChild variant="ghost" size="sm" className="gap-1">
               <Link to={newBriefHref}>
                 <Plus className="w-3.5 h-3.5" />
-                Nova
+                Nova campanha
               </Link>
             </Button>
           </div>
@@ -150,12 +150,12 @@ export default function ClientActiveCampaignsPanel({
           <div className="text-center py-8 border border-dashed rounded-xl">
             <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm text-gray-600 mb-3">
-              Nenhuma campanha vinculada a um ciclo ativo
+              Nenhuma campanha ativa neste cliente
             </p>
             <Button asChild size="sm">
               <Link to={newBriefHref}>
                 <Plus className="w-4 h-4 mr-1" />
-                Criar briefing de campanha
+                Nova campanha
               </Link>
             </Button>
           </div>

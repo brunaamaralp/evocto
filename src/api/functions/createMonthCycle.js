@@ -242,6 +242,7 @@ export async function createMonthCycle(opts = {}) {
           agencyId,
           startDate: deliverable.planned_start || startDate,
           cyclePlanId: cyclePlan.id,
+          briefId: briefId || null,
         });
         payload.dueDate =
           dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
@@ -263,6 +264,7 @@ export async function createMonthCycle(opts = {}) {
             agencyId,
             startDate: deliverable.planned_start || startDate,
             cyclePlanId: cyclePlan.id,
+            briefId: briefId || null,
           });
           subPayload.dueDate =
             dueDateForTaskTemplate(sub, deliverable) || subPayload.dueDate;
@@ -303,6 +305,7 @@ export async function createMonthCycle(opts = {}) {
             agencyId,
             startDate: deliverable.planned_start || startDate,
             cyclePlanId: cyclePlan.id,
+            briefId: briefId || null,
           });
           payload.dueDate =
             dueDateForTaskTemplate(taskTemplate, deliverable) || payload.dueDate;
