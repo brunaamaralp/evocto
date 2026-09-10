@@ -1,1 +1,14 @@
+# APIs (antes do SPA) — necessário quando o host usa só _redirects do dist
+/api/material-deliveries  /.netlify/functions/material-deliveries  200!
+/api/material-deliveries/  /.netlify/functions/material-deliveries  200!
+/api/schedule-push  /.netlify/functions/schedule-push  200!
+/api/schedule-push/  /.netlify/functions/schedule-push  200!
+/api/team-members  /.netlify/functions/team-members  200!
+/api/team-members/  /.netlify/functions/team-members  200!
+/api/team-members/*  /.netlify/functions/team-members  200!
+/api/campaigns-agent  /.netlify/functions/campaigns-agent  200!
+/api/campaigns-agent/  /.netlify/functions/campaigns-agent  200!
+/api/campaigns/agent/*  /.netlify/functions/campaigns-agent  200!
+
+# SPA
 /*    /index.html   200
