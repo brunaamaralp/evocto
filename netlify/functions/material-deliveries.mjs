@@ -9,14 +9,28 @@ function buildReq(event) {
     Object.entries(event.headers || {}).map(([k, v]) => [String(k).toLowerCase(), v])
   );
 
+  const isBinary =
+    String(headers['content-type'] || '').includes('application/octet-stream') ||
+    String(event.queryStringParameters?.route || '') === 'upload-chunk';
+
+  let rawBody = null;
   let body = event.body;
   if (event.isBase64Encoded && typeof body === 'string') {
-    body = Buffer.from(body, 'base64').toString('utf8');
+    rawBody = Buffer.from(body, 'base64');
+    body = isBinary ? rawBody : rawBody.toString('utf8');
+  } else if (typeof body === 'string' && isBinary) {
+    rawBody = Buffer.from(body, 'binary');
+    body = rawBody;
   }
 
   let parsed = body;
   const ct = String(headers['content-type'] || '');
-  if (typeof body === 'string' && ct.includes('application/json') && body.trim()) {
+  if (
+    !isBinary &&
+    typeof body === 'string' &&
+    ct.includes('application/json') &&
+    body.trim()
+  ) {
     try {
       parsed = JSON.parse(body);
     } catch {
@@ -29,6 +43,8 @@ function buildReq(event) {
     headers,
     query: event.queryStringParameters || {},
     body: parsed,
+    rawBody,
+    isBase64Encoded: Boolean(event.isBase64Encoded),
     url: event.rawUrl || event.path || '',
   };
 }
@@ -88,7 +104,8 @@ function buildRes() {
         contentType.startsWith('image/') ||
         contentType.startsWith('video/') ||
         contentType === 'application/pdf' ||
-        contentType === 'application/octet-stream';
+        contentType === 'application/octet-stream' ||
+        Boolean(headers['Content-Range'] || headers['content-range']);
 
       if (isBinary) {
         return {

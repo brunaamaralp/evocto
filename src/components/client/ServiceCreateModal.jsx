@@ -46,12 +46,6 @@ const STEP_TITLES = {
   [WIZARD_STEPS.PREVIEW_PHASES]: 'Preview e Confirmação'
 };
 
-const SERVICE_STATUS_OPTIONS = [
-  { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
-  { value: 'active', label: 'Ativo', color: 'bg-green-100 text-green-800' },
-  { value: 'on_hold', label: 'Em Espera', color: 'bg-yellow-100 text-yellow-800' }
-];
-
 const BILLING_CYCLE_OPTIONS = [
   { value: 'one_time', label: 'Pagamento Único' },
   { value: 'monthly', label: 'Mensal' },
@@ -246,7 +240,8 @@ export default function ServiceCreateModal({
         is_template: false, // This is an instance
         base_service_id: selectedTemplate.id,
         template_version_used: selectedTemplate.version,
-        service_status: serviceConfig.service_status,
+        // Criação já ativa o serviço e gera tarefas — sem passo separado
+        service_status: 'active',
         start_date: serviceConfig.start_date,
         end_date: serviceConfig.end_date || null,
         contract_value: serviceConfig.contract_value || null,
@@ -289,19 +284,25 @@ export default function ServiceCreateModal({
         }
       }
 
-      // Generate tasks from service deliverables
+      // Ativar + gerar tarefas já na criação
+      let tasksCreated = 0;
       try {
-        await generateTasksFromService({
+        const taskResult = await generateTasksFromService({
           serviceId: serviceInstance.id,
           autoAssign: true,
           startDate: serviceConfig.start_date
         });
+        tasksCreated = taskResult?.data?.tasksCreated ?? taskResult?.tasksCreated ?? 0;
       } catch (taskError) {
         console.warn('Erro ao gerar tarefas:', taskError);
-        // Continue even if task generation fails
+        toast.warning('Serviço criado, mas as tarefas precisam ser geradas manualmente.');
       }
 
-      toast.success('Serviço criado com sucesso!');
+      toast.success(
+        tasksCreated > 0
+          ? `Serviço ativado com ${tasksCreated} tarefas geradas.`
+          : 'Serviço criado e ativado com sucesso!'
+      );
       onSave && onSave(serviceInstance);
       onClose();
 
@@ -445,25 +446,9 @@ export default function ServiceCreateModal({
             />
           </div>
 
-          <div>
-            <Label htmlFor="service-status">Status</Label>
-            <Select 
-              value={serviceConfig.service_status} 
-              onValueChange={(value) => setServiceConfig(prev => ({ ...prev, service_status: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SERVICE_STATUS_OPTIONS.map(status => (
-                  <SelectItem key={status.value} value={status.value}>
-                    <div className="flex items-center gap-2">
-                      <Badge className={status.color}>{status.label}</Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+            O serviço será <span className="font-medium text-foreground">ativado</span> e as
+            tarefas serão geradas automaticamente ao criar.
           </div>
         </div>
 

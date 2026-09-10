@@ -1,10 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { UploadFile } from '@/api/integrations';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -12,15 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, Plus, Upload, Copy, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Upload, Copy, RefreshCw, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   materialCreateDelivery,
   materialGetDelivery,
+  materialGetReviewLink,
   materialListDeliveries,
   materialRegenerateToken,
   materialReopen,
-  materialUploadFromStorage,
+  materialSendLink,
+  materialUploadResumable,
 } from '@/lib/materialDeliveriesApi';
 import { useSession } from '@/components/auth/SessionManager';
 
@@ -47,7 +55,7 @@ function statusBadge(status) {
   );
 }
 
-export default function DeliveryWorkspaceDeliveries({ service }) {
+export default function DeliveryWorkspaceDeliveries({ service, tasks = [] }) {
   const { isOwner, isAdmin } = useSession();
   const [loading, setLoading] = useState(true);
   const [deliveries, setDeliveries] = useState([]);
@@ -56,10 +64,26 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [deliverableId, setDeliverableId] = useState('');
+  const [taskId, setTaskId] = useState('');
   const [busy, setBusy] = useState(false);
-  const [lastReviewUrl, setLastReviewUrl] = useState('');
+  const [reviewUrl, setReviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadPct, setUploadPct] = useState(0);
   const fileInputRef = useRef(null);
+
+  const stages = useMemo(
+    () => (Array.isArray(service?.deliverables) ? service.deliverables : []),
+    [service?.deliverables]
+  );
+
+  const taskOptions = useMemo(() => {
+    const list = Array.isArray(tasks) ? tasks : [];
+    if (!deliverableId || deliverableId === '__none') return list;
+    return list.filter(
+      (t) => String(t.deliverableId || t.deliverable_id || '') === String(deliverableId)
+    );
+  }, [tasks, deliverableId]);
 
   const load = useCallback(async () => {
     if (!service?.id) return;
@@ -78,11 +102,26 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
     load();
   }, [load]);
 
+  const loadReviewUrl = async (deliveryId) => {
+    try {
+      const data = await materialGetReviewLink(deliveryId);
+      setReviewUrl(data.reviewUrl || '');
+      return data.reviewUrl || '';
+    } catch (err) {
+      setReviewUrl('');
+      if (err.code === 'token_unavailable') {
+        toast.message('Regenere o link para esta entrega (criada antes do cofre de token)');
+      }
+      return '';
+    }
+  };
+
   const openDetail = async (id) => {
     setSelectedId(id);
     try {
       const data = await materialGetDelivery(id);
       setDetail(data);
+      await loadReviewUrl(id);
     } catch (err) {
       toast.error(err.message || 'Falha ao carregar entrega');
     }
@@ -99,12 +138,17 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
         title: title.trim(),
         description: description.trim(),
         serviceId: service.id,
+        deliverableId:
+          deliverableId && deliverableId !== '__none' ? deliverableId : undefined,
+        taskId: taskId && taskId !== '__none' ? taskId : undefined,
       });
-      setLastReviewUrl(data.reviewUrl || '');
+      setReviewUrl(data.reviewUrl || '');
       toast.success('Entrega criada');
       setCreateOpen(false);
       setTitle('');
       setDescription('');
+      setDeliverableId('');
+      setTaskId('');
       await load();
       if (data.delivery?.id) await openDetail(data.delivery.id);
     } catch (err) {
@@ -117,20 +161,13 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
   const handleUpload = async (file) => {
     if (!selectedId || !file) return;
     setUploading(true);
+    setUploadPct(0);
     try {
-      const uploaded = await UploadFile({ file });
-      const storageFileId = uploaded.fileId || uploaded.$id;
-      if (!storageFileId) throw new Error('Upload Storage sem fileId');
-      await materialUploadFromStorage({
+      await materialUploadResumable({
         deliveryId: selectedId,
-        storageFileId,
-        fileName: file.name,
-        mimeType: file.type || 'application/octet-stream',
-        idempotencyKey:
-          typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `up_${Date.now()}`,
+        file,
         submit: true,
+        onProgress: (p) => setUploadPct(Math.round(p * 100)),
       });
       toast.success('Versão enviada para aprovação');
       await openDetail(selectedId);
@@ -139,12 +176,15 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
       toast.error(err.message || 'Falha no upload');
     } finally {
       setUploading(false);
+      setUploadPct(0);
     }
   };
 
-  const copyLink = async (url) => {
+  const copyLink = async () => {
+    let url = reviewUrl;
+    if (!url && selectedId) url = await loadReviewUrl(selectedId);
     if (!url) {
-      toast.message('Gere ou regenere o link para copiar o token');
+      toast.error('Link indisponível — regenere o token');
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -156,7 +196,7 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
     if (!confirm('O link anterior deixará de funcionar. Continuar?')) return;
     try {
       const data = await materialRegenerateToken(selectedId);
-      setLastReviewUrl(data.reviewUrl || '');
+      setReviewUrl(data.reviewUrl || '');
       await navigator.clipboard.writeText(data.reviewUrl || '');
       toast.success('Novo link gerado e copiado');
     } catch (err) {
@@ -176,13 +216,38 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
     }
   };
 
+  const handleSend = async (channel) => {
+    if (!selectedId) return;
+    try {
+      const data = await materialSendLink({ deliveryId: selectedId, channel });
+      if (data.reviewUrl) setReviewUrl(data.reviewUrl);
+
+      if (channel === 'email' || channel === 'both') {
+        if (data.email?.ok) toast.success('E-mail enviado');
+        else if (data.email?.mailto) {
+          window.open(data.email.mailto, '_blank');
+          toast.message('SendGrid não configurado — abrindo cliente de e-mail');
+        } else toast.error(data.email?.reason || 'Sem e-mail do cliente');
+      }
+
+      if (channel === 'whatsapp' || channel === 'both') {
+        if (data.whatsapp?.url) {
+          window.open(data.whatsapp.url, '_blank');
+          toast.success('WhatsApp aberto com a mensagem');
+        } else toast.error('Cliente sem telefone cadastrado');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Falha ao enviar link');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Entregas</h2>
           <p className="text-sm text-slate-600">
-            Materiais versionados para aprovação do cliente (Google Drive + link público).
+            Materiais versionados para aprovação (Drive + link público permanente).
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
@@ -190,15 +255,6 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
           Nova entrega
         </Button>
       </div>
-
-      {lastReviewUrl && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm flex flex-wrap items-center gap-2">
-          <span className="text-emerald-900 truncate flex-1">{lastReviewUrl}</span>
-          <Button size="sm" variant="outline" onClick={() => copyLink(lastReviewUrl)}>
-            <Copy className="w-3 h-3 mr-1" /> Copiar
-          </Button>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-slate-500 py-8">
@@ -242,9 +298,31 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
                     {detail.delivery.description && (
                       <p className="text-sm text-slate-600 mt-1">{detail.delivery.description}</p>
                     )}
+                    {(detail.delivery.deliverableId || detail.delivery.taskId) && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {detail.delivery.deliverableId
+                          ? `Etapa: ${
+                              stages.find((s) => s.id === detail.delivery.deliverableId)?.name ||
+                              detail.delivery.deliverableId
+                            }`
+                          : null}
+                        {detail.delivery.taskId
+                          ? ` · Tarefa: ${
+                              tasks.find((t) => t.id === detail.delivery.taskId)?.title ||
+                              detail.delivery.taskId
+                            }`
+                          : null}
+                      </p>
+                    )}
                   </div>
                   {statusBadge(detail.delivery.status)}
                 </div>
+
+                {reviewUrl && (
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs break-all">
+                    {reviewUrl}
+                  </div>
+                )}
 
                 <div>
                   <Label className="text-xs text-slate-500">Versões</Label>
@@ -264,6 +342,10 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
                     ))}
                   </ul>
                 </div>
+
+                {uploading && (
+                  <p className="text-xs text-slate-500">Enviando… {uploadPct}%</p>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   <input
@@ -289,6 +371,16 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
                       <Upload className="w-4 h-4 mr-2" />
                     )}
                     Enviar nova versão
+                  </Button>
+
+                  <Button variant="outline" onClick={copyLink}>
+                    <Copy className="w-4 h-4 mr-2" /> Copiar link
+                  </Button>
+                  <Button variant="outline" onClick={() => handleSend('email')}>
+                    <Mail className="w-4 h-4 mr-2" /> E-mail
+                  </Button>
+                  <Button variant="outline" onClick={() => handleSend('whatsapp')}>
+                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                   </Button>
 
                   {(isOwner || isAdmin) && (
@@ -333,6 +425,44 @@ export default function DeliveryWorkspaceDeliveries({ service }) {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+            <div>
+              <Label>Etapa (opcional)</Label>
+              <Select
+                value={deliverableId || '__none'}
+                onValueChange={(v) => {
+                  setDeliverableId(v);
+                  setTaskId('');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Nenhuma</SelectItem>
+                  {stages.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name || s.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tarefa (opcional)</Label>
+              <Select value={taskId || '__none'} onValueChange={setTaskId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Nenhuma</SelectItem>
+                  {taskOptions.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.title || t.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

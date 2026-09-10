@@ -186,7 +186,7 @@ export default function DeliveryWorkspacePage() {
       );
       break;
     case 'entregas':
-      sectionNode = <DeliveryWorkspaceDeliveries service={service} />;
+      sectionNode = <DeliveryWorkspaceDeliveries service={service} tasks={tasks} />;
       break;
     case 'files':
       sectionNode = (

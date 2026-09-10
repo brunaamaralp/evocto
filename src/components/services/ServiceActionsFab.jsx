@@ -1,31 +1,53 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Service } from "@/api/entities";
-import { Loader2, Settings2, PlayCircle, PauseCircle, Trash2, CheckCircle2 } from "lucide-react";
+import { Loader2, Settings2, PlayCircle, PauseCircle, Trash2, CheckCircle2, ListTodo } from "lucide-react";
 import { useTaskGeneration } from "@/hooks/useTaskGeneration";
 import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { TaskPreview } from "@/components/tasks/TaskPreview";
 import { toast } from "sonner";
 
+const RUNNING_STATUSES = new Set(["active", "in_execution"]);
+const NEEDS_ACTIVATION_STATUSES = new Set([
+  "draft",
+  "archived",
+  "on_hold",
+  "setup",
+  "briefing_pending",
+  "cancelled",
+]);
+
+function needsActivation(service) {
+  if (!service) return false;
+  if (service.is_active === false) return true;
+  const status = service.service_status;
+  if (!status) return service.is_active !== true;
+  if (NEEDS_ACTIVATION_STATUSES.has(status)) return true;
+  return !RUNNING_STATUSES.has(status) && service.is_active !== true;
+}
+
+function isRunning(service) {
+  if (!service || service.is_active === false) return false;
+  const status = service.service_status;
+  return !status || RUNNING_STATUSES.has(status);
+}
+
 export default function ServiceActionsFab() {
-  const [_open, _setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [service, setService] = React.useState(null);
   const [error, setError] = React.useState("");
   const [showPreview, setShowPreview] = React.useState(false);
   const [validationResult, setValidationResult] = React.useState(null);
 
-  // Hooks centralizados
   const {
     activateServiceAndGenerateTasks,
+    generateTasksWithFeedback,
     validateServiceActivation,
     isGenerating,
-    error: _taskGenerationError
   } = useTaskGeneration();
 
   const { handleError } = useErrorHandling();
 
-  // Detect serviceId from URL
   const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const serviceId = urlParams ? (urlParams.get("serviceId") || urlParams.get("id")) : null;
 
@@ -46,6 +68,9 @@ export default function ServiceActionsFab() {
 
   if (!serviceId) return null;
 
+  const showActivate = needsActivation(service);
+  const showGenerateOnly = isRunning(service);
+
   const reload = () => {
     try {
       window.location.reload();
@@ -56,35 +81,31 @@ export default function ServiceActionsFab() {
 
   const activateAndGenerate = async () => {
     if (!serviceId) return;
-    
+
     try {
       setBusy(true);
       setError("");
 
-      // Validar antes de mostrar preview
       const validation = await validateServiceActivation(serviceId);
       setValidationResult(validation);
 
       if (!validation.canActivate) {
-        toast.error('Não é possível ativar o serviço:', {
-          description: validation.errors.join('; ')
+        toast.error("Não é possível ativar o serviço:", {
+          description: validation.errors.join("; "),
         });
         return;
       }
 
-      // Mostrar preview se há warnings ou se usuário quer confirmar
       if (validation.warnings.length > 0) {
         setShowPreview(true);
         return;
       }
 
-      // Ativar diretamente se não há warnings
       await performActivation();
-
     } catch (e) {
-      handleError(e, { 
-        action: 'validate_service_activation', 
-        serviceId 
+      handleError(e, {
+        action: "validate_service_activation",
+        serviceId,
       });
       setError(e?.message || "Falha ao validar ativação do serviço.");
     } finally {
@@ -96,26 +117,53 @@ export default function ServiceActionsFab() {
     try {
       const result = await activateServiceAndGenerateTasks(serviceId, {
         autoAssign: true,
-        skipExisting: true
+        skipExisting: true,
       });
 
       if (result.success) {
         toast.success(`Serviço ativado e ${result.tasksCreated} tarefas geradas!`);
         if (result.warnings && result.warnings.length > 0) {
-          toast.warning('Atenção:', {
-            description: result.warnings.join('; ')
+          toast.warning("Atenção:", {
+            description: result.warnings.join("; "),
           });
         }
         reload();
       } else {
-        throw new Error(result.errors.join('; '));
+        throw new Error(result.errors.join("; "));
       }
     } catch (e) {
-      handleError(e, { 
-        action: 'activate_and_generate_tasks', 
-        serviceId 
+      handleError(e, {
+        action: "activate_and_generate_tasks",
+        serviceId,
       });
       setError(e?.message || "Falha ao ativar e gerar tarefas.");
+    }
+  };
+
+  const generateMissingTasks = async () => {
+    if (!serviceId) return;
+    try {
+      setBusy(true);
+      setError("");
+      const result = await generateTasksWithFeedback({
+        serviceId,
+        autoAssign: true,
+        skipExisting: true,
+        startDate: service?.start_date,
+      });
+      if (result.success) {
+        reload();
+      } else if (result.errors?.length) {
+        setError(result.errors.join("; "));
+      }
+    } catch (e) {
+      handleError(e, {
+        action: "generate_tasks_recovery",
+        serviceId,
+      });
+      setError(e?.message || "Falha ao gerar tarefas.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -132,10 +180,10 @@ export default function ServiceActionsFab() {
     try {
       const updated = await Service.update(serviceId, {
         is_active: false,
-        service_status: "archived"
+        service_status: "archived",
       });
       setService(updated);
-      alert("Serviço inativado com sucesso.");
+      toast.success("Serviço inativado com sucesso.");
       reload();
     } catch (e) {
       setError(e?.message || "Falha ao inativar serviço.");
@@ -151,8 +199,7 @@ export default function ServiceActionsFab() {
     setError("");
     try {
       await Service.delete(serviceId);
-      alert("Serviço excluído com sucesso.");
-      // Redireciona para a lista de serviços
+      toast.success("Serviço excluído com sucesso.");
       window.location.href = "/services";
     } catch (e) {
       setError(e?.message || "Falha ao excluir serviço.");
@@ -160,6 +207,9 @@ export default function ServiceActionsFab() {
       setBusy(false);
     }
   };
+
+  const statusLabel =
+    service?.service_status || (service?.is_active ? "active" : "archived");
 
   return (
     <div className="fixed bottom-24 right-6 z-[60]">
@@ -174,20 +224,34 @@ export default function ServiceActionsFab() {
           </div>
 
           <div className="space-y-2">
-            <Button
-              className="w-full justify-start gap-2"
-              onClick={activateAndGenerate}
-              disabled={busy}
-            >
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
-              Ativar e gerar tarefas
-            </Button>
+            {showActivate && (
+              <Button
+                className="w-full justify-start gap-2"
+                onClick={activateAndGenerate}
+                disabled={busy || !service}
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                Ativar e gerar tarefas
+              </Button>
+            )}
+
+            {showGenerateOnly && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={generateMissingTasks}
+                disabled={busy || !service}
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ListTodo className="w-4 h-4" />}
+                Gerar tarefas faltantes
+              </Button>
+            )}
 
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
               onClick={deactivateService}
-              disabled={busy}
+              disabled={busy || !service || service?.is_active === false}
             >
               <PauseCircle className="w-4 h-4" />
               Inativar serviço
@@ -207,8 +271,10 @@ export default function ServiceActionsFab() {
               <div className="text-xs text-gray-600 pt-1 border-t mt-2">
                 Status atual:{" "}
                 <span className="inline-flex items-center gap-1">
-                  <CheckCircle2 className={`w-3 h-3 ${service.is_active ? "text-green-600" : "text-gray-400"}`} />
-                  {service.service_status || (service.is_active ? "in_execution" : "archived")}
+                  <CheckCircle2
+                    className={`w-3 h-3 ${service.is_active ? "text-green-600" : "text-gray-400"}`}
+                  />
+                  {statusLabel}
                 </span>
               </div>
             )}
@@ -216,7 +282,6 @@ export default function ServiceActionsFab() {
         </div>
       </div>
 
-      {/* Preview de Tarefas */}
       <TaskPreview
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}

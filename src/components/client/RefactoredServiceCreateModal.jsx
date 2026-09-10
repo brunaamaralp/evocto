@@ -57,12 +57,6 @@ const STEP_TITLES = {
   [WIZARD_STEPS.BRIEFING_REQUIREMENT]: 'Briefing Obrigatório'
 };
 
-const SERVICE_STATUS_OPTIONS = [
-  { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
-  { value: 'active', label: 'Ativo', color: 'bg-green-100 text-green-800' },
-  { value: 'on_hold', label: 'Em Espera', color: 'bg-yellow-100 text-yellow-800' }
-];
-
 const BILLING_CYCLE_OPTIONS = [
   { value: 'one_time', label: 'Pagamento Único' },
   { value: 'monthly', label: 'Mensal' },
@@ -266,7 +260,7 @@ export default function RefactoredServiceCreateModal({
     if (result.success) {
       setCreatedServiceId(result.serviceId);
       setCurrentStep(WIZARD_STEPS.BRIEFING_REQUIREMENT);
-      toast.success('Serviço criado com sucesso! Briefing obrigatório será criado automaticamente.');
+      toast.success('Serviço ativado e tarefas geradas. Complete o briefing obrigatório.');
     }
   };
 
@@ -362,23 +356,9 @@ export default function RefactoredServiceCreateModal({
             placeholder="Ex: Marketing Digital Q1 2024"
           />
         </div>
-        <div>
-          <Label htmlFor="service_status">Status</Label>
-          <Select
-            value={serviceConfig.service_status}
-            onValueChange={(value) => setServiceConfig(prev => ({ ...prev, service_status: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SERVICE_STATUS_OPTIONS.map(status => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+          O serviço será <span className="font-medium text-foreground">ativado</span> e as
+          tarefas serão geradas automaticamente ao criar.
         </div>
       </div>
 

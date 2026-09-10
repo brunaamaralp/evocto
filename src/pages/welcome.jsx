@@ -1,8 +1,6 @@
-import { useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { User } from '@/api/entities';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { BRAND } from '@/lib/brandAssets';
@@ -72,21 +70,6 @@ const GAINS = [
 ];
 
 export default function WelcomePage() {
-  const navigate = useNavigate();
-
-  const checkExistingAuth = useCallback(async () => {
-    try {
-      const user = await User.me();
-      if (user) navigate('/dashboard');
-    } catch {
-      // Não autenticado — permanece na landing
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    checkExistingAuth();
-  }, [checkExistingAuth]);
-
   return (
     <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
@@ -106,7 +89,7 @@ export default function WelcomePage() {
       </header>
 
       <main>
-        {/* Hero — marca, 1 headline, 1 frase, CTAs, 1 âncora visual */}
+        {/* Hero — 1 headline, 1 frase, CTAs, 1 âncora visual (logo só no header) */}
         <section className="relative overflow-hidden">
           <div
             aria-hidden
@@ -115,7 +98,6 @@ export default function WelcomePage() {
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
             <div className="space-y-8">
               <div className="space-y-5">
-                <NaviBrandLockup height={52} />
                 <h1 className="max-w-xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.25rem]">
                   {HERO.title}
                 </h1>

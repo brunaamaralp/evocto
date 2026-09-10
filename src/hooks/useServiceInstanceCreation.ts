@@ -485,7 +485,7 @@ export function useServiceInstanceCreation() {
     const result = await createServiceInstance(data);
 
     if (result.success) {
-      toast.success('Instância de serviço criada com sucesso!');
+      toast.success('Serviço ativado e tarefas geradas na criação.');
       
       if (result.warnings && result.warnings.length > 0) {
         toast.warning('Atenção:', {

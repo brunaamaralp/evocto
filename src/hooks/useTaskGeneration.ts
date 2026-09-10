@@ -690,7 +690,7 @@ export function useTaskGeneration() {
       const today = new Date().toISOString().split('T')[0];
       const updatedService = await Service.update(serviceId, {
         is_active: true,
-        service_status: 'in_execution',
+        service_status: 'active',
         start_date: validation.service?.start_date || today
       });
 

@@ -1,11 +1,12 @@
 import { createSessionJwt } from '@/lib/appwrite';
 import { authedFetch } from '@/lib/authInterceptor';
 
-async function authHeaders() {
+async function authHeaders(extra = {}) {
   const jwt = await createSessionJwt();
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${jwt}`,
+    ...extra,
   };
 }
 
@@ -60,7 +61,21 @@ export async function materialGetDelivery(deliveryId) {
   return parseRes(res);
 }
 
-export async function materialCreateDelivery({ title, description, serviceId, deliverableId, taskId }) {
+export async function materialGetReviewLink(deliveryId) {
+  const params = new URLSearchParams({ route: 'review-link', deliveryId });
+  const res = await authedFetch(`/api/material-deliveries?${params}`, {
+    headers: await authHeaders(),
+  });
+  return parseRes(res);
+}
+
+export async function materialCreateDelivery({
+  title,
+  description,
+  serviceId,
+  deliverableId,
+  taskId,
+}) {
   const res = await authedFetch('/api/material-deliveries?route=create', {
     method: 'POST',
     headers: await authHeaders(),
@@ -69,27 +84,132 @@ export async function materialCreateDelivery({ title, description, serviceId, de
   return parseRes(res);
 }
 
-export async function materialUploadFromStorage({
+export async function materialUploadInit({
   deliveryId,
-  storageFileId,
   fileName,
   mimeType,
+  fileSize,
   idempotencyKey,
-  submit = true,
 }) {
+  const res = await authedFetch('/api/material-deliveries?route=upload-init', {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ deliveryId, fileName, mimeType, fileSize, idempotencyKey }),
+  });
+  return parseRes(res);
+}
+
+export async function materialUploadChunk({ versionId, offset, total, chunk }) {
+  const jwt = await createSessionJwt();
+  const params = new URLSearchParams({
+    route: 'upload-chunk',
+    versionId,
+    offset: String(offset),
+    total: String(total),
+  });
+  const res = await authedFetch(`/api/material-deliveries?${params}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/octet-stream',
+    },
+    body: chunk,
+  });
+  return parseRes(res);
+}
+
+export async function materialUploadComplete({ versionId, submit = true, driveFileId }) {
+  const res = await authedFetch('/api/material-deliveries?route=upload-complete', {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ versionId, submit, driveFileId }),
+  });
+  return parseRes(res);
+}
+
+/** @deprecated prefer materialUploadResumable */
+export async function materialUploadFromStorage(payload) {
   const res = await authedFetch('/api/material-deliveries?route=upload-from-storage', {
     method: 'POST',
     headers: await authHeaders(),
-    body: JSON.stringify({
-      deliveryId,
-      storageFileId,
-      fileName,
-      mimeType,
-      idempotencyKey,
-      submit,
-    }),
+    body: JSON.stringify(payload),
   });
   return parseRes(res);
+}
+
+/**
+ * Upload direto ao Drive via sessão resumable + proxy de chunks (anti-CORS).
+ */
+export async function materialUploadResumable({
+  deliveryId,
+  file,
+  submit = true,
+  onProgress,
+}) {
+  const idempotencyKey =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `up_${Date.now()}`;
+
+  const init = await materialUploadInit({
+    deliveryId,
+    fileName: file.name,
+    mimeType: file.type || 'application/octet-stream',
+    fileSize: file.size,
+    idempotencyKey,
+  });
+
+  const chunkSize = Number(init.chunkSize || 4 * 1024 * 1024);
+  let offset = 0;
+  let driveFileId = null;
+
+  // Try direct PUT to Google first (single request for small files)
+  if (init.uploadUrl && file.size <= chunkSize) {
+    try {
+      const putRes = await fetch(init.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+          'Content-Length': String(file.size),
+          'Content-Range': `bytes 0-${file.size - 1}/${file.size}`,
+        },
+        body: file,
+      });
+      if (putRes.status === 200 || putRes.status === 201) {
+        const data = await putRes.json().catch(() => ({}));
+        driveFileId = data.id || null;
+        onProgress?.(1);
+      }
+    } catch {
+      // fall through to chunk proxy
+    }
+  }
+
+  if (!driveFileId) {
+    while (offset < file.size) {
+      const end = Math.min(offset + chunkSize, file.size);
+      const blob = file.slice(offset, end);
+      const chunk = await blob.arrayBuffer();
+      const result = await materialUploadChunk({
+        versionId: init.versionId,
+        offset,
+        total: file.size,
+        chunk,
+      });
+      offset = end;
+      onProgress?.(offset / file.size);
+      if (result.done) {
+        driveFileId = result.driveFileId || driveFileId;
+        break;
+      }
+    }
+  }
+
+  return materialUploadComplete({
+    versionId: init.versionId,
+    submit,
+    driveFileId,
+  });
 }
 
 export async function materialSubmitVersion(versionId) {
@@ -97,6 +217,15 @@ export async function materialSubmitVersion(versionId) {
     method: 'POST',
     headers: await authHeaders(),
     body: JSON.stringify({ versionId }),
+  });
+  return parseRes(res);
+}
+
+export async function materialSendLink({ deliveryId, channel = 'both', email, phone }) {
+  const res = await authedFetch('/api/material-deliveries?route=send-link', {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ deliveryId, channel, email, phone }),
   });
   return parseRes(res);
 }
