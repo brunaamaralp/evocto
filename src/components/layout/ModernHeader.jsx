@@ -1,7 +1,15 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Menu, ChevronRight, Megaphone } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { User, LogOut, Building2, Menu, ChevronRight, Megaphone, Users, ChevronDown } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -18,8 +26,9 @@ export default function ModernHeader({
   contextCampaign,
   onMenuClick,
 }) {
-  const { user, agencyId, logout } = useSession();
+  const { user, agencyId, logout, isAdmin, isOwner } = useSession();
   const isClientContext = context?.type === 'client' && Boolean(context?.clientId);
+  const canManageTeam = Boolean(isAdmin?.() || isOwner?.() || ['owner', 'admin'].includes(user?.role || ''));
   const showCampaignCrumb =
     isClientContext &&
     Boolean(context?.briefingId) &&
@@ -125,28 +134,55 @@ export default function ModernHeader({
               </div>
             )}
 
-            <div className="flex items-center gap-2 pl-1">
-              <div
-                className={`h-9 w-9 rounded-full flex items-center justify-center ${
-                  isClientContext ? 'bg-teal-700' : GLOBAL_SHELL.avatarBg
-                }`}
-              >
-                <User className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-sm font-medium text-[#18162A] hidden sm:inline max-w-[120px] truncate">
-                {user?.full_name || 'Usuário'}
-              </span>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={logout}
-              className="rounded-full h-9 w-9 p-0"
-              aria-label="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 pl-1 h-auto py-1.5 rounded-full hover:bg-black/5"
+                  aria-label="Menu da conta"
+                >
+                  <div
+                    className={`h-9 w-9 rounded-full flex items-center justify-center ${
+                      isClientContext ? 'bg-teal-700' : GLOBAL_SHELL.avatarBg
+                    }`}
+                  >
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-[#18162A] hidden sm:inline max-w-[120px] truncate">
+                    {user?.full_name || user?.name || 'Usuário'}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-[#7A7595] hidden sm:inline" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium text-[#18162A] truncate">
+                    {user?.full_name || user?.name || 'Usuário'}
+                  </p>
+                  <p className="text-xs text-[#7A7595] truncate">{user?.email || ''}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl('my-account')} className="flex items-center cursor-pointer">
+                    <User className="h-4 w-4 mr-2" />
+                    Minha Conta
+                  </Link>
+                </DropdownMenuItem>
+                {canManageTeam && (
+                  <DropdownMenuItem asChild>
+                    <Link to={createPageUrl('team-management')} className="flex items-center cursor-pointer">
+                      <Users className="h-4 w-4 mr-2" />
+                      Equipe
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
