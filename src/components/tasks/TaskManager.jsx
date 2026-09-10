@@ -48,7 +48,9 @@ export default function TaskManager({
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeView, setActiveView] = useState(getDefaultView(userRole));
+  const [activeView, setActiveView] = useState(
+    embedded ? 'list' : getDefaultView(userRole)
+  );
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [filters, setFilters] = useState({ ...EMPTY_TASK_FILTERS });
@@ -287,6 +289,7 @@ export default function TaskManager({
         onFiltersChange={setFilters}
         tasks={tasks}
         currentUserId={currentUserId}
+        compact={embedded}
       />
 
       {!embedded && (
@@ -302,40 +305,59 @@ export default function TaskManager({
         />
       )}
 
-      {/* Abas de Visualização - Mobile Optimized */}
       <Tabs value={activeView} onValueChange={setActiveView} className="space-y-4">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-4 min-w-[320px] sm:min-w-0">
-            <TabsTrigger
-              value="kanban"
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
-            >
-              <Kanban className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:inline">Kanban</span>
-            </TabsTrigger>
+          <TabsList
+            className={
+              embedded
+                ? 'grid w-full grid-cols-2 min-w-0'
+                : 'grid w-full grid-cols-4 min-w-[320px] sm:min-w-0'
+            }
+          >
             <TabsTrigger
               value="list"
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
             >
               <List className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:inline">Lista</span>
+              Lista
             </TabsTrigger>
             <TabsTrigger
-              value="phase"
+              value="kanban"
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
             >
-              <Layers className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:inline">Por Fase</span>
+              <Kanban className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              Kanban
             </TabsTrigger>
-            <TabsTrigger
-              value="calendar"
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
-            >
-              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:inline">Calendário</span>
-            </TabsTrigger>
+            {!embedded && (
+              <>
+                <TabsTrigger
+                  value="phase"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                >
+                  <Layers className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Por Fase</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="calendar"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                >
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Calendário</span>
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
         </div>
+
+        <TabsContent value="list">
+          <TaskListView
+            tasks={filteredTasks}
+            onTaskUpdate={handleTaskUpdate}
+            onEditTask={handleEditTask}
+            onExport={embedded ? undefined : handleExportTasks}
+            loading={loading}
+          />
+        </TabsContent>
 
         <TabsContent value="kanban">
           <TaskKanbanView
@@ -346,33 +368,27 @@ export default function TaskManager({
           />
         </TabsContent>
 
-        <TabsContent value="list">
-          <TaskListView
-            tasks={filteredTasks}
-            onTaskUpdate={handleTaskUpdate}
-            onEditTask={handleEditTask}
-            onExport={handleExportTasks}
-            loading={loading}
-          />
-        </TabsContent>
+        {!embedded && (
+          <>
+            <TabsContent value="phase">
+              <TaskPhaseView
+                tasks={filteredTasks}
+                onTaskUpdate={handleTaskUpdate}
+                onEditTask={handleEditTask}
+                loading={loading}
+              />
+            </TabsContent>
 
-        <TabsContent value="phase">
-          <TaskPhaseView
-            tasks={filteredTasks}
-            onTaskUpdate={handleTaskUpdate}
-            onEditTask={handleEditTask}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent value="calendar">
-          <TaskCalendarView
-            tasks={filteredTasks}
-            onTaskUpdate={handleTaskUpdate}
-            onEditTask={handleEditTask}
-            loading={loading}
-          />
-        </TabsContent>
+            <TabsContent value="calendar">
+              <TaskCalendarView
+                tasks={filteredTasks}
+                onTaskUpdate={handleTaskUpdate}
+                onEditTask={handleEditTask}
+                loading={loading}
+              />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
       {showTaskForm && (
@@ -388,6 +404,7 @@ export default function TaskManager({
           serviceId={serviceId}
           cycleId={cycleId}
           briefingId={briefingId}
+          compact={embedded}
         />
       )}
     </div>

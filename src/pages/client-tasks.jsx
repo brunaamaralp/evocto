@@ -349,10 +349,6 @@ export default function ClientTasksPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={handleGenerateTasks}>
-                <Target className="w-4 h-4 mr-1" />
-                Gerar
-              </Button>
               <Button size="sm" onClick={handleCreateTask}>
                 <Plus className="w-4 h-4 mr-1" />
                 Nova tarefa
@@ -461,6 +457,7 @@ export default function ClientTasksPage() {
           cycleId={cycleId}
           briefingId={briefingId}
           defaultStatus="todo"
+          compact={isCampaignScope}
         />
       )}
     </div>

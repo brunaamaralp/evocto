@@ -29,6 +29,7 @@ export default function TaskFilters({
   tasks = [],
   users = [],
   currentUserId,
+  compact = false,
 }) {
   const assigneeOptions = useMemo(
     () => buildAssigneeOptions(tasks, users),
@@ -67,6 +68,43 @@ export default function TaskFilters({
 
   const phaseLabel =
     phaseOptions.find((p) => p.id === filters.phase)?.label || filters.phase;
+
+  if (compact) {
+    return (
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar tarefas..."
+            value={filters.search || ''}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select
+          value={filters.status || 'all'}
+          onValueChange={(value) => handleFilterChange('status', value)}
+        >
+          <SelectTrigger className="w-full sm:w-[150px] text-sm">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            {statuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {getStatusLabel(status)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Card className="mx-4 sm:mx-0">

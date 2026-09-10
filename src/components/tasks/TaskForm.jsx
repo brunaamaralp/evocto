@@ -260,6 +260,8 @@ const TimeTracker = ({ timeEntries = [], onUpdate, isRunning, onToggleTimer }) =
 };
 
 // Componente principal do formulário
+const UNASSIGNED = 'unassigned';
+
 export const TaskForm = ({ 
   task = null, 
   isOpen, 
@@ -269,16 +271,20 @@ export const TaskForm = ({
   cycleId,
   briefingId = null,
   serviceId,
-  defaultStatus = 'todo' 
+  defaultStatus = 'todo',
+  compact = false,
 }) => {
-  const { user } = useSession();
+  const { user, agencyId: sessionAgencyId, userId } = useSession();
+  const agencyId = sessionAgencyId || user?.agencyId || user?.data?.agencyId || null;
+  const currentUserId = userId || user?.id || user?.data?.id || null;
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     status: defaultStatus,
     priority: 'medium',
     type: 'deliverable',
-    assignedTo: '',
+    assignedTo: UNASSIGNED,
     dueDate: '',
     startDate: '',
     estimatedHours: '',
@@ -295,29 +301,27 @@ export const TaskForm = ({
   const [newTag, setNewTag] = useState('');
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // Carregar usuários para atribuição com useCallback
   const loadUsers = useCallback(async () => {
     try {
-      if (user?.agencyId) { // Ensure agencyId exists before fetching
-        const agencyUsers = await User.filter({ agencyId: user.agencyId });
-        setUsers(agencyUsers);
+      if (agencyId) {
+        const agencyUsers = await User.filter({ agencyId });
+        setUsers(agencyUsers || []);
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
     }
-  }, [user?.agencyId]);
+  }, [agencyId]);
 
-  // useEffect com dependência correta
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
 
-  // Resetar form quando abrir/fechar
   useEffect(() => {
     if (isOpen && task) {
+      const assignee = task.assignedTo || task.assigneeId;
       setFormData({
         ...task,
-        assignedTo: task.assignedTo === null ? "" : task.assignedTo // Normalize null to empty string for Select
+        assignedTo: assignee ? String(assignee) : UNASSIGNED,
       });
     } else if (isOpen && !task) {
       setFormData({
@@ -326,7 +330,7 @@ export const TaskForm = ({
         status: defaultStatus,
         priority: 'medium',
         type: 'deliverable',
-        assignedTo: '',
+        assignedTo: UNASSIGNED,
         dueDate: '',
         startDate: '',
         estimatedHours: '',
@@ -337,22 +341,22 @@ export const TaskForm = ({
         clientId,
         cycleId,
         serviceId,
-        agencyId: user?.agencyId,
+        agencyId,
         ...buildTaskScopeFields({ cycleId, briefingId }),
       });
     }
-  }, [isOpen, task, defaultStatus, clientId, cycleId, briefingId, serviceId, user?.agencyId]);
+  }, [isOpen, task, defaultStatus, clientId, cycleId, briefingId, serviceId, agencyId]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const addTag = () => {
-    if (!newTag.trim() || formData.tags.includes(newTag.trim())) return;
+    if (!newTag.trim() || (formData.tags || []).includes(newTag.trim())) return;
     
     setFormData(prev => ({
       ...prev,
-      tags: [...prev.tags, newTag.trim()]
+      tags: [...(prev.tags || []), newTag.trim()]
     }));
     setNewTag('');
   };
@@ -360,7 +364,7 @@ export const TaskForm = ({
   const removeTag = (tagToRemove) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: (prev.tags || []).filter(tag => tag !== tagToRemove)
     }));
   };
 
@@ -419,19 +423,27 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
     }
   };
 
-  // Salvar tarefa com notificações
   const handleSave = async () => {
     if (!formData.title.trim()) {
       toast.error('Título da tarefa é obrigatório');
       return;
     }
 
+    if (!agencyId) {
+      toast.error('Sessão sem agência — recarregue a página e tente de novo');
+      return;
+    }
+
     try {
       setSaving(true);
-      
+
+      const assigneeRaw = formData.assignedTo;
+      const assigneeId =
+        !assigneeRaw || assigneeRaw === UNASSIGNED ? null : assigneeRaw;
+
       const taskData = {
         ...formData,
-        agencyId: user.agencyId,
+        agencyId,
         clientId: clientId || formData.clientId,
         cycleId: cycleId || formData.cycleId,
         serviceId: serviceId || formData.serviceId,
@@ -439,57 +451,80 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
           cycleId: cycleId || formData.cycleId || formData.cyclePlanId,
           briefingId: briefingId || formData.briefingId || formData.briefId,
         }),
-        estimatedHours: formData.estimatedHours ? parseFloat(formData.estimatedHours) : null,
-        assignedTo: formData.assignedTo === "" ? null : formData.assignedTo,
-        assigneeId: formData.assignedTo === "" ? null : formData.assignedTo,
-        checklist: formData.checklist.map(item => ({
+        estimatedHours: formData.estimatedHours
+          ? parseFloat(formData.estimatedHours)
+          : null,
+        assignedTo: assigneeId,
+        assigneeId,
+        checklist: (formData.checklist || []).map((item) => ({
           ...item,
-          id: item.id || `checklist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        }))
+          id:
+            item.id ||
+            `checklist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        })),
       };
+
+      delete taskData.id;
+      // evita reenviar campos internos do form
+      if (!task?.id) {
+        delete taskData.$id;
+      }
 
       let savedTask;
       const isCreating = !task?.id;
       const previousStatus = task?.status;
 
       if (isCreating) {
-        // Criar nova tarefa
-        taskData.assignedBy = user.id;
+        taskData.assignedBy = currentUserId;
         savedTask = await Task.create(taskData);
-        
-        // Notificação de tarefa atribuída
-        if (savedTask.assignedTo && savedTask.assignedTo !== user.id) {
-          await TaskNotificationService.createTaskAssignedNotification(savedTask, user);
+
+        if (
+          savedTask.assignedTo &&
+          savedTask.assignedTo !== currentUserId
+        ) {
+          await TaskNotificationService.createTaskAssignedNotification(
+            savedTask,
+            user
+          );
         }
-        
+
         toast.success('Tarefa criada com sucesso!');
       } else {
-        // Atualizar tarefa existente
-        savedTask = await Task.update(task.id, taskData);
-        
-        // Notificações baseadas nas mudanças
+        savedTask = await Task.update(task.id, {
+          ...taskData,
+          // no update, preserve id via Task.update path
+        });
+
         if (previousStatus !== savedTask.status) {
-          await TaskNotificationService.createTaskStatusChangedNotification(savedTask, previousStatus, user);
+          await TaskNotificationService.createTaskStatusChangedNotification(
+            savedTask,
+            previousStatus,
+            user
+          );
         }
-        
+
         if (savedTask.status === 'completed' && previousStatus !== 'completed') {
-          await TaskNotificationService.createTaskCompletedNotification(savedTask, user);
+          await TaskNotificationService.createTaskCompletedNotification(
+            savedTask,
+            user
+          );
         }
-        
-        // Se a atribuição mudou
+
         if (task.assignedTo !== savedTask.assignedTo && savedTask.assignedTo) {
-          await TaskNotificationService.createTaskAssignedNotification(savedTask, user);
+          await TaskNotificationService.createTaskAssignedNotification(
+            savedTask,
+            user
+          );
         }
-        
+
         toast.success('Tarefa atualizada com sucesso!');
       }
 
       onSave(savedTask);
       onClose();
-      
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
-      toast.error('Erro ao salvar tarefa');
+      toast.error(error?.message || 'Erro ao salvar tarefa');
     } finally {
       setSaving(false);
     }
@@ -511,8 +546,13 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className={compact ? 'max-w-lg max-h-[90vh] overflow-y-auto' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}>
         <DialogHeader>
           <DialogTitle>
             {task ? 'Editar Tarefa' : 'Nova Tarefa'}
@@ -527,22 +567,24 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
                 <label className="block text-sm font-medium text-gray-700">
                   Título *
                 </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={suggestWithAI}
-                  disabled={aiLoading}
-                  className="gap-2"
-                  title="Sugerir com IA"
-                >
-                  {aiLoading ? (
-                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Lightbulb className="w-4 h-4" />
-                  )}
-                  Sugerir com IA
-                </Button>
+                {!compact && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={suggestWithAI}
+                    disabled={aiLoading}
+                    className="gap-2"
+                    title="Sugerir com IA"
+                  >
+                    {aiLoading ? (
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Lightbulb className="w-4 h-4" />
+                    )}
+                    Sugerir com IA
+                  </Button>
+                )}
               </div>
               <Input
                 value={formData.title}
@@ -560,7 +602,7 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Descreva a tarefa..."
-                rows={3}
+                rows={compact ? 2 : 3}
                 className="w-full"
               />
             </div>
@@ -611,59 +653,68 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
               </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo
-              </label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleInputChange('type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TASK_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!compact && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo
+                </label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => handleInputChange('type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASK_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Responsável
               </label>
               <Select
-                value={formData.assignedTo}
+                value={formData.assignedTo || UNASSIGNED}
                 onValueChange={(value) => handleInputChange('assignedTo', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar responsável..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={""}>Não atribuído</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name}
+                  <SelectItem value={UNASSIGNED}>Não atribuído</SelectItem>
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name || u.name || u.email}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Data de Início
-              </label>
-              <Input
-                type="datetime-local"
-                value={formData.startDate ? formData.startDate.slice(0, 16) : ''}
-                onChange={(e) => handleInputChange('startDate', e.target.value ? new Date(e.target.value).toISOString() : '')}
-              />
-            </div>
+            {!compact && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Data de Início
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={formData.startDate ? formData.startDate.slice(0, 16) : ''}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'startDate',
+                      e.target.value ? new Date(e.target.value).toISOString() : ''
+                    )
+                  }
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -672,91 +723,116 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
               <Input
                 type="datetime-local"
                 value={formData.dueDate ? formData.dueDate.slice(0, 16) : ''}
-                onChange={(e) => handleInputChange('dueDate', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                onChange={(e) =>
+                  handleInputChange(
+                    'dueDate',
+                    e.target.value ? new Date(e.target.value).toISOString() : ''
+                  )
+                }
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Horas Estimadas
-              </label>
-              <Input
-                type="number"
-                step="0.5"
-                min="0"
-                value={formData.estimatedHours}
-                onChange={(e) => handleInputChange('estimatedHours', e.target.value)}
-                placeholder="Ex: 2.5"
-              />
-            </div>
+            {!compact && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Horas Estimadas
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={formData.estimatedHours}
+                    onChange={(e) =>
+                      handleInputChange('estimatedHours', e.target.value)
+                    }
+                    placeholder="Ex: 2.5"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Progresso (%)
-              </label>
-              <div className="space-y-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.progress}
-                  onChange={(e) => handleInputChange('progress', parseInt(e.target.value) || 0)}
-                />
-                <Progress value={formData.progress} className="h-2" />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Progresso (%)
+                  </label>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={formData.progress}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'progress',
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                    />
+                    <Progress value={formData.progress} className="h-2" />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {!compact && (
+            <>
+              <Separator />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {(formData.tags || []).map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Adicionar tag..."
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                    className="flex-1"
+                  />
+                  <Button onClick={addTag} size="sm" variant="outline">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <Separator />
+              <Separator />
 
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {formData.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <button onClick={() => removeTag(tag)} className="ml-1 hover:text-red-600">
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Adicionar tag..."
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                className="flex-1"
+              <ChecklistManager
+                checklist={formData.checklist}
+                onChange={(checklist) => handleInputChange('checklist', checklist)}
               />
-              <Button onClick={addTag} size="sm" variant="outline">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
 
-          <Separator />
+              <Separator />
 
-          {/* Checklist */}
-          <ChecklistManager
-            checklist={formData.checklist}
-            onChange={(checklist) => handleInputChange('checklist', checklist)}
-          />
+              <TimeTracker
+                timeEntries={formData.timeEntries}
+                isRunning={isTimerRunning}
+                onUpdate={(timeEntries) =>
+                  handleInputChange('timeEntries', timeEntries)
+                }
+                onToggleTimer={setIsTimerRunning}
+              />
+            </>
+          )}
 
-          <Separator />
-
-          {/* Time Tracking */}
-          <TimeTracker
-            timeEntries={formData.timeEntries}
-            isRunning={isTimerRunning}
-            onUpdate={(timeEntries) => handleInputChange('timeEntries', timeEntries)}
-            onToggleTimer={setIsTimerRunning}
-          />
-
-          {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t">
             <div>
               {task && (
