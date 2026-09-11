@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -37,6 +30,7 @@ const EMPTY_FORM = {
   email: '',
   phone: '',
   sector: '',
+  contact_name: '',
   company_size: 'pequena',
   status: 'ativo',
   timezone: 'America/Sao_Paulo',
@@ -59,6 +53,11 @@ function clientToForm(client) {
     email: client.email || '',
     phone: client.phone || '',
     sector: client.sector || '',
+    contact_name:
+      client.contact_name ||
+      client.responsible_name ||
+      client.billing_contact_name ||
+      '',
     company_size: client.company_size || 'pequena',
     status: client.status || 'ativo',
     timezone: client.timezone || 'America/Sao_Paulo',
@@ -81,7 +80,7 @@ function clientToForm(client) {
   };
 }
 
-function buildSavePayload(formData, agencyId) {
+function buildSavePayload(formData, agencyId, { isCreate = false, existingStatus } = {}) {
   const billing_enabled = Boolean(formData.billing_enabled);
   const payload = {
     name: formData.name.trim(),
@@ -90,8 +89,10 @@ function buildSavePayload(formData, agencyId) {
     email: formData.email.trim(),
     phone: formData.phone.trim(),
     sector: formData.sector.trim(),
-    company_size: formData.company_size,
-    status: formData.status,
+    contact_name: String(formData.contact_name || '').trim(),
+    company_size: formData.company_size || 'pequena',
+    // Modal não edita status: novo = ativo; edição preserva o status atual
+    status: isCreate ? 'ativo' : existingStatus || formData.status || 'ativo',
     timezone: formData.timezone,
     agencyId,
     billing_enabled,
@@ -215,7 +216,10 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
     setError('');
 
     try {
-      const clientData = buildSavePayload(formData, agencyId);
+      const clientData = buildSavePayload(formData, agencyId, {
+        isCreate: !client,
+        existingStatus: client?.status,
+      });
 
       let savedClient = client;
       if (client) {
@@ -349,55 +353,26 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sector">Setor</Label>
+              <Label htmlFor="contact_name">Responsável</Label>
               <Input
-                id="sector"
-                value={formData.sector}
-                onChange={(e) => handleInputChange('sector', e.target.value)}
-                placeholder="Ex: Tecnologia, Varejo, Indústria"
+                id="contact_name"
+                value={formData.contact_name}
+                onChange={(e) => handleInputChange('contact_name', e.target.value)}
+                placeholder="Nome do contato principal"
                 disabled={loading}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company_size">Porte da Empresa</Label>
-              <Select
-                value={formData.company_size}
-                onValueChange={(value) => handleInputChange('company_size', value)}
-                disabled={loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o porte" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="startup">Startup</SelectItem>
-                  <SelectItem value="pequena">Pequena</SelectItem>
-                  <SelectItem value="media">Média</SelectItem>
-                  <SelectItem value="grande">Grande</SelectItem>
-                  <SelectItem value="multinacional">Multinacional</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => handleInputChange('status', value)}
-                disabled={loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                  <SelectItem value="prospecto">Prospecto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="sector">Setor</Label>
+            <Input
+              id="sector"
+              value={formData.sector}
+              onChange={(e) => handleInputChange('sector', e.target.value)}
+              placeholder="Ex: Tecnologia, Varejo, Indústria"
+              disabled={loading}
+            />
           </div>
 
           <ClientBillingSection

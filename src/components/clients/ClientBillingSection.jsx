@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -9,10 +10,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import PlanSelect from '@/components/shared/PlanSelect';
-import BankAccountSelect from '@/components/finance/BankAccountSelect';
 import { PAYMENT_METHODS } from '@/lib/paymentMethods';
 import { listActivePaymentMethods } from '@/lib/paymentMethodSettings';
+import { buildPlanSelectOptions } from '@/lib/academyPlans';
+import { listBankAccountLabels } from '@/lib/bankAccounts';
+import { EMPRESA_FINANCE_CONFIG_PATH } from '@/lib/financeiroHubTabs';
 import { useLeadStore } from '@/store/useLeadStore';
 import { FINANCE_DOMAIN } from '@/lib/financeDomain';
 
@@ -35,6 +37,14 @@ export default function ClientBillingSection({
     return active.length ? active : PAYMENT_METHODS;
   }, [financeConfig]);
 
+  const planOptions = useMemo(
+    () => buildPlanSelectOptions(financeConfig, formData.plan || ''),
+    [financeConfig, formData.plan]
+  );
+
+  const bankOptions = useMemo(() => listBankAccountLabels(financeConfig), [financeConfig]);
+
+  const hasConfiguredPlans = (financeConfig?.plans || []).some((p) => String(p?.name || '').trim());
   const billingOn = Boolean(formData.billing_enabled);
 
   return (
@@ -65,24 +75,41 @@ export default function ClientBillingSection({
       {billingOn ? (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Pacote de serviço *</Label>
-            <PlanSelect
-              academyId={agencyId}
-              financeConfig={financeConfig}
-              value={formData.plan || ''}
-              disabled={disabled}
-              emptyLabel="Selecione o pacote…"
-              showConfigHint
-              onChange={(planName) => onChange('plan', planName)}
-              onPlanPick={(plan) => {
-                if (plan && Number(plan.price) >= 0) {
-                  onChange('plan_price', Number(plan.price) || 0);
+            <Label htmlFor="client_plan">Pacote de serviço *</Label>
+            <Select
+              value={formData.plan || undefined}
+              onValueChange={(planName) => {
+                onChange('plan', planName);
+                const opt = planOptions.find((o) => o.value === planName);
+                if (opt?.plan && Number(opt.plan.price) >= 0) {
+                  onChange('plan_price', Number(opt.plan.price) || 0);
                 }
               }}
-            />
+              disabled={disabled}
+            >
+              <SelectTrigger id="client_plan" className="w-full">
+                <SelectValue placeholder="Selecione o pacote…" />
+              </SelectTrigger>
+              <SelectContent>
+                {planOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!hasConfiguredPlans ? (
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                Nenhum pacote cadastrado. Configure em{' '}
+                <Link to={EMPRESA_FINANCE_CONFIG_PATH} className="underline underline-offset-2">
+                  Minha agência → Financeiro
+                </Link>
+                .
+              </p>
+            ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="plan_price">Valor acordado (R$)</Label>
               <Input
@@ -152,9 +179,9 @@ export default function ClientBillingSection({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Forma de pagamento habitual</Label>
+              <Label htmlFor="preferred_payment_method">Forma de pagamento habitual</Label>
               <Select
                 value={formData.preferred_payment_method || '__none__'}
                 onValueChange={(v) =>
@@ -162,7 +189,7 @@ export default function ClientBillingSection({
                 }
                 disabled={disabled}
               >
-                <SelectTrigger>
+                <SelectTrigger id="preferred_payment_method" className="w-full">
                   <SelectValue placeholder="Opcional" />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,17 +204,41 @@ export default function ClientBillingSection({
             </div>
 
             <div className="space-y-2">
-              <Label>Conta habitual</Label>
-              <BankAccountSelect
-                academyId={agencyId}
-                financeConfig={financeConfig}
-                value={formData.preferred_payment_account || ''}
-                onChange={(v) => onChange('preferred_payment_account', v)}
+              <Label htmlFor="preferred_payment_account">Conta habitual</Label>
+              <Select
+                value={formData.preferred_payment_account || '__none__'}
+                onValueChange={(v) =>
+                  onChange('preferred_payment_account', v === '__none__' ? '' : v)
+                }
                 disabled={disabled}
-                allowEmpty
-                emptyLabel="Não definida…"
-                className=""
-              />
+              >
+                <SelectTrigger id="preferred_payment_account" className="w-full">
+                  <SelectValue placeholder="Não definida…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Não definida…</SelectItem>
+                  {formData.preferred_payment_account &&
+                  !bankOptions.includes(formData.preferred_payment_account) ? (
+                    <SelectItem value={formData.preferred_payment_account}>
+                      {formData.preferred_payment_account} (cadastro anterior)
+                    </SelectItem>
+                  ) : null}
+                  {bankOptions.map((lbl) => (
+                    <SelectItem key={lbl} value={lbl}>
+                      {lbl}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {bankOptions.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Nenhuma conta cadastrada. Configure em{' '}
+                  <Link to={EMPRESA_FINANCE_CONFIG_PATH} className="underline underline-offset-2">
+                    Minha agência → Financeiro
+                  </Link>
+                  .
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
