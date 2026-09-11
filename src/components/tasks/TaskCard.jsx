@@ -9,6 +9,7 @@ import {
   Paperclip,
   CheckSquare
 } from 'lucide-react';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-100 text-blue-800',
@@ -89,13 +90,15 @@ export default function TaskCard({ task, users = [], onClick, isDragging = false
 
         {/* Badges compactos */}
         <div className="flex flex-wrap gap-1">
-          <Badge 
-            variant="outline" 
-            className={`text-xs px-2 py-0.5 ${PRIORITY_COLORS[task.priority] || 'bg-gray-100 text-gray-800'}`}
-          >
-            <Flag className="w-3 h-3 mr-1" />
-            {task.priority || 'medium'}
-          </Badge>
+          {shouldShowPriorityBadge(task.priority) && (
+            <Badge 
+              variant="outline" 
+              className={`text-xs px-2 py-0.5 ${PRIORITY_COLORS[task.priority] || 'bg-gray-100 text-gray-800'}`}
+            >
+              <Flag className="w-3 h-3 mr-1" />
+              {task.priority}
+            </Badge>
+          )}
           
           {task.type && (
             <Badge 

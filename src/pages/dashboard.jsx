@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   AlertCircle,
   ArrowRight,
+  Check,
   Loader2,
   Plus,
   RefreshCw,
@@ -20,6 +21,16 @@ import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
 
+const OPEN_TASK_STATUSES = new Set([
+  'todo',
+  'in_progress',
+  'pending',
+  'blocked',
+  'in_review',
+]);
+
+const DONE_GATE = new Set(['aprovado', 'approved', 'skipped', 'done']);
+
 async function safeFilter(entity, filters) {
   try {
     const result = await entity.filter(filters);
@@ -28,6 +39,71 @@ async function safeFilter(entity, filters) {
     console.warn('[dashboard] filter failed:', err?.message || err);
     return [];
   }
+}
+
+function startOfLocalDay(date = new Date()) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addLocalDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function parseDueDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function isOpenTask(task) {
+  const status = String(task?.status || '').toLowerCase();
+  return OPEN_TASK_STATUSES.has(status);
+}
+
+function isWaitingOnClient(task) {
+  const gatekeeper = String(task?.gatekeeper || '').toLowerCase();
+  if (gatekeeper !== 'cliente' && gatekeeper !== 'client') return false;
+  const gate = String(task?.gate_status || 'pendente').toLowerCase();
+  return !DONE_GATE.has(gate);
+}
+
+function formatDueLabel(due, todayStart) {
+  if (!due) return null;
+  const dueDay = startOfLocalDay(due);
+  const diffDays = Math.round((dueDay - todayStart) / 86400000);
+  if (diffDays < 0) {
+    const n = Math.abs(diffDays);
+    return n === 1 ? 'Atrasada 1 dia' : `Atrasada ${n} dias`;
+  }
+  if (diffDays === 0) return 'Hoje';
+  if (diffDays === 1) return 'Amanhã';
+  return due.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function resolveClientName(clients, clientId) {
+  if (!clientId) return null;
+  const client = clients.find((c) => String(c.id) === String(clientId));
+  return client?.name || null;
+}
+
+function resolveTaskHref(task) {
+  const briefingId = task.briefingId || task.briefId || null;
+  if (briefingId) {
+    return createPageUrl(
+      buildClientCampaignHref({
+        clientId: task.clientId,
+        briefingId,
+      })
+    );
+  }
+  if (task.clientId) {
+    return createPageUrl(buildClientTasksHref({ clientId: task.clientId }));
+  }
+  return createPageUrl('tasks-manager');
 }
 
 function groupCampaignsByClient(clients, briefs, cycles, tasks, services) {
@@ -66,8 +142,203 @@ function groupCampaignsByClient(clients, briefs, cycles, tasks, services) {
   return groups.sort((a, b) => a.clientName.localeCompare(b.clientName));
 }
 
+function buildTaskItem(task, clients, todayStart, kind) {
+  const due = parseDueDate(task.dueDate);
+  return {
+    id: `task:${task.id}`,
+    kind,
+    title: task.title || 'Tarefa',
+    clientName: resolveClientName(clients, task.clientId),
+    dueLabel: formatDueLabel(due, todayStart),
+    priority: String(task.priority || 'medium').toLowerCase(),
+    href: resolveTaskHref(task),
+    sortAt: due ? due.getTime() : Number.MAX_SAFE_INTEGER,
+  };
+}
+
 /**
- * Home operacional — campanhas ativas (filosofia Apple: 1 foco, 1 CTA).
+ * Fila de atenção: atrasadas, bloqueadas, aguardando cliente, aprovações.
+ */
+function buildAttentionQueue(tasks, clients, cycles, todayStart) {
+  const items = [];
+  const seen = new Set();
+
+  const pushUnique = (item) => {
+    if (seen.has(item.id)) return;
+    seen.add(item.id);
+    items.push(item);
+  };
+
+  for (const task of tasks) {
+    if (!isOpenTask(task)) continue;
+    const due = parseDueDate(task.dueDate);
+    const status = String(task.status || '').toLowerCase();
+    const overdue = due && startOfLocalDay(due) < todayStart;
+
+    if (overdue) {
+      pushUnique(buildTaskItem(task, clients, todayStart, 'overdue'));
+      continue;
+    }
+    if (status === 'blocked') {
+      pushUnique(buildTaskItem(task, clients, todayStart, 'blocked'));
+      continue;
+    }
+    if (isWaitingOnClient(task)) {
+      pushUnique(buildTaskItem(task, clients, todayStart, 'waiting_client'));
+    }
+  }
+
+  for (const cycle of cycles) {
+    if (String(cycle.status || '') !== 'pending_approval') continue;
+    const clientName = resolveClientName(clients, cycle.clientId) || cycle.clientName || null;
+    const title =
+      cycle.cyclePeriod ||
+      cycle.title ||
+      cycle.planData?.title ||
+      'Plano aguardando aprovação';
+    pushUnique({
+      id: `cycle:${cycle.id}`,
+      kind: 'approval',
+      title,
+      clientName,
+      dueLabel: 'Aprovação',
+      priority: 'high',
+      href: createPageUrl(`cycle-approval?id=${cycle.id}`),
+      sortAt: 0,
+    });
+  }
+
+  const kindRank = {
+    overdue: 0,
+    blocked: 1,
+    waiting_client: 2,
+    approval: 3,
+  };
+
+  return items
+    .sort((a, b) => {
+      const rank = (kindRank[a.kind] ?? 9) - (kindRank[b.kind] ?? 9);
+      if (rank !== 0) return rank;
+      return a.sortAt - b.sortAt;
+    })
+    .slice(0, 6);
+}
+
+/**
+ * Agenda das próximas 48h (hoje + amanhã), sem atrasadas.
+ */
+function buildAgenda(tasks, clients, todayStart) {
+  const horizonEnd = addLocalDays(todayStart, 2);
+
+  return tasks
+    .filter((task) => {
+      if (!isOpenTask(task)) return false;
+      if (String(task.status || '').toLowerCase() === 'blocked') return false;
+      const due = parseDueDate(task.dueDate);
+      if (!due) return false;
+      const dueDay = startOfLocalDay(due);
+      return dueDay >= todayStart && dueDay < horizonEnd;
+    })
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+    .slice(0, 8)
+    .map((task) => buildTaskItem(task, clients, todayStart, 'agenda'));
+}
+
+function buildSetupSteps({ clients, campaignGroups, tasks }) {
+  const hasClients = clients.length > 0;
+  const hasCampaigns = campaignGroups.length > 0;
+  const hasOpenTasks = tasks.some(isOpenTask);
+  const clientsWithoutCampaigns = clients.filter(
+    (c) => !campaignGroups.some((g) => String(g.clientId) === String(c.id))
+  );
+
+  return [
+    {
+      id: 'client',
+      done: hasClients,
+      title: 'Cadastrar um cliente',
+      description: 'Base para campanhas e tarefas.',
+      href: createPageUrl('clients'),
+      cta: 'Ir para clientes',
+    },
+    {
+      id: 'campaign',
+      done: hasCampaigns,
+      title: 'Criar a campanha do mês',
+      description: hasClients
+        ? clientsWithoutCampaigns.length > 0
+          ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} sem campanha ativa.`
+          : 'Abra um cliente e inicie a campanha.'
+        : 'Primeiro cadastre um cliente.',
+      href:
+        clientsWithoutCampaigns[0]?.id
+          ? createPageUrl(
+              `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
+            )
+          : createPageUrl('clients'),
+      cta: hasClients ? 'Criar campanha' : 'Começar pelos clientes',
+    },
+    {
+      id: 'tasks',
+      done: hasOpenTasks,
+      title: 'Definir primeiras tarefas',
+      description: 'Prazos e entregas alimentam a agenda da home.',
+      href: hasCampaigns
+        ? createPageUrl('tasks-manager')
+        : clientsWithoutCampaigns[0]?.id
+          ? createPageUrl(
+              `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
+            )
+          : createPageUrl('clients'),
+      cta: hasCampaigns ? 'Ver tarefas' : 'Depois da campanha',
+    },
+  ];
+}
+
+function kindBadge(kind) {
+  switch (kind) {
+    case 'overdue':
+      return { label: 'Atrasada', className: 'text-[#c0392b]' };
+    case 'blocked':
+      return { label: 'Bloqueada', className: 'text-[#b45309]' };
+    case 'waiting_client':
+      return { label: 'Cliente', className: 'text-[#555]' };
+    case 'approval':
+      return { label: 'Aprovar', className: 'text-[#b45309]' };
+    default:
+      return null;
+  }
+}
+
+function ItemRow({ item, showKindBadge = false }) {
+  const badge = showKindBadge ? kindBadge(item.kind) : null;
+  return (
+    <li>
+      <Link
+        to={item.href}
+        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
+          <p className="text-xs text-[#555]">
+            {[item.clientName, item.dueLabel].filter(Boolean).join(' · ')}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {item.priority === 'high' && item.kind !== 'overdue' ? (
+            <span className="text-xs font-semibold text-[#c0392b]">Alta</span>
+          ) : null}
+          {badge ? (
+            <span className={`text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+          ) : null}
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * Home operacional — campanhas + agenda + fila de atenção.
  */
 export default function DashboardPage() {
   const { agencyId, loading: sessionLoading } = useSession();
@@ -96,6 +367,7 @@ export default function DashboardPage() {
 
       const activeClients = clients.filter((c) => c.status === 'ativo');
       const clientsForCampaigns = activeClients.length > 0 ? activeClients : clients;
+      const todayStart = startOfLocalDay();
 
       const campaignGroups = groupCampaignsByClient(
         clientsForCampaigns,
@@ -111,46 +383,39 @@ export default function DashboardPage() {
       );
       const clientsWithCampaigns = campaignGroups.length;
 
-      const pendingTasks = tasks.filter((t) =>
-        ['todo', 'in_progress', 'pending', 'blocked'].includes(String(t.status || ''))
-      ).length;
-
-      const upcomingTasks = tasks
-        .filter((t) => t.dueDate && ['todo', 'in_progress', 'pending'].includes(String(t.status || '')))
-        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-        .slice(0, 5)
-        .map((t) => {
-          const client = clients.find((c) => String(c.id) === String(t.clientId));
-          const briefingId = t.briefingId || t.briefId || null;
-          const href = briefingId
-            ? createPageUrl(
-                buildClientCampaignHref({
-                  clientId: t.clientId,
-                  briefingId,
-                })
-              )
-            : t.clientId
-              ? createPageUrl(buildClientTasksHref({ clientId: t.clientId }))
-              : createPageUrl('tasks-manager');
-          return {
-            id: t.id,
-            title: t.title,
-            dueDate: new Date(t.dueDate).toLocaleDateString(),
-            priority: t.priority || 'medium',
-            clientName: client?.name || null,
-            href,
-          };
-        });
+      const pendingTasks = tasks.filter(isOpenTask).length;
+      const attentionQueue = buildAttentionQueue(tasks, clients, cycles, todayStart);
+      const agenda = buildAgenda(tasks, clients, todayStart);
+      const setupSteps = buildSetupSteps({
+        clients: clientsForCampaigns,
+        campaignGroups,
+        tasks,
+      });
+      const clientsWithoutCampaigns = clientsForCampaigns
+        .filter((c) => !campaignGroups.some((g) => String(g.clientId) === String(c.id)))
+        .slice(0, 4)
+        .map((c) => ({
+          id: c.id,
+          name: c.name || 'Cliente',
+          href: createPageUrl(
+            `client-detail?clientId=${c.id}&open=nova-campanha#campanhas`
+          ),
+        }));
 
       setDashboardData({
         stats: {
           activeCampaigns: activeCampaignsCount,
           clientsWithCampaigns,
           pendingTasks,
+          attentionCount: attentionQueue.length,
+          agendaCount: agenda.length,
           activeClients: activeClients.length || clients.length,
         },
         campaignGroups,
-        upcomingTasks,
+        attentionQueue,
+        agenda,
+        setupSteps,
+        clientsWithoutCampaigns,
       });
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
@@ -171,7 +436,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
           <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
-          <p className="text-sm text-[#555]">Carregando campanhas…</p>
+          <p className="text-sm text-[#555]">Carregando operação…</p>
         </div>
       </div>
     );
@@ -193,54 +458,188 @@ export default function DashboardPage() {
     );
   }
 
-  const { stats, campaignGroups, upcomingTasks } = dashboardData;
+  const {
+    stats,
+    campaignGroups,
+    attentionQueue,
+    agenda,
+    setupSteps,
+    clientsWithoutCampaigns,
+  } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
+  const nextSetupStep = setupSteps.find((s) => !s.done) || null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
-      {/* Header — 1 título, meta discreta, 1 CTA */}
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-2">
           <h1 className="text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
-            Campanhas
+            Hoje
           </h1>
           <p className="text-sm text-[#555]">
-            {stats.activeCampaigns} ativa{stats.activeCampaigns === 1 ? '' : 's'}
-            {' · '}
-            {stats.clientsWithCampaigns} cliente{stats.clientsWithCampaigns === 1 ? '' : 's'}
-            {stats.pendingTasks > 0
-              ? ` · ${stats.pendingTasks} tarefa${stats.pendingTasks === 1 ? '' : 's'} pendente${stats.pendingTasks === 1 ? '' : 's'}`
+            {stats.activeCampaigns} campanha{stats.activeCampaigns === 1 ? '' : 's'}
+            {stats.attentionCount > 0
+              ? ` · ${stats.attentionCount} precisa${stats.attentionCount === 1 ? '' : 'm'} de atenção`
               : ''}
+            {stats.agendaCount > 0
+              ? ` · ${stats.agendaCount} na agenda`
+              : stats.pendingTasks > 0
+                ? ` · ${stats.pendingTasks} tarefa${stats.pendingTasks === 1 ? '' : 's'} aberta${stats.pendingTasks === 1 ? '' : 's'}`
+                : ''}
           </p>
         </div>
         <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
-          <Link to={createPageUrl('clients')}>
+          <Link to={nextSetupStep?.href || createPageUrl('clients')}>
             <Plus className="mr-1.5 h-4 w-4" />
-            {hasCampaigns ? 'Nova campanha' : 'Começar'}
+            {hasCampaigns ? 'Nova campanha' : nextSetupStep?.cta || 'Começar'}
           </Link>
         </Button>
       </header>
 
-      {/* Foco principal: lista de campanhas */}
-      <section aria-labelledby="campaigns-heading">
-        <h2 id="campaigns-heading" className="sr-only">
-          Campanhas em andamento
-        </h2>
+      {attentionQueue.length > 0 ? (
+        <section aria-labelledby="attention-heading">
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2
+              id="attention-heading"
+              className="text-sm font-semibold uppercase tracking-wide text-[#555]"
+            >
+              Precisa de atenção
+            </h2>
+            <Link
+              to={createPageUrl('tasks-manager')}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              Ver tarefas
+            </Link>
+          </div>
+          <ul className="space-y-1 rounded-xl border border-[#eee] bg-white px-1 py-1">
+            {attentionQueue.map((item) => (
+              <ItemRow key={item.id} item={item} showKindBadge />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {(agenda.length > 0 || hasCampaigns) && (
+        <section aria-labelledby="agenda-heading">
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2
+              id="agenda-heading"
+              className="text-sm font-semibold uppercase tracking-wide text-[#555]"
+            >
+              Agenda · 48h
+            </h2>
+            <Link
+              to={createPageUrl('tasks-manager')}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              Ver todas
+            </Link>
+          </div>
+          {agenda.length > 0 ? (
+            <ul className="space-y-1">
+              {agenda.map((item) => (
+                <ItemRow key={item.id} item={item} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[#555]">
+              Nada com prazo para hoje ou amanhã. Quando houver entregas, elas aparecem aqui.
+            </p>
+          )}
+        </section>
+      )}
+
+      <section aria-labelledby="campaigns-heading" className="border-t border-[#eee] pt-8">
+        <div className="mb-5 flex items-baseline justify-between gap-3">
+          <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
+            Campanhas
+          </h2>
+          {hasCampaigns ? (
+            <span className="text-xs text-[#555]">
+              {stats.activeCampaigns} ativa{stats.activeCampaigns === 1 ? '' : 's'} ·{' '}
+              {stats.clientsWithCampaigns} cliente
+              {stats.clientsWithCampaigns === 1 ? '' : 's'}
+            </span>
+          ) : null}
+        </div>
 
         {!hasCampaigns ? (
-          <div className="mx-auto max-w-sm py-16 text-center">
-            <h3 className="mb-2 text-lg font-semibold text-[#111]">
-              Nenhuma campanha ativa
-            </h3>
-            <p className="mb-6 text-sm leading-relaxed text-[#555]">
-              Abra um cliente e crie a campanha do mês para começar a operar.
-            </p>
-            <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
-              <Link to={createPageUrl('clients')}>
-                Ir para clientes
-                <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Link>
-            </Button>
+          <div className="space-y-8">
+            <div className="mx-auto max-w-lg text-center sm:text-left">
+              <h3 className="mb-2 text-lg font-semibold text-[#111]">
+                Nenhuma campanha ativa
+              </h3>
+              <p className="text-sm leading-relaxed text-[#555]">
+                Monte o fluxo abaixo para a home passar a mostrar agenda, prazos e progresso.
+              </p>
+            </div>
+
+            <ol className="space-y-3">
+              {setupSteps.map((step, index) => (
+                <li
+                  key={step.id}
+                  className="flex gap-4 rounded-xl border border-[#eee] bg-white p-4"
+                >
+                  <div
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      step.done
+                        ? 'bg-[#e8f5e9] text-[#2e7d32]'
+                        : 'bg-[#f0f0f0] text-[#555]'
+                    }`}
+                    aria-hidden
+                  >
+                    {step.done ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={`text-sm font-semibold ${
+                        step.done ? 'text-[#555] line-through' : 'text-[#111]'
+                      }`}
+                    >
+                      {step.title}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-[#555]">
+                      {step.description}
+                    </p>
+                    {!step.done ? (
+                      <Link
+                        to={step.href}
+                        className="mt-2 inline-flex items-center text-sm font-medium text-[#007bff] hover:underline"
+                      >
+                        {step.cta}
+                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            {clientsWithoutCampaigns.length > 0 ? (
+              <div>
+                <p className="mb-3 text-sm font-medium text-[#111]">
+                  Clientes prontos para campanha
+                </p>
+                <ul className="space-y-1">
+                  {clientsWithoutCampaigns.map((client) => (
+                    <li key={client.id}>
+                      <Link
+                        to={client.href}
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                      >
+                        <span className="truncate text-sm font-medium text-[#111]">
+                          {client.name}
+                        </span>
+                        <span className="shrink-0 text-sm font-medium text-[#007bff]">
+                          Criar campanha
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-10">
@@ -338,44 +737,6 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
-
-      {/* Secundário: próximas tarefas — só se houver */}
-      {upcomingTasks.length > 0 ? (
-        <section aria-labelledby="tasks-heading" className="border-t border-[#eee] pt-8">
-          <div className="mb-4 flex items-baseline justify-between gap-3">
-            <h2 id="tasks-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
-              Próximas tarefas
-            </h2>
-            <Link
-              to={createPageUrl('tasks-manager')}
-              className="text-sm font-medium text-[#007bff] hover:underline"
-            >
-              Ver todas
-            </Link>
-          </div>
-          <ul className="space-y-1">
-            {upcomingTasks.map((task) => (
-              <li key={task.id}>
-                <Link
-                  to={task.href}
-                  className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[#111]">{task.title}</p>
-                    <p className="text-xs text-[#555]">
-                      {task.clientName ? `${task.clientName} · ` : ''}
-                      Vence em {task.dueDate}
-                    </p>
-                  </div>
-                  {task.priority === 'high' ? (
-                    <span className="shrink-0 text-xs font-semibold text-[#c0392b]">Alta</span>
-                  ) : null}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </div>
   );
 }

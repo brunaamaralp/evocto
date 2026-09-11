@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TaskCreateModal from './TaskCreateModal';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const KANBAN_COLUMNS = [
   { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100' },
@@ -154,10 +155,12 @@ function CompactTaskCard({ task, index, users, isMobile = false }) {
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 {/* Prioridade como dot */}
-                <div 
-                  className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority] || 'bg-gray-400'}`}
-                  title={`Prioridade: ${task.priority || 'medium'}`}
-                />
+                {shouldShowPriorityBadge(task.priority) && (
+                  <div 
+                    className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority] || 'bg-gray-400'}`}
+                    title={`Prioridade: ${task.priority}`}
+                  />
+                )}
 
                 {/* Data de vencimento */}
                 {task.dueDate && (

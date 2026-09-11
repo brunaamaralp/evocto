@@ -39,12 +39,17 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
 
   const loadFormData = React.useCallback(async () => {
     try {
+      const clientFilters = agencyId ? { agencyId } : {};
       const [clientsData, usersData] = await Promise.all([
-        Client.list("-updated_date", 50),
-        User.filter({ 
-          agencyId, 
-          role: { $in: ["owner", "admin", "team"] } 
-        }, "-updated_date", 50)
+        Client.filter(clientFilters, "-updated_date", 50),
+        User.filter(
+          {
+            ...(agencyId ? { agencyId } : {}),
+            role: { $in: ["owner", "admin", "team"] },
+          },
+          "-updated_date",
+          50
+        ),
       ]);
       
       setClients(clientsData || []);

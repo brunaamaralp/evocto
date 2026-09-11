@@ -197,4 +197,9 @@ export const authAdapter = {
     const profiles = createEntityAdapter('profiles');
     return profiles.filter(filters, order, limit);
   },
+
+  /** Compat: código legado chama User.list(...) */
+  async list(order, limit) {
+    return this.filter({}, order, limit);
+  },
 };

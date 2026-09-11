@@ -12,8 +12,22 @@ import {
   Lightbulb,
   CheckCircle
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  addWeeks,
+  subWeeks,
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-500',
@@ -32,19 +46,34 @@ const STATUS_COLORS = {
   blocked: 'bg-orange-100 text-orange-700'
 };
 
-/**
- * Visualização Calendário com grid mensal
- */
-export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loading }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [_viewMode, _setViewMode] = useState('month'); // 'month' ou 'week'
+const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-  // Calcular dias do mês
+/**
+ * Visualização Calendário — mês e/ou semana
+ */
+export default function TaskCalendarView({
+  tasks,
+  _onTaskUpdate,
+  onEditTask,
+  loading,
+  defaultView = 'month',
+  allowedViews = ['month', 'week'],
+}) {
+  const views = allowedViews?.length ? allowedViews : ['month', 'week'];
+  const initialView = views.includes(defaultView) ? defaultView : views[0];
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState(initialView);
+
+  const isWeek = viewMode === 'week';
+
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Adicionar dias do mês anterior para completar a primeira semana
   const firstDayOfWeek = monthStart.getDay();
   const daysFromPrevMonth = [];
   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
@@ -53,7 +82,6 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
     daysFromPrevMonth.push(prevDay);
   }
 
-  // Adicionar dias do próximo mês para completar a última semana
   const lastDayOfWeek = monthEnd.getDay();
   const daysFromNextMonth = [];
   for (let i = 1; i <= (6 - lastDayOfWeek); i++) {
@@ -62,9 +90,10 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
     daysFromNextMonth.push(nextDay);
   }
 
-  const allDays = [...daysFromPrevMonth, ...monthDays, ...daysFromNextMonth];
+  const allMonthDays = [...daysFromPrevMonth, ...monthDays, ...daysFromNextMonth];
+  const visibleDays = isWeek ? weekDays : allMonthDays;
+  const agendaDays = isWeek ? weekDays : monthDays;
 
-  // Agrupar tarefas por data
   const tasksByDate = useMemo(() => {
     return tasks.reduce((acc, task) => {
       if (!task.dueDate) return acc;
@@ -78,20 +107,26 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
     }, {});
   }, [tasks]);
 
-  // Navegação do calendário
-  const goToPreviousMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
+  const periodTasks = useMemo(() => {
+    return agendaDays.flatMap((day) => tasksByDate[format(day, 'yyyy-MM-dd')] || []);
+  }, [agendaDays, tasksByDate]);
+
+  const goToPrevious = () => {
+    setCurrentDate(isWeek ? subWeeks(currentDate, 1) : subMonths(currentDate, 1));
   };
 
-  const goToNextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
+  const goToNext = () => {
+    setCurrentDate(isWeek ? addWeeks(currentDate, 1) : addMonths(currentDate, 1));
   };
 
   const goToToday = () => {
     setCurrentDate(new Date());
   };
 
-  // Renderizar tarefa no calendário
+  const periodLabel = isWeek
+    ? `${format(weekStart, "d MMM", { locale: ptBR })} – ${format(weekEnd, "d MMM yyyy", { locale: ptBR })}`
+    : format(currentDate, 'MMMM yyyy', { locale: ptBR });
+
   const renderTask = (task, isCompact = true) => {
     const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
     const hasSpecialFlags = task.impactsKPI || task.generatesLearning || task.requiresApproval;
@@ -103,7 +138,7 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
           className={`text-xs p-1 rounded cursor-pointer hover:bg-gray-100 transition-colors ${
             isOverdue ? 'bg-red-100 text-red-800' : 'bg-blue-50 text-blue-800'
           } ${hasSpecialFlags ? 'ring-1 ring-blue-300' : ''}`}
-          onClick={() => onEditTask(task)}
+          onClick={() => onEditTask?.(task)}
           title={`${task.title} - ${task.assigneeName || 'Não atribuído'}`}
         >
           <div className="flex items-center gap-1">
@@ -126,7 +161,7 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
         className={`hover:shadow-md transition-all cursor-pointer ${
           isOverdue ? 'border-red-200 bg-red-50' : ''
         } ${hasSpecialFlags ? 'ring-2 ring-blue-200' : ''}`}
-        onClick={() => onEditTask(task)}
+        onClick={() => onEditTask?.(task)}
       >
         <CardContent className="p-3">
           <div className="flex items-start justify-between mb-2">
@@ -138,7 +173,6 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
             </Badge>
           </div>
 
-          {/* Flags Especiais */}
           {hasSpecialFlags && (
             <div className="flex items-center gap-1 mb-2">
               {task.impactsKPI && (
@@ -163,7 +197,6 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
           )}
 
           <div className="space-y-1">
-            {/* Responsável */}
             {task.assigneeName && (
               <div className="flex items-center gap-1">
                 <User className="w-3 h-3 text-gray-400" />
@@ -171,8 +204,7 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
               </div>
             )}
 
-            {/* Prioridade */}
-            {task.priority && (
+            {shouldShowPriorityBadge(task.priority) && (
               <div className="flex items-center gap-1">
                 <Flag className="w-3 h-3 text-gray-400" />
                 <div className="flex items-center gap-1">
@@ -184,7 +216,6 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
               </div>
             )}
 
-            {/* Progresso */}
             {task.progress !== undefined && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-600">
@@ -205,30 +236,32 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
     );
   };
 
-  // Renderizar dia do calendário
-  const renderDay = (day) => {
+  const renderDay = (day, { tall = false, previewLimit = 2 } = {}) => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const dayTasks = tasksByDate[dateKey] || [];
     const isCurrentMonth = isSameMonth(day, currentDate);
     const isToday = isSameDay(day, new Date());
-    const _isOverdue = dayTasks.some(task => 
-      task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed'
-    );
 
     return (
       <div
         key={dateKey}
-        className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 border border-gray-200 ${
-          isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+        className={`${tall ? 'min-h-[220px]' : 'min-h-[80px] sm:min-h-[120px]'} p-1 sm:p-2 border border-gray-200 ${
+          isWeek || isCurrentMonth ? 'bg-white' : 'bg-gray-50'
         } ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}
       >
-        {/* Cabeçalho do Dia */}
         <div className="flex items-center justify-between mb-1 sm:mb-2">
-          <span className={`text-xs sm:text-sm font-medium ${
-            isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-          } ${isToday ? 'text-blue-600' : ''}`}>
-            {format(day, 'd')}
-          </span>
+          <div className="min-w-0">
+            {isWeek && (
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 truncate">
+                {format(day, 'EEEE', { locale: ptBR })}
+              </p>
+            )}
+            <span className={`text-xs sm:text-sm font-medium ${
+              isWeek || isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+            } ${isToday ? 'text-blue-600' : ''}`}>
+              {isWeek ? format(day, 'd MMM', { locale: ptBR }) : format(day, 'd')}
+            </span>
+          </div>
           
           {dayTasks.length > 0 && (
             <Badge variant="secondary" className="text-xs px-1 py-0">
@@ -237,19 +270,18 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
           )}
         </div>
 
-        {/* Tarefas do Dia */}
         <div className="space-y-1">
           {dayTasks.length === 0 ? (
             <div className="text-xs text-gray-400 text-center py-1 sm:py-2">
               Sem tarefas
             </div>
           ) : (
-            dayTasks.slice(0, 2).map(task => renderTask(task, true))
+            dayTasks.slice(0, previewLimit).map(task => renderTask(task, true))
           )}
           
-          {dayTasks.length > 2 && (
+          {dayTasks.length > previewLimit && (
             <div className="text-xs text-gray-500 text-center">
-              +{dayTasks.length - 2} mais
+              +{dayTasks.length - previewLimit} mais
             </div>
           )}
         </div>
@@ -263,29 +295,48 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
 
   return (
     <div className="space-y-4">
-      {/* Header do Calendário - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
-            <span className="truncate">Calendário de Tarefas</span>
+            <span className="truncate">
+              {isWeek ? 'Calendário semanal' : 'Calendário de Tarefas'}
+            </span>
           </h3>
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1">
-            <p className="text-sm text-gray-600">
-              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
-            </p>
+            <p className="text-sm text-gray-600 capitalize">{periodLabel}</p>
             <div className="hidden sm:block text-gray-400">•</div>
             <p className="text-sm text-gray-600">
               Clique nas tarefas para editar
             </p>
-            <div className="hidden sm:block text-gray-400">•</div>
-            <p className="text-sm text-gray-600">
-              Arraste para alterar datas
-            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+          {views.length > 1 && (
+            <div className="flex rounded-lg border border-gray-200 p-0.5 bg-white">
+              {views.includes('week') && (
+                <Button
+                  variant={isWeek ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setViewMode('week')}
+                >
+                  Semana
+                </Button>
+              )}
+              {views.includes('month') && (
+                <Button
+                  variant={!isWeek ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setViewMode('month')}
+                >
+                  Mês
+                </Button>
+              )}
+            </div>
+          )}
           <Button 
             variant="outline" 
             size="sm"
@@ -297,14 +348,14 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
           <Button 
             variant="outline" 
             size="sm"
-            onClick={goToPreviousMonth}
+            onClick={goToPrevious}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button 
             variant="outline" 
             size="sm"
-            onClick={goToNextMonth}
+            onClick={goToNext}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -313,7 +364,7 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
 
       {/* Agenda mobile */}
       <div className="space-y-3 md:hidden">
-        {monthDays
+        {agendaDays
           .map((day) => ({
             day,
             dayTasks: tasksByDate[format(day, 'yyyy-MM-dd')] || [],
@@ -321,11 +372,11 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
           .filter(({ dayTasks }) => dayTasks.length > 0).length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-gray-600">
-              Nenhuma tarefa com prazo neste mês.
+              Nenhuma tarefa com prazo {isWeek ? 'nesta semana' : 'neste mês'}.
             </CardContent>
           </Card>
         ) : (
-          monthDays
+          agendaDays
             .map((day) => ({
               day,
               dayTasks: tasksByDate[format(day, 'yyyy-MM-dd')] || [],
@@ -351,39 +402,43 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
         )}
       </div>
 
-      {/* Calendário mensal — desktop/tablet */}
+      {/* Grid — desktop/tablet */}
       <Card className="overflow-hidden hidden md:block">
         <CardContent className="p-0">
-          {/* Cabeçalho dos Dias da Semana */}
           <div className="grid grid-cols-7 border-b">
-            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+            {WEEKDAY_LABELS.map(day => (
               <div key={day} className="p-2 sm:p-3 text-center font-medium text-gray-600 bg-gray-50 text-xs sm:text-sm">
                 {day}
               </div>
             ))}
           </div>
 
-          {/* Grid do Calendário */}
           <div className="grid grid-cols-7">
-            {allDays.map(renderDay)}
+            {visibleDays.map((day) =>
+              renderDay(day, {
+                tall: isWeek,
+                previewLimit: isWeek ? 8 : 2,
+              })
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Estatísticas do Mês */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-gray-900">
-              {Object.values(tasksByDate).flat().length}
+              {periodTasks.length}
             </div>
-            <div className="text-sm text-gray-600">Tarefas no Mês</div>
+            <div className="text-sm text-gray-600">
+              Tarefas {isWeek ? 'na Semana' : 'no Mês'}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {Object.values(tasksByDate).flat().filter(t => t.status === 'completed').length}
+              {periodTasks.filter(t => t.status === 'completed').length}
             </div>
             <div className="text-sm text-gray-600">Concluídas</div>
           </CardContent>
@@ -391,7 +446,7 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
         <Card>
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-red-600">
-              {Object.values(tasksByDate).flat().filter(t => 
+              {periodTasks.filter(t => 
                 t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
               ).length}
             </div>
@@ -401,14 +456,13 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
         <Card>
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {Object.keys(tasksByDate).length}
+              {agendaDays.filter((day) => (tasksByDate[format(day, 'yyyy-MM-dd')] || []).length > 0).length}
             </div>
             <div className="text-sm text-gray-600">Dias com Tarefas</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Instruções */}
       <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-blue-600" />
@@ -422,7 +476,6 @@ export default function TaskCalendarView({ tasks, _onTaskUpdate, onEditTask, loa
   );
 }
 
-// Funções auxiliares
 function getStatusLabel(status) {
   const labels = {
     'backlog': 'Backlog',
@@ -446,7 +499,6 @@ function getPriorityLabel(priority) {
   return labels[priority] || priority;
 }
 
-// Skeleton de Loading
 function CalendarLoadingSkeleton() {
   return (
     <div className="space-y-4">
@@ -466,8 +518,8 @@ function CalendarLoadingSkeleton() {
             ))}
           </div>
           <div className="grid grid-cols-7">
-            {Array.from({ length: 35 }).map((_, i) => (
-              <div key={i} className="h-24 bg-gray-100 border border-gray-200"></div>
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="h-40 bg-gray-100 border border-gray-200"></div>
             ))}
           </div>
         </CardContent>

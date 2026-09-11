@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const FILE_TYPE_ICONS = {
   'application/pdf': FileText,
@@ -307,9 +308,11 @@ export default function TaskDetails({ taskId, onClose, onTaskUpdate }) {
                 <Badge className={STATUS_COLORS[task.status]}>
                   {task.status.replace('_', ' ')}
                 </Badge>
-                <Badge className={PRIORITY_COLORS[task.priority]}>
-                  {task.priority}
-                </Badge>
+                {shouldShowPriorityBadge(task.priority) && (
+                  <Badge className={PRIORITY_COLORS[task.priority]}>
+                    {task.priority}
+                  </Badge>
+                )}
                 {task.dueDate && (
                   <Badge variant="outline" className="text-xs">
                     <Calendar className="w-3 h-3 mr-1" />

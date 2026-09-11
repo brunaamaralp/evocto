@@ -20,14 +20,18 @@ import {
   RefreshCcw,
   Plus,
   Clock,
-  Flag
+  Flag,
+  Kanban,
+  CalendarDays
 } from 'lucide-react';
 import { toast } from 'sonner';
 import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
+import TaskCalendarView from '@/components/tasks/TaskCalendarView';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 // Soft pastel kanban columns
 const KANBAN_COLUMNS = [
@@ -110,7 +114,7 @@ function TaskCard({ task, users, clients }) {
           )}
           
           <div className="flex flex-wrap gap-1">
-            {task.priority && (
+            {shouldShowPriorityBadge(task.priority) && (
               <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
                 <Flag className="w-3 h-3 mr-1" />
                 {task.priority}
@@ -229,6 +233,7 @@ export default function TasksManagerPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [createOpen, setCreateOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'week'
 
   // Carregar dados
   const loadData = useCallback(async (_useCache = true) => {
@@ -421,13 +426,35 @@ export default function TasksManagerPage() {
             Visualize e gerencie todas as tarefas da organização
           </p>
         </div>
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="gap-2 w-full sm:w-auto shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Tarefa
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex rounded-xl border border-[#E8E5F5] bg-white p-0.5">
+            <Button
+              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+              size="sm"
+              className="gap-2 flex-1 sm:flex-none"
+              onClick={() => setViewMode('kanban')}
+            >
+              <Kanban className="w-4 h-4" />
+              Kanban
+            </Button>
+            <Button
+              variant={viewMode === 'week' ? 'default' : 'ghost'}
+              size="sm"
+              className="gap-2 flex-1 sm:flex-none"
+              onClick={() => setViewMode('week')}
+            >
+              <CalendarDays className="w-4 h-4" />
+              Semana
+            </Button>
+          </div>
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 w-full sm:w-auto shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Tarefa
+          </Button>
+        </div>
       </div>
 
       {/* Barra de Filtros */}
@@ -531,7 +558,34 @@ export default function TasksManagerPage() {
         />
       </div>
 
-      {/* Quadro Kanban com Barra de Rolagem Horizontal Melhorada */}
+      {/* Quadro Kanban ou Calendário semanal */}
+      {viewMode === 'week' ? (
+        <div className="rounded-2xl p-4 bg-[#F5F2FC]/50">
+          <TaskCalendarView
+            tasks={filteredTasks.map((task) => {
+              const assigneeId = getTaskAssigneeId(task);
+              const assignee = users.find((u) => String(u.id) === String(assigneeId));
+              return {
+                ...task,
+                assigneeName:
+                  task.assigneeName ||
+                  assignee?.full_name ||
+                  assignee?.email ||
+                  undefined,
+              };
+            })}
+            loading={false}
+            defaultView="week"
+            allowedViews={['week']}
+            onEditTask={(task) => {
+              if (!task?.id) return;
+              window.dispatchEvent(new CustomEvent('task:open', {
+                detail: { taskId: task.id },
+              }));
+            }}
+          />
+        </div>
+      ) : (
       <div className="rounded-2xl p-4 bg-[#F5F2FC]/50">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Container principal com scroll horizontal */}
@@ -557,9 +611,10 @@ export default function TasksManagerPage() {
           </div>
         </DragDropContext>
       </div>
+      )}
 
       {/* Estatísticas resumidas */}
-      {totalTasks > 0 && (
+      {viewMode === 'kanban' && totalTasks > 0 && (
         <Card className="mt-6">
           <CardContent className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">

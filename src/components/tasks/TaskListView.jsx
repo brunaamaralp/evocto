@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-500',
@@ -183,7 +184,7 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
 
         {/* Prioridade */}
         <TableCell>
-          {task.priority ? (
+          {shouldShowPriorityBadge(task.priority) ? (
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority]}`}></div>
               <span className="text-sm text-gray-600 capitalize">
@@ -304,7 +305,7 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
                         {format(new Date(task.dueDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </span>
                     )}
-                    {task.priority && (
+                    {shouldShowPriorityBadge(task.priority) && (
                       <span className="capitalize">{getPriorityLabel(task.priority)}</span>
                     )}
                   </div>

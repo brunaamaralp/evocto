@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const KANBAN_COLUMNS = [
   { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
@@ -122,7 +123,7 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
                     )}
 
                     {/* Prioridade */}
-                    {task.priority && (
+                    {shouldShowPriorityBadge(task.priority) && (
                       <div className="flex items-center gap-1 mb-2">
                         <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority]}`}></div>
                         <span className="text-xs text-gray-600 capitalize">

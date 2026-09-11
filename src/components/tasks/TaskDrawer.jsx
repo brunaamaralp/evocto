@@ -97,7 +97,7 @@ function notifyLists(taskId, extra = {}) {
 }
 
 export default function TaskDrawer() {
-  const { user } = useSession();
+  const { user, agencyId } = useSession();
   const currentUserId = user?.id || user?.data?.id;
 
   const [open, setOpen] = React.useState(false);
@@ -150,7 +150,16 @@ export default function TaskDrawer() {
     try {
       const [t, us] = await Promise.all([
         Task.get(id),
-        User.list("-updated_date", 100),
+        User.filter(
+          {
+            ...(agencyId ? { agencyId } : {}),
+            role: { $in: ["owner", "admin", "team"] },
+          },
+          "-updated_date",
+          100
+        ).catch(() =>
+          User.filter(agencyId ? { agencyId } : {}, "-updated_date", 100)
+        ),
       ]);
       setTask(t);
       setTitleDraft(t.title || "");

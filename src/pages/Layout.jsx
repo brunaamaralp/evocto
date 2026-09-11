@@ -5,7 +5,6 @@ import { AppContextProvider } from '@/components/context/AppContextProvider';
 import { ReactiveStateProvider } from '@/components/state/ReactiveStateManager';
 import { AuthenticatedLayout, PublicLayout } from '@/components/layout/AuthenticatedLayout';
 import { NavigationProvider } from '@/components/navigation/NavigationTracker';
-import TaskCreateFab from '@/components/tasks/TaskCreateFab';
 import TaskDrawer from '@/components/tasks/TaskDrawer';
 import ServiceActionsFab from '@/components/services/ServiceActionsFab';
 
@@ -55,11 +54,6 @@ function Layout({ children }) {
     pathname.startsWith('/ClientArea') ||
     pathname.startsWith('/ClientDemo') ||
     pathname.startsWith('/cliente/');
-  const hideGlobalTaskFab =
-    isClientPortalSurface ||
-    pathname.includes('/client-tasks') ||
-    pathname.includes('/tasks-board') ||
-    pathname.includes('/tasks-manager');
   const hideServiceFab =
     isClientPortalSurface ||
     pathname.includes('/client-tasks') ||
@@ -74,7 +68,6 @@ function Layout({ children }) {
             <LayoutContent isPublic={isPublic}>
               {children}
             </LayoutContent>
-            {!isPublic && !hideGlobalTaskFab && <TaskCreateFab />}
             {!isPublic && !hideTaskDrawer && <TaskDrawer />}
             {!isPublic && !hideServiceFab && <ServiceActionsFab />}
           </NavigationProvider>

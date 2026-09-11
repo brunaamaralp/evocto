@@ -35,6 +35,7 @@ import { FixedSizeList as List } from 'react-window';
 import TaskCreateModal from './TaskCreateModal';
 import TaskAnalytics from './TaskAnalytics';
 import TaskAutomations from './TaskAutomations';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 // Enhanced cache management
 class TaskCache {
@@ -327,14 +328,16 @@ function EnhancedTaskCard({ task, index, users, onClick, _isDragging = false }) 
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 {/* Priority dot */}
-                <div 
-                  className={`w-2 h-2 rounded-full ${
-                    task.priority === 'urgent' ? 'bg-red-500' :
-                    task.priority === 'high' ? 'bg-orange-500' :
-                    task.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
-                  }`}
-                  title={`Prioridade: ${task.priority || 'medium'}`}
-                />
+                {shouldShowPriorityBadge(task.priority) && (
+                  <div 
+                    className={`w-2 h-2 rounded-full ${
+                      task.priority === 'urgent' ? 'bg-red-500' :
+                      task.priority === 'high' ? 'bg-orange-500' :
+                      task.priority === 'low' ? 'bg-blue-500' : 'bg-gray-400'
+                    }`}
+                    title={`Prioridade: ${task.priority}`}
+                  />
+                )}
 
                 {/* Due date */}
                 {task.dueDate && (

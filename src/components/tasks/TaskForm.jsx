@@ -21,6 +21,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -613,6 +614,11 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
           <DialogTitle>
             {task ? 'Editar Tarefa' : 'Nova Tarefa'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {task
+              ? 'Formulário para editar os dados da tarefa'
+              : 'Formulário para criar uma nova tarefa'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-500',
@@ -164,7 +165,7 @@ export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loadin
             )}
 
             {/* Prioridade */}
-            {task.priority && (
+            {shouldShowPriorityBadge(task.priority) && (
               <div className="flex items-center gap-2">
                 <Flag className="w-3 h-3 text-gray-400" />
                 <div className="flex items-center gap-1">

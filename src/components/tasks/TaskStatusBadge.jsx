@@ -5,6 +5,7 @@ import {
   GitBranch,
 } from 'lucide-react';
 import { getStagePastel } from '@/lib/modulePastels';
+import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const TASK_STATUS_CONFIGS = {
   backlog: {
@@ -126,6 +127,8 @@ export function TaskStatusBadge({ status, type = 'task', size = 'default', showI
 }
 
 export function TaskPriorityBadge({ priority, size = 'default', className = '' }) {
+  if (!shouldShowPriorityBadge(priority)) return null;
+
   const PRIORITY_CONFIGS = {
     low: {
       label: 'Baixa',
