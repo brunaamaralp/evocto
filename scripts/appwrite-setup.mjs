@@ -129,9 +129,10 @@ const TABLES = [
       { key: 'priority', type: 'varchar', size: 32 },
       { key: 'dueDate', type: 'datetime' },
       { key: 'assigneeId', type: 'varchar', size: 36 },
+      { key: 'clientVisible', type: 'boolean' },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'serviceId', 'status', 'assigneeId'],
+    indexes: ['agencyId', 'clientId', 'serviceId', 'status', 'assigneeId', 'clientVisible'],
   },
   {
     id: 'time_entries',

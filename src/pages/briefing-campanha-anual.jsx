@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
-import { Client } from '@/api/entities';
+import { Brief, Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
 import {
@@ -79,6 +80,7 @@ export default function BriefingCampanhaAnualPage() {
   const [ciclos, setCiclos] = useState(() =>
     normalizeCiclosComerciais(DEFAULT_CICLOS_COMERCIAIS)
   );
+  const [sharing, setSharing] = useState(false);
   const [seeds, setSeeds] = useState(() =>
     buildBriefingsMesSeeds(DEFAULT_CICLOS_COMERCIAIS)
   );
@@ -356,20 +358,57 @@ export default function BriefingCampanhaAnualPage() {
           </Button>
           <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 flex items-center gap-2">
             <CalendarRange className="w-6 h-6 shrink-0" />
-            Plano anual de campanhas
+            Planejamento Anual
           </h1>
           <p className="text-slate-600 mt-1 truncate">
             {client?.name}
             {empresa?.nome ? ` · ${empresa.nome}` : ''}
           </p>
         </div>
-            <Badge variant="outline" className="w-fit shrink-0 self-start sm:self-auto">
-          {hasCampanhas
-            ? existingPayload?.status_anual || 'ia_gerou'
-            : hasTemas
-              ? 'temas'
-              : 'input'}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-3 self-start">
+          {briefingId ? (
+            <div className="flex items-center gap-2 rounded-md border px-3 py-1.5 bg-white">
+              <Label htmlFor="plan-client-visible" className="text-xs font-normal cursor-pointer">
+                Visível no portal
+              </Label>
+              <Switch
+                id="plan-client-visible"
+                checked={
+                  saved?.clientVisible === true || existingPayload?.clientVisible === true
+                }
+                disabled={sharing}
+                onCheckedChange={async (checked) => {
+                  try {
+                    setSharing(true);
+                    const updated = await Brief.update(briefingId, {
+                      clientVisible: Boolean(checked),
+                    });
+                    setSaved((prev) => ({ ...(prev || {}), ...(updated || {}), clientVisible: Boolean(checked) }));
+                    setExistingPayload((prev) =>
+                      prev ? { ...prev, clientVisible: Boolean(checked) } : prev
+                    );
+                    toast.success(
+                      checked
+                        ? 'Planejamento visível no Portal do Cliente'
+                        : 'Planejamento ocultado do portal'
+                    );
+                  } catch (err) {
+                    toast.error(err?.message || 'Erro ao atualizar visibilidade');
+                  } finally {
+                    setSharing(false);
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+          <Badge variant="outline" className="w-fit shrink-0">
+            {hasCampanhas
+              ? existingPayload?.status_anual || 'ia_gerou'
+              : hasTemas
+                ? 'temas'
+                : 'input'}
+          </Badge>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1">

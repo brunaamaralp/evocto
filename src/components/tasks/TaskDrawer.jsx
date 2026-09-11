@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem
 } from "@/components/ui/select";
@@ -462,6 +464,7 @@ export default function TaskDrawer() {
         timeEntries: [],
         completedAt: null,
         assignedBy: currentUserId,
+        clientVisible: false,
       });
       toast.success("Tarefa duplicada");
       notifyLists(created.id);
@@ -753,6 +756,29 @@ export default function TaskDrawer() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Visibilidade</span>
+                  <div className="flex items-center justify-between gap-3 min-h-9 rounded-md border px-3 py-1.5">
+                    <Label
+                      htmlFor="task-client-visible"
+                      className="text-sm font-normal text-foreground cursor-pointer"
+                    >
+                      Visível para o cliente
+                    </Label>
+                    <Switch
+                      id="task-client-visible"
+                      checked={task.clientVisible === true}
+                      disabled={savingField === "clientVisible"}
+                      onCheckedChange={async (checked) => {
+                        await patchTask(
+                          { clientVisible: Boolean(checked) },
+                          { field: "clientVisible" }
+                        );
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">

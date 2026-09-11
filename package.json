@@ -12,7 +12,10 @@
     "appwrite:setup-finance": "node scripts/appwrite-setup-finance.mjs",
     "appwrite:setup-agency-finance": "node scripts/appwrite-setup-agency-finance.mjs",
     "appwrite:setup-material-deliveries": "node scripts/appwrite-setup-material-deliveries.mjs",
+    "appwrite:setup-client-visible": "node scripts/appwrite-setup-client-visible.mjs",
     "appwrite:smoke-agency-finance": "node scripts/smoke-agency-finance.mjs",
+    "appwrite:smoke-client-portal": "node scripts/smoke-client-portal-isolation.mjs",
+    "appwrite:smoke-approval-workflow": "node scripts/smoke-approval-workflow.mjs",
     "appwrite:smoke": "node scripts/smoke-appwrite-phase1.mjs",
     "netlify:dev": "netlify dev"
   },

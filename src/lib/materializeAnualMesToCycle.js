@@ -75,6 +75,17 @@ export async function materializeAnualMesToCycle({
       campanhaForm: form,
       modo_criacao: 'materializado_anual',
       userId,
+      annualPlanId: briefingId,
+      mes: c.mes,
+      ano: Number(ano) || new Date().getFullYear(),
+      clientVisible: false,
+    });
+  } else {
+    // Garante link reverso para o portal (sem alterar clientVisible existente)
+    brief = await Brief.update(brief.id, {
+      annualPlanId: briefingId,
+      mes: c.mes,
+      ano: Number(ano) || brief.ano || new Date().getFullYear(),
     });
   }
 

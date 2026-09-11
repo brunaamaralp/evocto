@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   AlertCircle,
   ArrowLeft,
@@ -106,6 +108,7 @@ export default function ClientCampaignPage() {
     ciclo_comercial: '',
     linha_focal: '',
   });
+  const [sharing, setSharing] = useState(false);
 
   const load = useCallback(async () => {
     if (!agencyId || !clientId || !briefingId) {
@@ -234,6 +237,29 @@ export default function ClientCampaignPage() {
     }
   };
 
+  const toggleClientVisible = async (checked) => {
+    if (!briefingId) return;
+    try {
+      setSharing(true);
+      const updated = await Brief.update(briefingId, { clientVisible: Boolean(checked) });
+      setBriefing((prev) => ({
+        ...(prev || {}),
+        ...(updated || {}),
+        clientVisible: Boolean(checked),
+      }));
+      toast.success(
+        checked
+          ? 'Campanha visível no Portal do Cliente'
+          : 'Campanha ocultada do Portal do Cliente'
+      );
+    } catch (err) {
+      console.error('[client-campaign] share', err);
+      toast.error(err?.message || 'Não foi possível atualizar a visibilidade');
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const progress = useMemo(() => summarizeTasks(scopedTasks), [scopedTasks]);
 
   const clientHref = createPageUrl(`client-detail?clientId=${clientId}`);
@@ -341,6 +367,17 @@ export default function ClientCampaignPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 rounded-md border px-3 py-1.5">
+              <Label htmlFor="campaign-client-visible" className="text-xs font-normal cursor-pointer">
+                Visível no portal
+              </Label>
+              <Switch
+                id="campaign-client-visible"
+                checked={briefing.clientVisible === true}
+                disabled={sharing}
+                onCheckedChange={toggleClientVisible}
+              />
+            </div>
             <Button asChild size="sm">
               <Link to={tasksHref}>
                 <CheckSquare className="w-4 h-4 mr-1" />

@@ -184,12 +184,30 @@ export const analyzeSentiment = notMigrated('analyzeSentiment');
 export const generateSmartRecommendations = notMigrated('generateSmartRecommendations');
 export const executeAgent = notMigrated('executeAgent');
 export const getAgentStatus = notMigrated('getAgentStatus');
-export const approvalWorkflow = notMigrated('approvalWorkflow');
+export {
+  approvalWorkflow,
+  processClientApproval,
+} from '../functions/approvalWorkflow.js';
 export const taskNotificationScheduler = notMigrated('taskNotificationScheduler');
 export const extractLearningsFromTasks = notMigrated('extractLearningsFromTasks');
-export const processClientApproval = notMigrated('processClientApproval');
 export const inviteClient = notMigrated('inviteClient');
-export const getClientDashboardData = notMigrated('getClientDashboardData');
+
+/** Compat: dashboard antigo → overview do portal seguro */
+export async function getClientDashboardData() {
+  const { getClientPortalOverview } = await import('@/lib/clientPortalApi');
+  const data = await getClientPortalOverview();
+  return {
+    data: {
+      success: true,
+      ...data,
+      approvals: { pending: data.pendingApprovals || [] },
+      documents: data.documents || [],
+      services: data.services || [],
+      stats: data.stats || {},
+      client: data.client || null,
+    },
+  };
+}
 export const generateClientReport = notMigrated('generateClientReport');
 export const testClientApprovalFlow = notMigrated('testClientApprovalFlow');
 export const generateClientReportPDF = notMigrated('generateClientReportPDF');

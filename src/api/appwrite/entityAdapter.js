@@ -280,7 +280,12 @@ export function createEntityAdapter(tableId, { allowEmpty = false } = {}) {
     async create(data = {}) {
       const tables = getTablesDB();
       const agencyId = await resolveAgencyId(data);
-      const row = splitPayload(tableId, { ...data, agencyId: data.agencyId || agencyId });
+      const payload = { ...data, agencyId: data.agencyId || agencyId };
+      // Portal: tarefas novas nunca são visíveis ao cliente por padrão (opt-in).
+      if (tableId === 'tasks' && payload.clientVisible == null) {
+        payload.clientVisible = false;
+      }
+      const row = splitPayload(tableId, payload);
       const extraPerms = tableId === 'profiles' && data.id
         ? [Permission.read(Role.user(data.id)), Permission.update(Role.user(data.id))]
         : [];

@@ -20,6 +20,7 @@ export default function PublicApprovalPage() {
   const token = useToken();
   const [loading, setLoading] = useState(true);
   const [approval, setApproval] = useState(null);
+  const [contentPreview, setContentPreview] = useState(null);
   const [error, setError] = useState("");
   const [signature, setSignature] = useState("");
   const [comment, setComment] = useState("");
@@ -46,9 +47,11 @@ export default function PublicApprovalPage() {
       const { data, status } = await approvalWorkflow({ action: "validate", token });
       if (status === 200 && data?.success) {
         setApproval(data.approval);
+        setContentPreview(data.contentPreview || null);
       } else {
         setError(data?.error || "Link inválido ou não encontrado.");
         setApproval(null);
+        setContentPreview(null);
       }
     } catch (err) {
       console.error("Erro ao carregar aprovação:", err);
@@ -244,6 +247,17 @@ export default function PublicApprovalPage() {
             <p className="text-slate-600">Por favor, revise o documento e selecione sua ação.</p>
             <h2 className="text-2xl font-bold text-blue-700 mt-4">{approval?.title || "Documento para Aprovação"}</h2>
             <p className="text-sm text-slate-500">{approval?.description || "Revise o conteúdo abaixo."}</p>
+            {contentPreview ? (
+              <div className="mt-4 text-left rounded-lg border bg-white/80 p-3 space-y-1">
+                <p className="text-sm font-medium text-slate-800">{contentPreview.title}</p>
+                {contentPreview.cyclePeriod ? (
+                  <p className="text-xs text-slate-500">Período: {contentPreview.cyclePeriod}</p>
+                ) : null}
+                {contentPreview.summary ? (
+                  <p className="text-sm text-slate-600 whitespace-pre-wrap">{contentPreview.summary}</p>
+                ) : null}
+              </div>
+            ) : null}
             {approval?.pdfUrl && (
                 <Button variant="outline" className="mt-4 gap-2" asChild>
                     <a href={approval.pdfUrl} target="_blank" rel="noopener noreferrer">

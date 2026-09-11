@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   LogOut, User, Settings, Home, FileText, 
-  CheckCircle, BarChart3, HelpCircle, ChevronDown, Menu, X
+  CheckCircle, HelpCircle, ChevronDown, Menu, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
@@ -70,23 +70,17 @@ export function ClientLayout({ children }) {
       current: location.pathname === createPageUrl('client-portal') && !location.search.includes('tab=')
     },
     {
-      name: 'Briefing',
-      href: `${createPageUrl('client-portal')}?tab=briefing`,
+      name: 'Planejamento',
+      href: `${createPageUrl('client-portal')}?tab=plan`,
       icon: FileText,
-      current: location.search.includes('tab=briefing')
+      current: location.search.includes('tab=plan')
     },
     {
-      name: 'Aprovações',
-      href: `${createPageUrl('client-portal')}?tab=approvals`,
+      name: 'Campanhas',
+      href: `${createPageUrl('client-portal')}?tab=campaigns`,
       icon: CheckCircle,
-      current: location.search.includes('tab=approvals')
+      current: location.search.includes('tab=campaigns')
     },
-    {
-      name: 'Relatórios',
-      href: `${createPageUrl('client-portal')}?tab=reports`,
-      icon: BarChart3,
-      current: location.search.includes('tab=reports')
-    }
   ];
 
   const getUserInitials = (name) => {

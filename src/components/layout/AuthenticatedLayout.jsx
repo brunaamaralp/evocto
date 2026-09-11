@@ -1,14 +1,14 @@
 import { useSession } from '@/components/auth/SessionManager';
 import { RibbonProvider } from '@/components/context/RibbonProvider';
 import ContextualLayout from './ContextualLayout';
+import { ClientLayout } from './ClientLayout';
 
 /**
- * Layout principal USANDO ContextualLayout
+ * Layout principal: staff → ContextualLayout; cliente → ClientLayout.
  */
 export function AuthenticatedLayout({ children }) {
   const { user, isAuthenticated, loading } = useSession();
 
-  // Se ainda está carregando, mostrar loading
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -20,7 +20,6 @@ export function AuthenticatedLayout({ children }) {
     );
   }
 
-  // Se não está autenticado, o SessionManager já vai redirecionar
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -31,14 +30,15 @@ export function AuthenticatedLayout({ children }) {
     );
   }
 
+  if (user?.role === 'client') {
+    return <ClientLayout>{children}</ClientLayout>;
+  }
+
   return (
     <RibbonProvider>
-      {/* USAR ContextualLayout em vez do layout fixo */}
       <ContextualLayout user={user}>
         {children}
       </ContextualLayout>
-
-      {/* REMOVER NotificationCenter daqui - deve ficar apenas no header */}
     </RibbonProvider>
   );
 }
@@ -49,7 +49,6 @@ export function AuthenticatedLayout({ children }) {
 export function PublicLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* NÃO renderizar header aqui - deixar a página welcome controlar */}
       <main>
         {children}
       </main>

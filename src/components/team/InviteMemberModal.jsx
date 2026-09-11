@@ -31,7 +31,6 @@ import { toast } from 'sonner';
 const ROLES = [
   { value: 'admin', label: 'Administrador', hint: 'Gerencia equipe e configurações' },
   { value: 'team', label: 'Membro', hint: 'Executa projetos e tarefas' },
-  { value: 'client', label: 'Cliente', hint: 'Acesso ao portal do cliente' },
 ];
 
 const EMPTY_FORM = {

@@ -6,7 +6,8 @@ const Invite = createEntityAdapter('invites');
 const Profile = createEntityAdapter('profiles');
 const Agency = createEntityAdapter('agencies');
 
-const VALID_ROLES = new Set(['admin', 'team', 'client']);
+// Clientes usam fluxo próprio (portal) e NÃO entram no Team da agência.
+const VALID_ROLES = new Set(['admin', 'team']);
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function ok(payload = {}) {

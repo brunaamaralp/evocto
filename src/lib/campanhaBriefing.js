@@ -55,6 +55,10 @@ export function buildCampanhaBriefPayload({
   cicloId = null,
   userId = null,
   texto_livre = null,
+  annualPlanId = null,
+  mes = null,
+  ano = null,
+  clientVisible = false,
 }) {
   const inherited = configFromEmpresa(empresa) || {
     publico_alvo: '',
@@ -115,6 +119,10 @@ export function buildCampanhaBriefPayload({
     modo_criacao,
     status_campanha: 'rápido',
     texto_livre: texto_livre || null,
+    annualPlanId: annualPlanId || null,
+    mes: mes != null ? Number(mes) : campanhaForm?.mes != null ? Number(campanhaForm.mes) : null,
+    ano: ano != null ? Number(ano) : campanhaForm?.ano != null ? Number(campanhaForm.ano) : null,
+    clientVisible: clientVisible === true,
     criado_por: userId || null,
     criado_em: new Date().toISOString(),
     editado_em: null,

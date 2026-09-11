@@ -92,11 +92,14 @@ export const authAdapter = {
       });
     }
 
-    if (userData.agencyId) {
+    // Clientes NÃO entram no Team da agência (Opção A):
+    // acesso ao portal é só via API admin + requireClient.
+    const role = String(userData.role || 'team').toLowerCase();
+    if (userData.agencyId && role !== 'client') {
       try {
         await teams.createMembership({
           teamId: userData.agencyId,
-          roles: [userData.role || 'team'],
+          roles: [role],
           userId,
           url: typeof window !== 'undefined'
             ? `${window.location.origin}/invite-accept`

@@ -41,7 +41,17 @@ export const TABLE_COLUMNS = {
   agencies: ['agencyName', 'name', 'contactPhone', 'ownerEmail', 'status'],
   clients: ['agencyId', 'name', 'status', 'email', 'phone'],
   services: ['agencyId', 'clientId', 'name', 'status', 'is_template', 'is_active', 'category'],
-  tasks: ['agencyId', 'clientId', 'serviceId', 'title', 'status', 'priority', 'dueDate', 'assigneeId'],
+  tasks: [
+    'agencyId',
+    'clientId',
+    'serviceId',
+    'title',
+    'status',
+    'priority',
+    'dueDate',
+    'assigneeId',
+    'clientVisible',
+  ],
   time_entries: [
     'agencyId',
     'userId',
@@ -52,7 +62,15 @@ export const TABLE_COLUMNS = {
     'startedAt',
   ],
   cycle_plans: ['agencyId', 'clientId', 'serviceId', 'status', 'title'],
-  briefs: ['agencyId', 'clientId', 'projectId', 'empresaId', 'status', 'title'],
+  briefs: [
+    'agencyId',
+    'clientId',
+    'projectId',
+    'empresaId',
+    'status',
+    'title',
+    'clientVisible',
+  ],
   briefing_templates: ['agencyId', 'name', 'isActive'],
   empresas: ['agencyId', 'clientId', 'nome'],
   notifications: ['agencyId', 'userId', 'type', 'subject', 'title'],
@@ -169,6 +187,7 @@ export const BOOLEAN_COLUMNS = new Set([
   'financial_tx_sync_pending',
   'reviewed',
   'is_current',
+  'clientVisible',
 ]);
 
 export const DATETIME_COLUMNS = new Set([

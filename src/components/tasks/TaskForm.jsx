@@ -57,6 +57,7 @@ const TASK_PRIORITIES = [
 
 // Tipos de tarefa
 const TASK_TYPES = [
+  { value: 'client_action', label: 'Pendência do Cliente', icon: CheckSquare },
   { value: 'deliverable', label: 'Entregável', icon: Target },
   { value: 'creative', label: 'Criativo', icon: Target },
   { value: 'review', label: 'Revisão', icon: CheckSquare },
@@ -476,6 +477,11 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
 
       if (isCreating) {
         taskData.assignedBy = currentUserId;
+        if (taskData.type === 'client_action') {
+          taskData.clientVisible = true;
+        } else if (taskData.clientVisible == null) {
+          taskData.clientVisible = false;
+        }
         savedTask = await Task.create(taskData);
 
         if (
@@ -490,6 +496,9 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
 
         toast.success('Tarefa criada com sucesso!');
       } else {
+        if (taskData.type === 'client_action') {
+          taskData.clientVisible = true;
+        }
         savedTask = await Task.update(task.id, {
           ...taskData,
           // no update, preserve id via Task.update path
@@ -656,28 +665,42 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
               </Select>
             </div>
 
-            {!compact && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo
-                </label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleInputChange('type', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TASK_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo
+              </label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: value,
+                    clientVisible:
+                      value === 'client_action'
+                        ? true
+                        : prev.type === 'client_action'
+                          ? false
+                          : prev.clientVisible,
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.type === 'client_action' ? (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Visível automaticamente no Portal do Cliente.
+                </p>
+              ) : null}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

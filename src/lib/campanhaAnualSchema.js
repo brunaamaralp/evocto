@@ -984,6 +984,7 @@ export function buildCampanhaAnualBriefPayload({
     title,
     status: payload.status_anual === 'aprovado' ? 'READY' : 'DRAFT',
     ...payload,
+    clientVisible: existing?.clientVisible === true,
     // Compat hub
     objectives: `Plano anual ${payload.ano}`,
     business_context: `Ciclos: ${CICLOS_COMERCIAIS.map(

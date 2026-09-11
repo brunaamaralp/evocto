@@ -1,670 +1,543 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
-import { getClientDashboardData } from '@/api/functions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Clock, CheckCircle, FileText, AlertCircle, 
-  Calendar, Building, RefreshCw, Loader2,
-  BarChart3, TrendingUp
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertCircle,
+  RefreshCw,
+  Loader2,
+  HelpCircle,
+  ClipboardList,
+  CalendarRange,
+  Megaphone,
+  CircleCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import ClientGoalsKPIDashboard from '@/components/client_portal/ClientGoalsKPIDashboard';
-import ClientFileManager from '@/components/client_portal/ClientFileManager';
-import ExecutiveDashboard from '@/components/client_portal/ExecutiveDashboard';
-import ProgressFeedbackSystem from '@/components/client_portal/ProgressFeedbackSystem';
-import EducationalMicrotexts from '@/components/client_portal/EducationalMicrotexts';
-import ClientOnboardingSystem from '@/components/client_portal/ClientOnboardingSystem';
 import LoadingState from '@/components/shared/LoadingStates';
 import EmptyState from '@/components/shared/EmptyState';
+import EducationalMicrotexts from '@/components/client_portal/EducationalMicrotexts';
+import {
+  getClientPortalOverview,
+  getClientAnnualPlan,
+  listClientCampaigns,
+  getClientCampaign,
+  completeClientAction,
+} from '@/lib/clientPortalApi';
+
+function formatDue(dateStr) {
+  if (!dateStr) return null;
+  try {
+    return new Date(dateStr).toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+    });
+  } catch {
+    return null;
+  }
+}
+
+function NeedsFromYouList({ items, onComplete, busyId }) {
+  if (!items?.length) {
+    return (
+      <EmptyState
+        icon={CircleCheck}
+        title="Nada pendente com você"
+        description="Quando a agência precisar de algo, aparece aqui."
+      />
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {items.map((action) => {
+        const due = formatDue(action.dueDate);
+        const done = action.status === 'completed';
+        return (
+          <li
+            key={action.id}
+            className="flex items-start gap-3 rounded-lg border bg-white px-3 py-2.5"
+          >
+            <Checkbox
+              checked={done}
+              disabled={done || busyId === action.id}
+              onCheckedChange={(checked) => {
+                if (checked) onComplete?.(action.id);
+              }}
+              className="mt-0.5"
+              aria-label={`Concluir ${action.title}`}
+            />
+            <div className="min-w-0 flex-1">
+              <p
+                className={`text-sm font-medium ${
+                  done ? 'text-gray-500 line-through' : 'text-gray-900'
+                }`}
+              >
+                {action.title}
+              </p>
+              {action.description ? (
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                  {action.description}
+                </p>
+              ) : null}
+              <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
+                {action.campaignName ? <span>{action.campaignName}</span> : null}
+                {due ? <span>Prazo {due}</span> : null}
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function CampaignFields({ campaign }) {
+  const rows = [
+    { label: 'Objetivo', value: campaign.objective },
+    { label: 'Público', value: campaign.audience },
+    { label: 'Produtos', value: campaign.products },
+    { label: 'Ações', value: campaign.actions },
+  ].filter((r) => r.value);
+
+  const period =
+    campaign.period?.start || campaign.period?.end
+      ? [campaign.period.start, campaign.period.end].filter(Boolean).join(' → ')
+      : null;
+
+  return (
+    <div className="space-y-4">
+      {period ? (
+        <p className="text-sm text-gray-600">
+          <span className="font-medium text-gray-800">Período:</span> {period}
+        </p>
+      ) : null}
+      {rows.map((row) => (
+        <div key={row.label}>
+          <h4 className="text-sm font-medium text-gray-800">{row.label}</h4>
+          <p className="text-sm text-gray-600 whitespace-pre-wrap mt-1">{row.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ClientPortalPage() {
-  const { user, isAuthenticated, loading: sessionLoading, agencyId } = useSession();
-  const [dashboardData, setDashboardData] = useState(null);
+  const { user, isAuthenticated, loading: sessionLoading } = useSession();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+  const campaignIdParam = searchParams.get('campaignId');
+
+  const [overview, setOverview] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const [campaigns, setCampaigns] = useState(null);
+  const [campaignDetail, setCampaignDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [busyActionId, setBusyActionId] = useState(null);
 
-  // Verificar se é primeira visita e mostrar onboarding
+  const setTab = useCallback(
+    (tab, extra = {}) => {
+      const next = new URLSearchParams(searchParams);
+      if (!tab || tab === 'overview') next.delete('tab');
+      else next.set('tab', tab);
+      if (extra.campaignId) next.set('campaignId', extra.campaignId);
+      else next.delete('campaignId');
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const loadOverview = useCallback(async () => {
+    const data = await getClientPortalOverview();
+    setOverview(data);
+    return data;
+  }, []);
+
   useEffect(() => {
-    if (!sessionLoading && isAuthenticated && user && user.role === 'client') {
-      const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user.clientId}`);
-      if (!hasCompletedOnboarding) {
-        setShowOnboarding(true);
+    if (sessionLoading) return;
+    if (!isAuthenticated || user?.role !== 'client') return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await loadOverview();
+        if (!cancelled) setOverview(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || 'Erro ao carregar o portal');
+          toast.error('Erro ao carregar o portal');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }
-  }, [sessionLoading, isAuthenticated, user]);
+    })();
 
-  // REDIRECIONAMENTO - sempre chamado, verificações dentro
-  useEffect(() => {
-    if (!sessionLoading && isAuthenticated && user) {
-      // Se não é cliente, redirecionar imediatamente
-      if (user.role !== 'client') {
-        console.log(`[ClientPortal] Non-client user (${user.role}) accessing client portal, redirecting to dashboard`);
-        setShouldRedirect(true);
-        window.location.replace('/today');
-        return;
-      }
-      
-      // Debug: log user data apenas para clientes
-      console.log('[ClientPortal] Client user data:', {
-        isAuthenticated,
-        userRole: user?.role,
-        clientId: user?.clientId,
-        agencyId,
-        userEmail: user?.email
-      });
-    }
-  }, [sessionLoading, isAuthenticated, user, agencyId]);
-
-  // Load dashboard data - sempre chamado, verificações dentro
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      // Só executar para clientes autenticados - todas as verificações dentro
-      if (!sessionLoading && isAuthenticated && user) {
-        if (user.role !== 'client') {
-          return; // Não faz nada se não é cliente
-        }
-
-        if (!user.clientId) {
-          setError('ID do cliente não encontrado. Entre em contato com sua agência.');
-          setLoading(false);
-          return;
-        }
-
-        if (!agencyId && !user.agencyId) {
-          setError('ID da agência não encontrado. Entre em contato com sua agência.');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          setLoading(true);
-          setError(null);
-          
-          console.log('[ClientPortal] Loading dashboard data for client:', user.clientId);
-          
-          const response = await getClientDashboardData();
-          
-          if (response.data?.success) {
-            setDashboardData(response.data);
-            console.log('[ClientPortal] Dashboard data loaded successfully');
-          } else {
-            throw new Error(response.data?.message || 'Falha ao carregar dados do dashboard');
-          }
-        } catch (err) {
-          console.error('[ClientPortal] Error loading dashboard:', err);
-          setError(`Erro ao carregar dados: ${err.message}`);
-          toast.error('Erro ao carregar dados do portal');
-        } finally {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
+    return () => {
+      cancelled = true;
     };
+  }, [sessionLoading, isAuthenticated, user?.role, loadOverview]);
 
-    loadDashboardData();
-  }, [sessionLoading, isAuthenticated, user, agencyId]);
+  useEffect(() => {
+    if (!overview || user?.role !== 'client') return;
+    let cancelled = false;
 
-  // Handle refresh - função separada para refresh
+    (async () => {
+      try {
+        setTabLoading(true);
+        if (activeTab === 'plan' && !plan) {
+          const year = overview.annualPlan?.year || new Date().getFullYear();
+          const data = await getClientAnnualPlan(year);
+          if (!cancelled) setPlan(data.plan);
+        }
+        if (activeTab === 'campaigns' && !campaigns) {
+          const data = await listClientCampaigns();
+          if (!cancelled) setCampaigns(data.campaigns || []);
+        }
+        if (activeTab === 'campaigns' && campaignIdParam) {
+          const data = await getClientCampaign(campaignIdParam);
+          if (!cancelled) setCampaignDetail(data.campaign || null);
+        } else if (activeTab === 'campaigns' && !campaignIdParam) {
+          if (!cancelled) setCampaignDetail(null);
+        }
+      } catch (err) {
+        if (!cancelled) toast.error(err.message || 'Erro ao carregar dados');
+      } finally {
+        if (!cancelled) setTabLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, overview, plan, campaigns, campaignIdParam, user?.role]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    
-    if (!isAuthenticated || !user || user.role !== 'client') {
-      setRefreshing(false);
-      return;
-    }
-
-    if (!user.clientId) {
-      setError('ID do cliente não encontrado. Entre em contato com sua agência.');
-      setRefreshing(false);
-      return;
-    }
-
-    if (!agencyId && !user.agencyId) {
-      setError('ID da agência não encontrado. Entre em contato com sua agência.');
-      setRefreshing(false);
-      return;
-    }
-
     try {
-      setError(null);
-      
-      console.log('[ClientPortal] Refreshing dashboard data for client:', user.clientId);
-      
-      const response = await getClientDashboardData();
-      
-      if (response.data?.success) {
-        setDashboardData(response.data);
-        console.log('[ClientPortal] Dashboard data refreshed successfully');
-        toast.success('Dados atualizados com sucesso');
-      } else {
-        throw new Error(response.data?.message || 'Falha ao carregar dados do dashboard');
-      }
+      setPlan(null);
+      setCampaigns(null);
+      setCampaignDetail(null);
+      await loadOverview();
+      toast.success('Dados atualizados');
     } catch (err) {
-      console.error('[ClientPortal] Error refreshing dashboard:', err);
-      setError(`Erro ao carregar dados: ${err.message}`);
-      toast.error('Erro ao atualizar dados do portal');
+      setError(err.message);
+      toast.error('Erro ao atualizar');
     } finally {
       setRefreshing(false);
     }
   };
 
-  // Show redirecting state
-  if (shouldRedirect) {
-    return <LoadingState message="Redirecionando..." />;
-  }
+  const handleComplete = async (actionId) => {
+    setBusyActionId(actionId);
+    try {
+      await completeClientAction(actionId);
+      toast.success('Pendência concluída');
+      setPlan(null);
+      setCampaigns(null);
+      setCampaignDetail(null);
+      await loadOverview();
+      if (campaignIdParam) {
+        const data = await getClientCampaign(campaignIdParam);
+        setCampaignDetail(data.campaign || null);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Não foi possível concluir');
+    } finally {
+      setBusyActionId(null);
+    }
+  };
 
-  // Show loading while session is loading
-  if (sessionLoading) {
-    return <LoadingState message="Verificando sua sessão..." />;
-  }
-
-  // Show error if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <EmptyState
-          icon="lock"
-          title="Acesso Negado"
-          description="Você precisa fazer login para acessar o portal do cliente."
-          primaryAction={{
-            label: 'Fazer Login',
-            onClick: () => window.location.href = '/client-login'
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Show error for non-clients
-  if (user?.role !== 'client') {
-    return <LoadingState message="Redirecionando..." />;
-  }
-
-  // Show main portal
-  if (dashboardData && !loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-4 sm:p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Portal do Cliente</h1>
-            <p className="text-gray-600 text-sm sm:text-base truncate">Bem-vindo, {user.name || user.email}</p>
-          </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-    <div className="overflow-x-auto -mx-1 px-1">
-    <TabsList className="inline-flex w-max min-w-full gap-1 h-auto">
-      <TabsTrigger value="overview" className="flex items-center gap-2 shrink-0" aria-label="Visão Geral">
-        <Building className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Visão Geral</span>
-      </TabsTrigger>
-      <TabsTrigger value="executive" className="flex items-center gap-2 shrink-0" aria-label="Dashboard">
-        <BarChart3 className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Dashboard</span>
-      </TabsTrigger>
-      <TabsTrigger value="progress" className="flex items-center gap-2 shrink-0" aria-label="Progresso">
-        <TrendingUp className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Progresso</span>
-      </TabsTrigger>
-      <TabsTrigger value="goals" className="flex items-center gap-2 shrink-0" aria-label="Metas e KPIs">
-        <CheckCircle className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Metas & KPIs</span>
-      </TabsTrigger>
-      <TabsTrigger value="files" className="flex items-center gap-2 shrink-0" aria-label="Arquivos">
-        <FileText className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Arquivos</span>
-      </TabsTrigger>
-      <TabsTrigger value="help" className="flex items-center gap-2 shrink-0" aria-label="Ajuda">
-        <AlertCircle className="w-4 h-4 shrink-0" />
-        <span className="hidden sm:inline">Ajuda</span>
-      </TabsTrigger>
-    </TabsList>
-    </div>
-
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Serviços Ativos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600">
-                      {dashboardData.services?.length || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Serviços em andamento</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Aprovações Pendentes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-orange-600">
-                      {dashboardData.approvals?.pending?.length || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Aguardando sua aprovação</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Documentos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-green-600">
-                      {dashboardData.documents?.length || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Documentos disponíveis</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {dashboardData.approvals?.pending?.length > 0 && (
-                <Card className="border-orange-200 bg-orange-50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-orange-900 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" />
-                      Aprovações Pendentes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {dashboardData.approvals.pending.slice(0, 3).map((approval, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{approval.title}</h4>
-                            <p className="text-sm text-gray-600">{approval.description}</p>
-                          </div>
-                          <Button size="sm" variant="outline">
-                            Revisar
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="executive">
-              <ExecutiveDashboard 
-                clientId={user.clientId} 
-                serviceId={dashboardData.services?.[0]?.id}
-              />
-            </TabsContent>
-
-            <TabsContent value="progress">
-              <ProgressFeedbackSystem 
-                clientId={user.clientId} 
-                serviceId={dashboardData.services?.[0]?.id}
-              />
-            </TabsContent>
-
-            <TabsContent value="goals">
-              <ClientGoalsKPIDashboard 
-                clientId={user.clientId} 
-                serviceId={dashboardData.services?.[0]?.id}
-              />
-            </TabsContent>
-
-            <TabsContent value="files">
-              <ClientFileManager 
-                clientId={user.clientId} 
-                serviceId={dashboardData.services?.[0]?.id}
-              />
-            </TabsContent>
-
-            <TabsContent value="help">
-              <EducationalMicrotexts />
-            </TabsContent>
-
-            <TabsContent value="approvals">
-              <div className="text-center py-12">
-                <Clock className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Sistema de Aprovações</h3>
-                <p className="text-gray-600">Funcionalidade em desenvolvimento</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reports">
-              <div className="text-center py-12">
-                <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Relatórios</h3>
-                <p className="text-gray-600">Funcionalidade em desenvolvimento</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error && !loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Portal do Cliente</h1>
-            <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="w-full sm:w-auto shrink-0">
-              {refreshing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-              {refreshing ? 'Atualizando...' : 'Tentar Novamente'}
-            </Button>
-          </div>
-          
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <AlertCircle className="w-6 h-6 text-red-600 mr-3" />
-                <div>
-                  <h3 className="font-semibold text-red-800">Erro no Portal</h3>
-                  <p className="text-red-700 mt-1">{error}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Debug info sempre visível em caso de erro */}
-          <Card className="mt-4 border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="text-sm text-yellow-800">Debug Info</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-xs text-yellow-700">
-                {JSON.stringify({
-                  isAuthenticated,
-                  userRole: user?.role,
-                  clientId: user?.clientId,
-                  agencyId: agencyId || user?.agencyId,
-                  userEmail: user?.email
-                }, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state
-  if (loading) {
+  if (sessionLoading || loading) {
     return <LoadingState message="Carregando seu portal..." />;
   }
 
-  // Show main portal content
+  if (!isAuthenticated) {
+    return <Navigate to="/client-login" replace />;
+  }
+
+  if (user?.role !== 'client') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (error && !overview) {
+    return (
+      <div className="max-w-3xl mx-auto p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6 flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-red-600 shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-800">Não foi possível carregar o portal</h3>
+              <p className="text-red-700 mt-1 text-sm">{error}</p>
+              <Button className="mt-4" variant="outline" onClick={handleRefresh}>
+                Tentar novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const stats = overview?.stats || {};
+  const clientName = overview?.client?.name || user?.full_name || 'Cliente';
+  const upcoming = overview?.upcomingCampaigns || [];
+  const needs = overview?.needsFromYou || [];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
-              Bem-vindo, {user?.full_name || 'Cliente'}!
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
-              {dashboardData?.client?.company || 'Seu portal de acompanhamento'}
-            </p>
-          </div>
-          <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="w-full sm:w-auto shrink-0">
-            {refreshing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-            {refreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
+            Olá, {clientName}
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Acompanhe o planejamento e o que precisamos de você
+          </p>
         </div>
+        <Button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          variant="outline"
+          className="w-full sm:w-auto shrink-0"
+        >
+          {refreshing ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4 mr-2" />
+          )}
+          Atualizar
+        </Button>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Clock className="w-8 h-8 text-yellow-600 mr-4" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Aprovações Pendentes</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {dashboardData?.stats?.pendingApprovals || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Serviços Ativos</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {dashboardData?.stats?.activeServices || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <FileText className="w-8 h-8 text-blue-600 mr-4" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Relatórios Disponíveis</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {dashboardData?.reports?.count || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Calendar className="w-8 h-8 text-purple-600 mr-4" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Última Atualização</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {dashboardData?.lastUpdated ? 
-                      new Date(dashboardData.lastUpdated).toLocaleDateString('pt-BR') : 
-                      'Hoje'
-                    }
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="approvals">
-              Aprovações 
-              {dashboardData?.stats?.pendingApprovals > 0 && (
-                <Badge className="ml-2" variant="secondary">
-                  {dashboardData.stats.pendingApprovals}
-                </Badge>
-              )}
+      <Tabs
+        value={activeTab === 'campaigns' && campaignIdParam ? 'campaigns' : activeTab}
+        onValueChange={(tab) => setTab(tab)}
+        className="space-y-6"
+      >
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max min-w-full gap-1 h-auto">
+            <TabsTrigger value="overview" className="shrink-0 gap-2">
+              <ClipboardList className="w-4 h-4" />
+              <span className="hidden sm:inline">Visão geral</span>
             </TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
-            <TabsTrigger value="briefing">Briefing</TabsTrigger>
+            <TabsTrigger value="plan" className="shrink-0 gap-2">
+              <CalendarRange className="w-4 h-4" />
+              <span className="hidden sm:inline">Planejamento</span>
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="shrink-0 gap-2">
+              <Megaphone className="w-4 h-4" />
+              <span className="hidden sm:inline">Campanhas</span>
+              {stats.sharedCampaigns > 0 ? (
+                <Badge variant="secondary" className="ml-1">
+                  {stats.sharedCampaigns}
+                </Badge>
+              ) : null}
+            </TabsTrigger>
+            <TabsTrigger value="help" className="shrink-0 gap-2">
+              <HelpCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Ajuda</span>
+            </TabsTrigger>
           </TabsList>
+        </div>
 
-          <TabsContent value="overview">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Activity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Atividade Recente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dashboardData?.activity?.length > 0 ? (
-                    <div className="space-y-4">
-                      {dashboardData.activity.slice(0, 5).map((activity, index) => (
-                        <div key={index} className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">
-                              {activity.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(activity.date).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">Nenhuma atividade recente</p>
-                  )}
-                </CardContent>
-              </Card>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Próximas campanhas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {upcoming.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Nenhuma campanha compartilhada no momento.
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {upcoming.map((c) => (
+                      <li key={c.id}>
+                        <button
+                          type="button"
+                          className="w-full text-left rounded-lg border px-3 py-2 hover:bg-slate-50"
+                          onClick={() => setTab('campaigns', { campaignId: c.id })}
+                        >
+                          <p className="text-sm font-medium text-gray-900">{c.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {c.month
+                              ? `${String(c.month).padStart(2, '0')}/${c.year || ''}`
+                              : c.period?.start || 'Em andamento'}
+                          </p>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {overview?.annualPlan ? (
+                  <Button
+                    variant="link"
+                    className="px-0 mt-2"
+                    onClick={() => setTab('plan')}
+                  >
+                    Ver planejamento {overview.annualPlan.year}
+                  </Button>
+                ) : null}
+              </CardContent>
+            </Card>
 
-              {/* Services Status */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status dos Serviços</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dashboardData?.services?.active?.length > 0 ? (
-                    <div className="space-y-3">
-                      {dashboardData.services.active.map((service, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                          <div>
-                            <p className="font-medium text-gray-900">{service.name}</p>
-                            <p className="text-sm text-gray-600">{service.category}</p>
-                          </div>
-                          <Badge variant="outline" className="bg-green-50 text-green-700">
-                            Ativo
+            <Card>
+              <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Precisamos de você</CardTitle>
+                {stats.openClientActions > 0 ? (
+                  <Badge variant="secondary">{stats.openClientActions}</Badge>
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                <NeedsFromYouList
+                  items={needs}
+                  onComplete={handleComplete}
+                  busyId={busyActionId}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="plan" className="space-y-4">
+          {tabLoading && !plan ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : !plan ? (
+            <EmptyState
+              icon={CalendarRange}
+              title="Nenhum planejamento compartilhado"
+              description="Quando a agência compartilhar o planejamento anual, ele aparece aqui."
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>{plan.title || `Planejamento ${plan.year}`}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {(plan.months || []).map((m) => {
+                    const clickable = m.status === 'shared' && m.campaignId;
+                    const content = (
+                      <>
+                        <p className="text-xs font-semibold uppercase text-gray-500">
+                          {m.label?.slice(0, 3) || m.month}
+                        </p>
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mt-1">
+                          {m.campaignName || (m.status === 'empty' ? '—' : 'Planejado')}
+                        </p>
+                        {m.status === 'planned' ? (
+                          <Badge variant="outline" className="mt-2 text-[10px]">
+                            Planejado
                           </Badge>
-                        </div>
-                      ))}
+                        ) : null}
+                        {m.status === 'shared' ? (
+                          <Badge className="mt-2 text-[10px]">Campanha</Badge>
+                        ) : null}
+                      </>
+                    );
+                    if (clickable) {
+                      return (
+                        <button
+                          key={m.month}
+                          type="button"
+                          className="rounded-lg border p-3 text-left hover:bg-slate-50"
+                          onClick={() =>
+                            setTab('campaigns', { campaignId: m.campaignId })
+                          }
+                        >
+                          {content}
+                        </button>
+                      );
+                    }
+                    return (
+                      <div key={m.month} className="rounded-lg border p-3 bg-slate-50/50">
+                        {content}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="campaigns" className="space-y-4">
+          {campaignIdParam && campaignDetail ? (
+            <div className="space-y-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-2"
+                onClick={() => setTab('campaigns')}
+              >
+                ← Todas as campanhas
+              </Button>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{campaignDetail.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CampaignFields campaign={campaignDetail} />
+                  {(campaignDetail.clientActions || []).some((a) => a.status === 'pending') ? (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-2">Pendências</h4>
+                      <NeedsFromYouList
+                        items={(campaignDetail.clientActions || []).filter(
+                          (a) => a.status === 'pending'
+                        )}
+                        onComplete={handleComplete}
+                        busyId={busyActionId}
+                      />
                     </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">Nenhum serviço ativo</p>
-                  )}
+                  ) : null}
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          ) : tabLoading && !campaigns ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : !campaigns?.length ? (
+            <EmptyState
+              icon={Megaphone}
+              title="Nenhuma campanha compartilhada"
+              description="Campanhas liberadas pela agência aparecerão aqui."
+            />
+          ) : (
+            <div className="grid gap-2">
+              {campaigns.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="rounded-lg border bg-white px-4 py-3 text-left hover:bg-slate-50"
+                  onClick={() => setTab('campaigns', { campaignId: c.id })}
+                >
+                  <p className="font-medium text-gray-900">{c.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {c.objective ? String(c.objective).slice(0, 120) : 'Abrir detalhes'}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-          <TabsContent value="approvals">
-            <Card>
-              <CardHeader>
-                <CardTitle>Aprovações Pendentes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dashboardData?.approvals?.pending?.length > 0 ? (
-                  <div className="space-y-4">
-                    {dashboardData.approvals.pending.map((approval, index) => (
-                      <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{approval.title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">{approval.description}</p>
-                            <p className="text-xs text-gray-500 mt-2">
-                              Expira em: {new Date(approval.expiresAt).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                          <Button size="sm">
-                            Revisar
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon="check"
-                    title="Nenhuma aprovação pendente"
-                    description="Todas as aprovações foram processadas."
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios Disponíveis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dashboardData?.reports?.available?.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {dashboardData.reports.available.map((report, index) => (
-                      <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{report.cyclePeriod}</h4>
-                            <p className="text-sm text-gray-600">
-                              Status: {report.status}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Atualizado: {new Date(report.updated_date).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                          <Button size="sm" variant="outline">
-                            Visualizar
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon="file"
-                    title="Nenhum relatório disponível"
-                    description="Os relatórios aparecerão aqui quando estiverem prontos."
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="briefing">
-            <Card>
-              <CardHeader>
-                <CardTitle>Briefing Atual</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dashboardData?.briefings?.current ? (
-                  <div>
-                    <p className="text-gray-600 mb-4">
-                      Seu briefing foi atualizado em {' '}
-                      {new Date(dashboardData.briefings.current.updated_date).toLocaleDateString('pt-BR')}
-                    </p>
-                    <Button>Visualizar Briefing</Button>
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon="clipboard"
-                    title="Nenhum briefing disponível"
-                    description="O briefing do seu projeto aparecerá aqui quando estiver pronto."
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Modal de Onboarding */}
-      <ClientOnboardingSystem
-        isOpen={showOnboarding}
-        onClose={() => {
-          setShowOnboarding(false);
-          localStorage.setItem(`onboarding_completed_${user.clientId}`, 'true');
-        }}
-        clientId={user.clientId}
-        serviceId={dashboardData.services?.[0]?.id}
-      />
+        <TabsContent value="help">
+          <EducationalMicrotexts />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

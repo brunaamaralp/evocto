@@ -50,13 +50,21 @@ function LayoutContent({ children, isPublic }) {
 function Layout({ children }) {
   const { pathname } = useLocation();
   const isPublic = isPublicRoute(pathname);
+  const isClientPortalSurface =
+    pathname.toLowerCase().includes('client-portal') ||
+    pathname.startsWith('/ClientArea') ||
+    pathname.startsWith('/ClientDemo') ||
+    pathname.startsWith('/cliente/');
   const hideGlobalTaskFab =
+    isClientPortalSurface ||
     pathname.includes('/client-tasks') ||
     pathname.includes('/tasks-board') ||
     pathname.includes('/tasks-manager');
   const hideServiceFab =
+    isClientPortalSurface ||
     pathname.includes('/client-tasks') ||
     pathname.includes('/client-campaign');
+  const hideTaskDrawer = isClientPortalSurface;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +75,7 @@ function Layout({ children }) {
               {children}
             </LayoutContent>
             {!isPublic && !hideGlobalTaskFab && <TaskCreateFab />}
-            {!isPublic && <TaskDrawer />}
+            {!isPublic && !hideTaskDrawer && <TaskDrawer />}
             {!isPublic && !hideServiceFab && <ServiceActionsFab />}
           </NavigationProvider>
         </SessionProvider>
