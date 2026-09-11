@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
   AlertCircle,
   ArrowRight,
@@ -20,6 +19,23 @@ import { CyclePlan } from '@/api/entities';
 import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
+import { buildGreetingLine } from '@/lib/dashboardDayBriefing';
+
+function firstNameFromFullName(fullName) {
+  const first = String(fullName || '')
+    .trim()
+    .split(/\s+/)[0];
+  if (!first || first === 'Usuário') return '';
+  return first;
+}
+
+function formatDashboardDate(date = new Date()) {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
 
 const OPEN_TASK_STATUSES = new Set([
   'todo',
@@ -341,7 +357,7 @@ function ItemRow({ item, showKindBadge = false }) {
  * Home operacional — campanhas + agenda + fila de atenção.
  */
 export default function DashboardPage() {
-  const { agencyId, loading: sessionLoading } = useSession();
+  const { agencyId, userName, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
@@ -377,13 +393,6 @@ export default function DashboardPage() {
         services
       );
 
-      const activeCampaignsCount = campaignGroups.reduce(
-        (sum, g) => sum + g.campaigns.length,
-        0
-      );
-      const clientsWithCampaigns = campaignGroups.length;
-
-      const pendingTasks = tasks.filter(isOpenTask).length;
       const attentionQueue = buildAttentionQueue(tasks, clients, cycles, todayStart);
       const agenda = buildAgenda(tasks, clients, todayStart);
       const setupSteps = buildSetupSteps({
@@ -403,14 +412,6 @@ export default function DashboardPage() {
         }));
 
       setDashboardData({
-        stats: {
-          activeCampaigns: activeCampaignsCount,
-          clientsWithCampaigns,
-          pendingTasks,
-          attentionCount: attentionQueue.length,
-          agendaCount: agenda.length,
-          activeClients: activeClients.length || clients.length,
-        },
         campaignGroups,
         attentionQueue,
         agenda,
@@ -459,7 +460,6 @@ export default function DashboardPage() {
   }
 
   const {
-    stats,
     campaignGroups,
     attentionQueue,
     agenda,
@@ -468,24 +468,18 @@ export default function DashboardPage() {
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
   const nextSetupStep = setupSteps.find((s) => !s.done) || null;
+  const greeting = buildGreetingLine(firstNameFromFullName(userName));
+  const todayLabel = formatDashboardDate();
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-2">
           <h1 className="text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
-            Hoje
+            {greeting}
           </h1>
           <p className="text-sm text-[#555]">
-            {stats.activeCampaigns} campanha{stats.activeCampaigns === 1 ? '' : 's'}
-            {stats.attentionCount > 0
-              ? ` · ${stats.attentionCount} precisa${stats.attentionCount === 1 ? '' : 'm'} de atenção`
-              : ''}
-            {stats.agendaCount > 0
-              ? ` · ${stats.agendaCount} na agenda`
-              : stats.pendingTasks > 0
-                ? ` · ${stats.pendingTasks} tarefa${stats.pendingTasks === 1 ? '' : 's'} aberta${stats.pendingTasks === 1 ? '' : 's'}`
-                : ''}
+            {todayLabel} · Sua agenda e tarefas prioritárias
           </p>
         </div>
         <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
@@ -551,17 +545,10 @@ export default function DashboardPage() {
       )}
 
       <section aria-labelledby="campaigns-heading" className="border-t border-[#eee] pt-8">
-        <div className="mb-5 flex items-baseline justify-between gap-3">
+        <div className="mb-5">
           <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
             Campanhas
           </h2>
-          {hasCampaigns ? (
-            <span className="text-xs text-[#555]">
-              {stats.activeCampaigns} ativa{stats.activeCampaigns === 1 ? '' : 's'} ·{' '}
-              {stats.clientsWithCampaigns} cliente
-              {stats.clientsWithCampaigns === 1 ? '' : 's'}
-            </span>
-          ) : null}
         </div>
 
         {!hasCampaigns ? (
@@ -645,17 +632,13 @@ export default function DashboardPage() {
           <div className="space-y-10">
             {campaignGroups.map((group) => (
               <section key={group.clientId} className="space-y-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#eee] pb-2">
+                <div className="border-b border-[#eee] pb-2">
                   <Link
                     to={group.href}
                     className="text-[15px] font-semibold text-[#111] hover:text-[#007bff]"
                   >
                     {group.clientName}
                   </Link>
-                  <span className="text-xs text-[#555]">
-                    {group.campaigns.length} campanha
-                    {group.campaigns.length === 1 ? '' : 's'}
-                  </span>
                 </div>
 
                 <ul className="space-y-3">
@@ -664,39 +647,27 @@ export default function DashboardPage() {
                       key={campaign.id}
                       className="rounded-xl border border-[#eee] bg-white p-5 transition-colors hover:border-[#ddd]"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            to={campaign.href}
-                            className="block truncate text-base font-semibold text-[#111] hover:text-[#007bff]"
-                          >
-                            {campaign.name}
-                          </Link>
-                          {(() => {
-                            const subtitle = [
-                              campaign.cyclePeriod || campaign.cycleTitle,
-                              campaign.progress.total > 0
-                                ? `${campaign.progress.completed}/${campaign.progress.total} tarefas`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ');
-                            return subtitle ? (
-                              <p className="mt-1 text-sm text-[#555]">{subtitle}</p>
-                            ) : null;
-                          })()}
-                        </div>
-                        <p className="shrink-0 text-xl font-bold tabular-nums text-[#111]">
-                          {campaign.progress.percentComplete}%
-                        </p>
+                      <div className="min-w-0">
+                        <Link
+                          to={campaign.href}
+                          className="block truncate text-base font-semibold text-[#111] hover:text-[#007bff]"
+                        >
+                          {campaign.name}
+                        </Link>
+                        {(() => {
+                          const subtitle = [
+                            campaign.cyclePeriod || campaign.cycleTitle,
+                            campaign.progress.total > 0
+                              ? `${campaign.progress.completed}/${campaign.progress.total} tarefas`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ');
+                          return subtitle ? (
+                            <p className="mt-1 text-sm text-[#555]">{subtitle}</p>
+                          ) : null;
+                        })()}
                       </div>
-
-                      {campaign.progress.total > 0 && (
-                        <Progress
-                          value={campaign.progress.percentComplete}
-                          className="mt-4 h-1.5"
-                        />
-                      )}
 
                       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                         <Button asChild size="sm" className="bg-[#007bff] hover:bg-[#0056b3]">
