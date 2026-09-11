@@ -1,6 +1,6 @@
-import { LEAD_STATUS } from '../store/useLeadStore';
+import { LEAD_STATUS } from './leadStatus.js';
 import { enrollmentDateYmd } from './studentEnrollmentDate.js';
-import { getCivilWeekBounds } from '../components/AgendaCalendarWeek.jsx';
+import { getCivilWeekBounds } from './civilWeekBounds.js';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 

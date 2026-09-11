@@ -5,7 +5,7 @@ import {
   isLeadScheduledForExperimental,
   isLeadVisibleOnExperimentalAgenda,
 } from '../lib/leadStageRules.js';
-import { filterLeadsInCivilWeek } from '../components/AgendaCalendarWeek.jsx';
+import { filterLeadsInCivilWeek } from '../lib/civilWeekBounds.js';
 
 function leadToDateTime(lead) {
   const base = lead.scheduledDate || lead.createdAt || '';

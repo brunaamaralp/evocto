@@ -163,7 +163,8 @@ export default function BriefingCampanhaPage() {
   };
 
   const savedBriefing = launchResult?.briefing;
-  const serviceId = launchResult?.service?.id || savedBriefing?.serviceId;
+  const resolvedServiceId =
+    launchResult?.service?.id || savedBriefing?.serviceId || serviceId;
   const cycleId = launchResult?.cyclePlan?.id || savedBriefing?.ciclo_id;
   const campaignHref = savedBriefing?.id
     ? createPageUrl(
@@ -178,11 +179,13 @@ export default function BriefingCampanhaPage() {
       clientId,
       cycleId,
       briefingId: savedBriefing?.id,
-      serviceId,
+      serviceId: resolvedServiceId,
     })
   );
-  const workspaceHref = serviceId
-    ? createPageUrl(`delivery-workspace?serviceId=${serviceId}&section=tasks`)
+  const workspaceHref = resolvedServiceId
+    ? createPageUrl(
+        `delivery-workspace?serviceId=${resolvedServiceId}&section=tasks`
+      )
     : null;
 
   if (step === 'sucesso' && savedBriefing) {

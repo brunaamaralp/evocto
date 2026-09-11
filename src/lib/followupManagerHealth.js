@@ -1,5 +1,5 @@
 import { LEAD_STATUS } from './leadStatus.js';
-import { getCivilWeekBounds } from '../components/AgendaCalendarWeek.jsx';
+import { getCivilWeekBounds } from './civilWeekBounds.js';
 import { resolveInboundAfterForLead } from './followupInbound.js';
 import { getFollowupClassDate } from './followupState.js';
 
