@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { Brief } from '@/api/entities';
+import { useSession } from '@/components/auth/SessionManager';
+import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
+import { clientCampaignPageUrl, buildClientCampaignHref } from '@/lib/campaignHref';
 
 const API_BASE = '/api/campaigns-agent';
 
@@ -103,7 +107,7 @@ function flowHint({ isRefinada, isFinalizada }) {
     return 'Campanha criada a partir desta ideia. Continue no ciclo ou no briefing.';
   }
   if (isRefinada) {
-    return 'Ideia refinada. Opcional: gere roteiros. Depois, crie a campanha (brief + ciclo).';
+    return 'Ideia refinada. Opcional: gere roteiros. Depois, crie a campanha no ciclo do mês.';
   }
   return 'Converse até fechar foco, público, formato e ciclo. Quando estiver clara, o status vira Refinada.';
 }
@@ -118,6 +122,7 @@ export default function ChatInterface({
   onMessagesChange,
 }) {
   const navigate = useNavigate();
+  const { agencyId, userId } = useSession();
   const [messages, setMessages] = useState(() =>
     Array.isArray(initialMessages) ? initialMessages : []
   );
@@ -233,20 +238,70 @@ export default function ChatInterface({
     setSavingCampaign(true);
     try {
       const data = await postAgent('save-brief', { conversationId });
-      if (data.success && (data.cycleId || data.briefId)) {
-        if (data.cycleId) {
-          navigate(`/campaigns/cycles/${data.cycleId}`);
-        } else {
-          navigate(
-            createPageUrl(
-              clientId
-                ? `client-briefing?clientId=${clientId}&briefingId=${data.briefId}`
-                : `client-briefing?briefingId=${data.briefId}`
-            ) || `/campaigns/${data.briefId}`
-          );
-        }
-      } else {
+      if (!data.success || !data.briefId) {
         setError('Não foi possível criar a campanha');
+        return;
+      }
+
+      const briefing = await Brief.get(data.briefId);
+      const resolvedAgencyId = data.agencyId || agencyId;
+      const resolvedClientId = data.clientId || clientId;
+      if (!resolvedAgencyId || !resolvedClientId) {
+        navigate(
+          createPageUrl(
+            clientId
+              ? buildClientCampaignHref({
+                  clientId,
+                  briefingId: data.briefId,
+                })
+              : `client-briefing?briefingId=${data.briefId}`
+          )
+        );
+        return;
+      }
+
+      const launched = await launchCampanhaFromBrief({
+        briefing,
+        agencyId: resolvedAgencyId,
+        clientId: resolvedClientId,
+        userId,
+        generateTasks: true,
+        empresaNome: data.empresaNome || contextoEnriquecido?.empresa?.nome,
+      });
+
+      if (data.modo === 'plano') {
+        try {
+          await postAgent('update-plan-month', {
+            planId: data.planId || undefined,
+            clientId: resolvedClientId,
+            mes: data.mes,
+            ano: data.ano,
+            brief_mensal_id: briefing.id,
+            ciclo_entrega_id: launched.cyclePlan?.id || null,
+            status_mes: 'materializado',
+            nome_campanha: data.nome || briefing.nome_campanha,
+          });
+        } catch (planErr) {
+          console.warn('[ChatInterface] update-plan-month', planErr);
+        }
+      }
+
+      if (launched.briefing?.id) {
+        navigate(
+          clientCampaignPageUrl({
+            clientId: resolvedClientId,
+            briefingId: launched.briefing.id,
+          })
+        );
+      } else if (launched.cyclePlan?.id) {
+        navigate(`/campaigns/cycles/${launched.cyclePlan.id}`);
+      } else {
+        navigate(
+          clientCampaignPageUrl({
+            clientId: resolvedClientId,
+            briefingId: data.briefId,
+          })
+        );
       }
     } catch (err) {
       console.error('[ChatInterface] save-brief', err);
@@ -431,7 +486,7 @@ export default function ChatInterface({
         ) : null}
         {isRefinada && !isFinalizada ? (
           <p style={styles.saveHint}>
-            Vai gerar um brief em rascunho e um ciclo com as fases de execução
+            Gera o brief e vincula ao ciclo operacional do mês (sem duplicar ciclo)
           </p>
         ) : null}
       </div>
@@ -452,14 +507,14 @@ export default function ChatInterface({
             </p>
             <ul style={styles.modalList}>
               <li>
-                <strong>Brief de campanha</strong> (rascunho) com as 9 dimensões alinhadas
+                <strong>Brief de campanha</strong> com as dimensões alinhadas
               </li>
               <li>
-                <strong>Ciclo de execução</strong> com fases (planejamento já iniciado)
+                <strong>Ciclo do mês</strong> (reutiliza se já existir) + tarefas
               </li>
             </ul>
             <p style={styles.modalBody}>
-              Em seguida você entra no ciclo para seguir com tarefas e produção.
+              Em seguida você entra na campanha para seguir a execução.
             </p>
             <div style={styles.modalActions}>
               <button
@@ -525,8 +580,9 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    minHeight: 320,
-    gap: '0.85rem',
+    minHeight: 0,
+    flex: 1,
+    gap: '0.55rem',
     color: '#1a1a1a',
   },
   header: {
@@ -534,15 +590,16 @@ const styles = {
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 12,
-    paddingBottom: 8,
+    paddingBottom: 6,
     borderBottom: '1px solid #eee',
+    flexShrink: 0,
   },
   headerTitle: {
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 8,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 700,
     color: '#111',
   },
@@ -558,20 +615,21 @@ const styles = {
     fontWeight: 600,
   },
   list: {
-    flex: 1,
+    flex: '1 1 auto',
+    minHeight: 280,
     overflowY: 'auto',
-    padding: '0.5rem 0.25rem',
+    padding: '0.35rem 0.15rem',
     display: 'flex',
     flexDirection: 'column',
     gap: '0.85rem',
   },
   empty: { margin: 0, fontSize: 13, color: '#555', textAlign: 'center' },
   bubble: {
-    maxWidth: 'min(85%, 520px)',
-    padding: '0.75rem 1rem',
+    maxWidth: 'min(94%, 720px)',
+    padding: '0.85rem 1.1rem',
     borderRadius: 12,
-    fontSize: 14,
-    lineHeight: 1.45,
+    fontSize: 15,
+    lineHeight: 1.55,
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
@@ -592,6 +650,7 @@ const styles = {
     alignItems: 'center',
     gap: 8,
     justifyContent: 'flex-start',
+    flexShrink: 0,
   },
   secondaryBtn: {
     padding: '0.45rem 0.85rem',
@@ -606,13 +665,15 @@ const styles = {
   inputArea: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.5rem',
+    gap: '0.4rem',
     alignItems: 'flex-end',
+    flexShrink: 0,
   },
   textarea: {
     width: '100%',
-    minHeight: 96,
-    padding: '1rem',
+    minHeight: 64,
+    maxHeight: 120,
+    padding: '0.75rem 0.9rem',
     borderRadius: 8,
     border: '1px solid #ddd',
     resize: 'vertical',
@@ -624,9 +685,10 @@ const styles = {
   stickyBar: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 6,
+    gap: 4,
     paddingTop: 4,
     borderTop: '1px solid #eee',
+    flexShrink: 0,
   },
   saveHint: {
     margin: 0,
@@ -635,17 +697,17 @@ const styles = {
     textAlign: 'center',
   },
   flowHint: {
-    margin: '8px 0 0',
-    fontSize: 12,
+    margin: '6px 0 0',
+    fontSize: 11,
     color: '#555',
-    lineHeight: 1.4,
+    lineHeight: 1.35,
   },
   stepper: {
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 4,
-    marginTop: 10,
+    marginTop: 8,
   },
   stepItem: {
     display: 'inline-flex',

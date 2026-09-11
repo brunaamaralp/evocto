@@ -8,6 +8,7 @@ import {
   Circle,
   AlertCircle,
   Loader2,
+  CalendarDays,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
@@ -15,10 +16,18 @@ import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import ClientActiveCampaignsPanel from '@/components/client/ClientActiveCampaignsPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
+import NewCampaignLauncher from '@/components/campaigns/NewCampaignLauncher';
+import {
+  buildAnnualPlanHref,
+  buildBrainstormHref,
+  deriveAnnualPlanFromBriefs,
+  getPlanMonth,
+} from '@/lib/planoAnualHub';
 
 export default function ClientDetailPage() {
   const { agencyId, isAuthenticated } = useSession();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
 
   const clientId = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -29,6 +38,9 @@ export default function ClientDetailPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('open') === 'invite') {
       setInviteModalOpen(true);
+    }
+    if (params.get('open') === 'nova-campanha') {
+      setLauncherOpen(true);
     }
   }, []);
 
@@ -42,6 +54,18 @@ export default function ClientDetailPage() {
     attentionItems,
     counts,
   } = useClientHubData(clientId, agencyId);
+
+  const now = new Date();
+  const currentMes = now.getMonth() + 1;
+  const currentAno = now.getFullYear();
+  const annualPlan = useMemo(
+    () => deriveAnnualPlanFromBriefs(briefs, currentAno),
+    [briefs, currentAno]
+  );
+  const planMonth = useMemo(
+    () => getPlanMonth(annualPlan, currentMes),
+    [annualPlan, currentMes]
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -127,14 +151,18 @@ export default function ClientDetailPage() {
       description: 'Defina a campanha do mês para este cliente',
       completed: hasCampaigns,
       action: 'Nova campanha',
-      href: createPageUrl(`briefing-campanha?clientId=${clientId}`),
+      onClick: () => setLauncherOpen(true),
     },
     {
       id: 'context',
-      title: 'Briefing de contexto',
-      description: 'Histórico e materiais de referência do cliente',
-      completed: briefs.length > 0,
-      action: 'Abrir briefings',
+      title: 'Briefing inicial e plano',
+      description: 'Onboarding do cliente e planejamento do ano',
+      completed: briefs.some(
+        (b) =>
+          b.brief_kind === 'campanha_anual' ||
+          b.brief_kind === 'campanha_mensal'
+      ),
+      action: 'Abrir hub',
       href: createPageUrl(`client-briefing?clientId=${clientId}`),
     },
     {
@@ -175,15 +203,56 @@ export default function ClientDetailPage() {
           <p className="text-sm text-[#555]">{metaParts.join(' · ')}</p>
         </div>
         <Button
-          asChild
           className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+          onClick={() => setLauncherOpen(true)}
         >
-          <Link to={createPageUrl(`briefing-campanha?clientId=${clientId}`)}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            Nova campanha
-          </Link>
+          <Plus className="mr-1.5 h-4 w-4" />
+          Nova campanha
         </Button>
       </header>
+
+      {planMonth?.actionable ? (
+        <section className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#007bff]">
+                Mês do plano · {planMonth.mesLabel}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-[#111]">
+                {planMonth.campanha?.nome_campanha ||
+                  planMonth.tema?.titulo ||
+                  'Campanha planejada'}
+              </p>
+              <p className="text-xs text-[#555]">
+                Status: {planMonth.status_mes}
+                {planMonth.campanha?.ciclo_comercial
+                  ? ` · ${planMonth.campanha.ciclo_comercial}`
+                  : ''}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+                <Link
+                  to={buildBrainstormHref(clientId, {
+                    mes: currentMes,
+                    ano: annualPlan?.ano || currentAno,
+                    planId: annualPlan?.id,
+                    modo: 'plano',
+                  })}
+                >
+                  <CalendarDays className="mr-1.5 h-4 w-4" />
+                  Brainstorm deste mês
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to={buildAnnualPlanHref(clientId, annualPlan?.id)}>
+                  Ver plano anual
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {showSetup ? (
         <section
@@ -243,6 +312,7 @@ export default function ClientDetailPage() {
           clientId={clientId}
           campaigns={activeCampaigns}
           showCreateCta={activeCampaigns.length === 0}
+          onCreateCampaign={() => setLauncherOpen(true)}
         />
       </div>
 
@@ -259,6 +329,12 @@ export default function ClientDetailPage() {
         </h2>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link
+            to={buildAnnualPlanHref(clientId, annualPlan?.id)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Plano anual
+          </Link>
+          <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
             className="text-sm font-medium text-[#007bff] hover:underline"
           >
@@ -268,7 +344,7 @@ export default function ClientDetailPage() {
             to={createPageUrl(`client-briefing?clientId=${clientId}`)}
             className="text-sm font-medium text-[#007bff] hover:underline"
           >
-            Briefings
+            Campanhas & plano
           </Link>
           <Link
             to={createPageUrl(`client-tasks?clientId=${clientId}`)}
@@ -300,6 +376,16 @@ export default function ClientDetailPage() {
           window.history.replaceState({}, '', url.toString());
         }}
         client={client}
+      />
+
+      <NewCampaignLauncher
+        open={launcherOpen}
+        onClose={() => setLauncherOpen(false)}
+        clientId={clientId}
+        annualPlan={annualPlan}
+        mes={currentMes}
+        ano={currentAno}
+        onPlanUpdated={() => reload?.()}
       />
     </div>
   );

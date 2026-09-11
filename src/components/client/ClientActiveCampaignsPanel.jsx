@@ -85,10 +85,10 @@ function CampaignRow({ campaign }) {
           Tarefas
         </Link>
         <Link
-          to={campaign.briefingHref || campaign.href}
+          to={campaign.href}
           className="text-sm font-medium text-[#555] hover:text-[#111]"
         >
-          Briefing
+          Ficha
         </Link>
       </div>
     </li>
@@ -99,6 +99,7 @@ export default function ClientActiveCampaignsPanel({
   clientId,
   campaigns = [],
   showCreateCta = true,
+  onCreateCampaign,
 }) {
   const groups = groupByCycle(campaigns);
   const newBriefHref = createPageUrl(`briefing-campanha?clientId=${clientId}`);
@@ -113,6 +114,24 @@ export default function ClientActiveCampaignsPanel({
           Campanhas em andamento
           {campaigns.length > 0 ? ` · ${campaigns.length}` : ''}
         </h2>
+        {campaigns.length > 0 ? (
+          onCreateCampaign ? (
+            <button
+              type="button"
+              onClick={onCreateCampaign}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              + Nova campanha
+            </button>
+          ) : (
+            <Link
+              to={newBriefHref}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              + Nova campanha
+            </Link>
+          )
+        ) : null}
       </div>
 
       {groups.length === 0 ? (
@@ -124,12 +143,22 @@ export default function ClientActiveCampaignsPanel({
             Crie a campanha do mês para começar a operar neste cliente.
           </p>
           {showCreateCta ? (
-            <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
-              <Link to={newBriefHref}>
+            onCreateCampaign ? (
+              <Button
+                className="bg-[#007bff] hover:bg-[#0056b3]"
+                onClick={onCreateCampaign}
+              >
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova campanha
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+                <Link to={newBriefHref}>
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  Nova campanha
+                </Link>
+              </Button>
+            )
           ) : null}
         </div>
       ) : (

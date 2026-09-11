@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
 import ModernHeader from './ModernHeader';
-import ClientContextBanner from './ClientContextBanner';
 import { Brief, Client } from '@/api/entities';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 
@@ -64,6 +63,7 @@ export default function ContextualLayout({ user, children }) {
       'insights-editor',
       'scope-editor',
       'briefing-campanha',
+      'briefing-campanha-anual',
     ];
 
     const currentPage = pathname.split('/').pop() || pathname.substring(1);
@@ -89,6 +89,8 @@ export default function ContextualLayout({ user, children }) {
   const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
   const isClientShell = context.type === 'client' && Boolean(context.clientId);
   const hasCampaignContext = Boolean(context.briefingId);
+  const isBrainstormPage =
+    currentPage === 'client-brainstorm' || currentPage === 'brainstorm';
 
   useEffect(() => {
     let cancelled = false;
@@ -150,13 +152,6 @@ export default function ContextualLayout({ user, children }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
       >
-        {isClientShell && (
-          <ClientContextBanner
-            clientId={context.clientId}
-            clientName={contextClient?.name}
-          />
-        )}
-
         <ModernHeader
           user={user}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
@@ -166,9 +161,11 @@ export default function ContextualLayout({ user, children }) {
         />
 
         <main
-          className={`flex-1 overflow-auto p-4 sm:p-6 lg:p-8 pb-28 ${
-            isClientShell ? CLIENT_CONTEXT.contentAccent : ''
-          }`}
+          className={`flex-1 ${
+            isBrainstormPage
+              ? 'overflow-hidden p-0 pb-0'
+              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-28'
+          } ${isClientShell ? CLIENT_CONTEXT.contentAccent : ''}`}
         >
           {children}
         </main>

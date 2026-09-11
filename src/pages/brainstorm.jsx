@@ -4,9 +4,11 @@ import ConversationList from '@/components/campaigns/agent/ConversationList';
 import ChatInterface from '@/components/campaigns/agent/ChatInterface';
 import ContextSidebar from '@/components/campaigns/agent/ContextSidebar';
 import { useSession } from '@/components/auth/SessionManager';
-import { Client } from '@/api/entities';
+import { Brief, Client } from '@/api/entities';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
+import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 import { createPageUrl } from '@/utils';
+import { clientCampaignPageUrl } from '@/lib/campaignHref';
 
 const API_BASE = '/api/campaigns-agent';
 
@@ -33,14 +35,20 @@ async function agentFetch(route, { method = 'GET', body, empresa } = {}) {
  */
 export default function BrainstormPage() {
   const navigate = useNavigate();
-  const { agencyId } = useSession();
+  const { agencyId, userId } = useSession();
   const [searchParams] = useSearchParams();
   const clientId = searchParams.get('clientId') || '';
+  const modoParam = (searchParams.get('modo') || searchParams.get('mode') || 'avulso').toLowerCase();
+  const mesParam = Number(searchParams.get('mes')) || null;
+  const anoParam = Number(searchParams.get('ano')) || new Date().getFullYear();
+  const planIdParam = searchParams.get('planId') || searchParams.get('planoId') || null;
+  const fromPlan = modoParam === 'plano';
 
   const [client, setClient] = useState(null);
   const [empresa, setEmpresa] = useState(null);
   const [bootLoading, setBootLoading] = useState(true);
   const [bootError, setBootError] = useState(null);
+  const [autoStarted, setAutoStarted] = useState(false);
 
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
@@ -136,6 +144,20 @@ export default function BrainstormPage() {
     if (empresaKey) loadConversations();
   }, [empresaKey, loadConversations]);
 
+  // Auto-inicia conversa quando veio do plano (?modo=plano&mes=)
+  useEffect(() => {
+    if (bootLoading || bootError || !empresaKey || autoStarted) return;
+    if (!fromPlan || !mesParam) return;
+    setAutoStarted(true);
+    handleNewConversation({
+      mes: mesParam,
+      ano: anoParam,
+      modo: 'plano',
+      empresa: empresaKey,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootLoading, bootError, empresaKey, fromPlan, mesParam, anoParam, autoStarted]);
+
   useEffect(() => {
     if (!activeConversation) {
       setContextoEnriquecido(null);
@@ -150,9 +172,10 @@ export default function BrainstormPage() {
   };
 
   const handleNewConversation = async (payload) => {
-    const mes = Number(payload?.mes);
-    const ano = Number(payload?.ano) || new Date().getFullYear();
+    const mes = Number(payload?.mes) || mesParam || new Date().getMonth() + 1;
+    const ano = Number(payload?.ano) || anoParam || new Date().getFullYear();
     const empresaInput = empresa?.id || empresa?.nome || payload?.empresa;
+    const modo = payload?.modo || (fromPlan ? 'plano' : 'avulso');
     if (!empresaInput || !mes) return;
 
     setLoading(true);
@@ -161,7 +184,13 @@ export default function BrainstormPage() {
     try {
       const data = await agentFetch('init', {
         method: 'POST',
-        body: { empresa: empresaInput, mes, ano },
+        body: {
+          empresa: empresaInput,
+          mes,
+          ano,
+          modo,
+          planId: planIdParam || undefined,
+        },
       });
 
       const nova = {
@@ -175,6 +204,7 @@ export default function BrainstormPage() {
         contextoEnriquecido: data.contextoEnriquecido,
         historicoMensagens: data.historicoMensagens || [],
         mensagem_inicial: data.mensagem_inicial,
+        modo,
       };
 
       if (data.mensagem_inicial) {
@@ -187,9 +217,11 @@ export default function BrainstormPage() {
       setActiveConversationId(nova.id);
       setContextoEnriquecido(data.contextoEnriquecido || null);
       setMobilePanel('center');
+      return nova;
     } catch (err) {
       console.error('[Brainstorm] init', err);
       setError(err?.message || 'Falha ao criar conversa');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -205,20 +237,79 @@ export default function BrainstormPage() {
         method: 'POST',
         body: { conversationId: activeConversationId },
       });
+
+      if (!data?.briefId) {
+        throw new Error('Brief não retornado pelo agente');
+      }
+
+      const briefing = await Brief.get(data.briefId);
+      if (!briefing?.id) {
+        throw new Error('Brief criado, mas não encontrado');
+      }
+
+      const resolvedAgencyId = data.agencyId || agencyId;
+      const resolvedClientId = data.clientId || clientId;
+      if (!resolvedAgencyId || !resolvedClientId) {
+        throw new Error('agencyId/clientId ausentes para lançar no ciclo do mês');
+      }
+
+      const launched = await launchCampanhaFromBrief({
+        briefing,
+        agencyId: resolvedAgencyId,
+        clientId: resolvedClientId,
+        userId,
+        generateTasks: true,
+        empresaNome: data.empresaNome || empresa?.nome || client?.name,
+      });
+
+      // Atualiza plano anual com ciclo real do mês (quando veio do plano)
+      if (data.modo === 'plano' || fromPlan) {
+        try {
+          await agentFetch('update-plan-month', {
+            method: 'POST',
+            body: {
+              planId: data.planId || planIdParam || undefined,
+              clientId: resolvedClientId,
+              mes: data.mes || mesParam || briefing.mes,
+              ano: data.ano || anoParam || briefing.ano,
+              brief_mensal_id: briefing.id,
+              ciclo_entrega_id: launched.cyclePlan?.id || null,
+              status_mes: 'materializado',
+              nome_campanha: data.nome || briefing.nome_campanha || briefing.title,
+            },
+          });
+        } catch (planErr) {
+          console.warn('[Brainstorm] update-plan-month after launch', planErr);
+        }
+      }
+
       setConversations((prev) =>
         prev.map((c) =>
           c.id === activeConversationId ? { ...c, status: 'finalizada' } : c
         )
       );
-      setSuccess('Campanha criada — brief e ciclo prontos');
-      await new Promise((r) => setTimeout(r, 800));
-      if (data.cycleId) {
-        navigate(`/campaigns/cycles/${data.cycleId}`);
-      } else if (data.briefId) {
+      setSuccess(
+        launched.cycleReused
+          ? 'Campanha adicionada ao ciclo do mês'
+          : 'Campanha criada no ciclo do mês'
+      );
+      await new Promise((r) => setTimeout(r, 600));
+
+      if (launched.briefing?.id) {
         navigate(
-          createPageUrl(
-            `client-briefing?clientId=${clientId}&briefingId=${data.briefId}`
-          )
+          clientCampaignPageUrl({
+            clientId: resolvedClientId,
+            briefingId: launched.briefing.id,
+          })
+        );
+      } else if (launched.cyclePlan?.id) {
+        navigate(`/campaigns/cycles/${launched.cyclePlan.id}`);
+      } else {
+        navigate(
+          clientCampaignPageUrl({
+            clientId: resolvedClientId,
+            briefingId: data.briefId,
+          })
         );
       }
     } catch (err) {
@@ -309,8 +400,9 @@ export default function BrainstormPage() {
           <p style={styles.subtitle}>
             {client?.name || 'Cliente'}
             {empresa?.nome ? ` · ${empresa.nome}` : ''}
-            {' — '}
-            explorar → refinar → criar campanha
+            {fromPlan && mesParam
+              ? ` · plano ${mesParam}/${anoParam}`
+              : ' — explorar → refinar → criar campanha'}
           </p>
         </div>
         <div style={styles.mobileToggles} className="brainstorm-mobile-toggles">
@@ -457,7 +549,7 @@ export default function BrainstormPage() {
           )}
           {savingBrief ? (
             <p style={{ margin: '0.5rem 0 0', fontSize: 12, color: '#666' }}>
-              Criando brief e ciclo de campanha…
+              Salvando brief e vinculando ao ciclo do mês…
             </p>
           ) : null}
         </div>
@@ -545,8 +637,8 @@ const styles = {
   page: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100vh - 64px)',
-    minHeight: 480,
+    height: 'calc(100dvh - 112px)',
+    minHeight: 520,
     background: '#fff',
     color: '#333',
   },
@@ -555,11 +647,12 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    padding: '0.75rem 1rem',
+    padding: '0.45rem 0.85rem',
     borderBottom: '1px solid #eee',
+    flexShrink: 0,
   },
-  title: { margin: 0, fontSize: 18, fontWeight: 700 },
-  subtitle: { margin: '2px 0 0', fontSize: 12, color: '#666' },
+  title: { margin: 0, fontSize: 16, fontWeight: 700 },
+  subtitle: { margin: '1px 0 0', fontSize: 11, color: '#666' },
   mobileToggles: { gap: 6 },
   toggle: {
     padding: '0.35rem 0.65rem',
@@ -612,7 +705,8 @@ const styles = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    padding: '1rem 1.25rem',
+    flex: 1,
+    padding: '0.65rem 1rem 0.75rem',
   },
   railHeader: {
     display: 'flex',

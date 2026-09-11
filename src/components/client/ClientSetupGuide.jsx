@@ -145,18 +145,18 @@ export default function ClientSetupGuide(props) {
     },
     {
       id: 'briefing_completed',
-      title: 'Briefing Preenchido',
-      description: '50% ou mais do briefing foi completado',
+      title: 'Briefing inicial',
+      description: 'Cliente enviou o DNA / onboarding',
       completed: briefingDone,
       icon: briefingDone ? CheckCircle : Circle,
       color: briefingDone ? 'text-green-600' : 'text-gray-400',
       action: {
-        label: briefingDone ? 'Ver Briefing' : 'Preencher Briefing',
+        label: briefingDone ? 'Ver hub' : 'Abrir briefing inicial',
         href: createPageUrl('client-briefing') + `?clientId=${client.id}`,
         enabled: true // Always enabled to allow editing/completion
       },
       extraAction: canConclude ? {
-        label: 'Concluir Briefing',
+        label: 'Concluir briefing inicial',
         onClick: () => onConcludeBriefing && onConcludeBriefing(briefingInfo),
         enabled: true
       } : null,

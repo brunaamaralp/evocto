@@ -325,7 +325,9 @@ export default function DashboardPage() {
 
                 <div>
                   <Link
-                    to={createPageUrl(`briefing-campanha?clientId=${group.clientId}`)}
+                    to={createPageUrl(
+                      `client-detail?clientId=${group.clientId}&open=nova-campanha#campanhas`
+                    )}
                     className="text-sm font-medium text-[#007bff] hover:underline"
                   >
                     + Nova campanha neste cliente

@@ -17,6 +17,7 @@ import {
 import { Brief } from '@/api/entities';
 import { PublicBriefingToken } from '@/api/entities';
 import { createPageUrl } from '@/utils';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { Link } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 
@@ -136,14 +137,14 @@ export default function BriefingTab({ client }) {
         <Button asChild>
           <Link to={`${createPageUrl('client-briefing')}?clientId=${client.id}`}>
             <FileText className="w-4 h-4 mr-2" />
-            Ver Todos os Briefings
+            Campanhas & plano
           </Link>
         </Button>
         
         <Button asChild variant="outline">
-          <Link to={`${createPageUrl('briefing-editor')}?clientId=${client.id}`}>
+          <Link to={`${createPageUrl('briefing-campanha')}?clientId=${client.id}`}>
             <Plus className="w-4 h-4 mr-2" />
-            Criar Briefing
+            Nova campanha
           </Link>
         </Button>
       </div>
@@ -152,7 +153,7 @@ export default function BriefingTab({ client }) {
       {briefings.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Briefings Recentes</CardTitle>
+            <CardTitle>Campanhas recentes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -167,7 +168,9 @@ export default function BriefingTab({ client }) {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium">Briefing Mestre</h4>
+                        <h4 className="font-medium">
+                          {brief.nome_campanha || brief.title || 'Campanha'}
+                        </h4>
                         <Badge className={statusInfo.color}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusInfo.label}
@@ -187,9 +190,16 @@ export default function BriefingTab({ client }) {
                       variant="outline"
                       asChild
                     >
-                      <Link to={`${createPageUrl('briefing-editor')}?briefingId=${brief.id}`}>
+                      <Link
+                        to={createPageUrl(
+                          buildClientCampaignHref({
+                            clientId: client.id,
+                            briefingId: brief.id,
+                          })
+                        )}
+                      >
                         <Edit className="w-4 h-4 mr-1" />
-                        Editar
+                        Abrir ficha
                       </Link>
                     </Button>
                   </div>
@@ -201,7 +211,7 @@ export default function BriefingTab({ client }) {
               <div className="mt-4 text-center">
                 <Button variant="outline" size="sm" asChild>
                   <Link to={`${createPageUrl('client-briefing')}?clientId=${client.id}`}>
-                    Ver todos os {briefings.length} briefings
+                    Ver todas as {briefings.length} campanhas
                     <ExternalLink className="w-4 h-4 ml-1" />
                   </Link>
                 </Button>

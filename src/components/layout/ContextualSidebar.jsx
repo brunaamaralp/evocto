@@ -20,6 +20,7 @@ import {
   Menu,
   Megaphone,
   Sparkles,
+  CalendarDays,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -28,6 +29,7 @@ import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 
 /**
  * Soft UI rail: dark brand (global) vs teal (cliente).
@@ -85,11 +87,7 @@ export default function ContextualSidebar({
           )
         : createPageUrl(`client-tasks?clientId=${clientId}`);
 
-      const briefingHref = briefingId
-        ? createPageUrl(
-            `client-briefing?clientId=${clientId}&briefingId=${briefingId}`
-          )
-        : createPageUrl(`client-briefing?clientId=${clientId}`);
+      const hubHref = createPageUrl(`client-briefing?clientId=${clientId}`);
 
       const items = [
         {
@@ -143,14 +141,11 @@ export default function ContextualSidebar({
           },
           {
             type: 'link',
-            label: 'Briefing',
+            label: 'Ficha',
             icon: FileText,
-            href: briefingHref,
+            href: `${campaignHref}#ficha`,
             nested: true,
-            isActive:
-              currentPage === 'client-briefing' ||
-              currentPage === 'briefing-campanha' ||
-              currentPage === 'briefing-editor',
+            isActive: currentPage === 'client-campaign',
           }
         );
       }
@@ -159,11 +154,25 @@ export default function ContextualSidebar({
         { type: 'section', label: 'Cliente' },
         {
           type: 'link',
+          label: 'Campanhas & plano',
+          icon: FileText,
+          href: hubHref,
+          isActive: currentPage === 'client-briefing' && !briefingId,
+        },
+        {
+          type: 'link',
           label: 'Brainstorm',
           icon: Sparkles,
           href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
           isActive:
             currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
+        },
+        {
+          type: 'link',
+          label: 'Plano anual',
+          icon: CalendarDays,
+          href: buildAnnualPlanHref(clientId),
+          isActive: currentPage === 'briefing-campanha-anual',
         },
         {
           type: 'link',

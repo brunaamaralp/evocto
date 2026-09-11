@@ -598,8 +598,8 @@ export default function OverviewTab({ client, services, onUpdate }) {
                       color: 'bg-purple-50 text-purple-600 border-purple-200'
                     },
                     {
-                      title: 'Editar Briefing',
-                      description: 'Atualizar informações',
+                      title: 'Campanhas & plano',
+                      description: 'Briefing inicial e campanhas',
                       icon: FileText,
                       href: createPageUrl('client-briefing') + `?clientId=${client.id}`,
                       color: 'bg-orange-50 text-orange-600 border-orange-200'

@@ -1,0 +1,2877 @@
+{
+  "fetchedAt": "2026-09-09T02:18:49.481Z",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "project": "6a7f84d80020372c33db",
+  "databaseIdFromEnv": "6a8ceeb000349382bf83",
+  "env": {
+    "APPWRITE_API_KEY": "***",
+    "VITE_APPWRITE_ACCOUNTS_COLLECTION_ID": "finance_accounts",
+    "VITE_APPWRITE_BANK_STATEMENTS_COLLECTION_ID": "bank_statements",
+    "VITE_APPWRITE_BANK_STATEMENT_ITEMS_COLLECTION_ID": "bank_statement_items",
+    "VITE_APPWRITE_BUCKET_ID": "files",
+    "VITE_APPWRITE_DATABASE_ID": "6a8ceeb000349382bf83",
+    "VITE_APPWRITE_ENDPOINT": "https://fra.cloud.appwrite.io/v1",
+    "VITE_APPWRITE_FINANCIAL_AUDIT_LOG_COLLECTION_ID": "financial_audit_log",
+    "VITE_APPWRITE_FINANCIAL_TX_COLLECTION_ID": "financial_tx",
+    "VITE_APPWRITE_JOURNAL_COLLECTION_ID": "finance_journal",
+    "VITE_APPWRITE_PROJECT_ID": "6a7f84d80020372c33db",
+    "VITE_APPWRITE_STUDENT_PAYMENTS_COLLECTION_ID": "client_billings",
+    "VITE_APPWRITE_STUDENT_PAYMENTS_COL_ID": "client_billings",
+    "VITE_INTEGRATION_STUBS": "mock"
+  },
+  "databases": [
+    {
+      "$id": "6a8ceeb000349382bf83",
+      "name": "evocto",
+      "$createdAt": "2026-08-25T01:24:02.103+00:00",
+      "$updatedAt": "2026-08-25T01:24:02.103+00:00",
+      "enabled": true,
+      "type": "tablesdb",
+      "status": "ready",
+      "engine": null,
+      "specification": null,
+      "replicas": null,
+      "error": null,
+      "containerStatus": null,
+      "lifecycleState": null,
+      "policies": [],
+      "archives": []
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "files",
+      "$createdAt": "2026-08-25T01:44:00.928+00:00",
+      "$updatedAt": "2026-08-25T01:44:00.928+00:00",
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"users\")",
+        "delete(\"users\")"
+      ],
+      "fileSecurity": true,
+      "name": "Evocto Files",
+      "enabled": true,
+      "maximumFileSize": 50000000,
+      "allowedFileExtensions": [],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true,
+      "transformations": true,
+      "totalSize": 0
+    }
+  ],
+  "tablesApi": "tablesdb",
+  "tables": [
+    {
+      "id": "profiles",
+      "name": "Profiles",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "role",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "email",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 320,
+          "default": null
+        },
+        {
+          "key": "full_name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_email",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "email"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_role",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "role"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "agencies",
+      "name": "Agencies",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyName",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "contactPhone",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "ownerEmail",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 320,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_ownerEmail",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "ownerEmail"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "clients",
+      "name": "Clients",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "email",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 320,
+          "default": null
+        },
+        {
+          "key": "phone",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "services",
+      "name": "Services",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "is_template",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "is_active",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "category",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_is_template",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "is_template"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_is_active",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "is_active"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "tasks",
+      "name": "Tasks",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "serviceId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "priority",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "dueDate",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "assigneeId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_serviceId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "serviceId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_assigneeId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "assigneeId"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "cycle_plans",
+      "name": "Cycle Plans",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "serviceId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_serviceId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "serviceId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "briefs",
+      "name": "Briefs",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "briefing_templates",
+      "name": "Briefing Templates",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "isActive",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_isActive",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "isActive"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "approval_requests",
+      "name": "Approval Requests",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "clientId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "token",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_clientId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "clientId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_token",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "token"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "invites",
+      "name": "Invites",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "email",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 320,
+          "default": null
+        },
+        {
+          "key": "role",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_email",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "email"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "financial_tx",
+      "name": "Financial Transactions",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "saleId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "lead_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "client_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "method",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "installments",
+          "type": "integer",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "type",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 16,
+          "default": null
+        },
+        {
+          "key": "planName",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "gross",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "fee",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "net",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "settledAt",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "date",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "competence_month",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 7,
+          "default": null
+        },
+        {
+          "key": "direction",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 8,
+          "default": null
+        },
+        {
+          "key": "category",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "bank_account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "description",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 512,
+          "default": null
+        },
+        {
+          "key": "note",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "origin",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "origin_type",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "origin_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "reverses_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "billing_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "created_by",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "updated_by",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "updated_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "recurrence_origin_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "recurrence_type",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 16,
+          "default": null
+        },
+        {
+          "key": "recurrence_day",
+          "type": "integer",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "recurrence_end",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 7,
+          "default": null
+        },
+        {
+          "key": "is_recurrence_template",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "reconciled",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "reconciled_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "reconciled_by",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "bank_statement_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "expected_settlement_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "ledger_regime",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 16,
+          "default": null
+        },
+        {
+          "key": "gateway_provider",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "gateway_charge_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_lead_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "lead_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_client_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "client_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_competence_month",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "competence_month"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_direction",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "direction"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_category",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "category"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_date",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "date"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_origin_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "origin_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_billing_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "billing_id"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "client_billings",
+      "name": "Client Billings",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "lead_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "client_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "paid_amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "expected_amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "method",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "plan_name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "reference_month",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 7,
+          "default": null
+        },
+        {
+          "key": "due_date",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "paid_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "issued_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "registered_by",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "registered_by_name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "note",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "payment_category",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "bundle_months",
+          "type": "integer",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "bundle_origin_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "financial_tx_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "financial_tx_sync_pending",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "installments",
+          "type": "integer",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "troco",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "forma_troco",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "troco_account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "covered_reason",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "billing_reference_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "capture_method_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "description",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 512,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_lead_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "lead_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_client_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "client_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_reference_month",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "reference_month"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_financial_tx_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "financial_tx_id"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "finance_accounts",
+      "name": "Finance Accounts",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "code",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 255,
+          "default": null
+        },
+        {
+          "key": "type",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "parent_code",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "academyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "nature",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "dreGrupo",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "dfcClasse",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "dfcSubclasse",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "cashFlowClass",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "cash",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "is_active",
+          "type": "boolean",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_code",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "code"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_type",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "type"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_academyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_is_active",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "is_active"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "finance_journal",
+      "name": "Finance Journal",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "tx_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "date",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "debit_account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "credit_account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "memo",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 512,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "academyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "lines",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "financial_tx_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "competence_month",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 7,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_tx_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "tx_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_date",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "date"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_academyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_financial_tx_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "financial_tx_id"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "bank_statements",
+      "name": "Bank Statements",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "filename",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 256,
+          "default": null
+        },
+        {
+          "key": "bank_account",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "period_from",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "period_to",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "imported_at",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_bank_account",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "bank_account"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "bank_statement_items",
+      "name": "Bank Statement Items",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "statement_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "posted_at",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 10,
+          "default": null
+        },
+        {
+          "key": "amount",
+          "type": "double",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "direction",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 8,
+          "default": null
+        },
+        {
+          "key": "description",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 512,
+          "default": null
+        },
+        {
+          "key": "fitid",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 128,
+          "default": null
+        },
+        {
+          "key": "matched_tx_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 32,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_statement_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "statement_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_matched_tx_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "matched_tx_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_fitid",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "fitid"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "financial_audit_log",
+      "name": "Financial Audit Log",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "academy_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "actor_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "action",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "entity_type",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "entity_id",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_academy_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "academy_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_entity_id",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "entity_id"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_action",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "action"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "time_entries",
+      "name": "Time Entries",
+      "enabled": true,
+      "rowSecurity": true,
+      "permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "agencyId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "userId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "taskId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "serviceId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 36,
+          "default": null
+        },
+        {
+          "key": "deliverableId",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 64,
+          "default": null
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "size": 16,
+          "default": null
+        },
+        {
+          "key": "startedAt",
+          "type": "datetime",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null,
+          "format": ""
+        },
+        {
+          "key": "payload",
+          "type": "mediumtext",
+          "status": "available",
+          "required": false,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_agencyId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "agencyId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_userId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "userId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_taskId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "taskId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_serviceId",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "serviceId"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "status"
+          ],
+          "orders": []
+        },
+        {
+          "key": "idx_startedAt",
+          "type": "key",
+          "status": "available",
+          "columns": [
+            "startedAt"
+          ],
+          "orders": []
+        }
+      ],
+      "error": null
+    }
+  ],
+  "errors": []
+}

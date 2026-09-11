@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, AlertTriangle, Lightbulb, ExternalLink, Loader2 } from 'lucide-react';
+import { ChevronDown, AlertTriangle, Lightbulb, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
@@ -21,6 +21,8 @@ import {
   materializeAnualMesToCycle,
 } from '@/lib/materializeAnualMesToCycle';
 import { useSession } from '@/components/auth/SessionManager';
+import { buildBrainstormHref } from '@/lib/planoAnualHub';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 
 const DIM_LABELS = {
   '01_estrategia': 'Estratégia',
@@ -80,13 +82,18 @@ export default function CampanhasAnualReview({
 
   const handleMaterializar = async (campanhaMes) => {
     if (!briefingId || !clientId || !agencyId || !empresa?.id) {
-      toast.error('Salve o plano e configure a empresa antes de abrir o briefing do mês');
+      toast.error('Salve o plano e configure a empresa antes de abrir a campanha do mês');
       return;
     }
     const c = normalizeCampanhaMesGerada(campanhaMes);
     if (c.brief_mensal_id && c.ciclo_entrega_id) {
       navigate(
-        `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${c.brief_mensal_id}`
+        createPageUrl(
+          buildClientCampaignHref({
+            clientId,
+            briefingId: c.brief_mensal_id,
+          })
+        )
       );
       return;
     }
@@ -110,9 +117,14 @@ export default function CampanhasAnualReview({
       );
       if (result.service?.id) {
         navigate(createPageUrl(`delivery-workspace?serviceId=${result.service.id}`));
-      } else {
+      } else if (result.briefingMensal?.id) {
         navigate(
-          `${createPageUrl('client-briefing')}?clientId=${clientId}&briefingId=${result.briefingMensal.id}`
+          createPageUrl(
+            buildClientCampaignHref({
+              clientId,
+              briefingId: result.briefingMensal.id,
+            })
+          )
         );
       }
     } catch (err) {
@@ -214,7 +226,7 @@ export default function CampanhasAnualReview({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600">
-          Materializar cria briefing mensal + ciclo Narrativa com tarefas.
+          Materializar cria a campanha do mês + ciclo Narrativa com tarefas.
         </p>
         <Button
           type="button"
@@ -261,7 +273,7 @@ export default function CampanhasAnualReview({
                             )}
                             {c.status_mes === 'materializado' && (
                               <Badge className="bg-emerald-100 text-emerald-800">
-                                {c.ciclo_entrega_id ? 'Ciclo criado' : 'Briefing aberto'}
+                                {c.ciclo_entrega_id ? 'Ciclo criado' : 'Campanha aberta'}
                               </Badge>
                             )}
                           </CardTitle>
@@ -279,25 +291,48 @@ export default function CampanhasAnualReview({
                       </Button>
                     </CollapsibleTrigger>
                     {briefingId && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="shrink-0 w-full sm:w-auto sm:mt-1"
-                        disabled={busyMes === c.mes}
-                        onClick={() => handleMaterializar(c)}
-                      >
-                        {busyMes === c.mes ? (
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                        ) : (
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                        )}
-                        {c.brief_mensal_id && c.ciclo_entrega_id
-                          ? 'Abrir mês'
-                          : c.brief_mensal_id
-                            ? 'Criar ciclo'
-                            : 'Materializar mês'}
-                      </Button>
+                      <div className="flex w-full shrink-0 flex-col gap-2 sm:mt-1 sm:w-auto sm:flex-row">
+                        {c.status_mes !== 'materializado' ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="w-full sm:w-auto"
+                            onClick={() =>
+                              navigate(
+                                buildBrainstormHref(clientId, {
+                                  mes: c.mes,
+                                  ano,
+                                  planId: briefingId,
+                                  modo: 'plano',
+                                })
+                              )
+                            }
+                          >
+                            <Sparkles className="w-4 h-4 mr-1" />
+                            Brainstorm
+                          </Button>
+                        ) : null}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                          disabled={busyMes === c.mes}
+                          onClick={() => handleMaterializar(c)}
+                        >
+                          {busyMes === c.mes ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                          )}
+                          {c.brief_mensal_id && c.ciclo_entrega_id
+                            ? 'Abrir campanha'
+                            : c.brief_mensal_id
+                              ? 'Criar ciclo'
+                              : 'Materializar mês'}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardHeader>

@@ -17,6 +17,7 @@ import {
   Megaphone,
   TrendingUp,
   Sparkles,
+  CalendarDays,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Client } from '@/api/entities';
@@ -25,6 +26,8 @@ import { useSession } from '@/components/auth/SessionManager';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
+import AnnualPlanSidebarBlock from '@/components/layout/AnnualPlanSidebarBlock';
 
 /**
  * Navegação de contexto do cliente (nav única do hub).
@@ -141,15 +144,11 @@ export default function ClientContextSidebar({
       },
       {
         type: 'link',
-        label: 'Briefing',
+        label: 'Ficha',
         icon: FileText,
-        href: createPageUrl(
-          `client-briefing?clientId=${clientId}&briefingId=${briefingId}`
-        ),
+        href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })) + '#ficha',
         nested: true,
-        active:
-          location.pathname.includes('client-briefing') ||
-          location.pathname.includes('briefing-campanha'),
+        active: location.pathname.includes('client-campaign'),
       }
     );
   }
@@ -158,12 +157,34 @@ export default function ClientContextSidebar({
     { type: 'section', label: 'Cliente' },
     {
       type: 'link',
+      label: 'Campanhas & plano',
+      icon: FileText,
+      href: createPageUrl(`client-briefing?clientId=${clientId}`),
+      active:
+        location.pathname.includes('client-briefing') && !briefingId,
+    },
+    {
+      type: 'link',
       label: 'Brainstorm',
       icon: Sparkles,
       href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
       active:
         location.pathname.includes('client-brainstorm') ||
         location.pathname.includes('/brainstorm'),
+    },
+    {
+      type: 'link',
+      label: 'Plano anual',
+      icon: CalendarDays,
+      href: buildAnnualPlanHref(clientId),
+      active: location.pathname.includes('briefing-campanha-anual'),
+    },
+    {
+      type: 'custom',
+      id: 'annual-plan-months',
+      render: () => (
+        <AnnualPlanSidebarBlock clientId={clientId} agencyId={agencyId} />
+      ),
     },
     {
       type: 'link',
@@ -278,6 +299,14 @@ export default function ClientContextSidebar({
                   className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider ${CLIENT_CONTEXT.sidebarMuted}`}
                 >
                   {item.label}
+                </div>
+              );
+            }
+
+            if (item.type === 'custom') {
+              return (
+                <div key={item.id || `custom-${index}`}>
+                  {typeof item.render === 'function' ? item.render() : null}
                 </div>
               );
             }

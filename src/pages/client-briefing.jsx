@@ -26,13 +26,13 @@ import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { isCampanhaAnual } from '@/lib/campanhaAnual';
 import { BRIEF_KIND_INICIAL } from '@/lib/briefingInicial';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { generatePublicBriefingToken, syncClientFromPublicBriefing } from '@/api/functions';
 import { toast } from 'sonner';
 
 /**
- * Hub de briefings do cliente:
- * - Link público só para briefing inicial (Empresa + insumos do plano anual)
- * - Plano anual e campanhas mensais são internos
+ * Hub do cliente: briefing inicial + plano anual + campanhas.
+ * “Briefing” no produto = apenas o briefing inicial (link público).
  */
 export default function ClientBriefingPage() {
   const { _user, agencyId } = useSession();
@@ -199,13 +199,10 @@ export default function ClientBriefingPage() {
       );
       return;
     }
-    if (brief.brief_kind === 'campanha_mensal') {
-      navigate(
-        `${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${brief.id}`
-      );
-      return;
-    }
-    navigate(`${createPageUrl('briefing-campanha')}?clientId=${clientId}&briefingId=${brief.id}`);
+    // Campanhas mensais → ficha operacional (não o wizard longo)
+    navigate(
+      createPageUrl(buildClientCampaignHref({ clientId, briefingId: brief.id }))
+    );
   };
 
   const handleGenerateInicialLink = async () => {
@@ -249,7 +246,7 @@ export default function ClientBriefingPage() {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <h3 className="font-medium text-[#18162A] truncate">
-            {brief.nome_campanha || brief.title || 'Briefing'}
+            {brief.nome_campanha || brief.title || 'Campanha'}
           </h3>
           {brief.brief_kind === 'campanha_mensal' && (
             <Badge variant="secondary">Campanha</Badge>
@@ -288,13 +285,13 @@ export default function ClientBriefingPage() {
         <Edit className="w-4 h-4 mr-1" />
         {isCampanhaAnual(brief) || brief.brief_kind === 'campanha_anual'
           ? 'Abrir plano'
-          : 'Editar'}
+          : 'Abrir ficha'}
       </Button>
     </div>
   );
 
   if (loading) {
-    return <LoadingState message="Carregando briefings..." />;
+    return <LoadingState message="Carregando hub do cliente..." />;
   }
 
   if (error) {
@@ -338,10 +335,10 @@ export default function ClientBriefingPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between sm:items-center">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
-              Briefings
+              Campanhas & plano
             </h1>
             <p className="text-xs text-[#7A7595]">
-              Plano anual e campanhas do cliente
+              Briefing inicial, plano anual e campanhas do cliente
             </p>
           </div>
 
@@ -517,7 +514,7 @@ export default function ClientBriefingPage() {
               <Badge variant="outline">{campanhas.length}</Badge>
             </CardTitle>
             <p className="text-sm text-[#7A7595] font-normal">
-              Briefs operacionais do mês — sem link público.
+              Campanhas do mês — operação interna, sem link público.
             </p>
           </CardHeader>
           <CardContent>
@@ -528,7 +525,7 @@ export default function ClientBriefingPage() {
                   Nenhuma campanha
                 </h3>
                 <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
-                  No plano anual, use “Abrir briefing do mês” ou crie uma campanha interna.
+                  No plano anual, materialize o mês ou crie uma campanha nova.
                 </p>
                 <Button variant="outline" onClick={handleCreateCampanha}>
                   <Plus className="w-4 h-4 mr-2" />

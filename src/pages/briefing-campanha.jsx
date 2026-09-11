@@ -11,6 +11,7 @@ import {
   Building2,
   ArrowRight,
   CheckSquare,
+  Sparkles,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
@@ -31,14 +32,35 @@ export default function BriefingCampanhaPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
-  const initialMode = urlParams.get('mode'); // form | texto
+  const existingBriefingId =
+    urlParams.get('briefingId') || urlParams.get('campaignId');
+  const initialMode = urlParams.get('mode'); // form | texto | brainstorm
+
+  // Caminho legado “editar briefing” → ficha operacional
+  useEffect(() => {
+    if (clientId && existingBriefingId) {
+      navigate(
+        createPageUrl(
+          buildClientCampaignHref({
+            clientId,
+            briefingId: existingBriefingId,
+          })
+        ),
+        { replace: true }
+      );
+    }
+  }, [clientId, existingBriefingId, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
   const [empresa, setEmpresa] = useState(null);
   const [error, setError] = useState(null);
   const [step, setStep] = useState(
-    initialMode === 'texto' ? 'texto' : initialMode === 'form' ? 'form' : 'choose'
+    initialMode === 'texto'
+      ? 'texto'
+      : initialMode === 'form'
+        ? 'form'
+        : 'choose'
   );
   const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
   const [textoLivre, setTextoLivre] = useState('');
@@ -71,6 +93,23 @@ export default function BriefingCampanhaPage() {
   useEffect(() => {
     if (isAuthenticated) load();
   }, [isAuthenticated, load]);
+
+  useEffect(() => {
+    if (initialMode === 'brainstorm' && clientId) {
+      navigate(
+        createPageUrl(`client-brainstorm?clientId=${clientId}`),
+        { replace: true }
+      );
+    }
+  }, [initialMode, clientId, navigate]);
+
+  if (clientId && existingBriefingId) {
+    return (
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const handleCampaignCreated = (result) => {
     const normalized =
@@ -227,7 +266,7 @@ export default function BriefingCampanhaPage() {
               Nova campanha
             </h1>
             <p className="text-xs text-[#7A7595]">
-              Briefing + ciclo + tarefas
+              Brainstorm, formulário ou texto — depois ciclo + tarefas
             </p>
           </div>
         </div>
@@ -242,7 +281,23 @@ export default function BriefingCampanhaPage() {
       </div>
 
       {step === 'choose' && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Card
+            className="rounded-2xl border-transparent shadow-sm bg-[#E8F1FF] cursor-pointer hover:border-[#BFD7FF] hover:shadow-md transition-all sm:col-span-2 lg:col-span-1"
+            onClick={() =>
+              navigate(createPageUrl(`client-brainstorm?clientId=${clientId}`))
+            }
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
+                <Sparkles className="w-4 h-4 text-[#007bff]" />
+                Brainstorm com IA
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-[#7A7595]">
+              Explore ideias com o agente e depois transforme em campanha.
+            </CardContent>
+          </Card>
           <Card
             className="rounded-2xl border-transparent shadow-sm bg-[#EDE9FB] cursor-pointer hover:border-[#D4CBF5] hover:shadow-md transition-all"
             onClick={() => setStep('form')}

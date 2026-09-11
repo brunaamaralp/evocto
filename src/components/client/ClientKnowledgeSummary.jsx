@@ -55,7 +55,7 @@ export default function ClientKnowledgeSummary({
           <CardTitle className="flex items-center justify-between text-sm font-semibold">
             <span className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-gray-600" />
-              Briefing
+              Campanhas
             </span>
             <Button asChild variant="ghost" size="sm" className="h-7 px-2">
               <Link to={briefingListHref}>
@@ -68,18 +68,18 @@ export default function ClientKnowledgeSummary({
         <CardContent>
           {briefs.length === 0 ? (
             <div className="rounded-lg border border-dashed p-3 text-center">
-              <p className="text-sm text-gray-600 mb-2">Nenhum briefing ainda</p>
+              <p className="text-sm text-gray-600 mb-2">Nenhuma campanha ainda</p>
               <Button asChild size="sm" variant="outline">
                 <Link to={briefingHref}>
                   <Plus className="w-3.5 h-3.5 mr-1" />
-                  Criar briefing
+                  Nova campanha
                 </Link>
               </Button>
             </div>
           ) : (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {masterBrief?.nome_campanha || masterBrief?.title || 'Briefing principal'}
+                {masterBrief?.nome_campanha || masterBrief?.title || 'Campanha'}
               </p>
               <Badge variant="outline">{briefStatusLabel(masterBrief?.status)}</Badge>
               {briefs.length > 1 && (

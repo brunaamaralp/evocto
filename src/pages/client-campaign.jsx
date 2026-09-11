@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AlertCircle,
   ArrowLeft,
@@ -12,8 +14,11 @@ import {
   Clock,
   FileText,
   Loader2,
+  Pencil,
   Target,
+  X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Brief, Client, CyclePlan, Service, Task } from '@/api/entities';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
@@ -73,13 +78,13 @@ async function safeFilter(entity, filters) {
 }
 
 /**
- * Contexto unificado da campanha: resumo + progresso + tarefas + atalhos.
+ * Contexto unificado da campanha: ficha + progresso + tarefas + atalhos.
  */
 export default function ClientCampaignPage() {
   const { agencyId, isAuthenticated } = useSession();
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const clientId = getUrlSearchParam(urlParams, 'clientId', 'id');
-  const briefingId = getUrlSearchParam(urlParams, 'briefingId', 'campaignId');
+  const briefingId = getUrlSearchParam(urlParams, 'campaignId', 'briefingId');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -89,10 +94,22 @@ export default function ClientCampaignPage() {
   const [service, setService] = useState(null);
   const [scopedTasks, setScopedTasks] = useState([]);
   const [taskScope, setTaskScope] = useState('none');
+  const [editingFicha, setEditingFicha] = useState(false);
+  const [savingFicha, setSavingFicha] = useState(false);
+  const [fichaForm, setFichaForm] = useState({
+    nome_campanha: '',
+    objetivo: '',
+    acoes_comerciais: '',
+    talento_locacao: '',
+    data_gravacao_inicio: '',
+    data_gravacao_fim: '',
+    ciclo_comercial: '',
+    linha_focal: '',
+  });
 
   const load = useCallback(async () => {
     if (!agencyId || !clientId || !briefingId) {
-      setError('clientId e briefingId são obrigatórios');
+      setError('clientId e campaignId (ou briefingId) são obrigatórios');
       setLoading(false);
       return;
     }
@@ -147,12 +164,80 @@ export default function ClientCampaignPage() {
     if (isAuthenticated) load();
   }, [isAuthenticated, load]);
 
+  useEffect(() => {
+    if (!briefing) return;
+    setFichaForm({
+      nome_campanha: briefing.nome_campanha || briefing.title || '',
+      objetivo: briefing.objetivo || briefing.objectives || '',
+      acoes_comerciais: briefing.acoes_comerciais || briefing.business_context || '',
+      talento_locacao: briefing.talento_locacao || '',
+      data_gravacao_inicio: briefing.data_gravacao_inicio || '',
+      data_gravacao_fim: briefing.data_gravacao_fim || '',
+      ciclo_comercial: briefing.ciclo_comercial || '',
+      linha_focal: briefing.linha_focal || '',
+    });
+  }, [briefing]);
+
+  useEffect(() => {
+    if (loading || !briefing) return;
+    if (window.location.hash === '#ficha') {
+      document.getElementById('ficha')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [loading, briefing]);
+
+  const startEditFicha = () => {
+    setEditingFicha(true);
+    requestAnimationFrame(() => {
+      document.getElementById('ficha')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const cancelEditFicha = () => {
+    if (!briefing) return;
+    setFichaForm({
+      nome_campanha: briefing.nome_campanha || briefing.title || '',
+      objetivo: briefing.objetivo || briefing.objectives || '',
+      acoes_comerciais: briefing.acoes_comerciais || briefing.business_context || '',
+      talento_locacao: briefing.talento_locacao || '',
+      data_gravacao_inicio: briefing.data_gravacao_inicio || '',
+      data_gravacao_fim: briefing.data_gravacao_fim || '',
+      ciclo_comercial: briefing.ciclo_comercial || '',
+      linha_focal: briefing.linha_focal || '',
+    });
+    setEditingFicha(false);
+  };
+
+  const saveFicha = async () => {
+    if (!briefingId) return;
+    try {
+      setSavingFicha(true);
+      const payload = {
+        nome_campanha: fichaForm.nome_campanha.trim() || briefing.nome_campanha,
+        title: fichaForm.nome_campanha.trim() || briefing.title,
+        objetivo: fichaForm.objetivo,
+        acoes_comerciais: fichaForm.acoes_comerciais,
+        talento_locacao: fichaForm.talento_locacao,
+        data_gravacao_inicio: fichaForm.data_gravacao_inicio || null,
+        data_gravacao_fim: fichaForm.data_gravacao_fim || null,
+        ciclo_comercial: fichaForm.ciclo_comercial || null,
+        linha_focal: fichaForm.linha_focal || null,
+      };
+      const updated = await Brief.update(briefingId, payload);
+      setBriefing((prev) => ({ ...(prev || {}), ...(updated || {}), ...payload }));
+      setEditingFicha(false);
+      toast.success('Ficha atualizada');
+    } catch (err) {
+      console.error('[client-campaign] save ficha', err);
+      toast.error(err?.message || 'Não foi possível salvar a ficha');
+    } finally {
+      setSavingFicha(false);
+    }
+  };
+
   const progress = useMemo(() => summarizeTasks(scopedTasks), [scopedTasks]);
 
   const clientHref = createPageUrl(`client-detail?clientId=${clientId}`);
-  const briefingHref = createPageUrl(
-    `client-briefing?clientId=${clientId}&briefingId=${briefingId}`
-  );
+  const hubHref = createPageUrl(`client-briefing?clientId=${clientId}`);
   const tasksHref = createPageUrl(
     buildClientTasksHref({
       clientId,
@@ -262,17 +347,18 @@ export default function ClientCampaignPage() {
                 Tarefas
               </Link>
             </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to={briefingHref}>
-                <FileText className="w-4 h-4 mr-1" />
-                Editar
-              </Link>
+            <Button size="sm" variant="outline" onClick={startEditFicha}>
+              <Pencil className="w-4 h-4 mr-1" />
+              Editar ficha
             </Button>
             {workspaceHref && (
               <Button asChild size="sm" variant="ghost">
                 <Link to={workspaceHref}>Workspace</Link>
               </Button>
             )}
+            <Button asChild size="sm" variant="ghost">
+              <Link to={hubHref}>Hub</Link>
+            </Button>
           </div>
         </div>
         {progress.total > 0 && (
@@ -315,52 +401,184 @@ export default function ClientCampaignPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Resumo da campanha</CardTitle>
+        <Card id="ficha">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#6C47D8]" />
+              Ficha da campanha
+            </CardTitle>
+            {editingFicha ? (
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={cancelEditFicha}
+                  disabled={savingFicha}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Cancelar
+                </Button>
+                <Button size="sm" onClick={saveFicha} disabled={savingFicha}>
+                  {savingFicha ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : null}
+                  Salvar
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="ghost" onClick={startEditFicha}>
+                <Pencil className="w-3.5 h-3.5 mr-1" />
+                Editar
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <div>
-              <p className="text-xs font-medium text-[#7A7595] mb-1">Objetivo</p>
-              <p className="text-[#18162A] whitespace-pre-wrap">
-                {briefing.objetivo || briefing.objectives || '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-[#7A7595] mb-1">Ações comerciais</p>
-              <p className="text-[#18162A] whitespace-pre-wrap">
-                {briefing.acoes_comerciais || briefing.business_context || '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-[#7A7595] mb-1">Quem aparece / locação</p>
-              <p className="text-[#18162A]">{briefing.talento_locacao || '—'}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (início)</p>
-                <p className="text-[#18162A]">{briefing.data_gravacao_inicio || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (fim)</p>
-                <p className="text-[#18162A]">{briefing.data_gravacao_fim || '—'}</p>
-              </div>
-            </div>
-            {(briefing.linha_focal || briefing.ciclo_comercial) && (
-              <div className="grid grid-cols-2 gap-3">
-                {briefing.ciclo_comercial && (
+            {editingFicha ? (
+              <>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Nome</p>
+                  <Input
+                    value={fichaForm.nome_campanha}
+                    onChange={(e) =>
+                      setFichaForm((f) => ({ ...f, nome_campanha: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Objetivo</p>
+                  <Textarea
+                    rows={3}
+                    value={fichaForm.objetivo}
+                    onChange={(e) =>
+                      setFichaForm((f) => ({ ...f, objetivo: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Ações comerciais</p>
+                  <Textarea
+                    rows={3}
+                    value={fichaForm.acoes_comerciais}
+                    onChange={(e) =>
+                      setFichaForm((f) => ({
+                        ...f,
+                        acoes_comerciais: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Quem aparece / locação</p>
+                  <Input
+                    value={fichaForm.talento_locacao}
+                    onChange={(e) =>
+                      setFichaForm((f) => ({
+                        ...f,
+                        talento_locacao: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (início)</p>
+                    <Input
+                      type="date"
+                      value={fichaForm.data_gravacao_inicio || ''}
+                      onChange={(e) =>
+                        setFichaForm((f) => ({
+                          ...f,
+                          data_gravacao_inicio: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (fim)</p>
+                    <Input
+                      type="date"
+                      value={fichaForm.data_gravacao_fim || ''}
+                      onChange={(e) =>
+                        setFichaForm((f) => ({
+                          ...f,
+                          data_gravacao_fim: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs font-medium text-[#7A7595] mb-1">Ciclo comercial</p>
-                    <p className="text-[#18162A]">{briefing.ciclo_comercial}</p>
+                    <Input
+                      value={fichaForm.ciclo_comercial}
+                      onChange={(e) =>
+                        setFichaForm((f) => ({
+                          ...f,
+                          ciclo_comercial: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
-                )}
-                {briefing.linha_focal && (
                   <div>
                     <p className="text-xs font-medium text-[#7A7595] mb-1">Linha focal</p>
-                    <p className="text-[#18162A]">{briefing.linha_focal}</p>
+                    <Input
+                      value={fichaForm.linha_focal}
+                      onChange={(e) =>
+                        setFichaForm((f) => ({
+                          ...f,
+                          linha_focal: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Objetivo</p>
+                  <p className="text-[#18162A] whitespace-pre-wrap">
+                    {briefing.objetivo || briefing.objectives || '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Ações comerciais</p>
+                  <p className="text-[#18162A] whitespace-pre-wrap">
+                    {briefing.acoes_comerciais || briefing.business_context || '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-[#7A7595] mb-1">Quem aparece / locação</p>
+                  <p className="text-[#18162A]">{briefing.talento_locacao || '—'}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (início)</p>
+                    <p className="text-[#18162A]">{briefing.data_gravacao_inicio || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-[#7A7595] mb-1">Gravação (fim)</p>
+                    <p className="text-[#18162A]">{briefing.data_gravacao_fim || '—'}</p>
+                  </div>
+                </div>
+                {(briefing.linha_focal || briefing.ciclo_comercial) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {briefing.ciclo_comercial && (
+                      <div>
+                        <p className="text-xs font-medium text-[#7A7595] mb-1">Ciclo comercial</p>
+                        <p className="text-[#18162A]">{briefing.ciclo_comercial}</p>
+                      </div>
+                    )}
+                    {briefing.linha_focal && (
+                      <div>
+                        <p className="text-xs font-medium text-[#7A7595] mb-1">Linha focal</p>
+                        <p className="text-[#18162A]">{briefing.linha_focal}</p>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </>
             )}
           </CardContent>
         </Card>

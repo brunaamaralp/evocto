@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Menu, Megaphone, Users, ChevronDown } from 'lucide-react';
+import { User, LogOut, Menu, Megaphone, Users, ChevronDown, X } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -18,7 +18,7 @@ import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotificatio
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
-import { GLOBAL_SHELL } from '@/lib/clientContextTheme';
+import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 
 export default function ModernHeader({
   context,
@@ -63,13 +63,7 @@ export default function ModernHeader({
   }, [agencyId, user?.id, user?.data?.id]);
 
   return (
-    <header
-      className={`border-b ${
-        isClientContext
-          ? 'bg-teal-50/60 border-teal-100'
-          : 'bg-white/80 border-[#E8E5F5]/80'
-      }`}
-    >
+    <header className="border-b bg-white/80 border-[#E8E5F5]/80">
       <div className="px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between min-h-14 sm:min-h-16 items-center gap-2 sm:gap-3 py-2 sm:py-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -92,9 +86,9 @@ export default function ModernHeader({
                       briefingId: context.briefingId,
                     })
                   )}
-                  className="flex items-center gap-1.5 min-w-0 text-sm font-semibold text-teal-900 truncate hover:underline"
+                  className="flex items-center gap-1.5 min-w-0 text-sm font-semibold text-[#18162A] truncate hover:underline"
                 >
-                  <Megaphone className="w-3.5 h-3.5 text-teal-700/70 shrink-0" />
+                  <Megaphone className="w-3.5 h-3.5 text-[#7A7595] shrink-0" />
                   <span className="truncate">{contextCampaign.name}</span>
                 </Link>
               ) : null
@@ -106,6 +100,23 @@ export default function ModernHeader({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {isClientContext ? (
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+              >
+                <Link
+                  to={createPageUrl('clients')}
+                  aria-label={CLIENT_CONTEXT.exitLabel}
+                  title={CLIENT_CONTEXT.exitLabel}
+                >
+                  <X className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : null}
+
             <TopbarTimerWidget />
 
             <NotificationBell />
@@ -123,11 +134,7 @@ export default function ModernHeader({
                   className="flex items-center gap-2 pl-1 h-auto py-1.5 rounded-full hover:bg-black/5 shrink-0"
                   aria-label="Menu da conta"
                 >
-                  <div
-                    className={`h-9 w-9 rounded-full flex items-center justify-center ${
-                      isClientContext ? 'bg-teal-700' : GLOBAL_SHELL.avatarBg
-                    }`}
-                  >
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center ${GLOBAL_SHELL.avatarBg}`}>
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <span className="text-sm font-medium text-[#18162A] hidden sm:inline max-w-[120px] truncate">

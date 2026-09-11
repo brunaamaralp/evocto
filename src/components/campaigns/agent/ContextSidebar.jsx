@@ -117,6 +117,25 @@ export default function ContextSidebar({
         </p>
       </section>
 
+      {ctx.plano_mes?.tema?.titulo || ctx.plano_mes?.campanha?.nome_campanha ? (
+        <section style={{ marginBottom: '0.85rem' }}>
+          <h3 style={sectionTitle}>Plano do mês</h3>
+          <div style={signalCard}>
+            <div style={{ fontWeight: 600, fontSize: 12, color: '#111' }}>
+              {ctx.plano_mes.campanha?.nome_campanha ||
+                ctx.plano_mes.tema?.titulo ||
+                '—'}
+            </div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>
+              {ctx.plano_mes.campanha?.status_mes || 'tema'}
+              {ctx.plano_mes.tema?.ideia_central
+                ? ` · ${String(ctx.plano_mes.tema.ideia_central).slice(0, 80)}`
+                : ''}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {ultima ? (
         <section style={{ marginBottom: '0.85rem' }}>
           <h3 style={sectionTitle}>Última campanha</h3>

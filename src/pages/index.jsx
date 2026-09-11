@@ -456,6 +456,7 @@ const PAGES = {
     "briefing-campanha-anual": briefingCampanhaAnual,
 
     "client-campaign": clientCampaign,
+    "campaign": clientCampaign,
     
     "client-services": clientservices,
 
@@ -733,6 +734,7 @@ function PagesContent() {
                 <Route path="/briefing-campanha-anual" element={createElement(briefingCampanhaAnual)} />
 
                 <Route path="/client-campaign" element={createElement(clientCampaign)} />
+                <Route path="/campaign" element={createElement(clientCampaign)} />
                 
                 <Route path="/client-services" element={createElement(clientservices)} />
 

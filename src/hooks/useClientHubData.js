@@ -171,8 +171,11 @@ export function deriveActiveCampaigns({
           })
         ),
         briefingHref: createPageUrl(
-          `client-briefing?clientId=${clientId}&briefingId=${brief.id}`
-        ),
+          buildClientCampaignHref({
+            clientId,
+            briefingId: brief.id,
+          })
+        ) + '#ficha',
         tasksHref: createPageUrl(
           buildClientTasksHref({
             clientId,
@@ -280,10 +283,13 @@ export function buildAttentionItems({
     items.push({
       id: `brief-${brief.id}`,
       type: 'brief_incomplete',
-      label: 'Briefing incompleto',
-      title: brief.title || 'Briefing',
+      label: 'Campanha incompleta',
+      title: brief.nome_campanha || brief.title || 'Campanha',
       href: createPageUrl(
-        `client-briefing?clientId=${clientId}&briefingId=${brief.id}`
+        buildClientCampaignHref({
+          clientId,
+          briefingId: brief.id,
+        })
       ),
       priority: 3,
     });
