@@ -51,6 +51,8 @@ export function useLearningManagement() {
       // Criar aprendizado
       const newLearning = await LearningEntry.create({
         agencyId: agency.id,
+        clientId: clientId || null,
+        projectId: clientId || null,
         title,
         description,
         niche,
@@ -68,13 +70,14 @@ export function useLearningManagement() {
           createdBy: user.email,
           createdAt: new Date().toISOString(),
           source: 'manual_entry',
+          ...(clientId ? { linkedClients: [clientId] } : {}),
           ...options.metadata
         }
       });
 
-      // Vincular com cliente se especificado
+      // Vincular com cliente se especificado (enriquece metadados bilaterais)
       if (clientId) {
-        await linkLearningToClient(newLearning.id, clientId);
+        await linkLearningToClient(newLearning.id, clientId).catch(() => {});
       }
 
       // Vincular com serviço se especificado
@@ -139,11 +142,17 @@ export function useLearningManagement() {
       const client = await Client.get(clientId);
 
       // Atualizar aprendizado com referência ao cliente
+      const linkedClients = [...new Set([
+        ...(learning.metadata?.linkedClients || []),
+        clientId,
+      ])];
       await LearningEntry.update(learningId, {
-        projectId: client.name, // Mantém compatibilidade com código existente
+        clientId,
+        projectId: clientId,
         metadata: {
           ...learning.metadata,
-          linkedClients: [...(learning.metadata?.linkedClients || []), clientId],
+          linkedClients,
+          clientName: client.name,
           lastLinkedAt: new Date().toISOString()
         }
       });

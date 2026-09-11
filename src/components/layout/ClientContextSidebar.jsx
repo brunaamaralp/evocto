@@ -9,7 +9,6 @@ import {
   BarChart3,
   CheckSquare,
   Settings,
-  BookOpen,
   FolderOpen,
   Target,
   Lightbulb,
@@ -231,14 +230,9 @@ export default function ClientContextSidebar({
       label: 'Aprendizados',
       icon: Lightbulb,
       href: createPageUrl(`client-learnings?clientId=${clientId}`),
-      active: location.pathname.includes('client-learnings'),
-    },
-    {
-      type: 'link',
-      label: 'Evolução',
-      icon: BookOpen,
-      href: createPageUrl(`client-evolution?clientId=${clientId}`),
-      active: location.pathname.includes('client-evolution'),
+      active:
+        location.pathname.includes('client-learnings') ||
+        location.pathname.includes('client-evolution'),
     },
     {
       type: 'link',

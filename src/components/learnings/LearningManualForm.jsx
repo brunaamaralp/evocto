@@ -72,8 +72,10 @@ export default function LearningManualForm({
     }
   }, [isOpen]);
 
-  // Aplicar dados iniciais
+  // Aplicar dados iniciais / contexto do cliente
   useEffect(() => {
+    if (!isOpen) return;
+
     if (initialData) {
       setFormData({
         title: initialData.title || '',
@@ -89,8 +91,16 @@ export default function LearningManualForm({
         taskId: initialData.taskId || context.taskId || '',
         isShared: initialData.isShared || false
       });
+      return;
     }
-  }, [initialData, context]);
+
+    setFormData((prev) => ({
+      ...prev,
+      clientId: context.clientId || prev.clientId || '',
+      serviceId: context.serviceId || prev.serviceId || '',
+      taskId: context.taskId || prev.taskId || '',
+    }));
+  }, [isOpen, initialData, context.clientId, context.serviceId, context.taskId]);
 
   const loadInitialData = async () => {
     setLoadingData(true);

@@ -7,61 +7,91 @@ import { ptBR } from 'date-fns/locale';
 import countBy from 'lodash/countBy';
 import orderBy from 'lodash/orderBy';
 
-export default function MetricsView({ learnings }) {
+function getItemDate(item) {
+  const raw = item.date || item.created_date || item.createdAt;
+  if (!raw) return null;
+  try {
+    return typeof raw === 'string' && raw.includes('T') ? parseISO(raw) : new Date(raw);
+  } catch {
+    return new Date(raw);
+  }
+}
 
-  const learningsByMonth = useMemo(() => {
-    const counts = countBy(learnings, (l) => format(parseISO(l.created_date), 'yyyy-MM'));
+function getMetrics(item) {
+  return item.businessMetricJSON || item.metrics || null;
+}
+
+export default function MetricsView({ events, learnings }) {
+  const items = (events?.length ? events : learnings) || [];
+
+  const eventsByMonth = useMemo(() => {
+    const withDates = items.filter((item) => getItemDate(item));
+    const counts = countBy(withDates, (item) => format(getItemDate(item), 'yyyy-MM'));
     const data = Object.entries(counts).map(([month, count]) => ({
       month: format(parseISO(`${month}-01`), 'MMM/yy', { locale: ptBR }),
-      aprendizados: count
+      sortKey: month,
+      eventos: count
     }));
-    return orderBy(data, (d) => d.month, 'asc');
-  }, [learnings]);
+    return orderBy(data, (d) => d.sortKey, 'asc');
+  }, [items]);
 
-  const triggerFrequency = useMemo(() => {
-    const triggers = learnings.map(l => l.trigger).filter(Boolean);
-    const counts = countBy(triggers);
+  const typeFrequency = useMemo(() => {
+    const types = items.map((item) => item.type || item.sourceType || item.trigger).filter(Boolean);
+    const counts = countBy(types);
     return orderBy(Object.entries(counts), ([, count]) => count, 'desc').slice(0, 10);
-  }, [learnings]);
+  }, [items]);
 
   const businessMetrics = useMemo(() => {
-    const metrics = learnings
-      .filter(l => l.businessMetricJSON && l.businessMetricJSON.month)
-      .map(l => ({
-        ...l.businessMetricJSON,
-        monthLabel: format(parseISO(`${l.businessMetricJSON.month}-01`), 'MMM/yy', { locale: ptBR })
+    const metrics = items
+      .map((item) => getMetrics(item))
+      .filter((m) => m && m.month)
+      .map((m) => ({
+        ...m,
+        monthLabel: format(parseISO(`${m.month}-01`), 'MMM/yy', { locale: ptBR })
       }));
     return orderBy(metrics, (m) => m.month, 'asc');
-  }, [learnings]);
+  }, [items]);
+
+  const hasRevenue = businessMetrics.some((m) => m.revenue != null);
+  const hasLeads = businessMetrics.some((m) => m.leads != null);
+  const hasCpl = businessMetrics.some((m) => m.cpl != null);
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      <Card className="md:col-span-2">
+      <Card className="md:col-span-2 rounded-2xl border-transparent shadow-sm">
         <CardHeader>
-          <CardTitle>Aprendizados por Mês</CardTitle>
-          <CardDescription>Evolução da documentação de conhecimento ao longo do tempo.</CardDescription>
+          <CardTitle>Eventos por Mês</CardTitle>
+          <CardDescription>Volume de registros de evolução ao longo do tempo.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={learningsByMonth}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="aprendizados" fill="#3b82f6" name="Nº de Aprendizados" />
-            </BarChart>
-          </ResponsiveContainer>
+          {eventsByMonth.length === 0 ? (
+            <p className="text-sm text-slate-500">Nenhum evento com data para graficar.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={eventsByMonth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="eventos" fill="#6C47D8" name="Nº de Eventos" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
       
-      {businessMetrics.length > 0 && (
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Métricas de Negócio</CardTitle>
-            <CardDescription>Correlação entre aprendizados e performance do negócio.</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card className="md:col-span-2 rounded-2xl border-transparent shadow-sm">
+        <CardHeader>
+          <CardTitle>Métricas de Negócio</CardTitle>
+          <CardDescription>Receita, leads e CPL registrados nos eventos de evolução.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {businessMetrics.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              Nenhuma métrica registrada ainda. Use &quot;Registrar&quot; e preencha receita, leads ou CPL.
+            </p>
+          ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={businessMetrics}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -69,28 +99,28 @@ export default function MetricsView({ learnings }) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                {businessMetrics[0]?.revenue !== undefined && <Line type="monotone" dataKey="revenue" stroke="#22c55e" name="Receita" />}
-                {businessMetrics[0]?.leads !== undefined && <Line type="monotone" dataKey="leads" stroke="#8b5cf6" name="Leads" />}
-                {businessMetrics[0]?.cpl !== undefined && <Line type="monotone" dataKey="cpl" stroke="#f97316" name="CPL" />}
+                {hasRevenue && <Line type="monotone" dataKey="revenue" stroke="#22c55e" name="Receita" />}
+                {hasLeads && <Line type="monotone" dataKey="leads" stroke="#8b5cf6" name="Leads" />}
+                {hasCpl && <Line type="monotone" dataKey="cpl" stroke="#f97316" name="CPL" />}
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
-      <Card className="md:col-span-2">
+      <Card className="md:col-span-2 rounded-2xl border-transparent shadow-sm">
         <CardHeader>
-          <CardTitle>Gatilhos Psicológicos Mais Usados</CardTitle>
-          <CardDescription>Identifique as abordagens mais recorrentes nas estratégias.</CardDescription>
+          <CardTitle>Tipos mais frequentes</CardTitle>
+          <CardDescription>Quais registros aparecem com mais frequência na evolução.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            {triggerFrequency.map(([trigger, count]) => (
-              <Badge key={trigger} variant="secondary" className="text-base px-4 py-2">
-                {trigger} <span className="ml-2 bg-blue-200 text-blue-800 text-xs font-bold px-2 rounded-full">{count}</span>
+            {typeFrequency.map(([type, count]) => (
+              <Badge key={type} variant="secondary" className="text-sm px-4 py-2">
+                {type} <span className="ml-2 bg-[#D4CBF5] text-[#6C47D8] text-xs font-bold px-2 rounded-full">{count}</span>
               </Badge>
             ))}
-            {triggerFrequency.length === 0 && <p className="text-sm text-slate-500">Nenhum gatilho registrado.</p>}
+            {typeFrequency.length === 0 && <p className="text-sm text-slate-500">Nenhum tipo registrado.</p>}
           </div>
         </CardContent>
       </Card>

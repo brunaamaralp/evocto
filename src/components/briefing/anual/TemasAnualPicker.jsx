@@ -1,18 +1,27 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
 import {
   calendarYearForPlanMonth,
   countTemasEscolhidos,
+  mesParaCicloMap,
   normalizeTemasSugeridos,
   sortByPlanMonth,
 } from '@/lib/campanhaAnualSchema';
+import {
+  inferCicloComercialFromText,
+  resolveCicloComercial,
+} from '@/lib/cicloComercialDetection';
+import CicloResolucaoModal from '@/components/briefing/CicloResolucaoModal';
 
 /**
- * Escolha/edição de temas sugeridos pela IA (1 principal + 1 alternativa / mês).
- * Edição de texto sem trim a cada tecla.
+ * Escolha/edição de temas — ciclo pode ser validado a partir da ideia.
  */
 export default function TemasAnualPicker({
   value = [],
@@ -28,6 +37,8 @@ export default function TemasAnualPicker({
   const { escolhidos, total, complete } = countTemasEscolhidos(
     normalizeTemasSugeridos(list, ciclos, mesInicio)
   );
+  const mapCiclo = mesParaCicloMap(ciclos);
+  const [resolucao, setResolucao] = useState(null);
 
   const labelFor = (mes) => {
     const base = MES_LABELS[mes] || String(mes);
@@ -74,11 +85,51 @@ export default function TemasAnualPicker({
     onChange?.(next);
   };
 
+  const openDetect = (t) => {
+    const mes = Number(t?.mes) || 1;
+    const inferred = inferCicloComercialFromText(
+      t.titulo,
+      t.ideia_central,
+      t.produto_focal
+    );
+    if (!inferred.ciclo) {
+      toast.message('Ajuste o tema — ainda sem ciclo detectável');
+      return;
+    }
+    setResolucao({
+      mes,
+      cicloPlano: t.ciclo_plano || mapCiclo[mes] || t.ciclo || '',
+      cicloDetectado: inferred.ciclo,
+      confianca: inferred.confianca,
+    });
+  };
+
+  const applyResolucao = ({ escolha, ciclo_plano, ciclo_detectado, confianca }) => {
+    if (!resolucao?.mes) return;
+    const resolved = resolveCicloComercial({
+      ciclo_plano,
+      ciclo_detectado,
+      escolha,
+      confianca,
+    });
+    updateMes(resolucao.mes, {
+      ciclo: resolved.ciclo_final,
+      ciclo_plano: resolved.ciclo_plano,
+      ciclo_detectado: resolved.ciclo_detectado,
+      ciclo_final: resolved.ciclo_final,
+      ciclo_override: resolved.ciclo_override,
+      ciclo_confianca: confianca,
+      origem: 'humano',
+    });
+    setResolucao(null);
+    toast.success(`Ciclo: ${CICLO_LABELS[resolved.ciclo_final] || resolved.ciclo_final}`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600">
-          Escolha principal ou alternativa por mês e ajuste o texto se quiser.
+          Escolha o tema e, se quiser, valide o ciclo a partir da ideia.
         </p>
         <Badge
           className={
@@ -97,6 +148,7 @@ export default function TemasAnualPicker({
           const mes = Number(t?.mes) || 1;
           const opcoes = Array.isArray(t.opcoes) ? t.opcoes : [];
           const selecionadoId = t.selecionado_id || 'principal';
+          const cicloShow = t.ciclo_final || t.ciclo || '';
           return (
             <div
               key={mes}
@@ -104,12 +156,23 @@ export default function TemasAnualPicker({
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-slate-900">{labelFor(mes)}</span>
-                {t.ciclo && (
+                {cicloShow && (
                   <Badge variant="secondary">
-                    {CICLO_LABELS[t.ciclo] || t.ciclo}
+                    {CICLO_LABELS[cicloShow] || cicloShow}
+                    {t.ciclo_override ? ' · override' : ''}
                   </Badge>
                 )}
                 {t.origem === 'ia' && <Badge variant="outline">IA</Badge>}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto h-7 text-xs"
+                  onClick={() => openDetect(t)}
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1" />
+                  Validar ciclo
+                </Button>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-2">
@@ -173,6 +236,18 @@ export default function TemasAnualPicker({
           );
         })}
       </div>
+
+      <CicloResolucaoModal
+        open={Boolean(resolucao)}
+        onOpenChange={(open) => {
+          if (!open) setResolucao(null);
+        }}
+        mes={resolucao?.mes}
+        cicloPlano={resolucao?.cicloPlano || ''}
+        cicloDetectado={resolucao?.cicloDetectado || ''}
+        confianca={resolucao?.confianca || 0}
+        onConfirm={applyResolucao}
+      />
     </div>
   );
 }

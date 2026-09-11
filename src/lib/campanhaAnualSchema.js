@@ -123,7 +123,7 @@ function isCiclo(v) {
   return CICLOS_COMERCIAIS.includes(String(v || '').toLowerCase());
 }
 
-function normalizeCiclo(v) {
+export function normalizeCiclo(v) {
   const c = String(v || '').toLowerCase().trim();
   return isCiclo(c) ? c : '';
 }
@@ -310,6 +310,11 @@ export function emptyBriefingMesSeed(mes = 1) {
   return {
     mes: asNumber(mes, 1),
     nome_campanha_sugerido: '',
+    ciclo_plano: '',
+    ciclo_detectado: '',
+    ciclo_final: '',
+    ciclo_override: false,
+    ciclo_confianca: 0,
     '01_estrategia': emptyEstrategiaSeed(),
     '02_conceito': emptyConceitoSeed(),
   };
@@ -319,13 +324,29 @@ export function normalizeBriefingMesSeed(raw = {}, mesFallback = 1) {
   const mes = asNumber(raw.mes, mesFallback);
   const est = raw['01_estrategia'] || raw.estrategia || {};
   const con = raw['02_conceito'] || raw.conceito || {};
+  const ciclo_plano = normalizeCiclo(raw.ciclo_plano || est.ciclo_comercial);
+  const ciclo_detectado = normalizeCiclo(raw.ciclo_detectado);
+  const ciclo_final =
+    normalizeCiclo(raw.ciclo_final) ||
+    (raw.ciclo_override ? normalizeCiclo(est.ciclo_comercial) : '') ||
+    ciclo_plano;
+  const ciclo_override =
+    raw.ciclo_override === true ||
+    (Boolean(ciclo_plano && ciclo_final) && ciclo_plano !== ciclo_final);
+  const ciclo_comercial = ciclo_final || ciclo_plano || normalizeCiclo(est.ciclo_comercial);
+
   return {
     mes: mes >= 1 && mes <= 12 ? mes : mesFallback,
     nome_campanha_sugerido: asString(
       raw.nome_campanha_sugerido || raw.nome_campanha
     ),
+    ciclo_plano,
+    ciclo_detectado,
+    ciclo_final: ciclo_comercial,
+    ciclo_override,
+    ciclo_confianca: Number(raw.ciclo_confianca) || 0,
     '01_estrategia': {
-      ciclo_comercial: normalizeCiclo(est.ciclo_comercial),
+      ciclo_comercial,
       objetivo_especifico: asString(est.objetivo_especifico),
       publico: asString(est.publico),
       produto_focal: asString(est.produto_focal),
@@ -360,13 +381,21 @@ export function buildBriefingsMesSeeds(ciclos, existing = [], mesInicio = 1) {
 
   return planMonthWindow(mesInicio).map((mes) => {
     const base = byMes.get(mes) || emptyBriefingMesSeed(mes);
-    const ciclo = mapCiclo[mes];
+    const cicloPlano = mapCiclo[mes] || '';
+    const resolvedFinal = base.ciclo_override
+      ? base.ciclo_final || base['01_estrategia']?.ciclo_comercial || ''
+      : cicloPlano || base.ciclo_final || base['01_estrategia']?.ciclo_comercial || '';
     return {
       ...base,
       mes,
+      ciclo_plano: cicloPlano || base.ciclo_plano || '',
+      ciclo_detectado: base.ciclo_detectado || '',
+      ciclo_final: resolvedFinal,
+      ciclo_override: Boolean(base.ciclo_override),
+      ciclo_confianca: Number(base.ciclo_confianca) || 0,
       '01_estrategia': {
         ...base['01_estrategia'],
-        ciclo_comercial: ciclo || base['01_estrategia'].ciclo_comercial,
+        ciclo_comercial: resolvedFinal || cicloPlano,
       },
     };
   });
@@ -731,9 +760,15 @@ export function validateInputIa(input) {
 // ---------------------------------------------------------------------------
 
 export function emptyTemaMesSugestao(mes = 1, ciclo = '') {
+  const c = normalizeCiclo(ciclo) || '';
   return {
     mes: asNumber(mes, 1),
-    ciclo: normalizeCiclo(ciclo) || '',
+    ciclo: c,
+    ciclo_plano: c,
+    ciclo_detectado: '',
+    ciclo_final: c,
+    ciclo_override: false,
+    ciclo_confianca: 0,
     titulo: '',
     ideia_central: '',
     produto_focal: '',
@@ -769,9 +804,23 @@ export function normalizeTemaMesSugestao(raw = {}, mesFallback = 1) {
   const selecionado_id =
     asString(raw.selecionado_id) === 'alternativa' ? 'alternativa' : 'principal';
   const chosen = opcoes.find((o) => o.id === selecionado_id) || opcoes[0];
+  const ciclo_plano = normalizeCiclo(raw.ciclo_plano || raw.ciclo) || '';
+  const ciclo_detectado = normalizeCiclo(raw.ciclo_detectado) || '';
+  const ciclo_final =
+    normalizeCiclo(raw.ciclo_final) ||
+    normalizeCiclo(raw.ciclo) ||
+    ciclo_plano;
+  const ciclo_override =
+    raw.ciclo_override === true ||
+    (Boolean(ciclo_plano && ciclo_final) && ciclo_plano !== ciclo_final);
   return {
     mes,
-    ciclo: normalizeCiclo(raw.ciclo) || '',
+    ciclo: ciclo_final,
+    ciclo_plano,
+    ciclo_detectado,
+    ciclo_final,
+    ciclo_override,
+    ciclo_confianca: Number(raw.ciclo_confianca) || 0,
     titulo: asString(raw.titulo) || chosen.titulo,
     ideia_central: asString(raw.ideia_central) || chosen.ideia_central,
     produto_focal: asString(raw.produto_focal) || chosen.produto_focal,
@@ -794,9 +843,15 @@ export function normalizeTemasSugeridos(raw = [], ciclos = null, mesInicio = 1) 
   return planMonthWindow(mesInicio).map((mes) => {
     const existing = byMes.get(mes);
     if (existing) {
+      const plano = map[mes] || existing.ciclo_plano || '';
+      const final = existing.ciclo_override
+        ? existing.ciclo_final || existing.ciclo || ''
+        : existing.ciclo_final || existing.ciclo || plano;
       return {
         ...existing,
-        ciclo: existing.ciclo || map[mes] || '',
+        ciclo_plano: plano,
+        ciclo: final || plano,
+        ciclo_final: final || plano,
       };
     }
     return emptyTemaMesSugestao(mes, map[mes] || '');
@@ -818,9 +873,17 @@ export function applyTemasEscolhidosToSeeds(
     return normalizeBriefingMesSeed({
       ...seed,
       nome_campanha_sugerido: tema.titulo,
+      ciclo_plano: tema.ciclo_plano || seed.ciclo_plano,
+      ciclo_detectado: tema.ciclo_detectado || seed.ciclo_detectado,
+      ciclo_final: tema.ciclo_final || tema.ciclo || seed.ciclo_final,
+      ciclo_override: Boolean(tema.ciclo_override || seed.ciclo_override),
+      ciclo_confianca: tema.ciclo_confianca || seed.ciclo_confianca || 0,
       '01_estrategia': {
         ...seed['01_estrategia'],
-        ciclo_comercial: tema.ciclo || seed['01_estrategia']?.ciclo_comercial,
+        ciclo_comercial:
+          tema.ciclo_final ||
+          tema.ciclo ||
+          seed['01_estrategia']?.ciclo_comercial,
         produto_focal: tema.produto_focal || seed['01_estrategia']?.produto_focal,
       },
       '02_conceito': {

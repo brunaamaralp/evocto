@@ -52,8 +52,8 @@ import CampanhasAnualReview from '@/components/briefing/anual/CampanhasAnualRevi
 
 const STEPS = [
   { id: 'empresa', label: 'Empresa' },
-  { id: 'ciclos', label: 'Ciclos' },
   { id: 'ideias', label: 'Ideias' },
+  { id: 'ciclos', label: 'Ciclos' },
   { id: 'temas', label: 'Temas' },
   { id: 'revisao', label: 'Revisão' },
   { id: 'campanhas', label: 'Campanhas' },

@@ -214,7 +214,15 @@ export default function BriefingInicialFormFields({
             Período: {formatPlanPeriod(form.mes_inicio, form.ano)}
           </p>
           <div>
-            <Label className="mb-2 block">Ciclos comerciais</Label>
+            <Label className="mb-2 block">Ideias por mês (opcional)</Label>
+            <BriefingsMesSeedsEditor
+              value={form.briefings_mes}
+              onChange={(briefings_mes) => onChange?.({ ...form, briefings_mes })}
+              produtosLinhas={emp.produtos_linhas || []}
+            />
+          </div>
+          <div>
+            <Label className="mb-2 block">Ciclos comerciais (meta do calendário)</Label>
             <CiclosComerciaisPicker
               value={form.ciclos_comerciais}
               onChange={setCiclos}
@@ -228,14 +236,6 @@ export default function BriefingInicialFormFields({
                   'Complete os ciclos'}
               </p>
             )}
-          </div>
-          <div>
-            <Label className="mb-2 block">Ideias por mês (opcional)</Label>
-            <BriefingsMesSeedsEditor
-              value={form.briefings_mes}
-              onChange={(briefings_mes) => onChange?.({ ...form, briefings_mes })}
-              produtosLinhas={emp.produtos_linhas || []}
-            />
           </div>
         </CardContent>
       </Card>

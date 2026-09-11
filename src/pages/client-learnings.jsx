@@ -1,86 +1,75 @@
-import { useState, useEffect } from 'react';
-import { useSession } from '@/components/auth/SessionManager';
-import { LearningEntry } from '@/api/entities';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Client } from '@/api/entities';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Lightbulb, Search, ArrowLeft, Eye, Star, TrendingUp
-} from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Plus } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
 import EmptyState from '@/components/shared/EmptyState';
-import LearningCard from '@/components/learnings/LearningCard';
+import ClientLearningsPanel from '@/components/client/learnings/ClientLearningsPanel';
+import ClientEvolutionPanel from '@/components/client/evolution/ClientEvolutionPanel';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { getCardPastel } from '@/lib/modulePastels';
+
+const TAB_APRENDIZADOS = 'aprendizados';
+const TAB_EVOLUCAO = 'evolucao';
+
+function normalizeTab(value) {
+  if (value === TAB_EVOLUCAO || value === 'evolution') return TAB_EVOLUCAO;
+  return TAB_APRENDIZADOS;
+}
 
 export default function ClientLearningsPage() {
-  const { _user, agencyId } = useSession();
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientId = urlParams.get('clientId');
-  
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clientId = searchParams.get('clientId');
+  const serviceId = searchParams.get('serviceId');
+  const activeTab = normalizeTab(searchParams.get('tab'));
+
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
-  const [learnings, setLearnings] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [confidenceFilter, setConfidenceFilter] = useState('all');
-  const [reviewedFilter, setReviewedFilter] = useState('all');
+  const [learningCreateOpen, setLearningCreateOpen] = useState(false);
+  const [evolutionCreateOpen, setEvolutionCreateOpen] = useState(false);
+  const [learningCount, setLearningCount] = useState(0);
+  const [evolutionCount, setEvolutionCount] = useState(0);
+
+  const loadClient = useCallback(async () => {
+    if (!clientId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const clientData = await Client.get(clientId);
+      setClient(clientData);
+    } catch (error) {
+      console.error('Erro ao carregar cliente:', error);
+      toast.error('Erro ao carregar dados do cliente');
+      setClient(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [clientId]);
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!clientId || !agencyId) return;
+    loadClient();
+  }, [loadClient]);
 
-      try {
-        setLoading(true);
-        
-        const [clientData, learningsByProject, learningsByClient] = await Promise.all([
-          Client.get(clientId),
-          LearningEntry.filter({ agencyId, projectId: clientId }, '-created_date').catch(() => []),
-          LearningEntry.filter({ agencyId, clientId }, '-created_date').catch(() => []),
-        ]);
-
-        const map = new Map();
-        for (const item of [...(learningsByProject || []), ...(learningsByClient || [])]) {
-          if (item?.id) map.set(item.id, item);
-        }
-
-        setClient(clientData);
-        setLearnings(Array.from(map.values()));
-        
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        toast.error('Erro ao carregar aprendizados do cliente');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [clientId, agencyId]);
-
-  const filteredLearnings = learnings.filter(learning => {
-    const matchesSearch = !searchTerm ||
-      learning.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      learning.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesConfidence = confidenceFilter === 'all' || 
-      (confidenceFilter === 'high' && learning.confidence_score >= 80) ||
-      (confidenceFilter === 'medium' && learning.confidence_score >= 50 && learning.confidence_score < 80) ||
-      (confidenceFilter === 'low' && learning.confidence_score < 50);
-    
-    const matchesReviewed = reviewedFilter === 'all' || 
-      (reviewedFilter === 'reviewed' && learning.reviewed) ||
-      (reviewedFilter === 'pending' && !learning.reviewed);
-    
-    return matchesSearch && matchesConfidence && matchesReviewed;
-  });
+  const handleTabChange = (nextTab) => {
+    const tab = normalizeTab(nextTab);
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', tab);
+    if (clientId) next.set('clientId', clientId);
+    if (serviceId) next.set('serviceId', serviceId);
+    setSearchParams(next, { replace: true });
+  };
 
   if (loading) {
-    return <LoadingState message="Carregando aprendizados..." />;
+    return <LoadingState message="Carregando..." />;
   }
 
-  if (!client) {
+  if (!clientId || !client) {
     return (
       <EmptyState
         icon="usuarios"
@@ -88,25 +77,29 @@ export default function ClientLearningsPage() {
         description="O cliente solicitado não existe."
         primaryAction={{
           label: 'Voltar aos Clientes',
-          onClick: () => window.location.href = createPageUrl('clients')
+          onClick: () => {
+            navigate(createPageUrl('clients'));
+          },
         }}
       />
     );
   }
 
-  const highConfidenceLearnings = learnings.filter(l => l.confidence_score >= 80);
-  const pendingReviewLearnings = learnings.filter(l => !l.reviewed);
+  const subtitle =
+    activeTab === TAB_EVOLUCAO
+      ? `${evolutionCount} evento${evolutionCount === 1 ? '' : 's'}`
+      : `${learningCount} registro${learningCount === 1 ? '' : 's'}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 shrink-0 -ml-1.5"
             onClick={() =>
-              (window.location.href =
-                createPageUrl('client-detail') + `?clientId=${clientId}`)
+              navigate(createPageUrl('client-detail') + `?clientId=${clientId}`)
             }
             aria-label="Voltar ao cliente"
           >
@@ -116,97 +109,50 @@ export default function ClientLearningsPage() {
             <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
               Aprendizados
             </h1>
-            <p className="text-xs text-[#7A7595]">
-              {learnings.length} registro{learnings.length === 1 ? '' : 's'}
-            </p>
+            <p className="text-xs text-[#7A7595]">{subtitle}</p>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[
-            { icon: Lightbulb, label: 'Total de Aprendizados', value: learnings.length, idx: 3 },
-            { icon: Star, label: 'Alta Confiança', value: highConfidenceLearnings.length, idx: 2 },
-            { icon: Eye, label: 'Pendentes Revisão', value: pendingReviewLearnings.length, idx: 5 },
-            { icon: TrendingUp, label: 'Compartilhados', value: learnings.filter(l => l.isShared).length, idx: 0 },
-          ].map(({ icon: Icon, label, value, idx }) => {
-            const pastel = getCardPastel(idx);
-            return (
-              <Card key={label} className={`rounded-2xl border-transparent shadow-sm ${pastel.bg}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pastel.tag}`}>
-                      <Icon className={`w-5 h-5 ${pastel.text}`} />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-[#18162A]">{value}</p>
-                      <p className="text-sm text-[#7A7595]">{label}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Filtros */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex-1 relative min-w-0">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Buscar aprendizados..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <select 
-            value={confidenceFilter}
-            onChange={(e) => setConfidenceFilter(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
-          >
-            <option value="all">Todas Confianças</option>
-            <option value="high">Alta (≥80%)</option>
-            <option value="medium">Média (50-79%)</option>
-            <option value="low">Baixa (&lt;50%)</option>
-          </select>
-
-          <select 
-            value={reviewedFilter}
-            onChange={(e) => setReviewedFilter(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
-          >
-            <option value="all">Todos Status</option>
-            <option value="reviewed">Revisados</option>
-            <option value="pending">Pendentes</option>
-          </select>
-        </div>
-
-        {/* Lista de Aprendizados */}
-        {filteredLearnings.length === 0 ? (
-          <EmptyState
-            icon="ideias"
-            title={learnings.length === 0 ? 'Nenhum aprendizado registrado' : 'Nenhum aprendizado encontrado'}
-            description={
-              learnings.length === 0 
-                ? 'Este cliente ainda não possui aprendizados registrados.'
-                : 'Tente ajustar os filtros de busca.'
-            }
-          />
+        {activeTab === TAB_EVOLUCAO ? (
+          <Button size="sm" onClick={() => setEvolutionCreateOpen(true)}>
+            <Plus className="w-4 h-4 mr-1" />
+            Registrar
+          </Button>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLearnings.map((learning) => (
-              <LearningCard
-                key={learning.id}
-                learning={learning}
-                showActions={true}
-                onEdit={() => console.log('Edit learning', learning.id)}
-                onView={() => console.log('View learning', learning.id)}
-              />
-            ))}
-          </div>
+          <Button size="sm" onClick={() => setLearningCreateOpen(true)}>
+            <Plus className="w-4 h-4 mr-1" />
+            Novo Aprendizado
+          </Button>
         )}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value={TAB_APRENDIZADOS}>Aprendizados</TabsTrigger>
+          <TabsTrigger value={TAB_EVOLUCAO}>Evolução</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={TAB_APRENDIZADOS} className="mt-0">
+          <ClientLearningsPanel
+            clientId={clientId}
+            client={client}
+            createOpen={learningCreateOpen}
+            onCreateOpenChange={setLearningCreateOpen}
+            onCountChange={setLearningCount}
+          />
+        </TabsContent>
+
+        <TabsContent value={TAB_EVOLUCAO} className="mt-0">
+          <ClientEvolutionPanel
+            clientId={clientId}
+            serviceId={serviceId}
+            client={client}
+            createOpen={evolutionCreateOpen}
+            onCreateOpenChange={setEvolutionCreateOpen}
+            onCountChange={setEvolutionCount}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

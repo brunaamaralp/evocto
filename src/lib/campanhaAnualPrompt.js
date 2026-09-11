@@ -15,7 +15,7 @@ REGRAS CRÍTICAS:
    - ENGAJAMENTO: Comunidade, participação, UGC. Tom participativo. Objetivo: relacionamento.
    - RECONHECIMENTO: Brand awareness, identidade. Tom narrativo/aspiracional. Objetivo: reforçar marca.
 
-2. RESPEITAR CICLOS ATRIBUÍDOS no input (campo ciclo_comercial de cada mês). Nunca ignore o ciclo.
+2. CICLO POR MÊS: use o ciclo_comercial de cada briefing_mes (pode ser ciclo_final escolhido pela equipe). Se houver ideia humana forte, alinhe a campanha a essa ideia — o ciclo descreve a ideia, não a limita.
 
 3. PRODUTO FOCAL: destaque a linha sugerida; conecte sazonalidade; Premium em vendas = investimento/presente; Clássica em autoridade = confiança.
 
@@ -72,7 +72,7 @@ export function buildCampanhaAnualUserPrompt(inputIa, { meses } = {}) {
   };
 
   return `Gere campanhas completas (9 dimensões) APENAS para os meses: ${mesesAlvo.join(', ')}.
-Respeite o ciclo_comercial de cada mês e o formato_padrao da empresa.
+Use o ciclo_comercial de cada mês (ciclo_final se houver override) e o formato_padrao da empresa. Priorize ideias humanas nos briefings_mes.
 Ano: ${inputIa.ano || ''}.
 
 INPUT:
