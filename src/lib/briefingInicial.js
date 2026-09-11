@@ -113,6 +113,22 @@ export function isBriefingInicialFormComplete(form) {
   return validateBriefingInicialForm(form).valid;
 }
 
+/** Progresso do formulário público/interno (para progressData do token). */
+export function countInicialProgress(form) {
+  const n = normalizeBriefingInicialForm(form);
+  let done = 0;
+  const total = 6;
+  if (String(n.empresa.nome || '').trim()) done += 1;
+  if (String(n.empresa.publico_alvo || '').trim()) done += 1;
+  if (String(n.empresa.tom_brand || '').trim()) done += 1;
+  if (Number(n.empresa.orcamento_padrao_mensal) > 0) done += 1;
+  if ((n.empresa.produtos_linhas || []).some((p) => p.nome)) done += 1;
+  if (validateCiclosComerciais(n.ciclos_comerciais, { requireFullYear: true }).valid) {
+    done += 1;
+  }
+  return { done, total };
+}
+
 /**
  * Monta payload do Brief campanha_anual a partir do form do briefing inicial.
  * @param {'publico'|'equipe'} [origem='publico']
