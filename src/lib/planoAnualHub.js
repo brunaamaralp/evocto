@@ -1,4 +1,9 @@
-import { BRIEF_KIND_ANUAL, normalizeCampanhaAnualPayload } from '@/lib/campanhaAnualSchema';
+import {
+  BRIEF_KIND_ANUAL,
+  calendarYearForPlanMonth,
+  normalizeCampanhaAnualPayload,
+  planMonthWindow,
+} from '@/lib/campanhaAnualSchema';
 import { createPageUrl } from '@/utils';
 
 const MES_NOMES = [
@@ -43,8 +48,11 @@ export function getPlanMonth(plan, mes = new Date().getMonth() + 1) {
   if (!campanha && !tema && !seed) return null;
 
   const status = campanha?.status_mes || (tema?.titulo ? 'tema' : 'vazio');
+  const mesInicio = plan.mes_inicio || 1;
+  const calYear = calendarYearForPlanMonth(mesNum, mesInicio, plan.ano);
   return {
     mes: mesNum,
+    ano: calYear,
     mesLabel: MES_NOMES[mesNum] || String(mesNum),
     mesShort: (MES_NOMES[mesNum] || '').slice(0, 3) || String(mesNum),
     campanha,
@@ -61,15 +69,17 @@ export function getPlanMonth(plan, mes = new Date().getMonth() + 1) {
   };
 }
 
-/** Lista os 12 meses com status (para sidebar / overview). */
+/** Lista os 12 meses na ordem do plano (mes_inicio). */
 export function listPlanMonths(plan) {
   if (!plan) return [];
-  return Array.from({ length: 12 }, (_, i) => {
-    const mes = i + 1;
+  const mesInicio = plan.mes_inicio || 1;
+  return planMonthWindow(mesInicio).map((mes) => {
     const info = getPlanMonth(plan, mes);
     if (info) return info;
+    const calYear = calendarYearForPlanMonth(mes, mesInicio, plan.ano);
     return {
       mes,
+      ano: calYear,
       mesLabel: MES_NOMES[mes],
       mesShort: MES_NOMES[mes].slice(0, 3),
       campanha: null,

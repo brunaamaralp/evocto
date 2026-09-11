@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -120,6 +121,9 @@ export default function ConfigurarEmpresaModal({
       <DialogContent className="max-w-xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>Configurar Empresa</DialogTitle>
+          <DialogDescription>
+            Defina nome, público, tom e produtos usados no plano anual e nas campanhas.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="overflow-y-auto px-6 flex-1 space-y-4 py-2">

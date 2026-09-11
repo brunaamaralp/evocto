@@ -26,6 +26,7 @@ import {
   buildBriefingsMesSeeds,
   countTemasEscolhidos,
   normalizeCiclosComerciais,
+  normalizeMesInicio,
   normalizeTemasSugeridos,
   validateCiclosComerciais,
   validateProdutosLinhas,
@@ -33,6 +34,8 @@ import {
 import {
   CICLO_LABELS,
   MES_LABELS,
+  MES_OPTIONS,
+  formatPlanPeriod,
   getCampanhaAnualById,
   saveCampanhaAnualBriefing,
 } from '@/lib/campanhaAnual';
@@ -50,7 +53,7 @@ import CampanhasAnualReview from '@/components/briefing/anual/CampanhasAnualRevi
 const STEPS = [
   { id: 'empresa', label: 'Empresa' },
   { id: 'ciclos', label: 'Ciclos' },
-  { id: 'seeds', label: 'Seeds' },
+  { id: 'ideias', label: 'Ideias' },
   { id: 'temas', label: 'Temas' },
   { id: 'revisao', label: 'Revisão' },
   { id: 'campanhas', label: 'Campanhas' },
@@ -77,15 +80,24 @@ export default function BriefingCampanhaAnualPage() {
   const [step, setStep] = useState('empresa');
   const [briefingId, setBriefingId] = useState(briefingIdParam || null);
   const [ano, setAno] = useState(new Date().getFullYear());
+  const [mesInicio, setMesInicio] = useState(new Date().getMonth() + 1);
   const [ciclos, setCiclos] = useState(() =>
     normalizeCiclosComerciais(DEFAULT_CICLOS_COMERCIAIS)
   );
   const [sharing, setSharing] = useState(false);
   const [seeds, setSeeds] = useState(() =>
-    buildBriefingsMesSeeds(DEFAULT_CICLOS_COMERCIAIS)
+    buildBriefingsMesSeeds(
+      DEFAULT_CICLOS_COMERCIAIS,
+      [],
+      new Date().getMonth() + 1
+    )
   );
   const [temas, setTemas] = useState(() =>
-    normalizeTemasSugeridos([], DEFAULT_CICLOS_COMERCIAIS)
+    normalizeTemasSugeridos(
+      [],
+      DEFAULT_CICLOS_COMERCIAIS,
+      new Date().getMonth() + 1
+    )
   );
   const [existingPayload, setExistingPayload] = useState(null);
   const [saved, setSaved] = useState(null);
@@ -123,12 +135,19 @@ export default function BriefingCampanhaAnualPage() {
         const anual = await getCampanhaAnualById(briefingIdParam);
         setBriefingId(anual.id);
         setAno(anual.ano || new Date().getFullYear());
+        const mi = normalizeMesInicio(anual.mes_inicio, 1);
+        setMesInicio(mi);
         setCiclos(normalizeCiclosComerciais(anual.ciclos_comerciais));
         setSeeds(
-          buildBriefingsMesSeeds(anual.ciclos_comerciais, anual.briefings_mes)
+          buildBriefingsMesSeeds(anual.ciclos_comerciais, anual.briefings_mes, mi)
         );
-        setTemas(normalizeTemasSugeridos(anual.temas_sugeridos, anual.ciclos_comerciais));
-        setExistingPayload(anual);
+        setTemas(
+          normalizeTemasSugeridos(
+            anual.temas_sugeridos,
+            anual.ciclos_comerciais,
+            mi
+          )
+        );        setExistingPayload(anual);
         const filled = (anual.campanhas || []).some(
           (c) => c?.nome_campanha || c?.resumo_executivo
         );
@@ -148,10 +167,14 @@ export default function BriefingCampanhaAnualPage() {
   }, [isAuthenticated, load]);
 
   useEffect(() => {
-    setSeeds((prev) => buildBriefingsMesSeeds(ciclos, prev));
-    setTemas((prev) => normalizeTemasSugeridos(prev, ciclos));
-  }, [ciclos]);
+    setSeeds((prev) => buildBriefingsMesSeeds(ciclos, prev, mesInicio));
+    setTemas((prev) => normalizeTemasSugeridos(prev, ciclos, mesInicio));
+  }, [ciclos, mesInicio]);
 
+  const applyPeriodo = (nextMes, nextAno) => {
+    setMesInicio(normalizeMesInicio(nextMes, mesInicio));
+    setAno(Number(nextAno) || ano);
+  };
   const backToList = () => {
     navigate(`${createPageUrl('client-briefing')}?clientId=${clientId}`);
   };
@@ -192,6 +215,7 @@ export default function BriefingCampanhaAnualPage() {
         clientId,
         empresa,
         ano,
+        mes_inicio: mesInicio,
         ciclos_comerciais: ciclos,
         briefings_mes: seeds,
         userId: user?.id || user?.$id || null,
@@ -238,13 +262,14 @@ export default function BriefingCampanhaAnualPage() {
         briefingId: savedRef.id,
         empresa,
         ano,
+        mes_inicio: mesInicio,
         ciclos_comerciais: ciclos,
         briefings_mes: seeds,
         existingPayload: savedRef.payload,
       });
       setBriefingId(brief.id);
       setExistingPayload(payload);
-      setTemas(normalizeTemasSugeridos(payload.temas_sugeridos, ciclos));
+      setTemas(normalizeTemasSugeridos(payload.temas_sugeridos, ciclos, mesInicio));
       setStep('temas');
       toast.success('Temas sugeridos — escolha e ajuste');
     } catch (err) {
@@ -295,6 +320,7 @@ export default function BriefingCampanhaAnualPage() {
         briefingId: savedRef.id,
         empresa,
         ano,
+        mes_inicio: mesInicio,
         ciclos_comerciais: ciclos,
         briefings_mes: seeds,
         temas_sugeridos: temas,
@@ -457,17 +483,41 @@ export default function BriefingCampanhaAnualPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5 max-w-[160px]">
-              <Label htmlFor="ano-plano">Ano</Label>
-              <Input
-                id="ano-plano"
-                type="number"
-                min={2020}
-                max={2100}
-                value={ano}
-                onChange={(e) => setAno(Number(e.target.value) || ano)}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+              <div className="space-y-1.5">
+                <Label htmlFor="mes-inicio-plano">Início do plano</Label>
+                <select
+                  id="mes-inicio-plano"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={mesInicio}
+                  onChange={(e) =>
+                    applyPeriodo(Number(e.target.value) || 1, ano)
+                  }
+                >
+                  {MES_OPTIONS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ano-plano">Ano de início</Label>
+                <Input
+                  id="ano-plano"
+                  type="number"
+                  min={2020}
+                  max={2100}
+                  value={ano}
+                  onChange={(e) =>
+                    applyPeriodo(mesInicio, Number(e.target.value) || ano)
+                  }
+                />
+              </div>
             </div>
+            <p className="text-xs text-slate-500">
+              Período: {formatPlanPeriod(mesInicio, ano)}
+            </p>
 
             {!empresa ? (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -506,24 +556,33 @@ export default function BriefingCampanhaAnualPage() {
       {step === 'ciclos' && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Ciclos comerciais {ano}</CardTitle>
+            <CardTitle className="text-lg">
+              Ciclos comerciais · {formatPlanPeriod(mesInicio, ano)}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <CiclosComerciaisPicker value={ciclos} onChange={setCiclos} />
+            <CiclosComerciaisPicker
+              value={ciclos}
+              onChange={setCiclos}
+              mesInicio={mesInicio}
+              anoInicio={ano}
+            />
           </CardContent>
         </Card>
       )}
 
-      {step === 'seeds' && (
+      {step === 'ideias' && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Seeds por mês (opcional)</CardTitle>
+            <CardTitle className="text-lg">Ideias por mês (opcional)</CardTitle>
           </CardHeader>
           <CardContent>
             <BriefingsMesSeedsEditor
               value={seeds}
               onChange={setSeeds}
               produtosLinhas={empresa?.produtos_linhas || []}
+              mesInicio={mesInicio}
+              anoInicio={ano}
             />
           </CardContent>
         </Card>
@@ -570,8 +629,13 @@ export default function BriefingCampanhaAnualPage() {
                 </Button>
               </div>
             ) : (
-              <TemasAnualPicker value={temas} onChange={setTemas} ciclos={ciclos} />
-            )}
+              <TemasAnualPicker
+                value={temas}
+                onChange={setTemas}
+                ciclos={ciclos}
+                mesInicio={mesInicio}
+                anoInicio={ano}
+              />            )}
           </CardContent>
         </Card>
       )}
@@ -584,7 +648,7 @@ export default function BriefingCampanhaAnualPage() {
           <CardContent className="space-y-4 text-sm">
             <div className="rounded-lg border bg-slate-50 p-4 space-y-1">
               <div>
-                <strong>Ano:</strong> {ano}
+                <strong>Período:</strong> {formatPlanPeriod(mesInicio, ano)}
               </div>
               <div>
                 <strong>Empresa:</strong> {empresa?.nome}
@@ -660,6 +724,7 @@ export default function BriefingCampanhaAnualPage() {
             clientId={clientId}
             agencyId={agencyId}
             ano={ano}
+            mesInicio={mesInicio}
             empresa={empresa}
             existingPayload={existingPayload}
             onMaterialized={(nextPayload) => setExistingPayload(nextPayload)}

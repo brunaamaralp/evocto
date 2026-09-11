@@ -3,7 +3,10 @@ import {
   BRIEF_KIND_ANUAL,
   DEFAULT_CICLOS_COMERCIAIS,
   buildCampanhaAnualBriefPayload,
+  calendarYearForPlanMonth,
   normalizeCampanhaAnualPayload,
+  normalizeMesInicio,
+  planMonthWindow,
   validateCampanhaAnualDraft,
   validateProdutosLinhas,
 } from '@/lib/campanhaAnualSchema';
@@ -17,6 +20,7 @@ export async function saveCampanhaAnualBriefing({
   clientId,
   empresa,
   ano,
+  mes_inicio,
   ciclos_comerciais,
   briefings_mes = null,
   userId = null,
@@ -43,6 +47,7 @@ export async function saveCampanhaAnualBriefing({
     clientId,
     empresa,
     ano,
+    mes_inicio,
     ciclos_comerciais: ciclos_comerciais || DEFAULT_CICLOS_COMERCIAIS,
     briefings_mes,
     userId,
@@ -114,3 +119,28 @@ export const MES_LABELS = [
   'Nov',
   'Dez',
 ];
+
+export const MES_OPTIONS = [
+  { value: 1, label: 'Janeiro' },
+  { value: 2, label: 'Fevereiro' },
+  { value: 3, label: 'Março' },
+  { value: 4, label: 'Abril' },
+  { value: 5, label: 'Maio' },
+  { value: 6, label: 'Junho' },
+  { value: 7, label: 'Julho' },
+  { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Setembro' },
+  { value: 10, label: 'Outubro' },
+  { value: 11, label: 'Novembro' },
+  { value: 12, label: 'Dezembro' },
+];
+
+/** Ex.: "Ago/2026 – Jul/2027" ou "2026" se iniciar em janeiro. */
+export function formatPlanPeriod(mesInicio, anoInicio) {
+  const start = normalizeMesInicio(mesInicio, 1);
+  const y0 = Number(anoInicio) || new Date().getFullYear();
+  if (start === 1) return String(y0);
+  const endMes = planMonthWindow(start)[11];
+  const y1 = calendarYearForPlanMonth(endMes, start, y0);
+  return `${MES_LABELS[start]}/${y0} – ${MES_LABELS[endMes]}/${y1}`;
+}

@@ -210,6 +210,8 @@ import briefingCampanha from "./briefing-campanha";
 
 import briefingCampanhaAnual from "./briefing-campanha-anual";
 
+import briefingInicial from "./briefing-inicial";
+
 import clientCampaign from "./client-campaign";
 
 import clientUnit from "./client-unit";
@@ -456,6 +458,8 @@ const PAGES = {
     "briefing-campanha": briefingCampanha,
 
     "briefing-campanha-anual": briefingCampanhaAnual,
+
+    "briefing-inicial": briefingInicial,
 
     "client-campaign": clientCampaign,
     "campaign": clientCampaign,
@@ -736,6 +740,8 @@ function PagesContent() {
                 <Route path="/briefing-campanha" element={createElement(briefingCampanha)} />
 
                 <Route path="/briefing-campanha-anual" element={createElement(briefingCampanhaAnual)} />
+
+                <Route path="/briefing-inicial" element={createElement(briefingInicial)} />
 
                 <Route path="/client-campaign" element={createElement(clientCampaign)} />
                 <Route path="/campaign" element={createElement(clientCampaign)} />

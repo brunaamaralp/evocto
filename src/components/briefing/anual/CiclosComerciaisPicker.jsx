@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   CICLOS_COMERCIAIS,
+  calendarYearForPlanMonth,
   mesParaCicloMap,
   normalizeCiclosComerciais,
+  planMonthWindow,
   validateCiclosComerciais,
 } from '@/lib/campanhaAnualSchema';
 import { CICLO_HINTS, CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
@@ -25,15 +27,19 @@ const CICLO_SHORT = {
 
 /**
  * Atribui cada mês (1–12) a um ciclo comercial.
+ * Ordem visual segue mes_inicio (ex.: Ago…Jul).
  * Clique no mês cicla: autoridade → vendas → engajamento → reconhecimento → (remove).
  */
 export default function CiclosComerciaisPicker({
   value,
   onChange,
   activeCiclo = null,
+  mesInicio = 1,
+  anoInicio = null,
 }) {
   const ciclos = useMemo(() => normalizeCiclosComerciais(value), [value]);
   const map = useMemo(() => mesParaCicloMap(ciclos), [ciclos]);
+  const months = useMemo(() => planMonthWindow(mesInicio), [mesInicio]);
   const validation = useMemo(
     () => validateCiclosComerciais(ciclos, { requireFullYear: true }),
     [ciclos]
@@ -93,8 +99,12 @@ export default function CiclosComerciaisPicker({
             : 'Clique em cada mês para alternar o ciclo comercial.'}
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((mes) => {
+          {months.map((mes) => {
             const ciclo = map[mes];
+            const year =
+              anoInicio != null
+                ? calendarYearForPlanMonth(mes, mesInicio, anoInicio)
+                : null;
             return (
               <Button
                 key={mes}
@@ -105,7 +115,14 @@ export default function CiclosComerciaisPicker({
                 }`}
                 onClick={() => handleMesClick(mes)}
               >
-                <span className="font-semibold text-sm">{MES_LABELS[mes]}</span>
+                <span className="font-semibold text-sm">
+                  {MES_LABELS[mes]}
+                  {year != null ? (
+                    <span className="font-normal text-slate-500">
+                      /{String(year).slice(2)}
+                    </span>
+                  ) : null}
+                </span>
                 <span className="text-[10px] font-normal opacity-80 leading-tight">
                   <span className="sm:hidden">{ciclo ? CICLO_SHORT[ciclo] : 'definir'}</span>
                   <span className="hidden sm:inline">{ciclo ? CICLO_LABELS[ciclo] : 'definir'}</span>
@@ -125,9 +142,9 @@ export default function CiclosComerciaisPicker({
       ) : (
         <div className="flex items-center gap-2 text-sm text-emerald-700">
           <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
-            Ano completo
+            Período completo
           </Badge>
-          Todos os meses têm ciclo comercial.
+          Todos os 12 meses têm ciclo comercial.
         </div>
       )}
     </div>

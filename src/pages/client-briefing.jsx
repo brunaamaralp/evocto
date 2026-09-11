@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Link as LinkIcon,
   Loader2,
+  PenLine,
 } from 'lucide-react';
 import { Brief } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -32,7 +33,7 @@ import { toast } from 'sonner';
 
 /**
  * Hub do cliente: briefing inicial + plano anual + campanhas.
- * “Briefing” no produto = apenas o briefing inicial (link público).
+ * Briefing inicial: link para o cliente ou preenchimento interno pela equipe.
  */
 export default function ClientBriefingPage() {
   const { _user, agencyId } = useSession();
@@ -119,8 +120,16 @@ export default function ClientBriefingPage() {
           t.metadata?.submittedAt ||
           t.status === 'used' ||
           t.status === 'completed'
+      ) ||
+      (briefings || []).some(
+        (b) =>
+          b.brief_kind === 'campanha_anual' &&
+          b.origem_briefing_inicial &&
+          ['input_pronto', 'temas_prontos', 'ia_gerou', 'aprovado', 'aprovado_parcial'].includes(
+            b.status_anual
+          )
       ),
-    [inicialTokens]
+    [inicialTokens, briefings]
   );
 
   const planosAnuais = useMemo(
@@ -190,6 +199,14 @@ export default function ClientBriefingPage() {
       return;
     }
     navigate(`${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}`);
+  };
+
+  const handleFillInicialInterno = () => {
+    const existing = planosAnuais.find((b) => b.origem_briefing_inicial) || planosAnuais[0];
+    const qs = existing?.id
+      ? `clientId=${clientId}&briefingId=${existing.id}`
+      : `clientId=${clientId}`;
+    navigate(`${createPageUrl('briefing-inicial')}?${qs}`);
   };
 
   const handleEditBriefing = (brief) => {
@@ -399,33 +416,36 @@ export default function ClientBriefingPage() {
               <Badge variant="outline">{inicialTokens.length}</Badge>
             </CardTitle>
             <p className="text-sm text-[#7A7595] font-normal">
-              Link único para o cliente enviar Empresa + calendário do ano.
+              Pode ser preenchido pela empresa (link) ou pela equipe.
             </p>
           </CardHeader>
-          <CardContent>
-            {inicialTokens.length === 0 ? (
-              <div className="text-center py-8">
-                <LinkIcon className="w-10 h-10 text-[#D4CBF5] mx-auto mb-3" />
-                <h3 className="text-lg font-medium text-[#18162A] mb-2">
-                  Nenhum link gerado
-                </h3>
-                <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
-                  Envie um link para o cliente preencher o DNA da empresa e as ideias do ano.
-                </p>
-                {!hasSubmittedInicial && (
-                  <Button
-                    onClick={handleGenerateInicialLink}
-                    className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
-                    disabled={generatingLink}
-                  >
-                    {generatingLink ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <LinkIcon className="w-4 h-4 mr-2" />
-                    )}
-                    Gerar link do briefing inicial
-                  </Button>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleGenerateInicialLink}
+                className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+                disabled={generatingLink}
+              >
+                {generatingLink ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <LinkIcon className="w-4 h-4 mr-2" />
                 )}
+                Gerar link
+              </Button>
+              <Button variant="outline" onClick={handleFillInicialInterno}>
+                <PenLine className="w-4 h-4 mr-2" />
+                Preencher internamente
+              </Button>
+            </div>
+
+            {inicialTokens.length === 0 ? (
+              <div className="text-center py-6 rounded-2xl border border-dashed border-[#E8E4F4]">
+                <LinkIcon className="w-8 h-8 text-[#D4CBF5] mx-auto mb-2" />
+                <p className="text-sm text-[#7A7595] max-w-md mx-auto">
+                  Ainda sem link. Envie um para o cliente ou preencha o DNA da empresa e o
+                  calendário do ano por aqui.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">

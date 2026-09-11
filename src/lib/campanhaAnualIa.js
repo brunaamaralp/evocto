@@ -8,7 +8,9 @@ import {
   countTemasEscolhidos,
   normalizeCampanhaAnualPayload,
   normalizeGeracaoIaOutput,
+  normalizeMesInicio,
   normalizeTemasSugeridos,
+  planMonthWindow,
   validateGeracaoIaOutput,
 } from '@/lib/campanhaAnualSchema';
 import { buildMockGeracaoFromInput } from '@/lib/campanhaAnualMock';
@@ -17,12 +19,17 @@ import { buildMockTemasFromInput } from '@/lib/campanhaAnualTemasMock';
 export { buildMockGeracaoFromInput } from '@/lib/campanhaAnualMock';
 export { buildMockTemasFromInput } from '@/lib/campanhaAnualTemasMock';
 
+/** Lotes de 4 meses na ordem civil (legado). Preferir buildIaBatches(mesInicio). */
 export const CAMPANHA_IA_BATCHES = [
   [1, 2, 3, 4],
   [5, 6, 7, 8],
   [9, 10, 11, 12],
 ];
 
+export function buildIaBatches(mesInicio = 1) {
+  const win = planMonthWindow(mesInicio);
+  return [win.slice(0, 4), win.slice(4, 8), win.slice(8, 12)];
+}
 async function postLote(inputIa, meses, jwt) {
   const res = await fetch('/api/campanha-anual', {
     method: 'POST',
@@ -71,12 +78,13 @@ export async function requestGeracaoCampanhaAnual(inputIa, { onBatchProgress } =
   let totalOut = 0;
   let anyInvalid = false;
   const allErrors = {};
+  const batches = buildIaBatches(normalizeMesInicio(inputIa.mes_inicio, 1));
 
-  for (let i = 0; i < CAMPANHA_IA_BATCHES.length; i += 1) {
-    const meses = CAMPANHA_IA_BATCHES[i];
+  for (let i = 0; i < batches.length; i += 1) {
+    const meses = batches[i];
     onBatchProgress?.({
       batch: i + 1,
-      total: CAMPANHA_IA_BATCHES.length,
+      total: batches.length,
       meses,
     });
 
@@ -117,16 +125,23 @@ export async function requestGeracaoCampanhaAnual(inputIa, { onBatchProgress } =
     if (Array.isArray(data.sugestoes)) sugestoes.push(...data.sugestoes);
   }
 
-  const merged = normalizeGeracaoIaOutput({
-    status: 'sucesso',
-    campanhas: Array.from({ length: 12 }, (_, idx) => byMes.get(idx + 1) || { mes: idx + 1 }),
-    avisos,
-    sugestoes,
-  });
+  const mesInicio = normalizeMesInicio(inputIa.mes_inicio, 1);
+  const merged = normalizeGeracaoIaOutput(
+    {
+      status: 'sucesso',
+      campanhas: planMonthWindow(mesInicio).map(
+        (mes) => byMes.get(mes) || { mes }
+      ),
+      avisos,
+      sugestoes,
+    },
+    mesInicio
+  );
 
   const { valid, errors, value } = validateGeracaoIaOutput(
     merged,
-    inputIa.ciclos_comerciais
+    inputIa.ciclos_comerciais,
+    mesInicio
   );
 
   return {
@@ -207,6 +222,7 @@ export async function gerarESalvarTemas({
   briefingId,
   empresa,
   ano,
+  mes_inicio,
   ciclos_comerciais,
   briefings_mes,
   existingPayload,
@@ -220,12 +236,17 @@ export async function gerarESalvarTemas({
     ciclos_comerciais,
     briefings_mes,
     ano,
+    mes_inicio: mes_inicio ?? existingPayload?.mes_inicio,
   });
 
   const iaResult = await requestSugestaoTemas(inputIa);
-  const applied = applyTemasIaToAnual(existingPayload || {}, iaResult, {
-    model: iaResult.model,
-  });
+  const applied = applyTemasIaToAnual(
+    { ...(existingPayload || {}), mes_inicio: mes_inicio ?? existingPayload?.mes_inicio },
+    iaResult,
+    {
+      model: iaResult.model,
+    }
+  );
 
   const normalized = normalizeCampanhaAnualPayload(applied);
   const updated = await Brief.update(briefingId, {
@@ -255,7 +276,11 @@ export async function salvarTemasEscolhidos({
 }) {
   if (!briefingId) throw new Error('briefingId obrigatório');
   const base = normalizeCampanhaAnualPayload(existingPayload || {});
-  const temas = normalizeTemasSugeridos(temas_sugeridos, base.ciclos_comerciais);
+  const temas = normalizeTemasSugeridos(
+    temas_sugeridos,
+    base.ciclos_comerciais,
+    base.mes_inicio
+  );
   const { complete } = countTemasEscolhidos(temas);
   const next = {
     ...base,
@@ -284,6 +309,7 @@ export async function gerarESalvarCampanhaAnual({
   briefingId,
   empresa,
   ano,
+  mes_inicio,
   ciclos_comerciais,
   briefings_mes,
   temas_sugeridos = null,
@@ -294,12 +320,15 @@ export async function gerarESalvarCampanhaAnual({
     throw new Error('Salve o plano anual antes de gerar com IA');
   }
 
+  const mesInicio = mes_inicio ?? existingPayload?.mes_inicio ?? 1;
+
   const seedsEfetivos =
     temas_sugeridos?.length || existingPayload?.temas_sugeridos?.length
       ? applyTemasEscolhidosToSeeds(
           temas_sugeridos || existingPayload.temas_sugeridos,
           ciclos_comerciais,
-          briefings_mes
+          briefings_mes,
+          mesInicio
         )
       : briefings_mes;
 
@@ -308,18 +337,24 @@ export async function gerarESalvarCampanhaAnual({
     ciclos_comerciais,
     briefings_mes: seedsEfetivos,
     ano,
+    mes_inicio: mesInicio,
   });
 
   const iaResult = await requestGeracaoCampanhaAnual(inputIa, { onBatchProgress });
-  const applied = applyGeracaoIaToAnual(existingPayload || {}, iaResult, {
-    model: iaResult.model,
-  });
+  const applied = applyGeracaoIaToAnual(
+    { ...(existingPayload || {}), mes_inicio: mesInicio },
+    iaResult,
+    {
+      model: iaResult.model,
+    }
+  );
 
   applied.briefings_mes = seedsEfetivos;
   if (temas_sugeridos || existingPayload?.temas_sugeridos) {
     applied.temas_sugeridos = normalizeTemasSugeridos(
       temas_sugeridos || existingPayload.temas_sugeridos,
-      ciclos_comerciais
+      ciclos_comerciais,
+      mesInicio
     );
     applied.temas_gerados = true;
   }

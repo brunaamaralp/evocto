@@ -4,29 +4,50 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
 import {
+  calendarYearForPlanMonth,
   countTemasEscolhidos,
-  normalizeTemaMesSugestao,
   normalizeTemasSugeridos,
+  sortByPlanMonth,
 } from '@/lib/campanhaAnualSchema';
 
 /**
  * Escolha/edição de temas sugeridos pela IA (1 principal + 1 alternativa / mês).
+ * Edição de texto sem trim a cada tecla.
  */
-export default function TemasAnualPicker({ value = [], onChange, ciclos = null }) {
-  const list = normalizeTemasSugeridos(value, ciclos);
-  const { escolhidos, total, complete } = countTemasEscolhidos(list);
+export default function TemasAnualPicker({
+  value = [],
+  onChange,
+  ciclos = null,
+  mesInicio = 1,
+  anoInicio = null,
+}) {
+  const list =
+    Array.isArray(value) && value.length > 0
+      ? sortByPlanMonth(value, mesInicio)
+      : normalizeTemasSugeridos([], ciclos, mesInicio);
+  const { escolhidos, total, complete } = countTemasEscolhidos(
+    normalizeTemasSugeridos(list, ciclos, mesInicio)
+  );
+
+  const labelFor = (mes) => {
+    const base = MES_LABELS[mes] || String(mes);
+    if (anoInicio == null) return base;
+    const y = calendarYearForPlanMonth(mes, mesInicio, anoInicio);
+    return `${base}/${String(y).slice(2)}`;
+  };
 
   const updateMes = (mes, patch) => {
     const next = list.map((item) => {
-      const n = normalizeTemaMesSugestao(item);
-      if (n.mes !== mes) return n;
-      const merged = normalizeTemaMesSugestao({ ...n, ...patch, mes });
+      const itemMes = Number(item?.mes);
+      if (itemMes !== mes) return item;
+      const merged = { ...item, ...patch, mes: itemMes };
       if (patch.selecionado_id) {
-        const opt = merged.opcoes.find((o) => o.id === patch.selecionado_id);
+        const opt = (merged.opcoes || []).find((o) => o.id === patch.selecionado_id);
         if (opt) {
-          merged.titulo = opt.titulo;
-          merged.ideia_central = opt.ideia_central;
-          merged.produto_focal = opt.produto_focal;
+          merged.titulo = opt.titulo ?? '';
+          merged.ideia_central = opt.ideia_central ?? '';
+          merged.produto_focal = opt.produto_focal ?? '';
+          merged.selecionado = true;
         }
       }
       return merged;
@@ -36,17 +57,19 @@ export default function TemasAnualPicker({ value = [], onChange, ciclos = null }
 
   const editChosen = (mes, field, fieldValue) => {
     const next = list.map((item) => {
-      const n = normalizeTemaMesSugestao(item);
-      if (n.mes !== mes) return n;
-      const opcoes = n.opcoes.map((o) =>
-        o.id === n.selecionado_id ? { ...o, [field]: fieldValue } : o
+      const itemMes = Number(item?.mes);
+      if (itemMes !== mes) return item;
+      const selecionadoId = item.selecionado_id || 'principal';
+      const opcoes = (Array.isArray(item.opcoes) ? item.opcoes : []).map((o) =>
+        o.id === selecionadoId ? { ...o, [field]: fieldValue } : o
       );
-      return normalizeTemaMesSugestao({
-        ...n,
+      return {
+        ...item,
         [field]: fieldValue,
         opcoes,
         origem: 'humano',
-      });
+        selecionado: true,
+      };
     });
     onChange?.(next);
   };
@@ -70,15 +93,17 @@ export default function TemasAnualPicker({ value = [], onChange, ciclos = null }
       </div>
 
       <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-        {list.map((tema) => {
-          const t = normalizeTemaMesSugestao(tema);
+        {list.map((t) => {
+          const mes = Number(t?.mes) || 1;
+          const opcoes = Array.isArray(t.opcoes) ? t.opcoes : [];
+          const selecionadoId = t.selecionado_id || 'principal';
           return (
             <div
-              key={t.mes}
+              key={mes}
               className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-slate-900">{MES_LABELS[t.mes]}</span>
+                <span className="font-semibold text-slate-900">{labelFor(mes)}</span>
                 {t.ciclo && (
                   <Badge variant="secondary">
                     {CICLO_LABELS[t.ciclo] || t.ciclo}
@@ -88,13 +113,13 @@ export default function TemasAnualPicker({ value = [], onChange, ciclos = null }
               </div>
 
               <div className="grid sm:grid-cols-2 gap-2">
-                {t.opcoes.map((opt) => {
-                  const selected = t.selecionado_id === opt.id;
+                {opcoes.map((opt) => {
+                  const selected = selecionadoId === opt.id;
                   return (
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() => updateMes(t.mes, { selecionado_id: opt.id })}
+                      onClick={() => updateMes(mes, { selecionado_id: opt.id })}
                       className={`text-left rounded-lg border p-3 transition-colors ${
                         selected
                           ? 'border-[#6C47D8] bg-[#F5F2FC] ring-1 ring-[#6C47D8]'
@@ -121,16 +146,16 @@ export default function TemasAnualPicker({ value = [], onChange, ciclos = null }
                 <div className="space-y-1">
                   <Label className="text-xs">Título do tema</Label>
                   <Input
-                    value={t.titulo || ''}
-                    onChange={(e) => editChosen(t.mes, 'titulo', e.target.value)}
+                    value={t.titulo ?? ''}
+                    onChange={(e) => editChosen(mes, 'titulo', e.target.value)}
                     placeholder="Nome da campanha"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Produto focal</Label>
                   <Input
-                    value={t.produto_focal || ''}
-                    onChange={(e) => editChosen(t.mes, 'produto_focal', e.target.value)}
+                    value={t.produto_focal ?? ''}
+                    onChange={(e) => editChosen(mes, 'produto_focal', e.target.value)}
                     placeholder="Linha / produto"
                   />
                 </div>
@@ -139,8 +164,8 @@ export default function TemasAnualPicker({ value = [], onChange, ciclos = null }
                 <Label className="text-xs">Ideia central</Label>
                 <Textarea
                   rows={2}
-                  value={t.ideia_central || ''}
-                  onChange={(e) => editChosen(t.mes, 'ideia_central', e.target.value)}
+                  value={t.ideia_central ?? ''}
+                  onChange={(e) => editChosen(mes, 'ideia_central', e.target.value)}
                   placeholder="Conceito em 1–2 frases"
                 />
               </div>

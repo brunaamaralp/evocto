@@ -9,7 +9,8 @@ import {
 } from '@/lib/campanhaAnualSchema';
 
 /**
- * Editor de linhas/produtos da Empresa (P0).
+ * Editor de linhas/produtos da Empresa.
+ * No cadastro, só nome + descrição — detalhes comerciais vêm depois no plano.
  */
 export default function ProdutosLinhasEditor({ value = [], onChange, errors = {} }) {
   const list = Array.isArray(value) ? value : [];
@@ -41,7 +42,7 @@ export default function ProdutosLinhasEditor({ value = [], onChange, errors = {}
         <div>
           <Label>Linhas / produtos</Label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Usado no plano anual (sazonalidade, story, margem).
+            Nome e descrição bastam no cadastro. Preço e margem entram depois, se precisar.
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={addLinha}>
@@ -87,76 +88,8 @@ export default function ProdutosLinhasEditor({ value = [], onChange, errors = {}
               <Textarea
                 value={produto.descricao || ''}
                 onChange={(e) => updateAt(index, { descricao: e.target.value })}
-                placeholder="Descrição"
+                placeholder="Descrição breve (opcional)"
                 className="min-h-[56px]"
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-xs">Preço min</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={produto.preco_faixa?.min ?? ''}
-                    onChange={(e) =>
-                      updateAt(index, {
-                        preco_faixa: {
-                          ...produto.preco_faixa,
-                          min: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Preço max</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={produto.preco_faixa?.max ?? ''}
-                    onChange={(e) =>
-                      updateAt(index, {
-                        preco_faixa: {
-                          ...produto.preco_faixa,
-                          max: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Margem %</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={produto.margem ?? ''}
-                    onChange={(e) => updateAt(index, { margem: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <Input
-                value={produto.sazonalidade || ''}
-                onChange={(e) => updateAt(index, { sazonalidade: e.target.value })}
-                placeholder="Sazonalidade (ex.: Fevereiro e Dezembro)"
-              />
-              <Input
-                value={produto.story || ''}
-                onChange={(e) => updateAt(index, { story: e.target.value })}
-                placeholder="Story / narrativa da linha"
-              />
-              <Input
-                value={Array.isArray(produto.skus) ? produto.skus.join(', ') : ''}
-                onChange={(e) =>
-                  updateAt(index, {
-                    skus: e.target.value
-                      .split(',')
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-                placeholder="SKUs (separados por vírgula)"
               />
             </div>
           ))}

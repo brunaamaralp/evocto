@@ -1,0 +1,86 @@
+/**
+ * Utilitários e botões legados usados em Settings/Financeiro.
+ * Compensa App.css vazio + ausência de import de forms/buttons no shell Evocto.
+ */
+
+.text-small {
+  font-size: var(--font-sm);
+  line-height: 1.45;
+}
+
+.text-muted {
+  color: var(--text-muted, #7a7595);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: var(--control-height-form, 40px);
+  padding: 0 14px;
+  border-radius: var(--control-radius, 10px);
+  font-family: var(--ff-ui, inherit);
+  font-size: var(--font-md, 0.875rem);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast, 140ms) var(--ease-standard, ease),
+    border-color var(--motion-fast, 140ms) var(--ease-standard, ease),
+    color var(--motion-fast, 140ms) var(--ease-standard, ease),
+    box-shadow var(--motion-fast, 140ms) var(--ease-standard, ease);
+}
+
+.btn-primary {
+  border: none;
+  background: var(--color-primary, #6c47d8);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(108, 71, 216, 0.22);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary, #6c47d8) 88%, #18162a);
+}
+
+.btn-secondary {
+  border: 0.5px solid var(--color-card-border, #e8e5f5);
+  background: var(--color-primary-surface, #ede9fb);
+  color: var(--color-primary, #6c47d8);
+}
+
+.btn-outline {
+  border: 1px solid var(--color-card-border, #e8e5f5);
+  background: var(--color-card-bg, #fff);
+  color: var(--color-primary, #6c47d8);
+}
+
+.btn-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-primary, #6c47d8);
+}
+
+.btn-outline:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-primary-surface, #ede9fb);
+  border-color: color-mix(in srgb, var(--color-primary-light, #afa9ec) 55%, var(--color-card-border, #e8e5f5));
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: var(--font-sm, 0.75rem);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-outline:disabled,
+.btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

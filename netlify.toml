@@ -5,7 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["lib/server/**"]
+  included_files = ["lib/server/**", "src/lib/**"]
 
 # APIs antes do SPA fallback
 [[redirects]]
@@ -59,6 +59,30 @@
 [[redirects]]
   from = "/api/campaigns/agent/*"
   to = "/.netlify/functions/campaigns-agent"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campanha-anual-temas"
+  to = "/.netlify/functions/campanha-anual-temas"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campanha-anual-temas/"
+  to = "/.netlify/functions/campanha-anual-temas"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campanha-anual"
+  to = "/.netlify/functions/campanha-anual"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/campanha-anual/"
+  to = "/.netlify/functions/campanha-anual"
   status = 200
   force = true
 

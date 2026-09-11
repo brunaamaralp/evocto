@@ -58,6 +58,47 @@ export const DIMENSAO_KEYS = Object.freeze([
 
 const MESES = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
+/** Mês civil 1–12; default 1 (janeiro). */
+export function normalizeMesInicio(v, fallback = 1) {
+  const n = asNumber(v, fallback);
+  if (!Number.isFinite(n) || n < 1 || n > 12) return fallback;
+  return Math.floor(n);
+}
+
+/**
+ * Janela de 12 meses a partir de mes_inicio (ex.: 8 → [8..12,1..7]).
+ * `mes` permanece o mês civil; a ordem define o “ano comercial”.
+ */
+export function planMonthWindow(mesInicio = 1) {
+  const start = normalizeMesInicio(mesInicio);
+  return Array.from({ length: 12 }, (_, i) => ((start - 1 + i) % 12) + 1);
+}
+
+/**
+ * Ano civil de um mês do plano. Ex.: mes_inicio=8, ano=2026 → jan=2027.
+ */
+export function calendarYearForPlanMonth(mes, mesInicio, anoInicio) {
+  const m = asNumber(mes, 1);
+  const start = normalizeMesInicio(mesInicio);
+  const y = asNumber(anoInicio, new Date().getFullYear());
+  if (start === 1) return y;
+  return m >= start ? y : y + 1;
+}
+
+/** Índice 0–11 na janela do plano (para ordenar listas). */
+export function planMonthIndex(mes, mesInicio = 1) {
+  const win = planMonthWindow(mesInicio);
+  const idx = win.indexOf(asNumber(mes, 0));
+  return idx >= 0 ? idx : 0;
+}
+
+export function sortByPlanMonth(items, mesInicio = 1, getMes = (x) => x?.mes) {
+  const list = Array.isArray(items) ? [...items] : [];
+  return list.sort(
+    (a, b) => planMonthIndex(getMes(a), mesInicio) - planMonthIndex(getMes(b), mesInicio)
+  );
+}
+
 function asString(v, fallback = '') {
   return v == null ? fallback : String(v).trim();
 }
@@ -306,8 +347,9 @@ export function normalizeBriefingMesSeed(raw = {}, mesFallback = 1) {
 /**
  * Gera 12 seeds a partir dos ciclos (preenche ciclo_comercial por mês).
  * Seeds existentes são preservados/mesclados.
+ * Ordem segue a janela do plano (mes_inicio).
  */
-export function buildBriefingsMesSeeds(ciclos, existing = []) {
+export function buildBriefingsMesSeeds(ciclos, existing = [], mesInicio = 1) {
   const mapCiclo = mesParaCicloMap(ciclos);
   const byMes = new Map(
     (Array.isArray(existing) ? existing : []).map((s) => {
@@ -316,7 +358,7 @@ export function buildBriefingsMesSeeds(ciclos, existing = []) {
     })
   );
 
-  return MESES.map((mes) => {
+  return planMonthWindow(mesInicio).map((mes) => {
     const base = byMes.get(mes) || emptyBriefingMesSeed(mes);
     const ciclo = mapCiclo[mes];
     return {
@@ -551,9 +593,9 @@ export function normalizeSugestao(raw = {}) {
   };
 }
 
-export function normalizeGeracaoIaOutput(raw = {}) {
+export function normalizeGeracaoIaOutput(raw = {}, mesInicio = 1) {
   const campanhasRaw = Array.isArray(raw.campanhas) ? raw.campanhas : [];
-  const campanhas = MESES.map((mes) => {
+  const campanhas = planMonthWindow(mesInicio).map((mes) => {
     const found = campanhasRaw.find((c) => asNumber(c?.mes, 0) === mes);
     return normalizeCampanhaMesGerada(found || { mes }, mes);
   });
@@ -575,8 +617,8 @@ export function normalizeGeracaoIaOutput(raw = {}) {
  * Valida coerência do output com os ciclos atribuídos no input.
  * Meses sem ciclo esperado e sem conteúdo são ignorados (lotes parciais).
  */
-export function validateGeracaoIaOutput(output, ciclosEsperados) {
-  const geracao = normalizeGeracaoIaOutput(output);
+export function validateGeracaoIaOutput(output, ciclosEsperados, mesInicio = 1) {
+  const geracao = normalizeGeracaoIaOutput(output, mesInicio);
   const map = mesParaCicloMap(ciclosEsperados);
   const errors = {};
   const avisos = [...geracao.avisos];
@@ -629,14 +671,17 @@ export function buildInputIaFromAnual({
   ciclos_comerciais,
   briefings_mes = [],
   ano,
+  mes_inicio = 1,
 }) {
   const formato = empresa?.formato_padrao || {};
   const ciclos = normalizeCiclosComerciais(ciclos_comerciais);
-  const seeds = buildBriefingsMesSeeds(ciclos, briefings_mes);
+  const mesInicio = normalizeMesInicio(mes_inicio, 1);
+  const seeds = buildBriefingsMesSeeds(ciclos, briefings_mes, mesInicio);
   const tom = asString(empresa?.tom_brand || empresa?.tom_marca);
 
   return {
     ano: asNumber(ano, new Date().getFullYear()),
+    mes_inicio: mesInicio,
     empresa: {
       nome: asString(empresa?.nome),
       publico_alvo: asString(empresa?.publico_alvo),
@@ -737,7 +782,7 @@ export function normalizeTemaMesSugestao(raw = {}, mesFallback = 1) {
   };
 }
 
-export function normalizeTemasSugeridos(raw = [], ciclos = null) {
+export function normalizeTemasSugeridos(raw = [], ciclos = null, mesInicio = 1) {
   const map = mesParaCicloMap(ciclos || emptyCiclosComerciais());
   const byMes = new Map();
   if (Array.isArray(raw)) {
@@ -746,7 +791,7 @@ export function normalizeTemasSugeridos(raw = [], ciclos = null) {
       byMes.set(n.mes, n);
     }
   }
-  return MESES.map((mes) => {
+  return planMonthWindow(mesInicio).map((mes) => {
     const existing = byMes.get(mes);
     if (existing) {
       return {
@@ -759,9 +804,14 @@ export function normalizeTemasSugeridos(raw = [], ciclos = null) {
 }
 
 /** Aplica temas escolhidos como seeds efetivos para a geração 9 dimensões. */
-export function applyTemasEscolhidosToSeeds(temas, ciclos, existingSeeds = []) {
-  const seeds = buildBriefingsMesSeeds(ciclos, existingSeeds);
-  const temasN = normalizeTemasSugeridos(temas, ciclos);
+export function applyTemasEscolhidosToSeeds(
+  temas,
+  ciclos,
+  existingSeeds = [],
+  mesInicio = 1
+) {
+  const seeds = buildBriefingsMesSeeds(ciclos, existingSeeds, mesInicio);
+  const temasN = normalizeTemasSugeridos(temas, ciclos, mesInicio);
   return seeds.map((seed) => {
     const tema = temasN.find((t) => t.mes === seed.mes);
     if (!tema || !tema.selecionado || !tema.titulo) return seed;
@@ -791,16 +841,20 @@ export function countTemasEscolhidos(temas) {
 }
 
 export function emptyCampanhaAnualPayload() {
+  const now = new Date();
+  const mesInicio = now.getMonth() + 1;
   return {
     brief_kind: BRIEF_KIND_ANUAL,
-    ano: new Date().getFullYear(),
+    ano: now.getFullYear(),
+    /** Mês civil em que o plano começa (12 meses a partir daqui). */
+    mes_inicio: mesInicio,
     status_anual: 'rascunho',
     empresaId: null,
     ciclos_comerciais: emptyCiclosComerciais(),
     /** Snapshot opcional no momento da geração (desacopla de edits posteriores na Empresa) */
     produtos_snapshot: [],
-    briefings_mes: MESES.map((m) => emptyBriefingMesSeed(m)),
-    temas_sugeridos: MESES.map((m) => emptyTemaMesSugestao(m)),
+    briefings_mes: planMonthWindow(mesInicio).map((m) => emptyBriefingMesSeed(m)),
+    temas_sugeridos: planMonthWindow(mesInicio).map((m) => emptyTemaMesSugestao(m)),
     temas_gerados: false,
     campanhas: [],
     validacoes: emptyValidacoes(),
@@ -821,12 +875,17 @@ export function emptyCampanhaAnualPayload() {
 export function normalizeCampanhaAnualPayload(raw = {}) {
   const base = emptyCampanhaAnualPayload();
   const status = asString(raw.status_anual) || base.status_anual;
+  const mes_inicio = normalizeMesInicio(
+    raw.mes_inicio ?? raw.mesInicio,
+    // Planos antigos sem mes_inicio = calendário Jan–Dez
+    raw.mes_inicio == null && raw.mesInicio == null ? 1 : base.mes_inicio
+  );
   const ciclos = normalizeCiclosComerciais(raw.ciclos_comerciais);
-  const briefings_mes = buildBriefingsMesSeeds(ciclos, raw.briefings_mes);
+  const briefings_mes = buildBriefingsMesSeeds(ciclos, raw.briefings_mes, mes_inicio);
 
   let campanhas = [];
   if (Array.isArray(raw.campanhas) && raw.campanhas.length) {
-    campanhas = MESES.map((mes) => {
+    campanhas = planMonthWindow(mes_inicio).map((mes) => {
       const found = raw.campanhas.find((c) => asNumber(c?.mes, 0) === mes);
       return normalizeCampanhaMesGerada(found || { mes }, mes);
     });
@@ -837,6 +896,7 @@ export function normalizeCampanhaAnualPayload(raw = {}) {
     ...raw,
     brief_kind: BRIEF_KIND_ANUAL,
     ano: asNumber(raw.ano, base.ano),
+    mes_inicio,
     status_anual: STATUS_CAMPANHA_ANUAL.includes(status) ? status : 'rascunho',
     empresaId: raw.empresaId || null,
     ciclos_comerciais: ciclos,
@@ -844,7 +904,11 @@ export function normalizeCampanhaAnualPayload(raw = {}) {
       raw.produtos_snapshot || raw.produtos_linhas
     ),
     briefings_mes,
-    temas_sugeridos: normalizeTemasSugeridos(raw.temas_sugeridos, ciclos),
+    temas_sugeridos: normalizeTemasSugeridos(
+      raw.temas_sugeridos,
+      ciclos,
+      mes_inicio
+    ),
     temas_gerados: Boolean(raw.temas_gerados),
     campanhas,
     validacoes: normalizeValidacoes(raw.validacoes),
@@ -871,7 +935,8 @@ export function applyTemasIaToAnual(anualPayload, temasOutput, { model } = {}) {
   const base = normalizeCampanhaAnualPayload(anualPayload);
   const temas = normalizeTemasSugeridos(
     temasOutput?.temas || temasOutput?.temas_sugeridos || [],
-    base.ciclos_comerciais
+    base.ciclos_comerciais,
+    base.mes_inicio
   ).map((t) => ({ ...t, origem: 'ia' }));
   const { complete } = countTemasEscolhidos(temas);
   return {
@@ -889,8 +954,12 @@ export function applyTemasIaToAnual(anualPayload, temasOutput, { model } = {}) {
   };
 }
 
-export function validateTemasIaOutput(raw, ciclos) {
-  const temas = normalizeTemasSugeridos(raw?.temas || raw?.temas_sugeridos || [], ciclos);
+export function validateTemasIaOutput(raw, ciclos, mesInicio = 1) {
+  const temas = normalizeTemasSugeridos(
+    raw?.temas || raw?.temas_sugeridos || [],
+    ciclos,
+    mesInicio
+  );
   const errors = {};
   const withTitle = temas.filter((t) => asString(t.titulo) || asString(t.opcoes?.[0]?.titulo));
   if (withTitle.length < 12) {
@@ -908,6 +977,9 @@ export function validateCampanhaAnualDraft(payload) {
   const errors = {};
 
   if (!p.ano || p.ano < 2020 || p.ano > 2100) errors.ano = 'Ano inválido';
+  if (!p.mes_inicio || p.mes_inicio < 1 || p.mes_inicio > 12) {
+    errors.mes_inicio = 'Mês de início inválido';
+  }
   if (!p.empresaId) errors.empresaId = 'empresaId obrigatório';
 
   const cic = validateCiclosComerciais(p.ciclos_comerciais, {
@@ -939,11 +1011,16 @@ export function buildCampanhaAnualBriefPayload({
   clientId,
   empresa,
   ano = new Date().getFullYear(),
+  mes_inicio = null,
   ciclos_comerciais = null,
   briefings_mes = null,
   userId = null,
   existing = null,
 }) {
+  const mesInicio = normalizeMesInicio(
+    mes_inicio ?? existing?.mes_inicio,
+    new Date().getMonth() + 1
+  );
   const ciclos = normalizeCiclosComerciais(
     ciclos_comerciais || existing?.ciclos_comerciais
   );
@@ -952,13 +1029,15 @@ export function buildCampanhaAnualBriefPayload({
   );
   const seeds = buildBriefingsMesSeeds(
     ciclos,
-    briefings_mes || existing?.briefings_mes
+    briefings_mes || existing?.briefings_mes,
+    mesInicio
   );
 
   const draft = normalizeCampanhaAnualPayload({
     ...(existing || {}),
     brief_kind: BRIEF_KIND_ANUAL,
     ano,
+    mes_inicio: mesInicio,
     empresaId: empresa?.id || existing?.empresaId || null,
     ciclos_comerciais: ciclos,
     produtos_snapshot: produtos,
@@ -974,7 +1053,17 @@ export function buildCampanhaAnualBriefPayload({
     payload.status_anual = 'input_pronto';
   }
 
-  const title = `Plano anual ${payload.ano} — ${asString(empresa?.nome) || 'Campanhas'}`;
+  const endMes = planMonthWindow(payload.mes_inicio)[11];
+  const endAno = calendarYearForPlanMonth(
+    endMes,
+    payload.mes_inicio,
+    payload.ano
+  );
+  const periodLabel =
+    payload.mes_inicio === 1 && endAno === payload.ano
+      ? String(payload.ano)
+      : `${payload.mes_inicio}/${payload.ano}–${endMes}/${endAno}`;
+  const title = `Plano anual ${periodLabel} — ${asString(empresa?.nome) || 'Campanhas'}`;
 
   return {
     agencyId,
@@ -986,7 +1075,7 @@ export function buildCampanhaAnualBriefPayload({
     ...payload,
     clientVisible: existing?.clientVisible === true,
     // Compat hub
-    objectives: `Plano anual ${payload.ano}`,
+    objectives: `Plano anual ${periodLabel}`,
     business_context: `Ciclos: ${CICLOS_COMERCIAIS.map(
       (c) => `${c}=${payload.ciclos_comerciais[c].length}`
     ).join(', ')}`,
@@ -1004,7 +1093,8 @@ export function applyGeracaoIaToAnual(anualPayload, iaOutput, { model } = {}) {
   const base = normalizeCampanhaAnualPayload(anualPayload);
   const { value: geracao, valid, errors } = validateGeracaoIaOutput(
     iaOutput,
-    base.ciclos_comerciais
+    base.ciclos_comerciais,
+    base.mes_inicio
   );
 
   return {
@@ -1056,11 +1146,15 @@ export function parsePeriodoGravacao(dataGravacao, mes, ano) {
  * As 9 dimensões NÃO cabem no form rápido — ficam no plano anual;
  * o mensal recebe resumo operacional.
  */
-export function mapAnualMesToCampanhaMensalForm(campanhaMes, { ano } = {}) {
+export function mapAnualMesToCampanhaMensalForm(
+  campanhaMes,
+  { ano, mes_inicio = 1 } = {}
+) {
   const c = normalizeCampanhaMesGerada(campanhaMes);
   const prod = c['07_producao'] || {};
   const est = c['01_estrategia'] || {};
-  const datas = parsePeriodoGravacao(prod.data_gravacao, c.mes, ano);
+  const year = calendarYearForPlanMonth(c.mes, mes_inicio, ano);
+  const datas = parsePeriodoGravacao(prod.data_gravacao, c.mes, year);
 
   const acoes = [
     est.oferta && `Oferta: ${est.oferta}`,

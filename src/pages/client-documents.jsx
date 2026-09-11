@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { ClientDocument } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -7,11 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   FileText, Download, Upload, Eye,
   Search, User, 
   File, Image, Archive, Share2,
-  ArrowLeft, RefreshCw
+  ArrowLeft, RefreshCw, Loader2
 } from 'lucide-react';
 import {
   Select,
@@ -27,6 +35,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getCardPastel } from '@/lib/modulePastels';
+import { UploadFile } from '@/api/integrations';
 
 const DOCUMENT_GROUPS = {
   diagnostic: 'Diagnóstico',
@@ -163,15 +172,18 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlig
 };
 
 export default function ClientDocumentsPage() {
-  const { _user, agencyId } = useSession();
+  const { user, agencyId, userId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
+  const serviceId = urlParams.get('serviceId');
   const documentId = urlParams.get('documentId');
 
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [client, setClient] = useState(null);
   const [_services, setServices] = useState([]);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -179,36 +191,38 @@ export default function ClientDocumentsPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedVisibility, setSelectedVisibility] = useState('all');
 
+  const loadData = useCallback(async () => {
+    if (!clientId) return;
+
+    try {
+      setLoading(true);
+
+      const [clientData, documentsData, servicesData] = await Promise.all([
+        Client.get(clientId),
+        ClientDocument.filter({ agencyId, clientId }, '-created_date'),
+        Service.filter({ agencyId, clientId, is_template: false })
+      ]);
+
+      setClient(clientData);
+      setDocuments(documentsData || []);
+      setServices(servicesData || []);
+
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar documentos do cliente');
+    } finally {
+      setLoading(false);
+    }
+  }, [clientId, agencyId]);
+
   useEffect(() => {
     if (!clientId) {
       toast.error('ID do cliente não fornecido');
       return;
     }
 
-    const loadData = async () => {
-      try {
-        setLoading(true);
-
-        const [clientData, documentsData, servicesData] = await Promise.all([
-          Client.get(clientId),
-          ClientDocument.filter({ agencyId, clientId }, '-created_date'),
-          Service.filter({ agencyId, clientId, is_template: false })
-        ]);
-
-        setClient(clientData);
-        setDocuments(documentsData || []);
-        setServices(servicesData || []);
-
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        toast.error('Erro ao carregar documentos do cliente');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
-  }, [clientId, agencyId]);
+  }, [clientId, loadData]);
 
   useEffect(() => {
     if (loading || !documentId) return;
@@ -217,6 +231,55 @@ export default function ClientDocumentsPage() {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [loading, documentId, documents]);
+
+  const handleUploadDocument = async (file, metadata) => {
+    if (!file) {
+      toast.error('Selecione um arquivo');
+      return;
+    }
+    if (!agencyId || !clientId) {
+      toast.error('Cliente ou agência não identificados');
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      const uploaded = await UploadFile({ file });
+      const fileUrl = uploaded.file_url || uploaded.url;
+      if (!fileUrl) throw new Error('URL do arquivo não retornada');
+
+      await ClientDocument.create({
+        agencyId,
+        clientId,
+        serviceId: serviceId || metadata.serviceId || null,
+        group: metadata.group || 'other',
+        title: metadata.title || file.name.replace(/\.[^/.]+$/, ''),
+        description: metadata.description || '',
+        fileName: file.name,
+        fileUrl,
+        fileType: file.type || 'application/octet-stream',
+        fileSize: file.size || 0,
+        version: '1.0',
+        visibility: metadata.visibility || 'internal',
+        status: metadata.status || 'approved',
+        metadata: {
+          uploaded_manually: true,
+          file_size: file.size,
+        },
+        uploadedBy: userId || user?.id || user?.email || 'Sistema',
+      });
+
+      toast.success('Documento enviado com sucesso!');
+      setUploadModalOpen(false);
+      await loadData();
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast.error(error?.message || 'Erro ao enviar documento');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleViewDocument = async (_document) => {
     // TODO: Implementar visualização do documento
@@ -316,7 +379,7 @@ export default function ClientDocumentsPage() {
               </p>
             </div>
           </div>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setUploadModalOpen(true)}>
             <Upload className="w-4 h-4 mr-1" />
             Upload
           </Button>
@@ -440,7 +503,7 @@ export default function ClientDocumentsPage() {
             }
             primaryAction={{
               label: 'Upload Documento',
-              onClick: () => toast.info('Upload em desenvolvimento'),
+              onClick: () => setUploadModalOpen(true),
               icon: Upload
             }}
             secondaryAction={
@@ -456,6 +519,182 @@ export default function ClientDocumentsPage() {
             }
           />
         )}
+
+        <DocumentUploadModal
+          isOpen={uploadModalOpen}
+          onClose={() => !uploading && setUploadModalOpen(false)}
+          onUpload={handleUploadDocument}
+          uploading={uploading}
+        />
     </div>
+  );
+}
+
+function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
+  const [file, setFile] = useState(null);
+  const [metadata, setMetadata] = useState({
+    title: '',
+    description: '',
+    group: 'other',
+    visibility: 'internal',
+    status: 'approved',
+  });
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFile(null);
+      setMetadata({
+        title: '',
+        description: '',
+        group: 'other',
+        visibility: 'internal',
+        status: 'approved',
+      });
+    }
+  }, [isOpen]);
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files?.[0] || null;
+    setFile(selected);
+    if (selected && !metadata.title) {
+      setMetadata((prev) => ({
+        ...prev,
+        title: selected.name.replace(/\.[^/.]+$/, ''),
+      }));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!file) {
+      toast.error('Selecione um arquivo');
+      return;
+    }
+    if (!metadata.title.trim()) {
+      toast.error('Informe o título do documento');
+      return;
+    }
+    onUpload(file, metadata);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Upload de Documento</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="document-file">Arquivo</Label>
+            <Input
+              id="document-file"
+              type="file"
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip"
+              required
+              disabled={uploading}
+            />
+            {file && (
+              <p className="text-xs text-[#7A7595]">
+                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="document-title">Título</Label>
+            <Input
+              id="document-title"
+              value={metadata.title}
+              onChange={(e) => setMetadata((prev) => ({ ...prev, title: e.target.value }))}
+              required
+              disabled={uploading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="document-description">Descrição (opcional)</Label>
+            <Textarea
+              id="document-description"
+              value={metadata.description}
+              onChange={(e) => setMetadata((prev) => ({ ...prev, description: e.target.value }))}
+              rows={3}
+              disabled={uploading}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Grupo</Label>
+              <Select
+                value={metadata.group}
+                onValueChange={(value) => setMetadata((prev) => ({ ...prev, group: value }))}
+                disabled={uploading}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DOCUMENT_GROUPS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Visibilidade</Label>
+              <Select
+                value={metadata.visibility}
+                onValueChange={(value) => setMetadata((prev) => ({ ...prev, visibility: value }))}
+                disabled={uploading}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(VISIBILITY_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select
+              value={metadata.status}
+              onValueChange={(value) => setMetadata((prev) => ({ ...prev, status: value }))}
+              disabled={uploading}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={uploading}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={uploading || !file}>
+              {uploading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4 mr-2" />
+              )}
+              {uploading ? 'Enviando...' : 'Enviar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

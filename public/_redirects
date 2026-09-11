@@ -9,6 +9,10 @@
 /api/campaigns-agent  /.netlify/functions/campaigns-agent  200!
 /api/campaigns-agent/  /.netlify/functions/campaigns-agent  200!
 /api/campaigns/agent/*  /.netlify/functions/campaigns-agent  200!
+/api/campanha-anual-temas  /.netlify/functions/campanha-anual-temas  200!
+/api/campanha-anual-temas/  /.netlify/functions/campanha-anual-temas  200!
+/api/campanha-anual  /.netlify/functions/campanha-anual  200!
+/api/campanha-anual/  /.netlify/functions/campanha-anual  200!
 
 # SPA
 /*    /index.html   200

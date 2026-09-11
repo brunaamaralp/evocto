@@ -2,9 +2,11 @@ import { Brief, CyclePlan, Service } from '@/api/entities';
 import { createMonthCycle } from '@/api/functions/createMonthCycle';
 import { saveCampanhaBriefing } from '@/lib/campanhaBriefing';
 import {
+  calendarYearForPlanMonth,
   mapAnualMesToCampanhaMensalForm,
   normalizeCampanhaAnualPayload,
   normalizeCampanhaMesGerada,
+  planMonthWindow,
   summarizeAnualProgress,
 } from '@/lib/campanhaAnualSchema';
 import {
@@ -24,6 +26,7 @@ export async function materializeAnualMesToCycle({
   clientId,
   empresa,
   ano,
+  mes_inicio,
   userId,
   startDate,
   generateTasks = true,
@@ -34,11 +37,16 @@ export async function materializeAnualMesToCycle({
     throw new Error('Salve o plano e configure a empresa antes de materializar');
   }
 
+  const mesInicio =
+    mes_inicio ?? existingPayload?.mes_inicio ?? 1;
   const c = normalizeCampanhaMesGerada(campanhaMes);
-  const form = mapAnualMesToCampanhaMensalForm(c, { ano });
+  const form = mapAnualMesToCampanhaMensalForm(c, {
+    ano,
+    mes_inicio: mesInicio,
+  });
 
   if (!form.data_gravacao_inicio || !form.data_gravacao_fim) {
-    const y = Number(ano) || new Date().getFullYear();
+    const y = calendarYearForPlanMonth(c.mes, mesInicio, ano);
     const m = String(c.mes).padStart(2, '0');
     form.data_gravacao_inicio = `${y}-${m}-01`;
     form.data_gravacao_fim = `${y}-${m}-10`;
@@ -179,15 +187,19 @@ export async function materializeAnualMesToCycle({
  */
 export async function materializeAnualAllMonths(opts = {}) {
   const base = normalizeCampanhaAnualPayload(opts.existingPayload || {});
+  const mesInicio = opts.mes_inicio ?? base.mes_inicio ?? 1;
+  const order = planMonthWindow(mesInicio);
   const pending = (base.campanhas || [])
     .map((c) => normalizeCampanhaMesGerada(c))
-    .filter((c) => c.status_mes !== 'materializado' && c.status_mes !== 'rejeitado');
+    .filter((c) => c.status_mes !== 'materializado' && c.status_mes !== 'rejeitado')
+    .sort((a, b) => order.indexOf(a.mes) - order.indexOf(b.mes));
 
   const results = [];
   let payload = base;
   for (const mes of pending) {
     const r = await materializeAnualMesToCycle({
       ...opts,
+      mes_inicio: mesInicio,
       campanhaMes: mes,
       existingPayload: payload,
     });

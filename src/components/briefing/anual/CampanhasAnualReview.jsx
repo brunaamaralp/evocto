@@ -14,7 +14,9 @@ import { createPageUrl } from '@/utils';
 import { CICLO_LABELS, MES_LABELS } from '@/lib/campanhaAnual';
 import {
   DIMENSAO_KEYS,
+  calendarYearForPlanMonth,
   normalizeCampanhaMesGerada,
+  sortByPlanMonth,
 } from '@/lib/campanhaAnualSchema';
 import {
   materializeAnualAllMonths,
@@ -69,6 +71,7 @@ export default function CampanhasAnualReview({
   clientId = null,
   agencyId = null,
   ano = null,
+  mesInicio = 1,
   empresa = null,
   existingPayload = null,
   onMaterialized,
@@ -78,8 +81,20 @@ export default function CampanhasAnualReview({
   const [openMes, setOpenMes] = useState(null);
   const [busyMes, setBusyMes] = useState(null);
   const [busyAll, setBusyAll] = useState(false);
-  const list = (campanhas || []).map((c) => normalizeCampanhaMesGerada(c));
+  const list = sortByPlanMonth(
+    (campanhas || []).map((c) => normalizeCampanhaMesGerada(c)),
+    mesInicio ?? existingPayload?.mes_inicio ?? 1
+  );
 
+  const labelFor = (mes) => {
+    const base = MES_LABELS[mes] || String(mes);
+    const y = calendarYearForPlanMonth(
+      mes,
+      mesInicio ?? existingPayload?.mes_inicio ?? 1,
+      ano
+    );
+    return `${base}/${String(y).slice(2)}`;
+  };
   const handleMaterializar = async (campanhaMes) => {
     if (!briefingId || !clientId || !agencyId || !empresa?.id) {
       toast.error('Salve o plano e configure a empresa antes de abrir a campanha do mês');
@@ -107,12 +122,13 @@ export default function CampanhasAnualReview({
         clientId,
         empresa,
         ano,
+        mes_inicio: mesInicio ?? existingPayload?.mes_inicio,
         userId: user?.id || user?.$id || null,
         generateTasks: true,
       });
       onMaterialized?.(result.anualPayload);
       toast.success(
-        `Mês ${MES_LABELS[c.mes]} materializado` +
+        `Mês ${labelFor(c.mes)} materializado` +
           (result.tasksCreated ? ` · ${result.tasksCreated} tarefas` : '')
       );
       if (result.service?.id) {
@@ -149,6 +165,7 @@ export default function CampanhasAnualReview({
         clientId,
         empresa,
         ano,
+        mes_inicio: mesInicio ?? existingPayload?.mes_inicio,
         userId: user?.id || user?.$id || null,
         generateTasks: true,
       });
@@ -261,7 +278,7 @@ export default function CampanhasAnualReview({
                         <div className="text-left space-y-1">
                           <CardTitle className="text-base font-semibold flex flex-wrap items-center gap-2">
                             <span>
-                              {MES_LABELS[c.mes]} — {c.nome_campanha || 'Sem nome'}
+                              {labelFor(c.mes)} — {c.nome_campanha || 'Sem nome'}
                             </span>
                             {c.ciclo_comercial && (
                               <Badge variant="secondary">
@@ -302,7 +319,11 @@ export default function CampanhasAnualReview({
                               navigate(
                                 buildBrainstormHref(clientId, {
                                   mes: c.mes,
-                                  ano,
+                                  ano: calendarYearForPlanMonth(
+                                    c.mes,
+                                    mesInicio ?? existingPayload?.mes_inicio ?? 1,
+                                    ano
+                                  ),
                                   planId: briefingId,
                                   modo: 'plano',
                                 })

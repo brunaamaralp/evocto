@@ -30,77 +30,74 @@ export default function FinanceSettingsDiscountPresetsSection({ presets = [], on
   };
 
   return (
-    <div className="card" style={{ padding: 16, marginTop: 16 }}>
-      <h4 className="finance-settings-subheading" style={{ margin: '0 0 6px' }}>
+    <div className="finance-discount-presets card">
+      <h4 className="finance-discount-presets__title">
         Condições promocionais na matrícula
       </h4>
-      <p className="text-small text-muted" style={{ margin: '0 0 14px', lineHeight: 1.45 }}>
-        Atalhos exibidos ao matricular ou editar o desconto do aluno (ex.: família, segurança pública).
-        O valor final sempre usa o <strong>preço do plano</strong> escolhido menos o percentual ou valor fixo.
+      <p className="finance-discount-presets__lead">
+        Atalhos exibidos ao matricular ou editar o desconto do aluno (ex.: família, segurança
+        pública). O valor final sempre usa o <strong>preço do plano</strong> escolhido menos o
+        percentual ou valor fixo.
       </p>
 
       {list.length === 0 ? (
-        <p className="text-small text-muted" style={{ margin: '0 0 12px' }}>
+        <p className="finance-discount-presets__empty">
           Nenhuma condição cadastrada. Adicione uma ou restaure os padrões.
         </p>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="finance-discount-presets__list">
           {list.map((preset, idx) => (
-            <div
-              key={preset.id || idx}
-              className="finance-settings-discount-preset-row"
-              style={{
-                display: 'grid',
-                gap: 8,
-                gridTemplateColumns: '1fr auto auto auto',
-                alignItems: 'end',
-              }}
-            >
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Nome</label>
-                <input
-                  className="form-input"
-                  value={preset.label || ''}
-                  placeholder="Ex.: Família"
-                  onChange={(e) => updateAt(idx, { label: e.target.value })}
-                />
-              </div>
-              <div className="form-group" style={{ margin: 0, minWidth: 120 }}>
-                <label className="form-label">Tipo</label>
-                <select
-                  className="form-input"
-                  value={preset.type === DISCOUNT_TYPES.FIXED ? DISCOUNT_TYPES.FIXED : DISCOUNT_TYPES.PERCENT}
-                  onChange={(e) => updateAt(idx, { type: e.target.value })}
+            <div key={preset.id || idx} className="finance-discount-presets__row">
+              <div className="finance-discount-presets__fields">
+                <label className="finance-discount-presets__field">
+                  <span className="finance-discount-presets__label">Nome</span>
+                  <input
+                    className="form-input"
+                    value={preset.label || ''}
+                    placeholder="Ex.: Família"
+                    onChange={(e) => updateAt(idx, { label: e.target.value })}
+                  />
+                </label>
+                <label className="finance-discount-presets__field finance-discount-presets__field--type">
+                  <span className="finance-discount-presets__label">Tipo</span>
+                  <select
+                    className="form-input"
+                    value={
+                      preset.type === DISCOUNT_TYPES.FIXED
+                        ? DISCOUNT_TYPES.FIXED
+                        : DISCOUNT_TYPES.PERCENT
+                    }
+                    onChange={(e) => updateAt(idx, { type: e.target.value })}
+                  >
+                    <option value={DISCOUNT_TYPES.PERCENT}>%</option>
+                    <option value={DISCOUNT_TYPES.FIXED}>R$</option>
+                  </select>
+                </label>
+                <label className="finance-discount-presets__field finance-discount-presets__field--amount">
+                  <span className="finance-discount-presets__label">Valor</span>
+                  <input
+                    className="form-input"
+                    type="text"
+                    inputMode="decimal"
+                    value={preset.amount ?? ''}
+                    onChange={(e) => {
+                      const raw = String(e.target.value || '').replace(',', '.');
+                      const n = parseFloat(raw);
+                      updateAt(idx, { amount: Number.isFinite(n) ? n : 0 });
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="btn-outline btn-sm finance-discount-presets__remove"
+                  aria-label="Remover condição"
+                  onClick={() => removeAt(idx)}
                 >
-                  <option value={DISCOUNT_TYPES.PERCENT}>%</option>
-                  <option value={DISCOUNT_TYPES.FIXED}>R$</option>
-                </select>
+                  <Trash2 size={14} aria-hidden />
+                </button>
               </div>
-              <div className="form-group" style={{ margin: 0, minWidth: 88 }}>
-                <label className="form-label">Valor</label>
-                <input
-                  className="form-input"
-                  type="text"
-                  inputMode="decimal"
-                  value={preset.amount ?? ''}
-                  onChange={(e) => {
-                    const raw = String(e.target.value || '').replace(',', '.');
-                    const n = parseFloat(raw);
-                    updateAt(idx, { amount: Number.isFinite(n) ? n : 0 });
-                  }}
-                />
-              </div>
-              <button
-                type="button"
-                className="btn-outline btn-sm"
-                aria-label="Remover condição"
-                onClick={() => removeAt(idx)}
-                style={{ marginBottom: 2 }}
-              >
-                <Trash2 size={14} aria-hidden />
-              </button>
               {preset.label ? (
-                <p className="text-small text-muted" style={{ gridColumn: '1 / -1', margin: 0 }}>
+                <p className="finance-discount-presets__preview">
                   Na matrícula: {formatPresetOptionLabel(preset)}
                 </p>
               ) : null}
@@ -109,7 +106,7 @@ export default function FinanceSettingsDiscountPresetsSection({ presets = [], on
         </div>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+      <div className="finance-discount-presets__actions">
         <button type="button" className="btn-outline btn-sm" onClick={addPreset}>
           <Plus size={14} aria-hidden />
           Adicionar condição

@@ -2,6 +2,10 @@ import ReactDOM from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import App from '@/App.jsx'
 import '@/index.css'
+/* Depois do Tailwind preflight — formulários/botões legados (Settings/Financeiro) */
+import '@/styles/forms.css'
+import '@/styles/legacy-ui.css'
+import '@/styles/buttons.css'
 import { client } from '@/lib/appwrite'
 import { notifyPWAUpdateAvailable } from '@/hooks/usePWA'
 
