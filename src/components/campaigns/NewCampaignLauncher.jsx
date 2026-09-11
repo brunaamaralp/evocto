@@ -211,7 +211,7 @@ export default function NewCampaignLauncher({
                     ) : (
                       <Rocket className="mr-1.5 h-4 w-4" />
                     )}
-                    {materializing ? 'Materializando…' : 'Materializar mês (campanha + ciclo)'}
+                    {materializing ? 'Materializando…' : 'Materializar mês'}
                   </Button>
                 ) : null}
               </div>

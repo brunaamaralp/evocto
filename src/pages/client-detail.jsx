@@ -7,7 +7,6 @@ import {
   Circle,
   AlertCircle,
   Loader2,
-  CalendarDays,
   Briefcase,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -38,6 +37,7 @@ import {
 import {
   getServiceDisplayName,
   getServiceOperationProfile,
+  isKnownServiceProfile,
   OPERATION_PATTERNS,
   PERIOD_MODES,
   UNIT_KINDS,
@@ -244,6 +244,11 @@ export default function ClientDetailPage() {
       return;
     }
 
+    if (!isKnownServiceProfile(selectedProfile)) {
+      toast.info('Configure o template do serviço no Backstage antes de operar.');
+      return;
+    }
+
     if (selectedProfile.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF) {
       setLauncherOpen(true);
       return;
@@ -273,7 +278,7 @@ export default function ClientDetailPage() {
           title,
           ownerId: userId || user?.id || user?.$id || null,
         });
-        toast.success(`${title} criado`);
+        toast.success(unitCreatedToast(selectedProfile, title));
         setUnitModalOpen(false);
         await reload?.();
       } catch (err) {
@@ -283,7 +288,7 @@ export default function ClientDetailPage() {
         setUnitSaving(false);
       }
     },
-    [selectedService, agencyId, clientId, userId, user, reload]
+    [selectedService, selectedProfile, agencyId, clientId, userId, user, reload]
   );
 
   if (!isAuthenticated) {
@@ -400,7 +405,8 @@ export default function ClientDetailPage() {
   ];
 
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
-  const showSetup = !hasService || completedSteps < setupChecklist.length;
+  const needsOnboarding = !hasService || !hasOperation;
+  const onlyInvitePending = hasService && hasOperation && !hasInvite;
 
   const statusLabel = client.status
     ? String(client.status).charAt(0).toUpperCase() + String(client.status).slice(1)
@@ -410,7 +416,7 @@ export default function ClientDetailPage() {
     isCampaignLens && planMonth?.actionable;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-1 pb-8 sm:px-0">
+    <div className="mx-auto max-w-4xl space-y-6 px-1 pb-8 sm:px-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <ClientHubHeader
           clientName={client.name}
@@ -429,27 +435,13 @@ export default function ClientDetailPage() {
       </div>
 
       {!hasService ? (
-        <section className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#007bff]">
-                Próximo passo
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[#111]">
-                Qual serviço {client.name} contratou?
-              </p>
-              <p className="text-xs text-[#555]">
-                Sem serviço, não há operação para executar.
-              </p>
-            </div>
-            <Button
-              className="bg-[#007bff] hover:bg-[#0056b3]"
-              onClick={() => setServiceSetupOpen(true)}
-            >
-              <Briefcase className="mr-1.5 h-4 w-4" />
-              Definir serviço
-            </Button>
-          </div>
+        <section className="rounded-lg border border-[#e8eef5] bg-[#f7fafc] px-4 py-4">
+          <p className="text-sm font-medium text-[#111]">
+            Qual serviço {client.name} contratou?
+          </p>
+          <p className="mt-0.5 text-sm text-[#666]">
+            Sem serviço, não há operação para executar.
+          </p>
         </section>
       ) : null}
 
@@ -464,47 +456,60 @@ export default function ClientDetailPage() {
       ) : null}
 
       {hasService && selectedService ? (
-        <section id="operacao" className="space-y-5">
+        <section id="operacao" className="space-y-4">
           <ServiceOperationHeader
             service={selectedService}
             profile={selectedProfile}
             periodLabel={primaryPeriodLabel}
             onCreate={handleCreateUnit}
+            hasUnits={Boolean(lens?.unitsCount > 0)}
           />
 
+          {selectedService && !isKnownServiceProfile(selectedProfile) ? (
+            <div className="rounded-lg border border-[#eee] px-3 py-3 text-sm text-[#555]">
+              <p className="font-medium text-[#111]">Configuração do serviço incompleta</p>
+              <p className="mt-0.5">
+                Template operacional não reconhecido.{' '}
+                <Link
+                  to={createPageUrl(`client-services?clientId=${clientId}`)}
+                  className="font-medium text-[#007bff] hover:underline"
+                >
+                  Abrir Backstage
+                </Link>
+              </p>
+            </div>
+          ) : null}
+
           {showPlanBanner ? (
-            <div className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#007bff]">
-                    Mês do plano · {planMonth.mesLabel}
-                  </p>
-                  <p className="mt-1 truncate text-sm font-semibold text-[#111]">
-                    {planMonth.campanha?.nome_campanha ||
-                      planMonth.tema?.titulo ||
-                      'Campanha planejada'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
-                    <Link
-                      to={buildBrainstormHref(clientId, {
-                        mes: currentMes,
-                        ano: annualPlan?.ano || currentAno,
-                        planId: annualPlan?.id,
-                        modo: 'plano',
-                      })}
-                    >
-                      <CalendarDays className="mr-1.5 h-4 w-4" />
-                      Brainstorm deste mês
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={buildAnnualPlanHref(clientId, annualPlan?.id)}>
-                      Ver plano anual
-                    </Link>
-                  </Button>
-                </div>
+            <div className="flex flex-col gap-2 border-l-2 border-[#d0d7e2] pl-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm text-[#666]">
+                  Planejamento · {planMonth.mesLabel}
+                </p>
+                <p className="truncate text-sm text-[#333]">
+                  {planMonth.campanha?.nome_campanha ||
+                    planMonth.tema?.titulo ||
+                    'Campanha planejada'}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                <Link
+                  to={buildBrainstormHref(clientId, {
+                    mes: currentMes,
+                    ano: annualPlan?.ano || currentAno,
+                    planId: annualPlan?.id,
+                    modo: 'plano',
+                  })}
+                  className="font-medium text-[#007bff] hover:underline"
+                >
+                  Brainstorm
+                </Link>
+                <Link
+                  to={buildAnnualPlanHref(clientId, annualPlan?.id)}
+                  className="font-medium text-[#666] hover:text-[#111] hover:underline"
+                >
+                  Plano anual
+                </Link>
               </div>
             </div>
           ) : null}
@@ -518,38 +523,40 @@ export default function ClientDetailPage() {
         </section>
       ) : null}
 
-      {showSetup && (!hasService || !hasOperation || !hasInvite) ? (
+      {needsOnboarding ? (
         <section
           aria-labelledby="setup-heading"
-          className="rounded-xl border border-[#eee] bg-[#fafafa] p-5 sm:p-6"
+          className="rounded-lg border border-[#eee] bg-[#fafafa] p-4 sm:p-5"
         >
-          <h2 id="setup-heading" className="text-base font-semibold text-[#111]">
+          <h2 id="setup-heading" className="text-sm font-medium text-[#111]">
             Configuração inicial ({completedSteps}/{setupChecklist.length})
           </h2>
-          <p className="mt-1 text-sm text-[#555]">
-            Serviço → operação → convite para {client.name}
-          </p>
-          <ul className="mt-5 space-y-3">
+          <ul className="mt-3 space-y-2">
             {setupChecklist.map((step) => (
               <li
                 key={step.id}
-                className="flex flex-col gap-3 rounded-xl border border-[#eee] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-lg border border-[#eee] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex min-w-0 items-start gap-3">
+                <div className="flex min-w-0 items-start gap-2.5">
                   {step.completed ? (
-                    <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#27ae60]" aria-hidden />
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#27ae60]" aria-hidden />
                   ) : (
-                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-[#555]" aria-hidden />
+                    <Circle className="mt-0.5 h-4 w-4 shrink-0 text-[#bbb]" aria-hidden />
                   )}
                   <div className="min-w-0">
-                    <h3 className="font-medium text-[#111]">{step.title}</h3>
-                    <p className="text-sm text-[#555]">{step.description}</p>
+                    <p className="text-sm font-medium text-[#111]">{step.title}</p>
+                    <p className="text-xs text-[#666]">{step.description}</p>
                   </div>
                 </div>
                 {!step.completed ? (
                   <Button
                     size="sm"
-                    className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+                    variant={step.id === 'invite' ? 'outline' : 'default'}
+                    className={
+                      step.id === 'invite'
+                        ? 'w-full shrink-0 sm:w-auto'
+                        : 'w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto'
+                    }
                     onClick={step.onClick}
                   >
                     {step.action}
@@ -559,6 +566,19 @@ export default function ClientDetailPage() {
             ))}
           </ul>
         </section>
+      ) : onlyInvitePending ? (
+        <div className="flex flex-col gap-2 border-t border-[#eee] pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[#666]">
+            Portal ainda não convidado
+          </p>
+          <button
+            type="button"
+            onClick={() => setInviteModalOpen(true)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Convidar cliente
+          </button>
+        </div>
       ) : null}
 
       {lensAttention.length > 0 ? (
@@ -567,39 +587,36 @@ export default function ClientDetailPage() {
 
       <section
         aria-labelledby="more-heading"
-        className="border-t border-[#eee] pt-8"
+        className="border-t border-[#eee] pt-6"
       >
-        <h2
-          id="more-heading"
-          className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#555]"
-        >
+        <h2 id="more-heading" className="mb-2 text-sm text-[#666]">
           Mais neste cliente
         </h2>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
           {hasService ? (
             <button
               type="button"
               onClick={() => setServiceSetupOpen(true)}
-              className="text-sm font-medium text-[#007bff] hover:underline"
+              className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
             >
               Adicionar serviço
             </button>
           ) : null}
           <Link
             to={buildAnnualPlanHref(clientId, annualPlan?.id)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Plano anual
           </Link>
           <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Brainstorm
           </Link>
           <Link
             to={createPageUrl(`client-briefing?clientId=${clientId}`)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Campanhas & plano
           </Link>
@@ -612,19 +629,19 @@ export default function ClientDetailPage() {
                   })
                 : `client-tasks?clientId=${clientId}`
             )}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Tarefas
           </Link>
           <Link
             to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Financeiro
           </Link>
           <Link
             to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
           </Link>
@@ -691,5 +708,21 @@ export default function ClientDetailPage() {
 
 function getCreateCtaLabelSafe(profile) {
   if (!profile?.showCreateCta) return 'Criar';
+  if (!isKnownServiceProfile(profile)) return 'Criar';
   return profile.createCta || 'Criar';
+}
+
+const FEMININE_ITEM_LABELS = new Set([
+  'sessão',
+  'campanha',
+  'cobertura',
+  'ação',
+]);
+
+function unitCreatedToast(profile, title) {
+  const noun = String(profile?.itemLabel || '').trim();
+  if (!noun) return `${title} criado`;
+  const cap = noun.charAt(0).toUpperCase() + noun.slice(1);
+  const feminine = FEMININE_ITEM_LABELS.has(noun.toLowerCase());
+  return feminine ? `${cap} criada` : `${cap} criado`;
 }

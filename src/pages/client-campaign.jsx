@@ -26,6 +26,14 @@ import { Brief, Client, CyclePlan, Service, Task } from '@/api/entities';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import { buildClientTasksHref, filterTasksByScope } from '@/lib/taskScope';
 import { summarizeTasks } from '@/hooks/useClientHubData';
+import OperationBreadcrumb from '@/components/client/hub/OperationBreadcrumb';
+import { buildClientOperationBreadcrumbs } from '@/lib/clientOperationBreadcrumb';
+import {
+  formatPeriodLabel,
+  getServiceOperationProfile,
+  PERIOD_MODES,
+} from '@/lib/serviceOperationProfile';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
 
 const STATUS_LABELS = {
   READY: 'Pronta',
@@ -262,19 +270,50 @@ export default function ClientCampaignPage() {
 
   const progress = useMemo(() => summarizeTasks(scopedTasks), [scopedTasks]);
 
-  const clientHref = createPageUrl(`client-detail?clientId=${clientId}`);
-  const hubHref = createPageUrl(`client-briefing?clientId=${clientId}`);
+  const serviceIdForHub = service?.id || briefing?.serviceId || null;
+  const clientHref = createPageUrl(
+    serviceIdForHub
+      ? `client-detail?clientId=${clientId}&serviceId=${encodeURIComponent(String(serviceIdForHub))}`
+      : `client-detail?clientId=${clientId}`
+  );
+  const hubHref = clientHref;
   const tasksHref = createPageUrl(
     buildClientTasksHref({
       clientId,
       cycleId: cycle?.id || briefing?.ciclo_id || briefing?.cyclePlanId,
       briefingId,
-      serviceId: service?.id || briefing?.serviceId,
+      serviceId: serviceIdForHub,
     })
   );
   const workspaceHref = service?.id
     ? createPageUrl(`delivery-workspace?serviceId=${service.id}&section=tasks`)
     : null;
+
+  const profile = useMemo(
+    () => getServiceOperationProfile(service),
+    [service]
+  );
+
+  const periodForBreadcrumb = useMemo(() => {
+    if (profile.periodMode !== PERIOD_MODES.MONTHLY) return null;
+    return formatPeriodLabel(cycle) || null;
+  }, [profile, cycle]);
+
+  const campaignCrumbs = useMemo(() => {
+    if (!client || !briefing) return [];
+    const campaignName = briefing.nome_campanha || briefing.title || 'Campanha';
+    return buildClientOperationBreadcrumbs({
+      client,
+      service,
+      profile,
+      cycle,
+      periodLabel: periodForBreadcrumb,
+      unitTitle: campaignName,
+      unitHref: createPageUrl(
+        buildClientCampaignHref({ clientId, briefingId: briefing.id })
+      ),
+    });
+  }, [client, service, profile, cycle, periodForBreadcrumb, briefing, clientId]);
 
   const pendingTasks = useMemo(
     () =>
@@ -345,6 +384,7 @@ export default function ClientCampaignPage() {
   return (
     <div className="space-y-4 max-w-4xl">
       <div className="space-y-2">
+        <OperationBreadcrumb crumbs={campaignCrumbs} />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
@@ -359,7 +399,11 @@ export default function ClientCampaignPage() {
               <p className="text-xs text-[#7A7595] truncate">
                 {statusText}
                 {briefing.tipo_campanha ? ` · ${briefing.tipo_campanha}` : ''}
-                {showPeriod ? ` · ${period}` : ''}
+                {showPeriod && periodForBreadcrumb
+                  ? ` · ${periodForBreadcrumb}`
+                  : showPeriod
+                    ? ` · ${period}`
+                    : ''}
                 {progress.total > 0
                   ? ` · ${progress.percentComplete}% · ${progress.completed}/${progress.total}`
                   : ''}
@@ -413,7 +457,7 @@ export default function ClientCampaignPage() {
             <Progress value={progress.percentComplete} className="h-1.5 mt-3" />
             <p className="text-xs text-[#7A7595] mt-2">
               {progress.completed}/{progress.total} tarefas
-              {taskScope === 'cycle' ? ' · ciclo compartilhado' : ''}
+              {taskScope === 'cycle' ? ' · tarefas do período' : ''}
             </p>
           </CardContent>
         </Card>
@@ -546,7 +590,7 @@ export default function ClientCampaignPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs font-medium text-[#7A7595] mb-1">Ciclo comercial</p>
+                    <p className="text-xs font-medium text-[#7A7595] mb-1">Fase comercial</p>
                     <Input
                       value={fichaForm.ciclo_comercial}
                       onChange={(e) =>
@@ -603,7 +647,7 @@ export default function ClientCampaignPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {briefing.ciclo_comercial && (
                       <div>
-                        <p className="text-xs font-medium text-[#7A7595] mb-1">Ciclo comercial</p>
+                        <p className="text-xs font-medium text-[#7A7595] mb-1">Fase comercial</p>
                         <p className="text-[#18162A]">{briefing.ciclo_comercial}</p>
                       </div>
                     )}

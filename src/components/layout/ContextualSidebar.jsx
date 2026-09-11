@@ -95,6 +95,7 @@ export default function ContextualSidebar({
       const inUnit =
         Boolean(briefingId) &&
         (currentPage === 'client-campaign' ||
+          currentPage === 'client-unit' ||
           currentPage === 'client-tasks' ||
           currentPage === 'briefing-campanha' ||
           currentPage === 'briefing-editor');
@@ -126,10 +127,7 @@ export default function ContextualSidebar({
           icon: LayoutDashboard,
           href: buildClientHubHref(clientId, serviceId),
           isActive:
-            currentPage === 'client' ||
-            currentPage === 'client-detail' ||
-            hash === '#operacao' ||
-            hash === '#campanhas',
+            currentPage === 'client' || currentPage === 'client-detail',
         },
         {
           type: 'link',
@@ -145,7 +143,16 @@ export default function ContextualSidebar({
         },
       ];
 
-      if (inUnit && briefingId && unitHref) {
+      if (currentPage === 'client-unit') {
+        items.push({
+          type: 'link',
+          label: 'Unidade atual',
+          icon: Target,
+          href: `${createPageUrl('client-unit')}${typeof window !== 'undefined' ? window.location.search : ''}`,
+          nested: true,
+          isActive: true,
+        });
+      } else if (inUnit && briefingId && unitHref) {
         items.push(
           {
             type: 'link',

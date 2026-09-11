@@ -212,6 +212,8 @@ import briefingCampanhaAnual from "./briefing-campanha-anual";
 
 import clientCampaign from "./client-campaign";
 
+import clientUnit from "./client-unit";
+
 import clientservices from "./client-services";
 
 import deliveryWorkspace from "./delivery-workspace";
@@ -457,6 +459,8 @@ const PAGES = {
 
     "client-campaign": clientCampaign,
     "campaign": clientCampaign,
+
+    "client-unit": clientUnit,
     
     "client-services": clientservices,
 
@@ -735,6 +739,8 @@ function PagesContent() {
 
                 <Route path="/client-campaign" element={createElement(clientCampaign)} />
                 <Route path="/campaign" element={createElement(clientCampaign)} />
+
+                <Route path="/client-unit" element={createElement(clientUnit)} />
                 
                 <Route path="/client-services" element={createElement(clientservices)} />
 

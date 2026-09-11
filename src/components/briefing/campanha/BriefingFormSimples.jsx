@@ -186,7 +186,7 @@ export default function BriefingFormSimples({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Ciclo comercial</Label>
+              <Label>Fase comercial</Label>
               <Select
                 value={form.ciclo_comercial || '__none__'}
                 onValueChange={(v) =>

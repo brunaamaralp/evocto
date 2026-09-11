@@ -5,6 +5,7 @@ import { Brief } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 import { clientCampaignPageUrl, buildClientCampaignHref } from '@/lib/campaignHref';
+import AgentMarkdown from '@/components/campaigns/agent/AgentMarkdown';
 
 const API_BASE = '/api/campaigns-agent';
 
@@ -394,9 +395,10 @@ export default function ChatInterface({
                   ...styles.bubble,
                   background: isUser ? '#007bff' : '#f0f0f0',
                   color: isUser ? '#fff' : '#111',
+                  whiteSpace: isUser ? 'pre-wrap' : 'normal',
                 }}
               >
-                {msg.content}
+                <AgentMarkdown content={msg.content} isUser={isUser} />
               </div>
             </div>
           );
@@ -617,8 +619,8 @@ const styles = {
     fontWeight: 600,
   },
   list: {
-    flex: '1 1 auto',
-    minHeight: 280,
+    flex: '1 1 0',
+    minHeight: 0,
     overflowY: 'auto',
     padding: '0.35rem 0.15rem',
     display: 'flex',
@@ -632,7 +634,6 @@ const styles = {
     borderRadius: 12,
     fontSize: 15,
     lineHeight: 1.55,
-    whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
   loadingBubble: {

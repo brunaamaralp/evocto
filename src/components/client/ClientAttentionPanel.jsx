@@ -5,7 +5,7 @@ const TYPE_LABELS = {
   task_overdue: 'Atrasada',
   task_urgent: 'Urgente',
   approval_pending: 'Aprovação',
-  cycle_pending: 'Ciclo',
+  cycle_pending: 'Período',
   brief_incomplete: 'Briefing',
 };
 
@@ -13,20 +13,12 @@ export default function ClientAttentionPanel({ items = [] }) {
   if (!items.length) return null;
 
   return (
-    <section
-      aria-labelledby="attention-heading"
-      className="border-t border-[#eee] pt-8"
-    >
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2
-          id="attention-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-[#555]"
-        >
-          Merece atenção · {items.length}
-        </h2>
-      </div>
+    <section aria-labelledby="attention-heading" className="border-t border-[#eee] pt-6">
+      <h2 id="attention-heading" className="mb-3 text-sm text-[#666]">
+        Merece atenção · {items.length}
+      </h2>
 
-      <ul className="space-y-1">
+      <ul className="space-y-0.5">
         {items.map((item) => {
           const badge = TYPE_LABELS[item.type] || 'Atenção';
           const isUrgent =
@@ -36,24 +28,20 @@ export default function ClientAttentionPanel({ items = [] }) {
             <li key={item.id}>
               <Link
                 to={item.href}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                className="flex items-center justify-between gap-3 rounded-md px-1 py-2 transition-colors hover:bg-[#f7f7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007bff]/40"
               >
                 <div className="min-w-0 flex-1 text-left">
-                  <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${
-                        isUrgent ? 'text-[#c0392b]' : 'text-[#555]'
-                      }`}
-                    >
+                  <p className="truncate text-sm font-medium text-[#111]">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-[#666]">
+                    <span className={isUrgent ? 'text-[#c0392b]' : undefined}>
                       {badge}
                     </span>
-                    {item.label ? (
-                      <span className="truncate text-xs text-[#555]">{item.label}</span>
-                    ) : null}
-                  </div>
-                  <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
+                    {item.label ? ` · ${item.label}` : ''}
+                  </p>
                 </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#555]" aria-hidden />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#bbb]" aria-hidden />
               </Link>
             </li>
           );

@@ -129,11 +129,17 @@ export async function ensureClientMonthCycle({
     resolvedServiceId = reusable?.id || null;
   }
 
+  if (!resolvedServiceId) {
+    throw new Error(
+      'Defina o serviço contratado antes de iniciar a operação.'
+    );
+  }
+
   const result = await createMonthCycle({
     agencyId,
     clientId,
     startDate: ymd,
-    serviceId: resolvedServiceId || undefined,
+    serviceId: resolvedServiceId,
     serviceName:
       serviceName ||
       `${empresaNome || 'Cliente'} — ${title}`,

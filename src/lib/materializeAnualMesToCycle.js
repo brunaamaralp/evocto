@@ -1,4 +1,4 @@
-import { Brief, CyclePlan } from '@/api/entities';
+import { Brief, CyclePlan, Service } from '@/api/entities';
 import { createMonthCycle } from '@/api/functions/createMonthCycle';
 import { saveCampanhaBriefing } from '@/lib/campanhaBriefing';
 import {
@@ -97,6 +97,24 @@ export async function materializeAnualMesToCycle({
       form.data_gravacao_inicio ||
       `${Number(ano) || new Date().getFullYear()}-${String(c.mes).padStart(2, '0')}-01`;
 
+    let resolvedServiceId = serviceId || c.service_id || null;
+    if (!resolvedServiceId) {
+      const list = await Service.filter({
+        agencyId,
+        clientId,
+        is_template: false,
+      }).catch(() => []);
+      const active = (Array.isArray(list) ? list : []).find(
+        (s) => s?.is_active !== false && s?.id
+      );
+      resolvedServiceId = active?.id || null;
+    }
+    if (!resolvedServiceId) {
+      throw new Error(
+        'Defina o serviço contratado antes de iniciar a operação.'
+      );
+    }
+
     cycleResult = await createMonthCycle({
       agencyId,
       clientId,
@@ -107,7 +125,7 @@ export async function materializeAnualMesToCycle({
       linha_focal,
       generateTasks,
       ownerId: userId,
-      serviceId: serviceId || undefined,
+      serviceId: resolvedServiceId,
       serviceName: `${empresa.nome || 'Cliente'} — ${form.nome_campanha}`,
       briefId: brief.id,
     });

@@ -115,9 +115,8 @@ export default function ClientContextSidebar({
       icon: BarChart3,
       href: hubHref,
       active:
-        location.pathname.includes('client-detail') ||
-        hash === '#operacao' ||
-        hash === '#campanhas',
+        location.pathname.includes('client-detail') &&
+        !location.pathname.includes('client-unit'),
     },
     {
       type: 'link',
@@ -133,7 +132,16 @@ export default function ClientContextSidebar({
     },
   ];
 
-  if (inUnit && briefingId) {
+  if (location.pathname.includes('client-unit')) {
+    menuItems.push({
+      type: 'link',
+      label: 'Unidade atual',
+      icon: Target,
+      href: `${createPageUrl('client-unit')}${location.search || ''}`,
+      nested: true,
+      active: true,
+    });
+  } else if (inUnit && briefingId) {
     menuItems.push(
       {
         type: 'link',

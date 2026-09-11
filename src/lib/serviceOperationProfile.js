@@ -255,12 +255,19 @@ export function getServiceOperationProfile(service) {
 }
 
 export function shouldShowCreateCta(profile) {
-  return Boolean(profile?.showCreateCta);
+  if (!profile?.showCreateCta) return false;
+  // Evita “+ Novo item” quando o offering não está no registry
+  if (!profile.offeringKey || profile.offeringKey === 'unknown') return false;
+  return true;
 }
 
 export function getCreateCtaLabel(profile) {
   if (!shouldShowCreateCta(profile)) return null;
-  return profile?.createCta || '+ Novo item';
+  return profile?.createCta || null;
+}
+
+export function isKnownServiceProfile(profile) {
+  return Boolean(profile?.offeringKey && profile.offeringKey !== 'unknown');
 }
 
 /**

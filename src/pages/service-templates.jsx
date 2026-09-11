@@ -207,7 +207,7 @@ export default function ServiceTemplatesPage() {
             className="flex items-center"
           >
             <CalendarPlus className="w-4 h-4 mr-2" />
-            Novo ciclo do mês
+            Novo mês operacional
           </Button>
           <Button 
             variant="outline" 

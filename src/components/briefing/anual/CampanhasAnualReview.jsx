@@ -226,7 +226,7 @@ export default function CampanhasAnualReview({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600">
-          Materializar cria a campanha do mês + ciclo Narrativa com tarefas.
+          Materializar cria a campanha do mês com tarefas operacionais.
         </p>
         <Button
           type="button"

@@ -110,6 +110,9 @@ describe('deriveServiceLens', () => {
     expect(lens.groups[0].units[0].title).toBe('Reel — Produto X');
     expect(lens.groups[0].units[0].progress.completed).toBe(2);
     expect(lens.groups[0].units[0].progress.total).toBe(5);
+    expect(lens.groups[0].units[0].href).toContain('client-unit');
+    expect(lens.groups[0].units[0].href).toContain('taskId=t1');
+    expect(lens.groups[0].units[0].tasksHref).toContain('client-tasks');
   });
 
   it('sessão on_demand é lista plana (sem período)', () => {
@@ -222,6 +225,7 @@ describe('deriveServiceLens', () => {
     expect(lens.singleProject.steps).toHaveLength(3);
     expect(lens.singleProject.progress.completed).toBe(2);
     expect(lens.profile.showCreateCta).toBe(false);
+    expect(lens.singleProject.href).toContain('client-unit');
   });
 
   it('single_project sem task fica ready=false', () => {

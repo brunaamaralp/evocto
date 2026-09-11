@@ -218,10 +218,11 @@ export default function NewMonthCycleWizard({
 
       toast.success(
         isItemCycle
-          ? itemCycleOpt?.emptyCycleMessage || 'Ciclo criado — adicione itens como tarefas'
+          ? itemCycleOpt?.emptyCycleMessage ||
+              'Mês iniciado — adicione os trabalhos do serviço'
           : generateTasks
-            ? `Ciclo criado com ${result.tasksCreated} tarefas`
-            : 'Ciclo criado com sucesso'
+            ? `Mês iniciado com ${result.tasksCreated} tarefas`
+            : 'Mês operacional iniciado'
       );
       onOpenChange?.(false);
       onSuccess?.(result);
@@ -232,7 +233,7 @@ export default function NewMonthCycleWizard({
       navigate(dest);
     } catch (err) {
       console.error(err);
-      toast.error(err?.message || 'Falha ao criar ciclo');
+      toast.error(err?.message || 'Falha ao iniciar o mês');
     } finally {
       setLoading(false);
     }
@@ -244,11 +245,11 @@ export default function NewMonthCycleWizard({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarPlus className="w-5 h-5" />
-            Novo ciclo do mês
+            Novo mês operacional
           </DialogTitle>
           <DialogDescription>
             {isItemCycle
-              ? `${itemCycleOpt?.label || 'Ciclo operacional'}: ciclo → itens (tarefas) → etapas do template.`
+              ? `${itemCycleOpt?.label || 'Serviço operacional'}: mês → unidades → etapas do template.`
               : effectivePipeline === 'narrativa'
                 ? `Pipeline Narrativa (${TIPOS_CAMPANHA.find((t) => t.value === tipoCampanha)?.label || tipoCampanha}): fases, subtarefas, gates e SLA.`
                 : 'Legado: 4 fases — PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.'}
@@ -351,7 +352,7 @@ export default function NewMonthCycleWizard({
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <Label>Ciclo comercial</Label>
+                            <Label>Fase comercial</Label>
                             <Select
                               value={cicloComercial || '__none__'}
                               onValueChange={(v) =>

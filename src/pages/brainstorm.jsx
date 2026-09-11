@@ -640,8 +640,9 @@ const styles = {
   page: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100dvh - 112px)',
-    minHeight: 520,
+    flex: 1,
+    height: '100%',
+    minHeight: 0,
     background: '#fff',
     color: '#333',
   },

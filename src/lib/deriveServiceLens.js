@@ -8,6 +8,7 @@
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref, getTaskBriefIds, getTaskCycleIds } from '@/lib/taskScope';
+import { buildClientUnitHref } from '@/lib/unitHref';
 import {
   formatPeriodLabel,
   getServiceOperationProfile,
@@ -218,13 +219,13 @@ function buildTaskUnit({ task, serviceId, clientId, cycleId }) {
     serviceId: String(serviceId),
     cycleId: cycleId || getTaskCycleIds(task)[0] || null,
     href: createPageUrl(
-      buildClientTasksHref({
+      buildClientUnitHref({
         clientId,
         serviceId,
-        cycleId: cycleId || getTaskCycleIds(task)[0] || null,
-        briefingId: null,
+        taskId: task.id,
       })
     ),
+    /** Visão agregada / kanban — não é o destino principal de “Abrir”. */
     tasksHref: createPageUrl(
       buildClientTasksHref({
         clientId,
@@ -526,9 +527,7 @@ function deriveSingleProject({ service, profile, tasks, clientId }) {
           percentComplete: 0,
         },
         steps: [],
-        href: createPageUrl(
-          buildClientTasksHref({ clientId, serviceId })
-        ),
+        href: null,
       },
       unitsCount: 0,
     };
@@ -552,10 +551,10 @@ function deriveSingleProject({ service, profile, tasks, clientId }) {
       progress,
       steps,
       href: createPageUrl(
-        buildClientTasksHref({
+        buildClientUnitHref({
           clientId,
           serviceId,
-          cycleId: getTaskCycleIds(mainTask)[0] || null,
+          taskId: mainTask.id,
         })
       ),
       source: mainTask,

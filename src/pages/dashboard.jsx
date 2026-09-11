@@ -305,16 +305,16 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
     {
       id: 'campaign',
       done: hasCampaigns,
-      title: 'Criar a campanha do mês',
+      title: 'Iniciar operação no cliente',
       description: hasService
         ? clientsWithoutCampaigns.length > 0
-          ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} sem campanha ativa.`
-          : 'Abra um cliente e inicie a campanha.'
+          ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} sem operação ativa.`
+          : 'Abra um cliente e continue pelo serviço contratado.'
         : 'Defina o serviço contratado antes.',
       href: hasService
         ? clientsWithoutCampaigns[0]?.id
           ? createPageUrl(
-              `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
+              `client-detail?clientId=${clientsWithoutCampaigns[0].id}#operacao`
             )
           : createPageUrl('clients')
         : clientsWithoutService[0]?.id
@@ -322,7 +322,7 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
               `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
             )
           : createPageUrl('clients'),
-      cta: hasService ? 'Criar campanha' : 'Definir serviço',
+      cta: hasService ? 'Abrir hub do cliente' : 'Definir serviço',
     },
     {
       id: 'tasks',
@@ -333,14 +333,14 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
         ? createPageUrl('tasks-manager')
         : hasService && clientsWithoutCampaigns[0]?.id
           ? createPageUrl(
-              `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
+              `client-detail?clientId=${clientsWithoutCampaigns[0].id}#operacao`
             )
           : clientsWithoutService[0]?.id
             ? createPageUrl(
                 `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
               )
             : createPageUrl('clients'),
-      cta: hasCampaigns ? 'Ver tarefas' : hasService ? 'Depois da campanha' : 'Depois do serviço',
+      cta: hasCampaigns ? 'Ver tarefas' : hasService ? 'Depois da operação' : 'Depois do serviço',
     },
   ];
 }
@@ -442,7 +442,7 @@ export default function DashboardPage() {
           id: c.id,
           name: c.name || 'Cliente',
           href: createPageUrl(
-            `client-detail?clientId=${c.id}&open=nova-campanha#campanhas`
+            `client-detail?clientId=${c.id}#operacao`
           ),
         }));
       const clientsWithoutService = clientsForCampaigns
@@ -538,7 +538,7 @@ export default function DashboardPage() {
         <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
           <Link to={nextSetupStep?.href || createPageUrl('clients')}>
             <Plus className="mr-1.5 h-4 w-4" />
-            {hasCampaigns ? 'Nova campanha' : nextSetupStep?.cta || 'Começar'}
+            {hasCampaigns ? 'Abrir clientes' : nextSetupStep?.cta || 'Começar'}
           </Link>
         </Button>
       </header>
@@ -600,7 +600,7 @@ export default function DashboardPage() {
       <section aria-labelledby="campaigns-heading" className="border-t border-[#eee] pt-8">
         <div className="mb-5">
           <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
-            Campanhas
+            Operação por cliente
           </h2>
         </div>
 
@@ -608,10 +608,10 @@ export default function DashboardPage() {
           <div className="space-y-8">
             <div className="mx-auto max-w-lg text-center sm:text-left">
               <h3 className="mb-2 text-lg font-semibold text-[#111]">
-                Nenhuma campanha ativa
+                Nenhuma operação ativa
               </h3>
               <p className="text-sm leading-relaxed text-[#555]">
-                Monte o fluxo abaixo para a home passar a mostrar agenda, prazos e progresso.
+                Monte o fluxo abaixo. No hub do cliente, a operação aparece pelo serviço contratado.
               </p>
             </div>
 
@@ -772,11 +772,11 @@ export default function DashboardPage() {
                 <div>
                   <Link
                     to={createPageUrl(
-                      `client-detail?clientId=${group.clientId}&open=nova-campanha#campanhas`
+                      `client-detail?clientId=${group.clientId}#operacao`
                     )}
                     className="text-sm font-medium text-[#007bff] hover:underline"
                   >
-                    + Nova campanha neste cliente
+                    Abrir hub do cliente
                   </Link>
                 </div>
               </section>

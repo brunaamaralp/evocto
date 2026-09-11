@@ -162,9 +162,9 @@ export const OPERATIONAL_ITEM_CYCLE_OPTION_METAS = OPERATIONAL_ITEM_CYCLE_PRESET
     aliases: [],
     group: preset.group,
     label: preset.name,
-    selectLabel: `${preset.name} — ciclo + itens`,
-    hint: `Ao criar cada ${preset.itemLabel || 'item'} (tarefa), as etapas do template são aplicadas como checklist editável.`,
-    emptyCycleMessage: `Ciclo criado — adicione ${preset.itemLabel || 'itens'} como tarefas (checklist do template aplicado automaticamente).`,
+    selectLabel: `${preset.name} — mês + ${preset.itemLabel || 'itens'}`,
+    hint: `Ao criar cada ${preset.itemLabel || 'item'}, as etapas do template são aplicadas como checklist editável.`,
+    emptyCycleMessage: `Mês iniciado — adicione ${preset.itemLabel || 'itens'} (etapas do template aplicadas automaticamente).`,
   })
 );
 

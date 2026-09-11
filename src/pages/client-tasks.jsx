@@ -287,7 +287,7 @@ export default function ClientTasksPage() {
                     {campaignName}
                   </Link>
                   {showCycleLabel ? ` · ${cycleLabel}` : ''}
-                  {scopeMeta.sharedCycleFallback ? ' · ciclo compartilhado' : ''}
+                  {scopeMeta.sharedCycleFallback ? ' · tarefas do período' : ''}
                 </p>
               </div>
             </div>

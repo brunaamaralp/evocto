@@ -58,7 +58,7 @@ describe('serviceOperationProfile', () => {
     expect(resolveOfferingKey({ pipeline: 'conteudo' })).toBe('producao_conteudo');
   });
 
-  it('fallback desconhecido é on_demand (não campanha)', () => {
+  it('fallback desconhecido não expõe CTA genérico na UI', () => {
     const profile = getServiceOperationProfile({
       name: 'Serviço Custom XYZ',
     });
@@ -66,6 +66,8 @@ describe('serviceOperationProfile', () => {
     expect(profile.operationPattern).toBe(OPERATION_PATTERNS.ON_DEMAND);
     expect(profile.periodMode).toBe(PERIOD_MODES.NONE);
     expect(profile.createCta).toBe('+ Novo item');
+    expect(shouldShowCreateCta(profile)).toBe(false);
+    expect(getCreateCtaLabel(profile)).toBe(null);
   });
 
   it('formatPeriodLabel não prefixa Ciclo', () => {

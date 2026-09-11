@@ -23,9 +23,6 @@ import {
   normalizeCicloComercialOps,
   normalizeTipoCampanha,
 } from '@/lib/tipoCampanhaPipeline';
-import { ensureCicloMensalTemplate } from './ensureCicloMensalTemplate';
-import { ensureCicloNarrativaTemplate } from './ensureCicloNarrativaTemplate';
-import { ensureItemCycleTemplates } from './ensureItemCycleTemplates';
 
 function formatCyclePeriod(startDate) {
   try {
@@ -113,67 +110,44 @@ export async function createMonthCycle(opts = {}) {
   const itemCycleOption = getItemCycleOption(pipeline);
 
   let templateServiceId = templateId;
-  if (!templateServiceId && !serviceId) {
-    if (useItemCycle) {
-      const seededMap = await ensureItemCycleTemplates(agencyId);
-      const key = itemCycleOption?.key || 'producao_conteudo';
-      const seeded = seededMap[key];
-      if (!seeded?.id) throw new Error(`Template operacional não encontrado: ${key}`);
-      templateServiceId = seeded.id;
-    } else {
-      const seeded = useNarrativa
-        ? await ensureCicloNarrativaTemplate(agencyId)
-        : await ensureCicloMensalTemplate(agencyId);
-      templateServiceId = seeded.id;
-    }
+  if (!serviceId && !templateServiceId) {
+    throw new Error(
+      'Defina o serviço contratado antes de iniciar a operação.'
+    );
   }
 
   let service;
-  let reusedExistingService = false;
+  const createdNewServiceInstance = !serviceId;
   if (serviceId) {
     service = await Service.get(serviceId);
     if (!service) throw new Error('Serviço não encontrado');
     if (service.is_template) throw new Error('Selecione uma instância de serviço, não um template');
   } else {
-    // Prefira o serviço contratado já existente — evita criar instância "misteriosa"
-    const existingList = await Service.filter({
-      agencyId,
+    // Criação explícita de instância (wizard “novo” com templateId)
+    const itemLabel =
+      itemCycleOption?.label ||
+      resolveItemCycleDisplayName({ offering_key: pipeline });
+    const defaultName = useItemCycle
+      ? `${client.name || client.company_name || 'Cliente'} — ${itemLabel}`
+      : useNarrativa
+        ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
+        : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
+    const result = await createServiceInstance({
+      templateId: templateServiceId,
       clientId,
-      is_template: false,
-    }).catch(() => []);
-    const reusable = (Array.isArray(existingList) ? existingList : []).find((s) => {
-      if (!s?.id || s.is_active === false) return false;
-      const status = String(s.service_status || '').toLowerCase();
-      return !['cancelled', 'archived', 'completed'].includes(status);
+      customizations: {
+        name: serviceName || defaultName,
+        start_date: String(startDate).slice(0, 10),
+      },
     });
-
-    if (reusable) {
-      service = reusable;
-      reusedExistingService = true;
-    } else {
-      const itemLabel = itemCycleOption?.label || resolveItemCycleDisplayName({ offering_key: pipeline });
-      const defaultName = useItemCycle
-        ? `${client.name || client.company_name || 'Cliente'} — ${itemLabel}`
-        : useNarrativa
-          ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
-          : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
-      const result = await createServiceInstance({
-        templateId: templateServiceId,
-        clientId,
-        customizations: {
-          name: serviceName || defaultName,
-          start_date: String(startDate).slice(0, 10),
-        },
-      });
-      service = result.serviceInstance || result.data?.serviceInstance || result.data;
-      if (!service?.id) throw new Error('Falha ao criar instância do serviço');
-    }
+    service = result.serviceInstance || result.data?.serviceInstance || result.data;
+    if (!service?.id) throw new Error('Falha ao criar instância do serviço');
   }
 
   const isItemCycle = useItemCycle || isItemCycleService(service);
 
   const rawDeliverables = normalizeDeliverableTaskShapes(
-    useNarrativa && !serviceId && !reusedExistingService && !isItemCycle
+    useNarrativa && createdNewServiceInstance && !isItemCycle
       ? buildNarrativaDeliverablesByTipo(tipo_campanha)
       : service.deliverables || []
   );

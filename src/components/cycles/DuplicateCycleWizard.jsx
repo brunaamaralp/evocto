@@ -111,7 +111,7 @@ export default function DuplicateCycleWizard({
       toast.success(
         generateTasks
           ? `Novo mês criado com ${result.tasksCreated} tarefas`
-          : 'Novo ciclo criado'
+          : 'Novo mês operacional criado'
       );
       onOpenChange?.(false);
       onSuccess?.(result);
@@ -120,7 +120,7 @@ export default function DuplicateCycleWizard({
       );
     } catch (err) {
       console.error(err);
-      toast.error(err?.message || 'Falha ao duplicar ciclo');
+      toast.error(err?.message || 'Falha ao duplicar o mês');
     } finally {
       setLoading(false);
     }
@@ -132,29 +132,30 @@ export default function DuplicateCycleWizard({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="w-5 h-5" />
-            Duplicar ciclo / novo mês
+            Duplicar mês operacional
           </DialogTitle>
           <DialogDescription>
-            Reutiliza o mesmo serviço e gera um novo ciclo só com datas atualizadas.
+            Reutiliza o mesmo serviço e gera um novo mês só com datas atualizadas.
           </DialogDescription>
         </DialogHeader>
 
         {loadingList ? (
           <div className="flex items-center justify-center py-10 text-sm text-slate-500">
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Carregando ciclos…
+            Carregando meses…
           </div>
         ) : cycles.length === 0 ? (
           <p className="text-sm text-amber-700 py-4">
-            Este serviço ainda não tem ciclo para duplicar. Use “Novo ciclo do mês”.
+            Este serviço ainda não tem mês operacional para duplicar. Use “Novo mês
+            operacional”.
           </p>
         ) : (
           <div className="space-y-4 py-2">
             <div>
-              <Label>Ciclo de origem *</Label>
+              <Label>Mês de origem *</Label>
               <Select value={sourceCyclePlanId} onValueChange={setSourceCyclePlanId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o ciclo" />
+                  <SelectValue placeholder="Selecione o mês" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
                   {cycles.map((c) => (

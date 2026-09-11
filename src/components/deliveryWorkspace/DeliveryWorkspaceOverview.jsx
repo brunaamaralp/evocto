@@ -117,7 +117,7 @@ export default function DeliveryWorkspaceOverview({
           onClick={() => setShowNewCycle(true)}
         >
           <CalendarPlus className="w-4 h-4 mr-2" />
-          Novo ciclo do mês
+          Novo mês operacional
         </Button>
         <Button
           type="button"

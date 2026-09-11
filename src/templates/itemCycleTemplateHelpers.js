@@ -25,22 +25,22 @@ export const ITEM_CYCLE_OPTIONS = [
     aliases: ['conteudo'],
     group: 'conteudo',
     label: 'Produção de Conteúdo',
-    selectLabel: 'Produção de Conteúdo — ciclo + conteúdos',
+    selectLabel: 'Produção de Conteúdo — mês + conteúdos',
     hint:
-      'Ao criar cada conteúdo (tarefa), as etapas do template são aplicadas como checklist editável.',
+      'Ao criar cada conteúdo, as etapas do template são aplicadas como checklist editável.',
     emptyCycleMessage:
-      'Ciclo criado — adicione conteúdos como tarefas (checklist do template aplicado automaticamente).',
+      'Mês iniciado — adicione conteúdos (etapas do template aplicadas automaticamente).',
   },
   {
     key: 'sessao_fotos',
     aliases: [],
     group: 'conteudo',
     label: 'Sessão de Fotos',
-    selectLabel: 'Sessão de Fotos — ciclo + sessões',
+    selectLabel: 'Sessão de Fotos — mês + sessões',
     hint:
-      'Ao criar cada sessão (tarefa), as etapas do template são aplicadas como checklist editável.',
+      'Ao criar cada sessão, as etapas do template são aplicadas como checklist editável.',
     emptyCycleMessage:
-      'Ciclo criado — adicione sessões como tarefas (checklist do template aplicado automaticamente).',
+      'Mês iniciado — adicione sessões (etapas do template aplicadas automaticamente).',
   },
   ...OPERATIONAL_ITEM_CYCLE_OPTION_METAS,
 ];
