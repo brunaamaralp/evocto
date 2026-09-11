@@ -15,17 +15,23 @@ import {
   CalendarRange,
   Megaphone,
   CircleCheck,
+  CheckCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
 import EmptyState from '@/components/shared/EmptyState';
 import EducationalMicrotexts from '@/components/client_portal/EducationalMicrotexts';
+import { Textarea } from '@/components/ui/textarea';
 import {
   getClientPortalOverview,
   getClientAnnualPlan,
   listClientCampaigns,
   getClientCampaign,
   completeClientAction,
+  listClientApprovals,
+  getClientApprovalDetail,
+  decideClientApproval,
 } from '@/lib/clientPortalApi';
 
 function formatDue(dateStr) {
@@ -125,6 +131,207 @@ function CampaignFields({ campaign }) {
   );
 }
 
+function ApprovalsPanel({ approvals, loading, onDecided }) {
+  const [commentById, setCommentById] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [previewById, setPreviewById] = useState({});
+  const [previewLoadingId, setPreviewLoadingId] = useState(null);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (!approvals?.length) {
+    return (
+      <EmptyState
+        icon={CircleCheck}
+        title="Nenhuma aprovação pendente"
+        description="Quando houver planos ou materiais para revisar, eles aparecerão aqui."
+      />
+    );
+  }
+
+  const togglePreview = async (approval) => {
+    if (approval.kind === 'material') return;
+    if (expandedId === approval.id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(approval.id);
+    if (previewById[approval.id]) return;
+    setPreviewLoadingId(approval.id);
+    try {
+      const data = await getClientApprovalDetail(approval.id);
+      setPreviewById((prev) => ({
+        ...prev,
+        [approval.id]: data.contentPreview || null,
+      }));
+    } catch (err) {
+      toast.error(err.message || 'Não foi possível carregar o preview');
+      setPreviewById((prev) => ({ ...prev, [approval.id]: null }));
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
+
+  const decide = async (approval, action) => {
+    const comment = (commentById[approval.id] || '').trim();
+    if (action === 'reject' && !comment) {
+      toast.error('Descreva o que precisa ser ajustado');
+      return;
+    }
+    setBusyId(approval.id);
+    try {
+      await decideClientApproval({
+        approvalId: approval.id,
+        action,
+        comment,
+      });
+      toast.success(action === 'approve' ? 'Aprovado com sucesso' : 'Ajustes solicitados');
+      onDecided?.(approval.id);
+    } catch (err) {
+      toast.error(err.message || 'Não foi possível registrar a decisão');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {approvals.map((a) => {
+        const isMaterial = a.kind === 'material' || a.contentType === 'material_delivery';
+        const preview = previewById[a.id];
+        const isOpen = expandedId === a.id;
+        return (
+          <Card key={`${a.kind || 'classic'}-${a.id}`}>
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-medium text-gray-900">{a.title}</h3>
+                  <Badge variant="outline">
+                    {isMaterial ? 'Material' : 'Aprovação'}
+                  </Badge>
+                </div>
+                {a.description ? (
+                  <p className="text-sm text-gray-600 mt-1">{a.description}</p>
+                ) : null}
+                {a.version?.fileName ? (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Arquivo: {a.version.fileName}
+                    {a.version.versionNumber != null
+                      ? ` · v${a.version.versionNumber}`
+                      : ''}
+                  </p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Badge variant="secondary">Aguardando sua revisão</Badge>
+                  {a.expiresAt ? (
+                    <span className="text-xs text-gray-500">
+                      Expira em {formatDue(a.expiresAt)}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              {isMaterial ? (
+                a.reviewUrl ? (
+                  <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                    <a href={a.reviewUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Revisar material
+                    </a>
+                  </Button>
+                ) : (
+                  <p className="text-sm text-amber-700">
+                    Link de revisão indisponível. Peça à agência para reenviar o link.
+                  </p>
+                )
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="px-0 h-auto text-blue-700"
+                    onClick={() => togglePreview(a)}
+                  >
+                    {isOpen ? 'Ocultar detalhes' : 'Ver o que está sendo aprovado'}
+                  </Button>
+
+                  {isOpen ? (
+                    <div className="rounded-lg border bg-slate-50 p-3 text-sm space-y-1">
+                      {previewLoadingId === a.id ? (
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Carregando…
+                        </div>
+                      ) : preview ? (
+                        <>
+                          <p className="font-medium text-gray-900">{preview.title}</p>
+                          {preview.cyclePeriod ? (
+                            <p className="text-gray-600">Período: {preview.cyclePeriod}</p>
+                          ) : null}
+                          {preview.summary ? (
+                            <p className="text-gray-600 whitespace-pre-wrap">{preview.summary}</p>
+                          ) : (
+                            <p className="text-gray-500">
+                              Sem resumo adicional. Você pode aprovar com base no título.
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-gray-500">Preview indisponível.</p>
+                      )}
+                    </div>
+                  ) : null}
+
+                  <Textarea
+                    placeholder="Comentário (obrigatório para solicitar ajustes)"
+                    value={commentById[a.id] || ''}
+                    onChange={(e) =>
+                      setCommentById((prev) => ({ ...prev, [a.id]: e.target.value }))
+                    }
+                    rows={3}
+                    disabled={busyId === a.id}
+                  />
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => decide(a, 'approve')}
+                      disabled={busyId === a.id}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {busyId === a.id ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      Aprovar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => decide(a, 'reject')}
+                      disabled={busyId === a.id}
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      Solicitar ajustes
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ClientPortalPage() {
   const { user, isAuthenticated, loading: sessionLoading } = useSession();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -135,6 +342,7 @@ export default function ClientPortalPage() {
   const [plan, setPlan] = useState(null);
   const [campaigns, setCampaigns] = useState(null);
   const [campaignDetail, setCampaignDetail] = useState(null);
+  const [approvals, setApprovals] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -207,6 +415,10 @@ export default function ClientPortalPage() {
         } else if (activeTab === 'campaigns' && !campaignIdParam) {
           if (!cancelled) setCampaignDetail(null);
         }
+        if (activeTab === 'approvals' && !approvals) {
+          const data = await listClientApprovals();
+          if (!cancelled) setApprovals(data.approvals || []);
+        }
       } catch (err) {
         if (!cancelled) toast.error(err.message || 'Erro ao carregar dados');
       } finally {
@@ -217,7 +429,7 @@ export default function ClientPortalPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, overview, plan, campaigns, campaignIdParam, user?.role]);
+  }, [activeTab, overview, plan, campaigns, campaignIdParam, approvals, user?.role]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -225,6 +437,7 @@ export default function ClientPortalPage() {
       setPlan(null);
       setCampaigns(null);
       setCampaignDetail(null);
+      setApprovals(null);
       await loadOverview();
       toast.success('Dados atualizados');
     } catch (err) {
@@ -243,6 +456,7 @@ export default function ClientPortalPage() {
       setPlan(null);
       setCampaigns(null);
       setCampaignDetail(null);
+      setApprovals(null);
       await loadOverview();
       if (campaignIdParam) {
         const data = await getClientCampaign(campaignIdParam);
@@ -290,6 +504,7 @@ export default function ClientPortalPage() {
   const clientName = overview?.client?.name || user?.full_name || 'Cliente';
   const upcoming = overview?.upcomingCampaigns || [];
   const needs = overview?.needsFromYou || [];
+  const pendingApprovalsPreview = overview?.pendingApprovals || [];
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
@@ -338,6 +553,15 @@ export default function ClientPortalPage() {
               {stats.sharedCampaigns > 0 ? (
                 <Badge variant="secondary" className="ml-1">
                   {stats.sharedCampaigns}
+                </Badge>
+              ) : null}
+            </TabsTrigger>
+            <TabsTrigger value="approvals" className="shrink-0 gap-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Aprovações</span>
+              {stats.pendingApprovals > 0 ? (
+                <Badge variant="secondary" className="ml-1">
+                  {stats.pendingApprovals}
                 </Badge>
               ) : null}
             </TabsTrigger>
@@ -407,6 +631,31 @@ export default function ClientPortalPage() {
               </CardContent>
             </Card>
           </div>
+
+          {pendingApprovalsPreview.length > 0 ? (
+            <Card>
+              <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Aprovações pendentes</CardTitle>
+                <Badge variant="secondary">{stats.pendingApprovals}</Badge>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {pendingApprovalsPreview.slice(0, 5).map((a) => (
+                  <div
+                    key={`${a.kind || 'classic'}-${a.id}`}
+                    className="flex justify-between gap-3 text-sm border-b last:border-0 py-2"
+                  >
+                    <span className="font-medium text-gray-900 truncate">{a.title}</span>
+                    <Badge variant="outline" className="shrink-0">
+                      {a.kind === 'material' ? 'Material' : 'Aprovação'}
+                    </Badge>
+                  </div>
+                ))}
+                <Button variant="link" className="px-0" onClick={() => setTab('approvals')}>
+                  Ver todas
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
         </TabsContent>
 
         <TabsContent value="plan" className="space-y-4">
@@ -532,6 +781,26 @@ export default function ClientPortalPage() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="approvals" className="space-y-4">
+          <ApprovalsPanel
+            approvals={approvals || pendingApprovalsPreview}
+            loading={tabLoading && !approvals && !pendingApprovalsPreview.length}
+            onDecided={async () => {
+              setApprovals(null);
+              try {
+                const [ov, ap] = await Promise.all([
+                  loadOverview(),
+                  listClientApprovals(),
+                ]);
+                setOverview(ov);
+                setApprovals(ap.approvals || []);
+              } catch (err) {
+                toast.error(err.message || 'Erro ao atualizar aprovações');
+              }
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="help">

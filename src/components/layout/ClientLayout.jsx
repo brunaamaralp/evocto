@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { 
-  LogOut, User, Settings, Home, FileText, 
-  CheckCircle, HelpCircle, ChevronDown, Menu, X
+  LogOut, User, Settings, Home, FileText, Megaphone,
+  ClipboardCheck, HelpCircle, ChevronDown, Menu, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
@@ -78,8 +78,14 @@ export function ClientLayout({ children }) {
     {
       name: 'Campanhas',
       href: `${createPageUrl('client-portal')}?tab=campaigns`,
-      icon: CheckCircle,
+      icon: Megaphone,
       current: location.search.includes('tab=campaigns')
+    },
+    {
+      name: 'Aprovações',
+      href: `${createPageUrl('client-portal')}?tab=approvals`,
+      icon: ClipboardCheck,
+      current: location.search.includes('tab=approvals')
     },
   ];
 

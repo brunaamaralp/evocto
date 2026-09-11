@@ -91,22 +91,12 @@ export function listClientApprovals() {
   return portalGet('approvals');
 }
 
-async function portalGetWithParams(params) {
-  const res = await authedFetch(`/api/client-portal?${params}`, {
-    headers: await authHeaders(),
-  });
-  return parseRes(res);
-}
-
 export async function getClientApprovalDetail(approvalId) {
   const params = new URLSearchParams({
     route: 'approval-detail',
     approvalId: String(approvalId || ''),
   });
-  const res = await authedFetch(`/api/client-portal?${params}`, {
-    headers: await authHeaders(),
-  });
-  return parseRes(res);
+  return portalGetWithParams(params);
 }
 
 export async function decideClientApproval({ approvalId, action, comment } = {}) {
@@ -115,6 +105,13 @@ export async function decideClientApproval({ approvalId, action, comment } = {})
     method: 'POST',
     headers: await authHeaders(),
     body: JSON.stringify({ approvalId, action, comment }),
+  });
+  return parseRes(res);
+}
+
+async function portalGetWithParams(params) {
+  const res = await authedFetch(`/api/client-portal?${params}`, {
+    headers: await authHeaders(),
   });
   return parseRes(res);
 }
