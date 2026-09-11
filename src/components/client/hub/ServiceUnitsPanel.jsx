@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   getCreateCtaLabel,
   shouldShowCreateCta,
+  UNIT_KINDS,
 } from '@/lib/serviceOperationProfile';
 
 function capitalizeLabel(label) {
@@ -173,6 +174,7 @@ function EmptyUnits({ profile, onCreate }) {
     .replace(/^\+\s*/, '')
     .trim();
   const item = profile?.itemLabel || 'trabalho';
+  const isCampaign = profile?.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF;
 
   return (
     <div className="mx-auto max-w-sm py-10 text-center">
@@ -180,7 +182,9 @@ function EmptyUnits({ profile, onCreate }) {
         Nenhum {item} ainda
       </h3>
       <p className="mt-1 text-sm text-[#666]">
-        Crie o primeiro para começar a operar.
+        {isCampaign
+          ? 'Crie no Planejamento para começar a operar aqui.'
+          : 'Crie o primeiro para começar a operar.'}
       </p>
       {showCta && onCreate ? (
         <Button className="mt-5 bg-[#007bff] hover:bg-[#0056b3]" onClick={onCreate}>

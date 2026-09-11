@@ -10,15 +10,15 @@ import {
   ArrowLeft,
   Building2,
   ArrowRight,
-  CheckSquare,
   Sparkles,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
-import { buildClientTasksHref } from '@/lib/taskScope';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import ConfigurarEmpresaModal from '@/components/empresa/ConfigurarEmpresaModal';
 import BriefingFormSimples from '@/components/briefing/campanha/BriefingFormSimples';
 import BriefingTextLivre from '@/components/briefing/campanha/BriefingTextLivre';
@@ -37,7 +37,7 @@ export default function BriefingCampanhaPage() {
     urlParams.get('briefingId') || urlParams.get('campaignId');
   const initialMode = urlParams.get('mode'); // form | texto | brainstorm
 
-  // Caminho legado “editar briefing” → ficha operacional
+  // Caminho legado “editar briefing” → Workspace aba Ideia (R2)
   useEffect(() => {
     if (clientId && existingBriefingId) {
       navigate(
@@ -45,12 +45,14 @@ export default function BriefingCampanhaPage() {
           buildClientCampaignHref({
             clientId,
             briefingId: existingBriefingId,
+            serviceId: serviceId || null,
+            tab: 'ideia',
           })
         ),
         { replace: true }
       );
     }
-  }, [clientId, existingBriefingId, navigate]);
+  }, [clientId, existingBriefingId, serviceId, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
@@ -119,6 +121,27 @@ export default function BriefingCampanhaPage() {
         : result?.id
           ? { briefing: result, tasksCreated: 0 }
           : null;
+    const briefing = normalized?.briefing;
+    const resolvedServiceId =
+      result?.service?.id || briefing?.serviceId || serviceId || null;
+
+    if (briefing?.id && resolvedServiceId) {
+      toast.success(
+        typeof result?.tasksCreated === 'number'
+          ? `Campanha criada · ${result.tasksCreated} tarefa(s)`
+          : 'Campanha criada'
+      );
+      navigate(
+        buildCampaignWorkspaceTasksPath({
+          serviceId: resolvedServiceId,
+          clientId,
+          campaignId: briefing.id,
+        }),
+        { replace: true }
+      );
+      return;
+    }
+
     setLaunchResult(normalized);
     setStep('sucesso');
   };
@@ -165,28 +188,22 @@ export default function BriefingCampanhaPage() {
   const savedBriefing = launchResult?.briefing;
   const resolvedServiceId =
     launchResult?.service?.id || savedBriefing?.serviceId || serviceId;
-  const cycleId = launchResult?.cyclePlan?.id || savedBriefing?.ciclo_id;
-  const campaignHref = savedBriefing?.id
-    ? createPageUrl(
-        buildClientCampaignHref({
+  const workspaceHref =
+    savedBriefing?.id && resolvedServiceId
+      ? buildCampaignWorkspaceTasksPath({
+          serviceId: resolvedServiceId,
           clientId,
-          briefingId: savedBriefing.id,
+          campaignId: savedBriefing.id,
         })
-      )
-    : null;
-  const tasksHref = createPageUrl(
-    buildClientTasksHref({
-      clientId,
-      cycleId,
-      briefingId: savedBriefing?.id,
-      serviceId: resolvedServiceId,
-    })
-  );
-  const workspaceHref = resolvedServiceId
-    ? createPageUrl(
-        `delivery-workspace?serviceId=${resolvedServiceId}&section=tasks`
-      )
-    : null;
+      : savedBriefing?.id
+        ? createPageUrl(
+            buildClientCampaignHref({
+              clientId,
+              briefingId: savedBriefing.id,
+              serviceId: resolvedServiceId || null,
+            })
+          )
+        : null;
 
   if (step === 'sucesso' && savedBriefing) {
     return (
@@ -211,27 +228,18 @@ export default function BriefingCampanhaPage() {
               .
             </p>
             <div className="flex flex-wrap gap-2 justify-center pt-2">
-              {campaignHref && (
-                <Button onClick={() => navigate(campaignHref)}>
-                  Abrir campanha
+              {workspaceHref && (
+                <Button onClick={() => navigate(workspaceHref)}>
+                  Abrir workspace
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               )}
               <Button
-                variant={campaignHref ? 'outline' : 'default'}
+                variant={workspaceHref ? 'outline' : 'default'}
                 onClick={backToClient}
               >
                 Ver no cliente
               </Button>
-              <Button variant="outline" onClick={() => navigate(tasksHref)}>
-                <CheckSquare className="w-4 h-4 mr-1" />
-                Ver tarefas
-              </Button>
-              {workspaceHref && (
-                <Button variant="ghost" onClick={() => navigate(workspaceHref)}>
-                  Workspace
-                </Button>
-              )}
             </div>
             <Button
               variant="ghost"

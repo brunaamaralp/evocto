@@ -6,7 +6,7 @@
  */
 
 import { createPageUrl } from '@/utils';
-import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import { buildClientTasksHref, getTaskBriefIds, getTaskCycleIds } from '@/lib/taskScope';
 import { buildClientUnitHref } from '@/lib/unitHref';
 import {
@@ -278,20 +278,16 @@ function buildCampaignUnit({
     progressScope,
     serviceId: String(serviceId),
     cycleId: cycleId ? String(cycleId) : null,
-    href: createPageUrl(
-      buildClientCampaignHref({
-        clientId,
-        briefingId: brief.id,
-      })
-    ),
-    tasksHref: createPageUrl(
-      buildClientTasksHref({
-        clientId,
-        serviceId,
-        cycleId,
-        briefingId: brief.id,
-      })
-    ),
+    href: buildCampaignWorkspaceTasksPath({
+      serviceId,
+      clientId,
+      campaignId: brief.id,
+    }),
+    tasksHref: buildCampaignWorkspaceTasksPath({
+      serviceId,
+      clientId,
+      campaignId: brief.id,
+    }),
     source: brief,
   };
 }

@@ -1,0 +1,32 @@
+---
+description: Spec de produto fechada — Hub, Campanha, Workspace (2026-09-11)
+alwaysApply: true
+---
+
+# Spec de produto FECHADA — Hub · Campanha · Workspace
+
+Status: **acordada**. **Fases 0–5 done.**
+
+## Fases
+
+| Fase | Status | Doc |
+|------|--------|-----|
+| 0 Rotas | done | `SPEC_CAMPANHA_ROTAS_FASE0.md` |
+| 1 Dados/Ideia | done | `SPEC_CAMPANHA_DADOS_FASE1.md` |
+| 2 Workspace UI | done | `SPEC_CAMPANHA_WORKSPACE_FASE2.md` |
+| 3 Hub só operação | done | `SPEC_CAMPANHA_HUB_FASE3.md` |
+| 4 Planejamento create | done | `SPEC_CAMPANHA_PLANEJAMENTO_FASE4.md` |
+| 5 Podar rotas/nav | done | `SPEC_CAMPANHA_ROTAS_FASE5.md` |
+
+## Comportamento
+
+```
+Hub → lista → Workspace (tasks)
+Workspace+campaign → Contexto · Ideia · Tarefas · Histórico
+Planejamento → única porta de create → Workspace
+/client-campaign → Workspace Ideia
+/client-tasks?briefingId → Workspace Tarefas
+/client-tasks (inbox) → permanece
+```
+
+Não implementar mudanças arquiteturais extras sem pedido explícito.

@@ -2,6 +2,7 @@ import { Brief, Profile } from '@/api/entities';
 import { NotificationService } from '@/components/notifications/NotificationService';
 import { configFromEmpresa, normalizeFormato } from '@/lib/empresaConfig';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { attachIdeiaToCampanhaPayload } from '@/lib/campanhaIdeia';
 import { createPageUrl } from '@/utils';
 
 export const EMPTY_CAMPANHA_FORM = {
@@ -13,6 +14,10 @@ export const EMPTY_CAMPANHA_FORM = {
   data_gravacao_fim: '',
   tipo_campanha: '5_videos',
   ciclo_comercial: '',
+  ciclo_plano: '',
+  ciclo_detectado: '',
+  ciclo_final: '',
+  ciclo_override: false,
   linha_focal: '',
 };
 
@@ -82,7 +87,7 @@ export function buildCampanhaBriefPayload({
         configOverride.tom_brand != null)
   );
 
-  return {
+  return attachIdeiaToCampanhaPayload({
     agencyId,
     clientId,
     projectId: clientId,
@@ -98,7 +103,17 @@ export function buildCampanhaBriefPayload({
     data_gravacao_inicio: campanhaForm.data_gravacao_inicio || null,
     data_gravacao_fim: campanhaForm.data_gravacao_fim || null,
     tipo_campanha: campanhaForm.tipo_campanha || '5_videos',
-    ciclo_comercial: campanhaForm.ciclo_comercial || null,
+    ciclo_comercial:
+      campanhaForm.ciclo_final ||
+      campanhaForm.ciclo_comercial ||
+      null,
+    ciclo_plano: campanhaForm.ciclo_plano || null,
+    ciclo_detectado: campanhaForm.ciclo_detectado || null,
+    ciclo_final:
+      campanhaForm.ciclo_final ||
+      campanhaForm.ciclo_comercial ||
+      null,
+    ciclo_override: Boolean(campanhaForm.ciclo_override),
     linha_focal: campanhaForm.linha_focal || null,
     // Herdados / override do mês
     publico_alvo: config.publico_alvo,
@@ -136,7 +151,7 @@ export function buildCampanhaBriefPayload({
         depois: null,
       },
     ],
-  };
+  });
 }
 
 export async function saveCampanhaBriefing(args) {

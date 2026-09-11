@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -15,7 +15,6 @@ import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
 import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
-import NewCampaignLauncher from '@/components/campaigns/NewCampaignLauncher';
 import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
 import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
 import ServiceOperationHeader from '@/components/client/hub/ServiceOperationHeader';
@@ -28,6 +27,7 @@ import {
   deriveAnnualPlanFromBriefs,
   getPlanMonth,
 } from '@/lib/planoAnualHub';
+import { buildPlanningCreateCampaignPath } from '@/lib/campaignWorkspaceHref';
 import {
   deriveServiceLensUnits,
   filterAttentionForService,
@@ -55,10 +55,16 @@ function setServiceIdInUrl(serviceId) {
   window.history.replaceState({}, '', url.toString());
 }
 
+function clearOpenParam() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('open');
+  window.history.replaceState({}, '', url.toString());
+}
+
 export default function ClientDetailPage() {
   const { agencyId, isAuthenticated, userId, user } = useSession();
+  const navigate = useNavigate();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [launcherOpen, setLauncherOpen] = useState(false);
   const [serviceSetupOpen, setServiceSetupOpen] = useState(false);
   const [unitModalOpen, setUnitModalOpen] = useState(false);
   const [unitSaving, setUnitSaving] = useState(false);
@@ -186,12 +192,19 @@ export default function ClientDetailPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('open') !== 'nova-campanha') return;
     if (!hasService) {
-      toast.info('Defina o serviço contratado antes de operar.');
+      toast.info('Defina o serviço contratado antes de criar no Planejamento.');
       setServiceSetupOpen(true);
+      clearOpenParam();
       return;
     }
-    if (isCampaignLens) setLauncherOpen(true);
-  }, [loading, hasService, isCampaignLens]);
+    // A2 / Fase 3: Hub não cria — deep link vai ao Planejamento
+    clearOpenParam();
+    navigate(
+      buildPlanningCreateCampaignPath(clientId, {
+        serviceId: selectedServiceId,
+      })
+    );
+  }, [loading, hasService, clientId, selectedServiceId, navigate]);
 
   useEffect(() => {
     if (loading) return;
@@ -212,6 +225,15 @@ export default function ClientDetailPage() {
     setSelectedServiceId(serviceId);
     setServiceIdInUrl(serviceId);
   }, []);
+
+  const goToPlanningCreate = useCallback(() => {
+    if (!clientId) return;
+    navigate(
+      buildPlanningCreateCampaignPath(clientId, {
+        serviceId: selectedServiceId,
+      })
+    );
+  }, [navigate, clientId, selectedServiceId]);
 
   const handleStartSingleProject = useCallback(async () => {
     if (!selectedService || !agencyId || !clientId) return;
@@ -250,7 +272,7 @@ export default function ClientDetailPage() {
     }
 
     if (selectedProfile.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF) {
-      setLauncherOpen(true);
+      goToPlanningCreate();
       return;
     }
 
@@ -263,7 +285,12 @@ export default function ClientDetailPage() {
     if (selectedProfile.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT) {
       handleStartSingleProject();
     }
-  }, [selectedService, selectedProfile, handleStartSingleProject]);
+  }, [
+    selectedService,
+    selectedProfile,
+    handleStartSingleProject,
+    goToPlanningCreate,
+  ]);
 
   const handleSubmitUnit = useCallback(
     async (title) => {
@@ -379,19 +406,25 @@ export default function ClientDetailPage() {
       title: hasService
         ? selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
           ? 'Iniciar operação do serviço'
-          : `Criar primeiro ${selectedProfile?.itemLabel || 'item'}`
+          : isCampaignLens
+            ? 'Criar primeira campanha no Planejamento'
+            : `Criar primeiro ${selectedProfile?.itemLabel || 'item'}`
         : 'Iniciar operação',
       description: hasService
-        ? 'Comece o trabalho neste serviço'
+        ? isCampaignLens
+          ? 'A criação fica no Planejamento; o Hub só opera'
+          : 'Comece o trabalho neste serviço'
         : 'Disponível depois de definir o serviço',
       completed: hasOperation,
       action:
         selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
           ? 'Iniciar operação'
-          : selectedProfile
-            ? String(getCreateCtaLabelSafe(selectedProfile)).replace(/^\+\s*/, '') ||
-              'Criar'
-            : 'Criar',
+          : isCampaignLens
+            ? 'Ir ao Planejamento'
+            : selectedProfile
+              ? String(getCreateCtaLabelSafe(selectedProfile)).replace(/^\+\s*/, '') ||
+                'Criar'
+              : 'Criar',
       onClick: hasService ? handleCreateUnit : () => setServiceSetupOpen(true),
     },
     {
@@ -675,17 +708,6 @@ export default function ClientDetailPage() {
           }
           await reload?.();
         }}
-      />
-
-      <NewCampaignLauncher
-        open={launcherOpen}
-        onClose={() => setLauncherOpen(false)}
-        clientId={clientId}
-        serviceId={selectedServiceId}
-        annualPlan={annualPlan}
-        mes={currentMes}
-        ano={currentAno}
-        onPlanUpdated={() => reload?.()}
       />
 
       <CreateServiceUnitModal

@@ -105,6 +105,7 @@ export default function AnnualPlanSidebarBlock({ clientId, agencyId }) {
                     buildClientCampaignHref({
                       clientId,
                       briefingId: m.brief_mensal_id,
+                      serviceId: m.service_id || m.campanha?.service_id || null,
                     })
                   )
                 : m.actionable || m.tema?.titulo

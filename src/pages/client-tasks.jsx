@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
@@ -27,6 +27,10 @@ import {
   filterTasksByScope,
 } from '@/lib/taskScope';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import {
+  buildCampaignWorkspaceTasksPath,
+  resolveServiceIdForCampaign,
+} from '@/lib/campaignWorkspaceHref';
 
 function readTasksUrlContext() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -55,6 +59,7 @@ function syncTasksUrl({ clientId, serviceId, cycleId, briefingId }) {
 
 export default function ClientTasksPage() {
   const { user, agencyId } = useSession();
+  const navigate = useNavigate();
   const initialUrl = useMemo(() => readTasksUrlContext(), []);
   const [clientId, setClientId] = useState(initialUrl.clientId);
   const [urlServiceId] = useState(initialUrl.serviceId);
@@ -80,6 +85,42 @@ export default function ClientTasksPage() {
 
   const overviewHref = createPageUrl(`client-detail?clientId=${clientId || ''}`);
   const isCampaignScope = Boolean(briefingId);
+
+  // Fase 5: tarefas com briefingId → Workspace da campanha (inbox T2 fica sem briefingId)
+  useEffect(() => {
+    if (!briefingId || !agencyId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const brief = await Brief.get(briefingId).catch(() => null);
+        if (cancelled) return;
+        const serviceId = await resolveServiceIdForCampaign({
+          brief,
+          agencyId,
+          clientId: clientId || brief?.clientId,
+          fallbackServiceId: urlServiceId,
+          loadCycle: (id) => CyclePlan.get(id),
+          listServices: (filter) => Service.filter(filter),
+        });
+        if (cancelled) return;
+        if (serviceId) {
+          navigate(
+            buildCampaignWorkspaceTasksPath({
+              serviceId,
+              clientId: clientId || brief?.clientId,
+              campaignId: briefingId,
+            }),
+            { replace: true }
+          );
+        }
+      } catch (err) {
+        console.error('[ClientTasks] campaign redirect', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [briefingId, agencyId, clientId, urlServiceId, navigate]);
 
   useEffect(() => {
     if (!initialUrl.clientId) {
@@ -112,7 +153,7 @@ export default function ClientTasksPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!clientId || !agencyId) return;
+      if (!clientId || !agencyId || briefingId) return;
 
       try {
         setLoading(true);
@@ -235,6 +276,11 @@ export default function ClientTasksPage() {
   const campaignHref = briefingId
     ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
     : overviewHref;
+
+  // Fase 5 — escopo de campanha redireciona; esta página fica só como inbox T2
+  if (briefingId) {
+    return <LoadingState message="Abrindo workspace da campanha…" />;
+  }
 
   if (loading) {
     return <LoadingState message="Carregando tarefas..." />;

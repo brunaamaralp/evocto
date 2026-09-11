@@ -20,16 +20,23 @@ export default function DeliveryWorkspaceHeader({
   client,
   onOpenNav,
   navOpen = false,
+  campaignUnit = null,
 }) {
   if (!service) return null;
 
-  const name = service.name || 'Entrega';
-  const status = service.service_status || service.status || '';
-  const statusLabel = STATUS_LABELS[status] || status || '—';
+  const serviceName = service.name || 'Entrega';
+  const campaignTitle = campaignUnit?.label || campaignUnit?.ideia?.titulo || null;
+  const name = campaignTitle || serviceName;
+  const status = campaignUnit
+    ? campaignUnit.status_campanha || ''
+    : service.service_status || service.status || '';
+  const statusLabel = campaignUnit
+    ? status || 'Campanha'
+    : STATUS_LABELS[status] || status || '—';
   const clientName = client?.name || client?.legal_name || service.clientName || 'Cliente';
-  const clientId = service.clientId || client?.id;
+  const clientId = service.clientId || client?.id || campaignUnit?.clientId;
   const clientHref = clientId
-    ? `${createPageUrl('client')}?clientId=${clientId}`
+    ? `${createPageUrl('client-detail')}?clientId=${clientId}`
     : null;
   const editHref = `${createPageUrl('service-instance-editor')}?serviceId=${service.id}`;
 
@@ -64,7 +71,15 @@ export default function DeliveryWorkspaceHeader({
               <span>{clientName}</span>
             )}
             <span className="mx-1.5">/</span>
-            <span className="text-slate-800 font-medium">{name}</span>
+            {campaignTitle ? (
+              <>
+                <span className="text-slate-600">{serviceName}</span>
+                <span className="mx-1.5">/</span>
+                <span className="text-slate-800 font-medium">{campaignTitle}</span>
+              </>
+            ) : (
+              <span className="text-slate-800 font-medium">{serviceName}</span>
+            )}
           </nav>
 
           <div className="delivery-workspace-header__identity">
@@ -82,12 +97,14 @@ export default function DeliveryWorkspaceHeader({
           </div>
         </div>
 
-        <Button asChild variant="outline" size="sm">
-          <Link to={editHref}>
-            <Pencil className="w-3.5 h-3.5 mr-1" />
-            Editar
-          </Link>
-        </Button>
+        {!campaignUnit ? (
+          <Button asChild variant="outline" size="sm">
+            <Link to={editHref}>
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Editar
+            </Link>
+          </Button>
+        ) : null}
       </div>
     </header>
   );

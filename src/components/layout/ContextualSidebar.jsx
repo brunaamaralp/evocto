@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import {
   LayoutDashboard,
@@ -16,7 +16,6 @@ import {
   Settings,
   FileText,
   FolderOpen,
-  Package,
   ArrowLeft,
   ChevronLeft,
   TrendingUp,
@@ -33,9 +32,10 @@ import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
-import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
 import { buildAnnualPlanHref, buildBrainstormHref } from '@/lib/planoAnualHub';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
+import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 
 /** Páginas onde serviceId significa workspace de serviço (não lente do hub). */
 const SERVICE_SHELL_PAGES = new Set([
@@ -62,10 +62,8 @@ export default function ContextualSidebar({
   onClose,
 }) {
   useTranslation();
-  const location = useLocation();
   const [client, setClient] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  const hash = location.hash || '';
 
   const useServiceShell =
     Boolean(serviceId) &&
@@ -92,26 +90,6 @@ export default function ContextualSidebar({
 
   const getNavigationItems = () => {
     if (isClientMode && clientId) {
-      const inUnit =
-        Boolean(briefingId) &&
-        (currentPage === 'client-campaign' ||
-          currentPage === 'client-unit' ||
-          currentPage === 'client-tasks' ||
-          currentPage === 'briefing-campanha' ||
-          currentPage === 'briefing-editor');
-
-      const unitHref = briefingId
-        ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
-        : null;
-
-      const tasksHref = createPageUrl(
-        buildClientTasksHref({
-          clientId,
-          serviceId: serviceId || null,
-          briefingId: inUnit ? briefingId : null,
-        })
-      );
-
       const items = [
         {
           type: 'link',
@@ -143,6 +121,7 @@ export default function ContextualSidebar({
         },
       ];
 
+      // S1: sem Ficha / Tarefas da unidade — campanha opera no Workspace
       if (currentPage === 'client-unit') {
         items.push({
           type: 'link',
@@ -152,34 +131,6 @@ export default function ContextualSidebar({
           nested: true,
           isActive: true,
         });
-      } else if (inUnit && briefingId && unitHref) {
-        items.push(
-          {
-            type: 'link',
-            label: 'Unidade atual',
-            icon: Megaphone,
-            href: unitHref,
-            nested: true,
-            isActive: currentPage === 'client-campaign' && hash !== '#ficha',
-          },
-          {
-            type: 'link',
-            label: 'Tarefas da unidade',
-            icon: CheckSquare,
-            href: tasksHref,
-            nested: true,
-            isActive: currentPage === 'client-tasks' && Boolean(briefingId),
-          },
-          {
-            type: 'link',
-            label: 'Ficha',
-            icon: FileText,
-            href: `${unitHref}#ficha`,
-            nested: true,
-            isActive:
-              currentPage === 'client-campaign' && hash === '#ficha',
-          }
-        );
       }
 
       items.push(
@@ -228,14 +179,7 @@ export default function ContextualSidebar({
           label: 'Aprendizados',
           icon: Lightbulb,
           href: createPageUrl(`client-learnings?clientId=${clientId}`),
-          isActive: currentPage === 'client-learnings',
-        },
-        {
-          type: 'link',
-          label: 'Evolução',
-          icon: BookOpen,
-          href: createPageUrl(`client-evolution?clientId=${clientId}`),
-          isActive: currentPage === 'client-evolution',
+          isActive: currentPage === 'client-learnings' || currentPage === 'client-evolution',
         },
         {
           type: 'link',
@@ -258,6 +202,16 @@ export default function ContextualSidebar({
     }
 
     if (useServiceShell && serviceId) {
+      const workspaceHref = briefingId
+        ? buildCampaignWorkspaceTasksPath({
+            serviceId,
+            clientId,
+            campaignId: briefingId,
+          })
+        : buildDeliveryWorkspacePath(serviceId, 'tasks', {
+            clientId: clientId || undefined,
+          });
+
       return [
         {
           type: 'link',
@@ -270,40 +224,23 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Visão Geral',
-          icon: LayoutDashboard,
-          href: createPageUrl(`service-detail?serviceId=${serviceId}`),
-          isActive: currentPage === 'service-detail',
-        },
-        {
-          type: 'link',
-          label: 'Deliverables',
-          icon: Package,
-          href: createPageUrl(`service-deliverables?serviceId=${serviceId}`),
-          isActive: currentPage === 'service-deliverables',
+          label: 'Workspace',
+          icon: Megaphone,
+          href: workspaceHref,
+          isActive: currentPage === 'delivery-workspace',
         },
         {
           type: 'link',
           label: 'Tarefas',
           icon: CheckSquare,
-          href: createPageUrl(
-            buildClientTasksHref({
-              clientId: clientId || undefined,
-              serviceId,
-            })
-          ),
-          isActive: currentPage === 'client-tasks',
-        },
-        {
-          type: 'link',
-          label: 'Documentos',
-          icon: FolderOpen,
-          href: createPageUrl(
-            clientId
-              ? `client-documents?clientId=${clientId}&serviceId=${serviceId}`
-              : `client-documents?serviceId=${serviceId}`
-          ),
-          isActive: currentPage === 'client-documents',
+          href: clientId
+            ? createPageUrl(
+                buildClientTasksHref({
+                  clientId,
+                })
+              )
+            : createPageUrl('tasks-manager'),
+          isActive: currentPage === 'client-tasks' && !briefingId,
         },
       ];
     }

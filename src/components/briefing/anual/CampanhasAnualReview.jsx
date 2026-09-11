@@ -25,6 +25,7 @@ import {
 import { useSession } from '@/components/auth/SessionManager';
 import { buildBrainstormHref } from '@/lib/planoAnualHub';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 
 const DIM_LABELS = {
   '01_estrategia': 'Estratégia',
@@ -96,59 +97,46 @@ export default function CampanhasAnualReview({
     return `${base}/${String(y).slice(2)}`;
   };
   const handleMaterializar = async (campanhaMes) => {
-    if (!briefingId || !clientId || !agencyId || !empresa?.id) {
-      toast.error('Salve o plano e configure a empresa antes de abrir a campanha do mês');
+    if (!briefingId || !clientId) {
+      toast.error('Salve o plano antes de abrir a campanha do mês');
       return;
     }
     const c = normalizeCampanhaMesGerada(campanhaMes);
-    if (c.brief_mensal_id && c.ciclo_entrega_id) {
-      navigate(
-        createPageUrl(
-          buildClientCampaignHref({
+    const serviceId = c.service_id || null;
+
+    // Já materializado → Workspace (D1)
+    if (c.brief_mensal_id) {
+      if (serviceId) {
+        navigate(
+          buildCampaignWorkspaceTasksPath({
+            serviceId,
             clientId,
-            briefingId: c.brief_mensal_id,
+            campaignId: c.brief_mensal_id,
           })
-        )
-      );
-      return;
-    }
-    try {
-      setBusyMes(c.mes);
-      const result = await materializeAnualMesToCycle({
-        briefingId,
-        campanhaMes: c,
-        existingPayload,
-        agencyId,
-        clientId,
-        empresa,
-        ano,
-        mes_inicio: mesInicio ?? existingPayload?.mes_inicio,
-        userId: user?.id || user?.$id || null,
-        generateTasks: true,
-      });
-      onMaterialized?.(result.anualPayload);
-      toast.success(
-        `Mês ${labelFor(c.mes)} materializado` +
-          (result.tasksCreated ? ` · ${result.tasksCreated} tarefas` : '')
-      );
-      if (result.service?.id) {
-        navigate(createPageUrl(`delivery-workspace?serviceId=${result.service.id}`));
-      } else if (result.briefingMensal?.id) {
+        );
+      } else {
         navigate(
           createPageUrl(
             buildClientCampaignHref({
               clientId,
-              briefingId: result.briefingMensal.id,
+              briefingId: c.brief_mensal_id,
             })
           )
         );
       }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || 'Não foi possível materializar o mês');
-    } finally {
-      setBusyMes(null);
+      return;
     }
+
+    // Fase 4: materializar mês = entrar no Brainstorm do plano (create no Planejamento)
+    navigate(
+      buildBrainstormHref(clientId, {
+        mes: c.mes,
+        ano,
+        planId: briefingId,
+        modo: 'plano',
+        serviceId: serviceId || null,
+      })
+    );
   };
 
   const handleMaterializarTodos = async () => {
@@ -243,7 +231,7 @@ export default function CampanhasAnualReview({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600">
-          Materializar cria a campanha do mês com tarefas operacionais.
+          Cada mês abre no Brainstorm; campanhas já criadas vão ao Workspace.
         </p>
         <Button
           type="button"
@@ -347,11 +335,9 @@ export default function CampanhasAnualReview({
                           ) : (
                             <ExternalLink className="w-4 h-4 mr-1" />
                           )}
-                          {c.brief_mensal_id && c.ciclo_entrega_id
-                            ? 'Abrir campanha'
-                            : c.brief_mensal_id
-                              ? 'Criar ciclo'
-                              : 'Materializar mês'}
+                          {c.brief_mensal_id
+                            ? 'Abrir workspace'
+                            : 'Brainstorm do mês'}
                         </Button>
                       </div>
                     )}

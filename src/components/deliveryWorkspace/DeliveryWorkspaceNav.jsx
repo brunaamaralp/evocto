@@ -1,18 +1,24 @@
 import { DELIVERY_WORKSPACE_NAV_ITEMS } from '@/lib/deliveryWorkspaceTabs';
+import { CAMPAIGN_WORKSPACE_TABS } from '@/lib/campaignWorkspaceHref';
 
 export default function DeliveryWorkspaceNav({
   activeSection,
   onSectionChange,
+  mode = 'service',
   className = '',
 }) {
+  const isCampaign = mode === 'campaign';
+  const items = isCampaign ? CAMPAIGN_WORKSPACE_TABS : DELIVERY_WORKSPACE_NAV_ITEMS;
+  const label = isCampaign ? 'Campanha' : 'Entrega';
+
   return (
     <nav
       className={`delivery-workspace-nav${className ? ` ${className}` : ''}`}
-      aria-label="Seções da entrega"
+      aria-label={isCampaign ? 'Seções da campanha' : 'Seções da entrega'}
     >
-      <p className="delivery-workspace-nav__label">Entrega</p>
+      <p className="delivery-workspace-nav__label">{label}</p>
       <ul className="delivery-workspace-nav__list">
-        {DELIVERY_WORKSPACE_NAV_ITEMS.map(({ id, label }) => {
+        {items.map(({ id, label: itemLabel }) => {
           const active = activeSection === id;
           return (
             <li key={id}>
@@ -22,7 +28,7 @@ export default function DeliveryWorkspaceNav({
                 aria-current={active ? 'page' : undefined}
                 onClick={() => onSectionChange(id)}
               >
-                {label}
+                {itemLabel}
               </button>
             </li>
           );

@@ -216,9 +216,15 @@ export default function ClientBriefingPage() {
       );
       return;
     }
-    // Campanhas mensais → ficha operacional (não o wizard longo)
+    // Campanhas mensais → Workspace (redirect via campaignHref se sem serviceId)
     navigate(
-      createPageUrl(buildClientCampaignHref({ clientId, briefingId: brief.id }))
+      createPageUrl(
+        buildClientCampaignHref({
+          clientId,
+          briefingId: brief.id,
+          serviceId: brief.serviceId || null,
+        })
+      )
     );
   };
 

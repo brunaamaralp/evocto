@@ -31,7 +31,7 @@ describe('serviceOperationProfile', () => {
       offering_key: 'ciclo_mensal_4_semanas',
     });
     expect(profile.unitKind).toBe(UNIT_KINDS.CAMPAIGN_BRIEF);
-    expect(profile.createCta).toBe('+ Nova campanha');
+    expect(profile.createCta).toBe('Criar no Planejamento');
     expect(profile.periodMode).toBe(PERIOD_MODES.MONTHLY);
   });
 

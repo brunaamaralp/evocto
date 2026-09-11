@@ -188,6 +188,9 @@ describe('deriveServiceLens', () => {
     expect(lensCampaign.unitKind).toBe(UNIT_KINDS.CAMPAIGN_BRIEF);
     expect(lensCampaign.unitsCount).toBe(1);
     expect(lensCampaign.groups[0].units[0].title).toBe('Outubro Rosa');
+    expect(lensCampaign.groups[0].units[0].href).toContain('delivery-workspace');
+    expect(lensCampaign.groups[0].units[0].href).toContain('campaignId=b1');
+    expect(lensCampaign.groups[0].units[0].href).toContain('section=tasks');
 
     const lensContent = deriveServiceLensUnits({
       service: contentService,

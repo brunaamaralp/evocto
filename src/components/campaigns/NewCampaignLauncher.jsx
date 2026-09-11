@@ -14,6 +14,7 @@ import {
   MES_NOMES,
 } from '@/lib/planoAnualHub';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 
 /**
  * Modal de decisão: mês do plano / brainstorm / formulário / texto.
@@ -87,13 +88,22 @@ export default function NewCampaignLauncher({
         generateTasks: true,
         serviceId: serviceId || null,
       });
+      const briefId = result?.briefingMensal?.id;
+      const svcId = result?.service?.id || serviceId || null;
       onPlanUpdated?.(result?.anualPayload || null);
       onClose?.();
-      const briefId = result?.briefingMensal?.id;
-      if (briefId) {
+      if (briefId && svcId) {
+        navigate(
+          buildCampaignWorkspaceTasksPath({
+            serviceId: svcId,
+            clientId,
+            campaignId: briefId,
+          })
+        );
+      } else if (briefId) {
         navigate(
           createPageUrl(
-            buildClientCampaignHref({ clientId, briefingId: briefId })
+            buildClientCampaignHref({ clientId, briefingId: briefId, serviceId: svcId })
           )
         );
       } else if (result?.cyclePlan?.id) {

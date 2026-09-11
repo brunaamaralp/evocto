@@ -4,7 +4,8 @@ import { createPageUrl } from '@/utils';
 import { Brief } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
-import { clientCampaignPageUrl, buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import AgentMarkdown from '@/components/campaigns/agent/AgentMarkdown';
 
 const API_BASE = '/api/campaigns-agent';
@@ -255,6 +256,7 @@ export default function ChatInterface({
               ? buildClientCampaignHref({
                   clientId,
                   briefingId: data.briefId,
+                  serviceId: data.serviceId || serviceId || null,
                 })
               : `client-briefing?briefingId=${data.briefId}`
           )
@@ -289,22 +291,32 @@ export default function ChatInterface({
         }
       }
 
-      if (launched.briefing?.id) {
+      const landingBriefId = launched.briefing?.id || data.briefId;
+      const landingServiceId =
+        launched.service?.id || data.serviceId || serviceId || null;
+
+      if (landingBriefId && landingServiceId) {
         navigate(
-          clientCampaignPageUrl({
+          buildCampaignWorkspaceTasksPath({
+            serviceId: landingServiceId,
             clientId: resolvedClientId,
-            briefingId: launched.briefing.id,
-          })
+            campaignId: landingBriefId,
+          }),
+          { replace: true }
+        );
+      } else if (landingBriefId) {
+        navigate(
+          createPageUrl(
+            buildClientCampaignHref({
+              clientId: resolvedClientId,
+              briefingId: landingBriefId,
+              serviceId: landingServiceId,
+            })
+          ),
+          { replace: true }
         );
       } else if (launched.cyclePlan?.id) {
         navigate(`/campaigns/cycles/${launched.cyclePlan.id}`);
-      } else {
-        navigate(
-          clientCampaignPageUrl({
-            clientId: resolvedClientId,
-            briefingId: data.briefId,
-          })
-        );
       }
     } catch (err) {
       console.error('[ChatInterface] save-brief', err);

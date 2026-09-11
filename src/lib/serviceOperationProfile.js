@@ -61,7 +61,7 @@ const PROFILES_BY_KEY = {
   ciclo_mensal_4_semanas: {
     itemLabel: 'campanha',
     itemLabelPlural: 'campanhas',
-    createCta: '+ Nova campanha',
+    createCta: 'Criar no Planejamento',
     operationPattern: OPERATION_PATTERNS.RECURRING,
     periodMode: PERIOD_MODES.MONTHLY,
     showCreateCta: true,
@@ -70,7 +70,7 @@ const PROFILES_BY_KEY = {
   ciclo_narrativa_7_fases: {
     itemLabel: 'campanha',
     itemLabelPlural: 'campanhas',
-    createCta: '+ Nova campanha',
+    createCta: 'Criar no Planejamento',
     operationPattern: OPERATION_PATTERNS.RECURRING,
     periodMode: PERIOD_MODES.MONTHLY,
     showCreateCta: true,
