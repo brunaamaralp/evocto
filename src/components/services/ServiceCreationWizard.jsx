@@ -7,13 +7,17 @@ import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
 import { useSession } from '@/components/auth/SessionManager';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 async function loadAgencyTemplates(agencyId) {
   if (!agencyId) return [];
-  await ensureCicloMensalTemplate(agencyId).catch(() => null);
+  await Promise.all([
+    ensureCicloMensalTemplate(agencyId).catch(() => null),
+    ensureProducaoConteudoTemplate(agencyId).catch(() => null),
+  ]);
   let list = await Service.filter({ agencyId, is_template: true }, '-updated_date', 100);
   if (!Array.isArray(list) || list.length === 0) {
     const all = await Service.filter({ agencyId }, '-updated_date', 100);
@@ -193,7 +197,7 @@ export default function ServiceCreationWizard({
                 </Select>
                 {templates.length === 0 && (
                   <p className="text-sm text-amber-700 mt-2">
-                    Nenhum template disponível. Vá em Templates e instale o Ciclo Mensal de Campanhas.
+                    Nenhum template disponível. Vá em Templates e instale os templates padrão.
                   </p>
                 )}
               </div>

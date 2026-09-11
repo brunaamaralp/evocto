@@ -35,6 +35,10 @@ import { ptBR } from 'date-fns/locale';
 import TaskNotificationService from '@/components/notifications/TaskNotificationService';
 import { InvokeLLM } from "@/api/integrations";
 import { buildTaskScopeFields } from '@/lib/taskScope';
+import {
+  buildDefaultContentChecklist,
+  isProducaoConteudoService,
+} from '@/templates/producaoConteudoTemplate';
 
 // Status das tarefas
 const TASK_STATUSES = [
@@ -318,34 +322,78 @@ export const TaskForm = ({
   }, [loadUsers]);
 
   useEffect(() => {
-    if (isOpen && task) {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    if (task) {
       const assignee = task.assignedTo || task.assigneeId;
       setFormData({
         ...task,
         assignedTo: assignee ? String(assignee) : UNASSIGNED,
       });
-    } else if (isOpen && !task) {
-      setFormData({
-        title: '',
-        description: '',
-        status: defaultStatus,
-        priority: 'medium',
-        type: 'deliverable',
-        assignedTo: UNASSIGNED,
-        dueDate: '',
-        startDate: '',
-        estimatedHours: '',
-        tags: [],
-        checklist: [],
-        timeEntries: [],
-        progress: 0,
-        clientId,
-        cycleId,
-        serviceId,
-        agencyId,
-        ...buildTaskScopeFields({ cycleId, briefingId }),
-      });
+      return () => {
+        cancelled = true;
+      };
     }
+
+    setFormData({
+      title: '',
+      description: '',
+      status: defaultStatus,
+      priority: 'medium',
+      type: 'deliverable',
+      assignedTo: UNASSIGNED,
+      dueDate: '',
+      startDate: '',
+      estimatedHours: '',
+      tags: [],
+      checklist: [],
+      timeEntries: [],
+      progress: 0,
+      clientId,
+      cycleId,
+      serviceId,
+      agencyId,
+      ...buildTaskScopeFields({ cycleId, briefingId }),
+    });
+
+    if (!serviceId) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    (async () => {
+      try {
+        const service = await Service.get(serviceId).catch(() => null);
+        if (cancelled || !service || !isProducaoConteudoService(service)) return;
+        const fromService = Array.isArray(service.content_item_template?.checklist)
+          ? service.content_item_template.checklist.map((item, index) => ({
+              id: `pc_${Date.now()}_${index}`,
+              text: item.text || item.title || `Etapa ${index + 1}`,
+              completed: false,
+              required: item.required !== false,
+              order: index,
+              assignedTo: null,
+              dueDate: null,
+            }))
+          : buildDefaultContentChecklist();
+        if (cancelled) return;
+        setFormData((prev) => ({
+          ...prev,
+          type: prev.type === 'deliverable' ? 'creative' : prev.type,
+          checklist: fromService,
+          tags: Array.from(new Set([...(prev.tags || []), 'conteudo'])),
+        }));
+      } catch (err) {
+        console.warn('[TaskForm] Falha ao aplicar template de conteúdo:', err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, task, defaultStatus, clientId, cycleId, briefingId, serviceId, agencyId]);
 
   const handleInputChange = (field, value) => {

@@ -7,6 +7,7 @@
  * 3. Marketing Operacional 360 (recorrente)
  * 4. Ciclo Mensal 4 Semanas (pipeline operacional legado)
  * 5. Pipeline Narrativa 7 fases (operacional Estúdio Narrativa)
+ * 6. Produção de Conteúdo (ciclo → conteúdos → etapas de produção)
  */
 
 import {
@@ -17,6 +18,10 @@ import {
   CICLO_NARRATIVA_7_FASES_TEMPLATE,
   CICLO_NARRATIVA_TEMPLATE_KEY,
 } from './cicloNarrativa7FasesTemplate.js';
+import {
+  PRODUCAO_CONTEUDO_TEMPLATE,
+  PRODUCAO_CONTEUDO_TEMPLATE_KEY,
+} from './producaoConteudoTemplate.js';
 
 export {
   CICLO_MENSAL_4_SEMANAS_TEMPLATE,
@@ -30,6 +35,16 @@ export {
   CICLO_NARRATIVA_TEMPLATE_KEY,
   CICLO_NARRATIVA_TEMPLATE_SLUG,
 } from './cicloNarrativa7FasesTemplate.js';
+
+export {
+  PRODUCAO_CONTEUDO_TEMPLATE,
+  PRODUCAO_CONTEUDO_TEMPLATE_KEY,
+  PRODUCAO_CONTEUDO_TEMPLATE_SLUG,
+  DEFAULT_CONTENT_SUBTAREFAS,
+  buildDefaultContentChecklist,
+  isProducaoConteudoService,
+  formatProducaoConteudoCycleTitle,
+} from './producaoConteudoTemplate.js';
 
 export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
   id: 'diagnostico_comunicacao_template',
@@ -711,6 +726,7 @@ export const DEFAULT_SERVICE_TEMPLATES = {
   marketing_360: MARKETING_360_TEMPLATE,
   [CICLO_MENSAL_TEMPLATE_KEY]: CICLO_MENSAL_4_SEMANAS_TEMPLATE,
   [CICLO_NARRATIVA_TEMPLATE_KEY]: CICLO_NARRATIVA_7_FASES_TEMPLATE,
+  [PRODUCAO_CONTEUDO_TEMPLATE_KEY]: PRODUCAO_CONTEUDO_TEMPLATE,
   // legado (mesmo objeto)
   diagnostico_financeiro: DIAGNOSTICO_COMUNICACAO_TEMPLATE,
   mentoria_precificacao: ESTRATEGIA_CONTEUDO_TEMPLATE,

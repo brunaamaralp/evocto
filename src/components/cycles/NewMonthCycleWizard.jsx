@@ -5,6 +5,7 @@ import { useSession } from '@/components/auth/SessionManager';
 import { createMonthCycle } from '@/api/functions/createMonthCycle';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { ensureCicloNarrativaTemplate } from '@/api/functions/ensureCicloNarrativaTemplate';
+import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ import {
   TIPOS_CAMPANHA,
   previewPhasesForTipo,
 } from '@/lib/tipoCampanhaPipeline';
+import { isProducaoConteudoService } from '@/templates/producaoConteudoTemplate';
 
 function todayYmd() {
   return new Date().toISOString().slice(0, 10);
@@ -58,6 +60,7 @@ export default function NewMonthCycleWizard({
   const [services, setServices] = useState([]);
   const [templateId, setTemplateId] = useState('');
   const [legadoTemplateId, setLegadoTemplateId] = useState('');
+  const [conteudoTemplateId, setConteudoTemplateId] = useState('');
 
   const [clientId, setClientId] = useState(defaultClientId || '');
   const [mode, setMode] = useState(defaultServiceId ? 'existing' : 'new');
@@ -77,15 +80,17 @@ export default function NewMonthCycleWizard({
     (async () => {
       setBootstrapping(true);
       try {
-        const [clientsData, narrativaTpl, legadoTpl] = await Promise.all([
+        const [clientsData, narrativaTpl, legadoTpl, conteudoTpl] = await Promise.all([
           Client.filter({ agencyId }).catch(() => []),
           ensureCicloNarrativaTemplate(agencyId),
           ensureCicloMensalTemplate(agencyId),
+          ensureProducaoConteudoTemplate(agencyId),
         ]);
         if (cancelled) return;
         setClients(Array.isArray(clientsData) ? clientsData : []);
         setTemplateId(narrativaTpl?.id || '');
         setLegadoTemplateId(legadoTpl?.id || '');
+        setConteudoTemplateId(conteudoTpl?.id || '');
         if (defaultClientId) setClientId(defaultClientId);
         if (defaultServiceId) {
           setServiceId(defaultServiceId);
@@ -140,13 +145,43 @@ export default function NewMonthCycleWizard({
     [tipoCampanha]
   );
 
-  const activeTemplateId = pipeline === 'narrativa' ? templateId : legadoTemplateId;
+  const selectedExistingService = useMemo(
+    () => services.find((s) => s.id === serviceId),
+    [services, serviceId]
+  );
+
+  const effectivePipeline =
+    mode === 'existing' && isProducaoConteudoService(selectedExistingService)
+      ? 'conteudo'
+      : pipeline;
+
+  const activeTemplateId =
+    effectivePipeline === 'conteudo'
+      ? conteudoTemplateId
+      : effectivePipeline === 'narrativa'
+        ? templateId
+        : legadoTemplateId;
   const canNextFrom1 = Boolean(clientId);
   const canNextFrom2 =
     mode === 'new' ? Boolean(activeTemplateId) : Boolean(serviceId);
   const canSubmit = Boolean(
     clientId && startDate && (mode === 'new' ? activeTemplateId : serviceId)
   );
+
+  useEffect(() => {
+    if (pipeline === 'conteudo') {
+      setGenerateTasks(false);
+    } else {
+      setGenerateTasks(true);
+    }
+  }, [pipeline]);
+
+  const pipelineLabel =
+    effectivePipeline === 'conteudo'
+      ? 'Produção de Conteúdo'
+      : effectivePipeline === 'narrativa'
+        ? 'Pipeline Narrativa'
+        : 'Ciclo Mensal de Campanhas';
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -161,22 +196,22 @@ export default function NewMonthCycleWizard({
         serviceName:
           serviceName ||
           (selectedClient
-            ? `${selectedClient.name || selectedClient.company_name} — ${
-                pipeline === 'narrativa' ? 'Pipeline Narrativa' : 'Ciclo Mensal'
-              }`
+            ? `${selectedClient.name || selectedClient.company_name} — ${pipelineLabel}`
             : undefined),
-        generateTasks,
+        generateTasks: effectivePipeline === 'conteudo' ? false : generateTasks,
         ownerId: user?.id || user?.data?.id,
-        pipeline,
+        pipeline: effectivePipeline,
         tipo_campanha: tipoCampanha,
         ciclo_comercial: cicloComercial,
         linha_focal: linhaFocal,
       });
 
       toast.success(
-        generateTasks
-          ? `Ciclo criado com ${result.tasksCreated} tarefas`
-          : 'Ciclo criado com sucesso'
+        effectivePipeline === 'conteudo'
+          ? 'Ciclo de Produção de Conteúdo criado — adicione conteúdos como tarefas'
+          : generateTasks
+            ? `Ciclo criado com ${result.tasksCreated} tarefas`
+            : 'Ciclo criado com sucesso'
       );
       onOpenChange?.(false);
       onSuccess?.(result);
@@ -202,9 +237,11 @@ export default function NewMonthCycleWizard({
             Novo ciclo do mês
           </DialogTitle>
           <DialogDescription>
-            {pipeline === 'narrativa'
-              ? `Pipeline Narrativa (${TIPOS_CAMPANHA.find((t) => t.value === tipoCampanha)?.label || tipoCampanha}): fases, subtarefas, gates e SLA.`
-              : 'Legado: 4 fases — PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.'}
+            {effectivePipeline === 'conteudo'
+              ? 'Produção de Conteúdo: ciclo → conteúdos (tarefas) → etapas de produção.'
+              : effectivePipeline === 'narrativa'
+                ? `Pipeline Narrativa (${TIPOS_CAMPANHA.find((t) => t.value === tipoCampanha)?.label || tipoCampanha}): fases, subtarefas, gates e SLA.`
+                : 'Legado: 4 fases — PLANEJAMENTO, PRODUÇÃO, REVISÃO e PUBLICAÇÃO.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -242,6 +279,9 @@ export default function NewMonthCycleWizard({
                       <SelectItem value="narrativa">
                         Narrativa — 7 fases + subtarefas (recomendado)
                       </SelectItem>
+                      <SelectItem value="conteudo">
+                        Produção de Conteúdo — ciclo + conteúdos
+                      </SelectItem>
                       <SelectItem value="legado">Legado — 4 semanas</SelectItem>
                     </SelectContent>
                   </Select>
@@ -272,14 +312,8 @@ export default function NewMonthCycleWizard({
                         onChange={(e) => setServiceName(e.target.value)}
                         placeholder={
                           selectedClient
-                            ? `${selectedClient.name || selectedClient.company_name} — ${
-                                pipeline === 'narrativa'
-                                  ? 'Pipeline Narrativa'
-                                  : 'Ciclo Mensal de Campanhas'
-                              }`
-                            : pipeline === 'narrativa'
-                              ? 'Pipeline Narrativa'
-                              : 'Ciclo Mensal de Campanhas'
+                            ? `${selectedClient.name || selectedClient.company_name} — ${pipelineLabel}`
+                            : pipelineLabel
                         }
                       />
                     </div>
@@ -343,6 +377,12 @@ export default function NewMonthCycleWizard({
                           </p>
                         </div>
                       </div>
+                    ) : pipeline === 'conteudo' ? (
+                      <p className="text-xs text-slate-500">
+                        Template: Produção de Conteúdo — ao criar cada conteúdo (tarefa), as
+                        etapas Roteiro, Produção, Edição, Aprovação e Agendamento são
+                        aplicadas como checklist editável.
+                      </p>
                     ) : (
                       <p className="text-xs text-slate-500">
                         Template: Ciclo Mensal de Campanhas (4 fases)
@@ -384,20 +424,29 @@ export default function NewMonthCycleWizard({
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    {pipeline === 'narrativa'
-                      ? `${phasePreview.length} fases serão agendadas em sequência (dias úteis).`
-                      : 'As 4 fases serão agendadas em sequência (dias úteis).'}
+                    {effectivePipeline === 'conteudo'
+                      ? 'Ciclo mensal pronto para receber conteúdos como tarefas.'
+                      : effectivePipeline === 'narrativa'
+                        ? `${phasePreview.length} fases serão agendadas em sequência (dias úteis).`
+                        : 'As 4 fases serão agendadas em sequência (dias úteis).'}
                   </p>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={generateTasks}
-                    onCheckedChange={(v) => setGenerateTasks(Boolean(v))}
-                  />
-                  {pipeline === 'narrativa'
-                    ? 'Gerar tarefas e subtarefas agora'
-                    : 'Gerar tarefas das 4 fases agora'}
-                </label>
+                {effectivePipeline !== 'conteudo' ? (
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={generateTasks}
+                      onCheckedChange={(v) => setGenerateTasks(Boolean(v))}
+                    />
+                    {effectivePipeline === 'narrativa'
+                      ? 'Gerar tarefas e subtarefas agora'
+                      : 'Gerar tarefas das 4 fases agora'}
+                  </label>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Conteúdos são criados depois, como tarefas, com o template de etapas
+                    padrão.
+                  </p>
+                )}
               </div>
             )}
           </div>

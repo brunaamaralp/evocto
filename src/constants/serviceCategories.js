@@ -55,6 +55,12 @@ export const SERVICE_OFFERING_TYPES = {
     category: 'marketing_digital',
     legacyKeys: [],
   },
+  producao_conteudo: {
+    key: 'producao_conteudo',
+    label: 'Produção de Conteúdo',
+    category: 'conteudo',
+    legacyKeys: [],
+  },
 };
 
 export const SERVICE_OFFERING_KEYS = Object.keys(SERVICE_OFFERING_TYPES);

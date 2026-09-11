@@ -23,6 +23,7 @@ import ServiceModal from '@/components/services/ServiceModal';
 import ServiceTemplateWizard from '@/components/services/ServiceTemplateWizard';
 import { useDebounce } from '@/components/hooks/useDebounce';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
 import { toast } from 'sonner';
 
 // P2: Cache manager para templates
@@ -139,10 +140,14 @@ export default function ServicesPage() {
       console.log('🔍 Garantindo template padrão e buscando no banco...');
 
       let seeded = null;
+      let seededConteudo = null;
       try {
-        seeded = await ensureCicloMensalTemplate(agencyId);
+        [seeded, seededConteudo] = await Promise.all([
+          ensureCicloMensalTemplate(agencyId),
+          ensureProducaoConteudoTemplate(agencyId),
+        ]);
       } catch (seedErr) {
-        console.warn('Falha ao garantir template Ciclo Mensal:', seedErr);
+        console.warn('Falha ao garantir templates padrão:', seedErr);
         toast.error(seedErr?.message || 'Não foi possível instalar o template padrão');
       }
 
@@ -164,8 +169,10 @@ export default function ServicesPage() {
 
       // Se o seed criou/retornou o template mas o filter ainda não enxerga (perms),
       // injeta na lista para a UI não ficar vazia.
-      if (seeded?.id && !(templatesData || []).some((t) => t.id === seeded.id)) {
-        templatesData = [seeded, ...(templatesData || [])];
+      for (const extra of [seeded, seededConteudo]) {
+        if (extra?.id && !(templatesData || []).some((t) => t.id === extra.id)) {
+          templatesData = [extra, ...(templatesData || [])];
+        }
       }
 
       console.log(`✅ ${(templatesData || []).length} templates carregados`);
@@ -575,8 +582,9 @@ function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstal
             Nenhum template encontrado
           </h3>
           <p className="text-gray-600 mb-4">
-            O template padrão <strong>Ciclo Mensal de Campanhas</strong> deve
-            instalar ao abrir esta página. Se a lista continuar vazia, reinstale abaixo.
+            O template padrão <strong>Ciclo Mensal de Campanhas</strong> (e
+            <strong> Produção de Conteúdo</strong>) deve instalar ao abrir esta
+            página. Se a lista continuar vazia, reinstale abaixo.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {onInstallDefault && (

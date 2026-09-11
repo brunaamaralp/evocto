@@ -28,6 +28,7 @@ import ImportTemplateModal from '@/components/services/ImportTemplateModal';
 import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
@@ -46,11 +47,15 @@ export default function ServiceTemplatesPage() {
     try {
       setLoading(true);
       let seeded = null;
+      let seededConteudo = null;
       try {
-        seeded = await ensureCicloMensalTemplate(agencyId);
+        [seeded, seededConteudo] = await Promise.all([
+          ensureCicloMensalTemplate(agencyId),
+          ensureProducaoConteudoTemplate(agencyId),
+        ]);
       } catch (err) {
-        console.warn('Falha ao garantir template Ciclo Mensal:', err);
-        toast.error(err?.message || 'Não foi possível instalar o template padrão');
+        console.warn('Falha ao garantir templates padrão:', err);
+        toast.error(err?.message || 'Não foi possível instalar os templates padrão');
       }
 
       let templatesData = await Service.filter({
@@ -67,6 +72,9 @@ export default function ServiceTemplatesPage() {
 
       if (seeded?.id && !(templatesData || []).some((t) => t.id === seeded.id)) {
         templatesData = [seeded, ...(templatesData || [])];
+      }
+      if (seededConteudo?.id && !(templatesData || []).some((t) => t.id === seededConteudo.id)) {
+        templatesData = [seededConteudo, ...(templatesData || [])];
       }
 
       console.log('📋 Templates carregados:', templatesData?.length || 0);
@@ -312,7 +320,7 @@ export default function ServiceTemplatesPage() {
           <p className="text-gray-600 mb-4">
             {searchTerm || categoryFilter !== 'all' 
               ? 'Tente ajustar os filtros de busca'
-              : 'O template padrão Ciclo Mensal de Campanhas deve instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
+              : 'Os templates padrão (Ciclo Mensal de Campanhas e Produção de Conteúdo) devem instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
             }
           </p>
           {!searchTerm && categoryFilter === 'all' && (

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Service } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
+import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
 import { useSession } from '@/components/auth/SessionManager';
 import { Loader2, Plus, AlertCircle } from 'lucide-react';
 
@@ -29,7 +30,10 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
     setLoadingTemplates(true);
     try {
       if (agencyId) {
-        await ensureCicloMensalTemplate(agencyId).catch(() => null);
+        await Promise.all([
+          ensureCicloMensalTemplate(agencyId).catch(() => null),
+          ensureProducaoConteudoTemplate(agencyId).catch(() => null),
+        ]);
       }
 
       let list = agencyId
@@ -135,7 +139,7 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
             )}
             {!loadingTemplates && templates.length === 0 && (
               <p className="text-sm text-amber-700 mt-2">
-                Nenhum template disponível. Instale o Ciclo Mensal de Campanhas na aba Templates.
+                Nenhum template disponível. Instale os templates padrão na aba Templates.
               </p>
             )}
           </div>

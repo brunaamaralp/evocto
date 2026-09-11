@@ -284,9 +284,6 @@ export default function ClientServicesPage() {
                         <div className="flex items-start justify-between">
                           <div>
                             <CardTitle className="text-lg">{service.name}</CardTitle>
-                            <p className="text-sm text-[#7A7595] mt-1">
-                              {service.category} • v{service.version}
-                            </p>
                           </div>
                           {getServiceStatusBadge(service)}
                         </div>

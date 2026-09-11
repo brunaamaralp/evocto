@@ -4,6 +4,10 @@ import { scheduleDeliverablesFs } from '@/lib/deliverableScheduleCore';
 import { buildTaskPayloadFromTemplate } from '@/lib/startDeliverableStage';
 import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 import { flattenTaskTemplates } from '@/templates/cicloNarrativa7FasesTemplate';
+import {
+  formatProducaoConteudoCycleTitle,
+  isProducaoConteudoService,
+} from '@/templates/producaoConteudoTemplate';
 import { wirePhaseFinishToStartDependencies } from '@/lib/wirePhaseDependencies';
 import { dueDateForTaskTemplate } from '@/lib/taskDueFromTemplate';
 import { wireTaskTemplateDependencies } from '@/lib/wireTaskTemplateDependencies';
@@ -17,6 +21,7 @@ import {
 } from '@/lib/tipoCampanhaPipeline';
 import { ensureCicloMensalTemplate } from './ensureCicloMensalTemplate';
 import { ensureCicloNarrativaTemplate } from './ensureCicloNarrativaTemplate';
+import { ensureProducaoConteudoTemplate } from './ensureProducaoConteudoTemplate';
 
 function formatCyclePeriod(startDate) {
   try {
@@ -63,7 +68,7 @@ function applyAssignee(payload, profiles, taskTemplate, ownerId) {
  *   title?: string,
  *   generateTasks?: boolean,
  *   ownerId?: string,
- *   pipeline?: 'legado' | 'narrativa',
+ *   pipeline?: 'legado' | 'narrativa' | 'conteudo',
  *   tipo_campanha?: '5_videos' | 'ugc' | 'influenciador' | 'so_posts',
  *   ciclo_comercial?: string,
  *   linha_focal?: string,
@@ -99,13 +104,16 @@ export async function createMonthCycle(opts = {}) {
   if (!client) throw new Error('Cliente não encontrado');
 
   const profiles = await Profile.filter({ agencyId }).catch(() => []);
-  const useNarrativa = pipeline === 'narrativa';
+  const useConteudo = pipeline === 'conteudo';
+  const useNarrativa = pipeline === 'narrativa' && !useConteudo;
 
   let templateServiceId = templateId;
   if (!templateServiceId && !serviceId) {
-    const seeded = useNarrativa
-      ? await ensureCicloNarrativaTemplate(agencyId)
-      : await ensureCicloMensalTemplate(agencyId);
+    const seeded = useConteudo
+      ? await ensureProducaoConteudoTemplate(agencyId)
+      : useNarrativa
+        ? await ensureCicloNarrativaTemplate(agencyId)
+        : await ensureCicloMensalTemplate(agencyId);
     templateServiceId = seeded.id;
   }
 
@@ -115,9 +123,11 @@ export async function createMonthCycle(opts = {}) {
     if (!service) throw new Error('Serviço não encontrado');
     if (service.is_template) throw new Error('Selecione uma instância de serviço, não um template');
   } else {
-    const defaultName = useNarrativa
-      ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
-      : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
+    const defaultName = useConteudo
+      ? `${client.name || client.company_name || 'Cliente'} — Produção de Conteúdo`
+      : useNarrativa
+        ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
+        : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
     const result = await createServiceInstance({
       templateId: templateServiceId,
       clientId,
@@ -130,20 +140,24 @@ export async function createMonthCycle(opts = {}) {
     if (!service?.id) throw new Error('Falha ao criar instância do serviço');
   }
 
+  const isConteudoService = useConteudo || isProducaoConteudoService(service);
+
   const rawDeliverables = normalizeDeliverableTaskShapes(
-    useNarrativa && !serviceId
+    useNarrativa && !serviceId && !isConteudoService
       ? buildNarrativaDeliverablesByTipo(tipo_campanha)
       : service.deliverables || []
   );
-  const withCicloSla = useNarrativa
-    ? applyCicloComercialSla(rawDeliverables, ciclo_comercial)
-    : rawDeliverables;
+  const withCicloSla =
+    useNarrativa && !isConteudoService
+      ? applyCicloComercialSla(rawDeliverables, ciclo_comercial)
+      : rawDeliverables;
 
   const isNarrativaService =
-    useNarrativa ||
-    service.pipeline === 'narrativa' ||
-    service.offering_key === 'ciclo_narrativa_7_fases' ||
-    withCicloSla.some((d) => d.phase === 'foto_e_video' || d.phase === 'calendario_cliente');
+    !isConteudoService &&
+    (useNarrativa ||
+      service.pipeline === 'narrativa' ||
+      service.offering_key === 'ciclo_narrativa_7_fases' ||
+      withCicloSla.some((d) => d.phase === 'foto_e_video' || d.phase === 'calendario_cliente'));
 
   const scheduled = scheduleDeliverablesFs({
     startDate: String(startDate).slice(0, 10),
@@ -155,25 +169,41 @@ export async function createMonthCycle(opts = {}) {
           status: 'in_progress',
           started_at: new Date().toISOString(),
         }
-      : d
+      : isConteudoService && idx === 0
+        ? {
+            ...d,
+            status: 'in_progress',
+            started_at: new Date().toISOString(),
+          }
+        : d
   );
 
   const lastEnd = scheduled[scheduled.length - 1]?.planned_end;
-  const endDate = lastEnd || addCalendarDays(startDate, isNarrativaService ? 20 : 27);
+  const endDate =
+    lastEnd ||
+    addCalendarDays(startDate, isNarrativaService ? 20 : isConteudoService ? 27 : 27);
 
   service = await Service.update(service.id, {
     deliverables: scheduled,
     start_date: String(startDate).slice(0, 10),
     end_date: endDate,
-    ...(isNarrativaService
+    ...(isConteudoService
       ? {
-          pipeline: 'narrativa',
-          tipo_campanha,
-          ciclo_comercial: ciclo_comercial || null,
-          linha_focal: linha_focal || null,
-          briefId: briefId || null,
+          pipeline: 'conteudo',
+          offering_key: service.offering_key || 'producao_conteudo',
+          ...(service.content_item_template
+            ? { content_item_template: service.content_item_template }
+            : {}),
         }
-      : {}),
+      : isNarrativaService
+        ? {
+            pipeline: 'narrativa',
+            tipo_campanha,
+            ciclo_comercial: ciclo_comercial || null,
+            linha_focal: linha_focal || null,
+            briefId: briefId || null,
+          }
+        : {}),
   });
 
   const embeddedTasks = isNarrativaService
@@ -183,7 +213,16 @@ export async function createMonthCycle(opts = {}) {
     : [];
 
   const cyclePeriod = formatCyclePeriod(startDate);
-  const cycleTitle = String(cycleTitleOpt || '').trim() || cyclePeriod;
+  const cycleTitle =
+    String(cycleTitleOpt || '').trim() ||
+    (isConteudoService
+      ? formatProducaoConteudoCycleTitle(startDate)
+      : cyclePeriod);
+  const cyclePipeline = isConteudoService
+    ? 'conteudo'
+    : isNarrativaService
+      ? 'narrativa'
+      : 'legado';
   const cyclePlan = await CyclePlan.create({
     agencyId,
     clientId,
@@ -196,19 +235,19 @@ export async function createMonthCycle(opts = {}) {
     startDate: String(startDate).slice(0, 10),
     end_date: endDate,
     ownerId: ownerId || null,
-    pipeline: isNarrativaService ? 'narrativa' : 'legado',
+    pipeline: cyclePipeline,
     tipo_campanha: isNarrativaService ? tipo_campanha : null,
-    ciclo_comercial: ciclo_comercial || null,
-    linha_focal: linha_focal || null,
+    ciclo_comercial: isNarrativaService ? ciclo_comercial || null : null,
+    linha_focal: isNarrativaService ? linha_focal || null : null,
     briefId: briefId || null,
     planData: {
       prioridades: [],
       ajustesEstrategicos: {},
       pendenciasCliente: [],
-      pipeline: isNarrativaService ? 'narrativa' : 'legado',
+      pipeline: cyclePipeline,
       tipo_campanha: isNarrativaService ? tipo_campanha : null,
-      ciclo_comercial: ciclo_comercial || null,
-      linha_focal: linha_focal || null,
+      ciclo_comercial: isNarrativaService ? ciclo_comercial || null : null,
+      linha_focal: isNarrativaService ? linha_focal || null : null,
       briefId: briefId || null,
       tarefas: embeddedTasks,
       feedback: null,
@@ -223,14 +262,21 @@ export async function createMonthCycle(opts = {}) {
         status: d.status || 'planned',
       })),
     },
-    version: isNarrativaService ? 'narrativa-1.0' : 'v1.0',
+    version: isConteudoService
+      ? 'conteudo-1.0'
+      : isNarrativaService
+        ? 'narrativa-1.0'
+        : 'v1.0',
     source: 'new_month_cycle_wizard',
   });
 
   let tasks = [];
   let tasksCreated = 0;
 
-  if (generateTasks) {
+  // Produção de Conteúdo: ciclo começa vazio — conteúdos são criados sob demanda.
+  const shouldGenerateTasks = generateTasks && !isConteudoService;
+
+  if (shouldGenerateTasks) {
     if (isNarrativaService) {
       const flat = flattenTaskTemplates(scheduled);
       const byTemplateId = new Map();
@@ -327,18 +373,25 @@ export async function createMonthCycle(opts = {}) {
     }
 
     await CyclePlan.update(cyclePlan.id, { status: 'in_execution' }).catch(() => {});
+  } else if (isConteudoService) {
+    // Ciclo pronto para receber conteúdos manuais
+    await CyclePlan.update(cyclePlan.id, { status: 'in_execution' }).catch(() => {});
   }
 
   return {
     success: true,
     service,
-    cyclePlan: { ...cyclePlan, status: generateTasks ? 'in_execution' : cyclePlan.status },
+    cyclePlan: {
+      ...cyclePlan,
+      status:
+        shouldGenerateTasks || isConteudoService ? 'in_execution' : cyclePlan.status,
+    },
     tasks,
     tasksCreated,
-    pipeline: isNarrativaService ? 'narrativa' : 'legado',
+    pipeline: cyclePipeline,
     tipo_campanha: isNarrativaService ? tipo_campanha : null,
-    ciclo_comercial: ciclo_comercial || null,
-    linha_focal: linha_focal || null,
+    ciclo_comercial: isNarrativaService ? ciclo_comercial || null : null,
+    linha_focal: isNarrativaService ? linha_focal || null : null,
     startDate: String(startDate).slice(0, 10),
     endDate,
   };
