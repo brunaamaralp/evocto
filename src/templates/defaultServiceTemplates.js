@@ -8,6 +8,8 @@
  * 4. Ciclo Mensal 4 Semanas (pipeline operacional legado)
  * 5. Pipeline Narrativa 7 fases (operacional Estúdio Narrativa)
  * 6. Produção de Conteúdo (ciclo → conteúdos → etapas de produção)
+ * 7. Sessão de Fotos (ciclo → sessões → etapas de produção)
+ * 8. Demais operacionais (Campanha Pontual, Vídeo, Eventos, Marca…)
  */
 
 import {
@@ -22,6 +24,11 @@ import {
   PRODUCAO_CONTEUDO_TEMPLATE,
   PRODUCAO_CONTEUDO_TEMPLATE_KEY,
 } from './producaoConteudoTemplate.js';
+import {
+  SESSAO_FOTOS_TEMPLATE,
+  SESSAO_FOTOS_TEMPLATE_KEY,
+} from './sessaoFotosTemplate.js';
+import { OPERATIONAL_ITEM_CYCLE_TEMPLATES } from './operationalItemCyclePresets.js';
 
 export {
   CICLO_MENSAL_4_SEMANAS_TEMPLATE,
@@ -45,6 +52,27 @@ export {
   isProducaoConteudoService,
   formatProducaoConteudoCycleTitle,
 } from './producaoConteudoTemplate.js';
+
+export {
+  SESSAO_FOTOS_TEMPLATE,
+  SESSAO_FOTOS_TEMPLATE_KEY,
+  SESSAO_FOTOS_TEMPLATE_SLUG,
+  DEFAULT_SESSAO_FOTOS_SUBTAREFAS,
+  isSessaoFotosService,
+} from './sessaoFotosTemplate.js';
+
+export {
+  ITEM_CYCLE_OPTIONS,
+  isItemCycleService,
+  isItemCyclePipelineKey,
+  buildChecklistFromContentItemTemplate,
+  formatItemCycleTitle,
+} from './itemCycleTemplateHelpers.js';
+
+export {
+  OPERATIONAL_ITEM_CYCLE_TEMPLATES,
+  OPERATIONAL_ITEM_CYCLE_PRESETS,
+} from './operationalItemCyclePresets.js';
 
 export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
   id: 'diagnostico_comunicacao_template',
@@ -727,6 +755,8 @@ export const DEFAULT_SERVICE_TEMPLATES = {
   [CICLO_MENSAL_TEMPLATE_KEY]: CICLO_MENSAL_4_SEMANAS_TEMPLATE,
   [CICLO_NARRATIVA_TEMPLATE_KEY]: CICLO_NARRATIVA_7_FASES_TEMPLATE,
   [PRODUCAO_CONTEUDO_TEMPLATE_KEY]: PRODUCAO_CONTEUDO_TEMPLATE,
+  [SESSAO_FOTOS_TEMPLATE_KEY]: SESSAO_FOTOS_TEMPLATE,
+  ...OPERATIONAL_ITEM_CYCLE_TEMPLATES,
   // legado (mesmo objeto)
   diagnostico_financeiro: DIAGNOSTICO_COMUNICACAO_TEMPLATE,
   mentoria_precificacao: ESTRATEGIA_CONTEUDO_TEMPLATE,

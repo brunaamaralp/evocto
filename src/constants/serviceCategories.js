@@ -61,6 +61,48 @@ export const SERVICE_OFFERING_TYPES = {
     category: 'conteudo',
     legacyKeys: [],
   },
+  sessao_fotos: {
+    key: 'sessao_fotos',
+    label: 'Sessão de Fotos',
+    category: 'conteudo',
+    legacyKeys: [],
+  },
+  campanha_pontual: {
+    key: 'campanha_pontual',
+    label: 'Campanha Pontual',
+    category: 'marketing_digital',
+    legacyKeys: [],
+  },
+  producao_video: {
+    key: 'producao_video',
+    label: 'Produção de Vídeo',
+    category: 'conteudo',
+    legacyKeys: [],
+  },
+  cobertura_evento: {
+    key: 'cobertura_evento',
+    label: 'Cobertura de Evento',
+    category: 'conteudo',
+    legacyKeys: [],
+  },
+  storymaker: {
+    key: 'storymaker',
+    label: 'Storymaker',
+    category: 'conteudo',
+    legacyKeys: [],
+  },
+  posicionamento_marca: {
+    key: 'posicionamento_marca',
+    label: 'Posicionamento de Marca',
+    category: 'branding',
+    legacyKeys: [],
+  },
+  identidade_papelaria_eventos: {
+    key: 'identidade_papelaria_eventos',
+    label: 'Identidade / Papelaria para Eventos',
+    category: 'design',
+    legacyKeys: [],
+  },
 };
 
 export const SERVICE_OFFERING_KEYS = Object.keys(SERVICE_OFFERING_TYPES);

@@ -7,7 +7,7 @@ import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
-import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
+import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { useSession } from '@/components/auth/SessionManager';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ async function loadAgencyTemplates(agencyId) {
   if (!agencyId) return [];
   await Promise.all([
     ensureCicloMensalTemplate(agencyId).catch(() => null),
-    ensureProducaoConteudoTemplate(agencyId).catch(() => null),
+    ensureItemCycleTemplates(agencyId).catch(() => null),
   ]);
   let list = await Service.filter({ agencyId, is_template: true }, '-updated_date', 100);
   if (!Array.isArray(list) || list.length === 0) {

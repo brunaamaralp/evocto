@@ -23,7 +23,7 @@ import ServiceModal from '@/components/services/ServiceModal';
 import ServiceTemplateWizard from '@/components/services/ServiceTemplateWizard';
 import { useDebounce } from '@/components/hooks/useDebounce';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
-import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
+import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { toast } from 'sonner';
 
 // P2: Cache manager para templates
@@ -140,11 +140,11 @@ export default function ServicesPage() {
       console.log('🔍 Garantindo template padrão e buscando no banco...');
 
       let seeded = null;
-      let seededConteudo = null;
+      let itemSeeded = {};
       try {
-        [seeded, seededConteudo] = await Promise.all([
+        [seeded, itemSeeded] = await Promise.all([
           ensureCicloMensalTemplate(agencyId),
-          ensureProducaoConteudoTemplate(agencyId),
+          ensureItemCycleTemplates(agencyId),
         ]);
       } catch (seedErr) {
         console.warn('Falha ao garantir templates padrão:', seedErr);
@@ -169,7 +169,7 @@ export default function ServicesPage() {
 
       // Se o seed criou/retornou o template mas o filter ainda não enxerga (perms),
       // injeta na lista para a UI não ficar vazia.
-      for (const extra of [seeded, seededConteudo]) {
+      for (const extra of [seeded, ...Object.values(itemSeeded || {})]) {
         if (extra?.id && !(templatesData || []).some((t) => t.id === extra.id)) {
           templatesData = [extra, ...(templatesData || [])];
         }
@@ -582,8 +582,9 @@ function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstal
             Nenhum template encontrado
           </h3>
           <p className="text-gray-600 mb-4">
-            O template padrão <strong>Ciclo Mensal de Campanhas</strong> (e
-            <strong> Produção de Conteúdo</strong>) deve instalar ao abrir esta
+            O template padrão <strong>Ciclo Mensal de Campanhas</strong> e os
+            operacionais (<strong>Produção de Conteúdo</strong>,{' '}
+            <strong>Sessão de Fotos</strong>) devem instalar ao abrir esta
             página. Se a lista continuar vazia, reinstale abaixo.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">

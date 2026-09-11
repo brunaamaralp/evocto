@@ -36,9 +36,9 @@ import TaskNotificationService from '@/components/notifications/TaskNotification
 import { InvokeLLM } from "@/api/integrations";
 import { buildTaskScopeFields } from '@/lib/taskScope';
 import {
-  buildDefaultContentChecklist,
-  isProducaoConteudoService,
-} from '@/templates/producaoConteudoTemplate';
+  buildChecklistFromContentItemTemplate,
+  isItemCycleService,
+} from '@/templates/itemCycleTemplateHelpers';
 
 // Status das tarefas
 const TASK_STATUSES = [
@@ -367,27 +367,23 @@ export const TaskForm = ({
     (async () => {
       try {
         const service = await Service.get(serviceId).catch(() => null);
-        if (cancelled || !service || !isProducaoConteudoService(service)) return;
-        const fromService = Array.isArray(service.content_item_template?.checklist)
-          ? service.content_item_template.checklist.map((item, index) => ({
-              id: `pc_${Date.now()}_${index}`,
-              text: item.text || item.title || `Etapa ${index + 1}`,
-              completed: false,
-              required: item.required !== false,
-              order: index,
-              assignedTo: null,
-              dueDate: null,
-            }))
-          : buildDefaultContentChecklist();
-        if (cancelled) return;
+        if (cancelled || !service || !isItemCycleService(service)) return;
+        if (!service.content_item_template) return;
+        const fromService = buildChecklistFromContentItemTemplate(service);
+        if (!fromService.length || cancelled) return;
+        const tag =
+          String(service.offering_key || service.slug || 'item').trim() || 'item';
         setFormData((prev) => ({
           ...prev,
-          type: prev.type === 'deliverable' ? 'creative' : prev.type,
+          type:
+            prev.type === 'deliverable'
+              ? service.content_item_template?.type || 'creative'
+              : prev.type,
           checklist: fromService,
-          tags: Array.from(new Set([...(prev.tags || []), 'conteudo'])),
+          tags: Array.from(new Set([...(prev.tags || []), tag])),
         }));
       } catch (err) {
-        console.warn('[TaskForm] Falha ao aplicar template de conteúdo:', err);
+        console.warn('[TaskForm] Falha ao aplicar template de item do ciclo:', err);
       }
     })();
 

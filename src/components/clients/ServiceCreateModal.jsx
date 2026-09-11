@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Service } from '@/api/entities';
 import { createServiceInstance } from '@/api/functions';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
-import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
+import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { useSession } from '@/components/auth/SessionManager';
 import { Loader2, Plus, AlertCircle } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function ServiceCreateModal({ isOpen, onClose, onSuccess, clientI
       if (agencyId) {
         await Promise.all([
           ensureCicloMensalTemplate(agencyId).catch(() => null),
-          ensureProducaoConteudoTemplate(agencyId).catch(() => null),
+          ensureItemCycleTemplates(agencyId).catch(() => null),
         ]);
       }
 

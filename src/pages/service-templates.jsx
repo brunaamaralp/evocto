@@ -28,7 +28,7 @@ import ImportTemplateModal from '@/components/services/ImportTemplateModal';
 import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
-import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
+import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
@@ -47,11 +47,11 @@ export default function ServiceTemplatesPage() {
     try {
       setLoading(true);
       let seeded = null;
-      let seededConteudo = null;
+      let itemSeeded = {};
       try {
-        [seeded, seededConteudo] = await Promise.all([
+        [seeded, itemSeeded] = await Promise.all([
           ensureCicloMensalTemplate(agencyId),
-          ensureProducaoConteudoTemplate(agencyId),
+          ensureItemCycleTemplates(agencyId),
         ]);
       } catch (err) {
         console.warn('Falha ao garantir templates padrão:', err);
@@ -73,8 +73,10 @@ export default function ServiceTemplatesPage() {
       if (seeded?.id && !(templatesData || []).some((t) => t.id === seeded.id)) {
         templatesData = [seeded, ...(templatesData || [])];
       }
-      if (seededConteudo?.id && !(templatesData || []).some((t) => t.id === seededConteudo.id)) {
-        templatesData = [seededConteudo, ...(templatesData || [])];
+      for (const extra of Object.values(itemSeeded || {})) {
+        if (extra?.id && !(templatesData || []).some((t) => t.id === extra.id)) {
+          templatesData = [extra, ...(templatesData || [])];
+        }
       }
 
       console.log('📋 Templates carregados:', templatesData?.length || 0);
@@ -320,7 +322,7 @@ export default function ServiceTemplatesPage() {
           <p className="text-gray-600 mb-4">
             {searchTerm || categoryFilter !== 'all' 
               ? 'Tente ajustar os filtros de busca'
-              : 'Os templates padrão (Ciclo Mensal de Campanhas e Produção de Conteúdo) devem instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
+              : 'Os templates padrão (Ciclo Mensal, Produção de Conteúdo e Sessão de Fotos) devem instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
             }
           </p>
           {!searchTerm && categoryFilter === 'all' && (

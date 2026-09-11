@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getCategoryLabel } from '@/constants/serviceCategories';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
-import { ensureProducaoConteudoTemplate } from '@/api/functions/ensureProducaoConteudoTemplate';
+import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 
 // Componente para card de serviço
 const ServiceCard = ({ service, client, cycles, onServiceClick }) => {
@@ -256,11 +256,11 @@ function ServicesOverviewPage() {
 
       let seeded = null;
       try {
-        const [cicloSeed, conteudoSeed] = await Promise.all([
+        const [cicloSeed, itemMap] = await Promise.all([
           ensureCicloMensalTemplate(agencyId),
-          ensureProducaoConteudoTemplate(agencyId),
+          ensureItemCycleTemplates(agencyId),
         ]);
-        seeded = cicloSeed || conteudoSeed;
+        seeded = cicloSeed || Object.values(itemMap || {}).find((t) => t?.id) || null;
       } catch (seedErr) {
         console.warn('[services-overview] seed template:', seedErr);
         toast.error(seedErr?.message || 'Não foi possível instalar o template padrão');
