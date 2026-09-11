@@ -31,6 +31,7 @@ import { toast } from 'sonner';
 import ServiceSLAValidator from '@/components/services/ServiceSLAValidator';
 import { generateTasksFromService } from '@/api/functions';
 import { SERVICE_CATEGORIES, getCategoryLabel } from '@/constants/serviceCategories';
+import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 
 const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
 
@@ -232,7 +233,7 @@ export default function ServiceCreateModal({
         description: serviceConfig.description,
         category: selectedTemplate.category,
         version: selectedTemplate.version,
-        deliverables: selectedTemplate.deliverables || [],
+        deliverables: normalizeDeliverableTaskShapes(selectedTemplate.deliverables || []),
         pricing: selectedTemplate.pricing,
         cycle_frequency: selectedTemplate.cycle_frequency,
         approval_policy: selectedTemplate.approval_policy,

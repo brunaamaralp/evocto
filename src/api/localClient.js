@@ -176,12 +176,12 @@ class FunctionManager {
         throw new Error(`Serviço ${serviceId} não encontrado`);
       }
 
-      // Gerar tarefas baseadas no template
+      // Gerar tarefas baseadas no template (aceita tasks ou task_templates)
       const tasks = [];
       if (service.deliverables) {
         for (const deliverable of service.deliverables) {
-          if (deliverable.task_templates) {
-            for (const template of deliverable.task_templates) {
+          const templates = deliverable.task_templates || deliverable.tasks || [];
+          for (const template of templates) {
               const task = await this.adapter.entities.create('tasks', {
                 serviceId,
                 deliverableId: deliverable.id,
@@ -195,7 +195,6 @@ class FunctionManager {
                 checklist: template.checklist || []
               });
               tasks.push(task);
-            }
           }
         }
       }

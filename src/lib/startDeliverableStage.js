@@ -13,7 +13,7 @@ export function canStartDeliverable(deliverable) {
   if (!deliverable) return false;
   const status = String(deliverable.status || 'not_started').toLowerCase();
   if (TERMINAL_STATUSES.has(status)) return false;
-  const templates = deliverable.task_templates || [];
+  const templates = deliverable.task_templates || deliverable.tasks || [];
   return templates.length > 0 || status === 'not_started' || status === 'pending';
 }
 

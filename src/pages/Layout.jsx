@@ -6,7 +6,6 @@ import { ReactiveStateProvider } from '@/components/state/ReactiveStateManager';
 import { AuthenticatedLayout, PublicLayout } from '@/components/layout/AuthenticatedLayout';
 import { NavigationProvider } from '@/components/navigation/NavigationTracker';
 import TaskDrawer from '@/components/tasks/TaskDrawer';
-import ServiceActionsFab from '@/components/services/ServiceActionsFab';
 
 const publicRoutes = [
   '/',
@@ -54,10 +53,6 @@ function Layout({ children }) {
     pathname.startsWith('/ClientArea') ||
     pathname.startsWith('/ClientDemo') ||
     pathname.startsWith('/cliente/');
-  const hideServiceFab =
-    isClientPortalSurface ||
-    pathname.includes('/client-tasks') ||
-    pathname.includes('/client-campaign');
   const hideTaskDrawer = isClientPortalSurface;
 
   return (
@@ -69,7 +64,6 @@ function Layout({ children }) {
               {children}
             </LayoutContent>
             {!isPublic && !hideTaskDrawer && <TaskDrawer />}
-            {!isPublic && !hideServiceFab && <ServiceActionsFab />}
           </NavigationProvider>
         </SessionProvider>
       </I18nProvider>

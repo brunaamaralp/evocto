@@ -17,6 +17,7 @@ import {
   canStartDeliverable,
   markDeliverableStarted,
 } from '@/lib/startDeliverableStage';
+import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 
 // Tipos para geração de tarefas
 export interface TaskTemplate {
@@ -43,8 +44,19 @@ export interface Deliverable {
   name: string;
   description: string;
   task_templates?: TaskTemplate[];
+  /** Alguns templates legados usam `tasks` em vez de `task_templates`. */
+  tasks?: TaskTemplate[];
   estimated_hours?: number;
   duration_days?: number;
+}
+
+function getDeliverableTaskTemplates(deliverable: Deliverable | null | undefined): TaskTemplate[] {
+  if (!deliverable) return [];
+  const templates = deliverable.task_templates;
+  if (Array.isArray(templates) && templates.length > 0) return templates;
+  const tasks = deliverable.tasks;
+  if (Array.isArray(tasks) && tasks.length > 0) return tasks;
+  return [];
 }
 
 export interface TaskGenerationOptions {
@@ -223,21 +235,24 @@ export function useTaskGeneration() {
         return { canActivate: false, errors, warnings };
       }
 
-      // 5. Verificar deliverables
-      if (!service.deliverables || service.deliverables.length === 0) {
+      // 5. Verificar deliverables (normaliza tasks ↔ task_templates)
+      const deliverables = normalizeDeliverableTaskShapes(service.deliverables || []);
+      if (deliverables.length === 0) {
         errors.push('Serviço não possui deliverables para gerar tarefas');
         return { canActivate: false, errors, warnings };
       }
 
-      // 6. Verificar se deliverables têm task templates
-      const deliverablesWithTasks = service.deliverables.filter(d => 
-        d.task_templates && d.task_templates.length > 0
+      // 6. Verificar se deliverables têm task templates (ou tasks legado)
+      const deliverablesWithTasks = deliverables.filter(
+        (d: Deliverable) => getDeliverableTaskTemplates(d).length > 0
       );
 
       if (deliverablesWithTasks.length === 0) {
         errors.push('Nenhum deliverable possui templates de tarefa');
         return { canActivate: false, errors, warnings };
       }
+
+      service.deliverables = deliverables;
 
       // 7. Verificar se há tarefas já existentes
       const existingTasks = await Task.filter({
@@ -312,13 +327,14 @@ export function useTaskGeneration() {
         return { isValid: false, errors, warnings };
       }
 
-      if (!service.deliverables || service.deliverables.length === 0) {
+      const deliverables = normalizeDeliverableTaskShapes(service.deliverables || []);
+      if (deliverables.length === 0) {
         errors.push('Serviço não possui deliverables para gerar tarefas');
         return { isValid: false, errors, warnings };
       }
 
-      const deliverablesWithTasks = service.deliverables.filter(
-        (d: Deliverable) => d.task_templates && d.task_templates.length > 0
+      const deliverablesWithTasks = deliverables.filter(
+        (d: Deliverable) => getDeliverableTaskTemplates(d).length > 0
       );
 
       if (deliverablesWithTasks.length === 0) {
@@ -330,6 +346,7 @@ export function useTaskGeneration() {
         warnings.push('Data de início não foi definida — use a data informada na geração');
       }
 
+      service.deliverables = deliverables;
       return { isValid: errors.length === 0, errors, warnings, service };
     } catch (error) {
       console.error('[TaskGeneration] Erro na validação do serviço:', error);
@@ -399,7 +416,7 @@ export function useTaskGeneration() {
           currentStep: `Processando deliverable: ${deliverable.name}...`
         }));
 
-        const taskTemplates = deliverable.task_templates || [];
+        const taskTemplates = getDeliverableTaskTemplates(deliverable);
         
         if (taskTemplates.length === 0) {
           warnings.push(`Deliverable "${deliverable.name}" não possui templates de tarefa`);
@@ -574,7 +591,7 @@ export function useTaskGeneration() {
       const errors: string[] = [];
       const warnings: string[] = [];
       const generatedTasks: any[] = [];
-      const templates = deliverable.task_templates || [];
+      const templates = getDeliverableTaskTemplates(deliverable);
 
       if (templates.length === 0) {
         warnings.push(`Etapa "${deliverable.name}" iniciada sem templates de tarefa`);

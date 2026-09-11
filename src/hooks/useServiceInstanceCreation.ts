@@ -10,6 +10,7 @@ import { generateTasksFromService } from '@/api/functions';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 import { useMandatoryBriefing } from './useMandatoryBriefing';
+import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 
 // Tipos para criação de instância
 export interface ServiceInstanceData {
@@ -282,7 +283,7 @@ export function useServiceInstanceCreation() {
         description: sanitizedData.description,
         category: template.category,
         version: template.version,
-        deliverables: template.deliverables || [],
+        deliverables: normalizeDeliverableTaskShapes(template.deliverables || []),
         pricing: template.pricing,
         cycle_frequency: template.cycle_frequency,
         approval_policy: template.approval_policy,
