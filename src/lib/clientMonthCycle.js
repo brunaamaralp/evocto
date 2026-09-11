@@ -97,11 +97,26 @@ export async function ensureClientMonthCycle({
     };
   }
 
+  let resolvedServiceId = serviceId || null;
+  if (!resolvedServiceId) {
+    const list = await Service.filter({
+      agencyId,
+      clientId,
+      is_template: false,
+    }).catch(() => []);
+    const reusable = (Array.isArray(list) ? list : []).find((s) => {
+      if (!s?.id || s.is_active === false) return false;
+      const status = String(s.service_status || '').toLowerCase();
+      return !['cancelled', 'archived', 'completed'].includes(status);
+    });
+    resolvedServiceId = reusable?.id || null;
+  }
+
   const result = await createMonthCycle({
     agencyId,
     clientId,
     startDate: ymd,
-    serviceId: serviceId || undefined,
+    serviceId: resolvedServiceId || undefined,
     serviceName:
       serviceName ||
       `${empresaNome || 'Cliente'} — ${title}`,

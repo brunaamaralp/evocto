@@ -10,6 +10,7 @@ import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { showToast } from '@/components/feedback/EnhancedFeedback';
+import { createPageUrl } from '@/utils';
 import { 
   CheckCircle, Users, Briefcase, FileText, 
   ArrowRight, Play, Target, Sparkles
@@ -64,7 +65,7 @@ export default function AgencyOnboarding() {
     try {
       const [clients, services, briefs] = await Promise.all([
         Client.filter({ agencyId }),
-        Service.filter({ agencyId }),
+        Service.filter({ agencyId, is_template: false }),
         Brief.filter({ agencyId })
       ]);
 
@@ -109,15 +110,35 @@ export default function AgencyOnboarding() {
   }, [checkProgress]);
 
   const handleCreateClient = () => {
-    navigate('/customers');
+    navigate(createPageUrl('clients'));
   };
 
-  const handleCreateService = () => {
-    navigate('/services-overview');
+  const handleCreateService = async () => {
+    try {
+      const clients = await Client.filter({ agencyId });
+      const first = Array.isArray(clients) ? clients[0] : null;
+      if (first?.id) {
+        navigate(createPageUrl(`client-detail?clientId=${first.id}&setup=service`));
+        return;
+      }
+    } catch {
+      // fall through to clients list
+    }
+    navigate(createPageUrl('clients'));
   };
 
-  const handleCreateBriefing = () => {
-    navigate('/customers'); // Vai para clientes onde pode criar briefing
+  const handleCreateBriefing = async () => {
+    try {
+      const clients = await Client.filter({ agencyId });
+      const first = Array.isArray(clients) ? clients[0] : null;
+      if (first?.id) {
+        navigate(createPageUrl(`client-briefing?clientId=${first.id}`));
+        return;
+      }
+    } catch {
+      // fall through
+    }
+    navigate(createPageUrl('clients'));
   };
 
   const stepsConfig = [

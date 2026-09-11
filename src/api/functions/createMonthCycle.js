@@ -129,33 +129,51 @@ export async function createMonthCycle(opts = {}) {
   }
 
   let service;
+  let reusedExistingService = false;
   if (serviceId) {
     service = await Service.get(serviceId);
     if (!service) throw new Error('Serviço não encontrado');
     if (service.is_template) throw new Error('Selecione uma instância de serviço, não um template');
   } else {
-    const itemLabel = itemCycleOption?.label || resolveItemCycleDisplayName({ offering_key: pipeline });
-    const defaultName = useItemCycle
-      ? `${client.name || client.company_name || 'Cliente'} — ${itemLabel}`
-      : useNarrativa
-        ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
-        : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
-    const result = await createServiceInstance({
-      templateId: templateServiceId,
+    // Prefira o serviço contratado já existente — evita criar instância "misteriosa"
+    const existingList = await Service.filter({
+      agencyId,
       clientId,
-      customizations: {
-        name: serviceName || defaultName,
-        start_date: String(startDate).slice(0, 10),
-      },
+      is_template: false,
+    }).catch(() => []);
+    const reusable = (Array.isArray(existingList) ? existingList : []).find((s) => {
+      if (!s?.id || s.is_active === false) return false;
+      const status = String(s.service_status || '').toLowerCase();
+      return !['cancelled', 'archived', 'completed'].includes(status);
     });
-    service = result.serviceInstance || result.data?.serviceInstance || result.data;
-    if (!service?.id) throw new Error('Falha ao criar instância do serviço');
+
+    if (reusable) {
+      service = reusable;
+      reusedExistingService = true;
+    } else {
+      const itemLabel = itemCycleOption?.label || resolveItemCycleDisplayName({ offering_key: pipeline });
+      const defaultName = useItemCycle
+        ? `${client.name || client.company_name || 'Cliente'} — ${itemLabel}`
+        : useNarrativa
+          ? `${client.name || client.company_name || 'Cliente'} — Pipeline Narrativa`
+          : `${client.name || client.company_name || 'Cliente'} — Ciclo Mensal de Campanhas`;
+      const result = await createServiceInstance({
+        templateId: templateServiceId,
+        clientId,
+        customizations: {
+          name: serviceName || defaultName,
+          start_date: String(startDate).slice(0, 10),
+        },
+      });
+      service = result.serviceInstance || result.data?.serviceInstance || result.data;
+      if (!service?.id) throw new Error('Falha ao criar instância do serviço');
+    }
   }
 
   const isItemCycle = useItemCycle || isItemCycleService(service);
 
   const rawDeliverables = normalizeDeliverableTaskShapes(
-    useNarrativa && !serviceId && !isItemCycle
+    useNarrativa && !serviceId && !reusedExistingService && !isItemCycle
       ? buildNarrativaDeliverablesByTipo(tipo_campanha)
       : service.deliverables || []
   );

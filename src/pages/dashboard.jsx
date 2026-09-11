@@ -260,10 +260,17 @@ function buildAgenda(tasks, clients, todayStart) {
     .map((task) => buildTaskItem(task, clients, todayStart, 'agenda'));
 }
 
-function buildSetupSteps({ clients, campaignGroups, tasks }) {
+function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
   const hasClients = clients.length > 0;
+  const activeServices = (Array.isArray(services) ? services : []).filter(
+    (s) => s?.is_template !== true && s?.is_active !== false
+  );
+  const hasService = activeServices.length > 0;
   const hasCampaigns = campaignGroups.length > 0;
   const hasOpenTasks = tasks.some(isOpenTask);
+  const clientsWithoutService = clients.filter(
+    (c) => !activeServices.some((s) => String(s.clientId) === String(c.id))
+  );
   const clientsWithoutCampaigns = clients.filter(
     (c) => !campaignGroups.some((g) => String(g.clientId) === String(c.id))
   );
@@ -273,26 +280,49 @@ function buildSetupSteps({ clients, campaignGroups, tasks }) {
       id: 'client',
       done: hasClients,
       title: 'Cadastrar um cliente',
-      description: 'Base para campanhas e tarefas.',
+      description: 'Base para serviços, campanhas e tarefas.',
       href: createPageUrl('clients'),
       cta: 'Ir para clientes',
+    },
+    {
+      id: 'service',
+      done: hasService,
+      title: 'Definir serviço contratado',
+      description: hasClients
+        ? clientsWithoutService.length > 0
+          ? `${clientsWithoutService.length} cliente${clientsWithoutService.length === 1 ? '' : 's'} sem serviço.`
+          : 'Contrato operacional definido.'
+        : 'Primeiro cadastre um cliente.',
+      href: clientsWithoutService[0]?.id
+        ? createPageUrl(
+            `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
+          )
+        : clients[0]?.id
+          ? createPageUrl(`client-detail?clientId=${clients[0].id}&setup=service`)
+          : createPageUrl('clients'),
+      cta: hasClients ? 'Definir serviço' : 'Começar pelos clientes',
     },
     {
       id: 'campaign',
       done: hasCampaigns,
       title: 'Criar a campanha do mês',
-      description: hasClients
+      description: hasService
         ? clientsWithoutCampaigns.length > 0
           ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} sem campanha ativa.`
           : 'Abra um cliente e inicie a campanha.'
-        : 'Primeiro cadastre um cliente.',
-      href:
-        clientsWithoutCampaigns[0]?.id
+        : 'Defina o serviço contratado antes.',
+      href: hasService
+        ? clientsWithoutCampaigns[0]?.id
           ? createPageUrl(
               `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
             )
+          : createPageUrl('clients')
+        : clientsWithoutService[0]?.id
+          ? createPageUrl(
+              `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
+            )
           : createPageUrl('clients'),
-      cta: hasClients ? 'Criar campanha' : 'Começar pelos clientes',
+      cta: hasService ? 'Criar campanha' : 'Definir serviço',
     },
     {
       id: 'tasks',
@@ -301,12 +331,16 @@ function buildSetupSteps({ clients, campaignGroups, tasks }) {
       description: 'Prazos e entregas alimentam a agenda da home.',
       href: hasCampaigns
         ? createPageUrl('tasks-manager')
-        : clientsWithoutCampaigns[0]?.id
+        : hasService && clientsWithoutCampaigns[0]?.id
           ? createPageUrl(
               `client-detail?clientId=${clientsWithoutCampaigns[0].id}&open=nova-campanha#campanhas`
             )
-          : createPageUrl('clients'),
-      cta: hasCampaigns ? 'Ver tarefas' : 'Depois da campanha',
+          : clientsWithoutService[0]?.id
+            ? createPageUrl(
+                `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
+              )
+            : createPageUrl('clients'),
+      cta: hasCampaigns ? 'Ver tarefas' : hasService ? 'Depois da campanha' : 'Depois do serviço',
     },
   ];
 }
@@ -399,6 +433,7 @@ export default function DashboardPage() {
         clients: clientsForCampaigns,
         campaignGroups,
         tasks,
+        services,
       });
       const clientsWithoutCampaigns = clientsForCampaigns
         .filter((c) => !campaignGroups.some((g) => String(g.clientId) === String(c.id)))
@@ -410,6 +445,22 @@ export default function DashboardPage() {
             `client-detail?clientId=${c.id}&open=nova-campanha#campanhas`
           ),
         }));
+      const clientsWithoutService = clientsForCampaigns
+        .filter(
+          (c) =>
+            !(Array.isArray(services) ? services : []).some(
+              (s) =>
+                String(s.clientId) === String(c.id) &&
+                s.is_template !== true &&
+                s.is_active !== false
+            )
+        )
+        .slice(0, 4)
+        .map((c) => ({
+          id: c.id,
+          name: c.name || 'Cliente',
+          href: createPageUrl(`client-detail?clientId=${c.id}&setup=service`),
+        }));
 
       setDashboardData({
         campaignGroups,
@@ -417,6 +468,7 @@ export default function DashboardPage() {
         agenda,
         setupSteps,
         clientsWithoutCampaigns,
+        clientsWithoutService,
       });
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
@@ -465,6 +517,7 @@ export default function DashboardPage() {
     agenda,
     setupSteps,
     clientsWithoutCampaigns,
+    clientsWithoutService = [],
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
   const nextSetupStep = setupSteps.find((s) => !s.done) || null;
@@ -603,7 +656,30 @@ export default function DashboardPage() {
               ))}
             </ol>
 
-            {clientsWithoutCampaigns.length > 0 ? (
+            {clientsWithoutService.length > 0 ? (
+              <div>
+                <p className="mb-3 text-sm font-medium text-[#111]">
+                  Clientes sem serviço contratado
+                </p>
+                <ul className="space-y-1">
+                  {clientsWithoutService.map((client) => (
+                    <li key={client.id}>
+                      <Link
+                        to={client.href}
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                      >
+                        <span className="truncate text-sm font-medium text-[#111]">
+                          {client.name}
+                        </span>
+                        <span className="shrink-0 text-sm font-medium text-[#007bff]">
+                          Definir serviço
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : clientsWithoutCampaigns.length > 0 ? (
               <div>
                 <p className="mb-3 text-sm font-medium text-[#111]">
                   Clientes prontos para campanha

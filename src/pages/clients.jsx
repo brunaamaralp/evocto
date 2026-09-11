@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import ClientEditModal from '@/components/client/ClientEditModal';
@@ -29,6 +29,7 @@ import ClientActionButtons from '@/components/clients/ClientActionButtons';
 import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientsPage() {
+  const navigate = useNavigate();
   const { agencyId, loading: sessionLoading } = useSession();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,8 +76,14 @@ export default function ClientsPage() {
     setShowCreateModal(true);
   };
 
-  const handleClientCreated = () => {
+  const handleClientCreated = (created) => {
     setShowCreateModal(false);
+    const clientId = created?.id;
+    if (clientId) {
+      toast.success('Cliente criado! Defina o serviço contratado.');
+      navigate(createPageUrl(`client-detail?clientId=${clientId}&setup=service`));
+      return;
+    }
     loadClients();
     toast.success('Cliente criado com sucesso!');
   };

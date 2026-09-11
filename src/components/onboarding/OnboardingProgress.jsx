@@ -65,37 +65,46 @@ export default function OnboardingProgress({ onboardingState }) {
       completed: onboardingState.hasClients,
       current: !onboardingState.hasClients,
       action: "Adicionar Cliente",
-      href: createPageUrl('customers/new')
+      href: createPageUrl('clients')
     },
     {
       number: 2,
-      title: "Preencher Briefing",
-      description: "Complete o briefing estratégico para gerar insights personalizados",
-      completed: onboardingState.hasBriefing,
-      current: onboardingState.hasClients && !onboardingState.hasBriefing,
-      action: "Preencher Briefing",
-      href: createPageUrl('customers')
+      title: "Definir Serviço Contratado",
+      description: "Escolha o template do serviço que o cliente contratou",
+      completed: onboardingState.hasService,
+      current: onboardingState.hasClients && !onboardingState.hasService,
+      action: "Definir Serviço",
+      href: createPageUrl('clients')
     },
     {
       number: 3,
+      title: "Preencher Briefing",
+      description: "Complete o briefing estratégico para gerar insights personalizados",
+      completed: onboardingState.hasBriefing,
+      current: onboardingState.hasService && !onboardingState.hasBriefing,
+      action: "Preencher Briefing",
+      href: createPageUrl('clients')
+    },
+    {
+      number: 4,
       title: "Gerar Planejamento do Mês",
       description: "Use IA para criar estratégias personalizadas baseadas no briefing",
       completed: onboardingState.hasPlan,
       current: onboardingState.hasBriefing && !onboardingState.hasPlan,
       action: "Gerar Planejamento",
-      href: createPageUrl('cycles')
+      href: createPageUrl('clients')
     },
     {
-      number: 4,
+      number: 5,
       title: "Enviar para Aprovação",
       description: "Compartilhe o planejamento com o cliente para aprovação",
       completed: onboardingState.hasApproval,
       current: onboardingState.hasPlan && !onboardingState.hasApproval,
       action: "Enviar Aprovação",
-      href: createPageUrl('cycles')
+      href: createPageUrl('clients')
     },
     {
-      number: 5,
+      number: 6,
       title: "Conhecer os Aprendizados",
       description: "Descubra onde seus insights e boas práticas ficam organizados",
       completed: onboardingState.knowsLearnings,

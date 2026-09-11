@@ -122,13 +122,16 @@ export default function ClientServicesPage() {
   const getServiceStatusBadge = (service) => {
     const statusConfig = {
       setup: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Configuração' },
+      active: { color: 'bg-green-100 text-green-800', icon: Play, label: 'Ativo' },
       briefing_pending: { color: 'bg-yellow-100 text-yellow-800', icon: FileText, label: 'Aguardando Briefing' },
       kpis_setup: { color: 'bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]', icon: TrendingUp, label: 'Configurando KPIs' },
       in_execution: { color: 'bg-green-100 text-green-800', icon: Play, label: 'Em Execução' },
       closing: { color: 'bg-orange-100 text-orange-800', icon: Clock, label: 'Finalizando' },
       completed: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Concluído' },
       cancelled: { color: 'bg-red-100 text-red-800', icon: Pause, label: 'Cancelado' },
-      archived: { color: 'bg-gray-100 text-[#7A7595]', icon: FileText, label: 'Arquivado' }
+      archived: { color: 'bg-gray-100 text-[#7A7595]', icon: FileText, label: 'Arquivado' },
+      on_hold: { color: 'bg-yellow-100 text-yellow-800', icon: Pause, label: 'Em pausa' },
+      draft: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Rascunho' },
     };
 
     const config = statusConfig[service.service_status] || statusConfig.setup;

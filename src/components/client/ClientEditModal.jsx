@@ -217,11 +217,12 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
     try {
       const clientData = buildSavePayload(formData, agencyId);
 
+      let savedClient = client;
       if (client) {
-        await Client.update(client.id, clientData);
+        savedClient = await Client.update(client.id, clientData);
         toast.success('Cliente atualizado com sucesso!');
       } else {
-        await Client.create(clientData);
+        savedClient = await Client.create(clientData);
         toast.success('Cliente criado com sucesso!');
       }
 
@@ -231,7 +232,7 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
         // roster refresh is best-effort
       }
 
-      onSuccess?.();
+      onSuccess?.(savedClient);
       onClose();
     } catch (err) {
       console.error('Erro ao salvar cliente:', err);

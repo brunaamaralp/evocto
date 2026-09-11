@@ -1,5 +1,6 @@
 import { getAccount, getTablesDB, getTeams, DATABASE_ID, ID, Permission, Role } from '@/api/appwriteClient';
 import { createEntityAdapter } from './entityAdapter';
+import { normalizeDeliverableTaskShapes } from '@/templates/cicloMensal4SemanasTemplate';
 
 function notMigrated(name) {
   const fn = async () => {
@@ -128,9 +129,14 @@ export async function createServiceInstance({
     ...(templateName ? { name: templateName } : {}),
   };
 
+  const deliverables = normalizeDeliverableTaskShapes(
+    mergedCustom.deliverables || templateData.deliverables || []
+  );
+
   const instance = await Service.create({
     ...templateData,
     ...mergedCustom,
+    deliverables,
     is_template: false,
     is_active: true,
     clientId,
@@ -140,7 +146,7 @@ export async function createServiceInstance({
     template_version_used: template.template_version || template.version || '1.0',
     name: mergedCustom.name || template.name,
     status: mergedCustom.status || 'active',
-    service_status: mergedCustom.service_status || 'active',
+    service_status: mergedCustom.service_status || 'setup',
   });
 
   if (!instance?.id) {
