@@ -1,144 +1,58 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Plus,
   Search,
   FileText,
-  Building,
-  Loader2,
   RefreshCw,
   AlertTriangle
 } from 'lucide-react';
 import { Service } from '@/api/entities';
-import { Client } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import ServiceCard from '@/components/services/ServiceCard';
-import ServiceModal from '@/components/services/ServiceModal';
 import ServiceTemplateWizard from '@/components/services/ServiceTemplateWizard';
 import { useDebounce } from '@/components/hooks/useDebounce';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { toast } from 'sonner';
 
-// P2: Cache manager para templates
-class ServiceCache {
-  constructor() {
-    this.templates = new Map();
-    this.instances = new Map();
-    this.lastFetch = {
-      templates: null,
-      instances: null
-    };
-    this.CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-  }
+const STATUS_FILTERS = {
+  active: 'active',
+  inactive: 'inactive',
+  all: 'all',
+};
 
-  shouldRefresh(type) {
-    const lastFetch = this.lastFetch[type];
-    return !lastFetch || (Date.now() - lastFetch) > this.CACHE_TTL;
-  }
-
-  setTemplates(templates) {
-    this.templates.clear();
-    templates.forEach(template => {
-      this.templates.set(template.id, template);
-    });
-    this.lastFetch.templates = Date.now();
-  }
-
-  setInstances(instances) {
-    this.instances.clear();
-    instances.forEach(instance => {
-      this.instances.set(instance.id, instance);
-    });
-    this.lastFetch.instances = Date.now();
-  }
-
-  getTemplates() {
-    return Array.from(this.templates.values());
-  }
-
-  getInstances() {
-    return Array.from(this.instances.values());
-  }
-
-  updateService(service) {
-    if (service.is_template) {
-      this.templates.set(service.id, service);
-    } else {
-      this.instances.set(service.id, service);
-    }
-  }
-
-  removeService(serviceId, isTemplate) {
-    if (isTemplate) {
-      this.templates.delete(serviceId);
-    } else {
-      this.instances.delete(serviceId);
-    }
-  }
-
-  clear() {
-    this.templates.clear();
-    this.instances.clear();
-    this.lastFetch = { templates: null, instances: null };
-  }
+function isTemplateRow(service) {
+  return service?.is_template === true || service?.is_template === 'true' || service?.is_template === 1;
 }
 
-// P2: Instância global do cache
-const serviceCache = new ServiceCache();
+function isActiveTemplate(service) {
+  return service?.is_active !== false && service?.is_active !== 'false' && service?.is_active !== 0;
+}
 
 export default function ServicesPage() {
-  const { _user, agencyId } = useSession();
-  const [activeTab, setActiveTab] = useState('templates');
-
-  // P2: Estados separados para templates e instâncias
+  const { agencyId } = useSession();
   const [templates, setTemplates] = useState([]);
-  const [instances, setInstances] = useState([]);
-  const [clients, setClients] = useState([]);
-
-  // P2: Loading states separados
-  const [loadingState, setLoadingState] = useState({
-    templates: false,
-    instances: false,
-    clients: false,
-    initialLoad: true
-  });
-
+  const [statusFilter, setStatusFilter] = useState(STATUS_FILTERS.active);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // CORREÇÃO: Controle correto dos modais - NÃO ABRIR AUTOMATICAMENTE
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
 
-  // P2: Debounce para search otimizado
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // P2: Função otimizada para carregar templates
-  const loadTemplates = useCallback(async (forceRefresh = false) => {
+  const loadTemplates = useCallback(async () => {
     if (!agencyId) return;
 
-    // Cache só se já houver templates (evita travar empty state sem seed)
-    if (!forceRefresh && !serviceCache.shouldRefresh('templates')) {
-      const cached = serviceCache.getTemplates();
-      if (cached.length > 0) {
-        console.log('📦 Templates carregados do cache');
-        setTemplates(cached);
-        return;
-      }
-    }
-
-    setLoadingState(prev => ({ ...prev, templates: true }));
+    setLoading(true);
+    setError('');
 
     try {
-      console.log('🔍 Garantindo template padrão e buscando no banco...');
-
       let seeded = null;
       let itemSeeded = {};
       try {
@@ -152,373 +66,180 @@ export default function ServicesPage() {
       }
 
       let templatesData = await Service.filter(
-        {
-          agencyId,
-          is_template: true
-        },
+        { agencyId, is_template: true },
         '-updated_date',
-        50
+        100
       );
 
       if (!Array.isArray(templatesData) || templatesData.length === 0) {
         const all = await Service.filter({ agencyId }, '-updated_date', 100);
-        templatesData = (Array.isArray(all) ? all : []).filter(
-          (s) => s.is_template === true || s.is_template === 'true' || s.is_template === 1
-        );
+        templatesData = (Array.isArray(all) ? all : []).filter(isTemplateRow);
       }
 
-      // Se o seed criou/retornou o template mas o filter ainda não enxerga (perms),
-      // injeta na lista para a UI não ficar vazia.
       for (const extra of [seeded, ...Object.values(itemSeeded || {})]) {
         if (extra?.id && !(templatesData || []).some((t) => t.id === extra.id)) {
           templatesData = [extra, ...(templatesData || [])];
         }
       }
 
-      console.log(`✅ ${(templatesData || []).length} templates carregados`);
-
-      serviceCache.setTemplates(templatesData || []);
       setTemplates(Array.isArray(templatesData) ? templatesData : []);
-
-    } catch (error) {
-      console.error('Erro ao carregar templates:', error);
-      setError(`Erro ao carregar templates: ${error.message}`);
+    } catch (err) {
+      console.error('Erro ao carregar templates:', err);
+      setError(`Erro ao carregar templates: ${err.message}`);
     } finally {
-      setLoadingState(prev => ({ ...prev, templates: false }));
+      setLoading(false);
     }
   }, [agencyId]);
 
-  // P2: Função otimizada para carregar instâncias
-  const loadInstances = useCallback(async (forceRefresh = false) => {
-    if (!agencyId) return;
-
-    // Verificar cache antes de fazer query
-    if (!forceRefresh && !serviceCache.shouldRefresh('instances')) {
-      console.log('📦 Instâncias carregadas do cache');
-      setInstances(serviceCache.getInstances());
-      return;
-    }
-
-    setLoadingState(prev => ({ ...prev, instances: true }));
-
-    try {
-      console.log('🔍 Buscando instâncias no banco...');
-
-      // P2: Query otimizada - APENAS instâncias
-      const instancesData = await Service.filter(
-        {
-          agencyId,
-          is_template: false
-        },
-        '-updated_date',
-        100, // Mais instâncias que templates
-        ['id', 'name', 'clientId', 'service_status', 'base_service_id', 'template_version_used', 'deliverables', 'pricing']
-      );
-
-      console.log(`✅ ${instancesData.length} instâncias carregadas`);
-
-      serviceCache.setInstances(instancesData);
-      setInstances(instancesData);
-
-    } catch (error) {
-      console.error('Erro ao carregar instâncias:', error);
-      setError(`Erro ao carregar instâncias: ${error.message}`);
-    } finally {
-      setLoadingState(prev => ({ ...prev, instances: false }));
-    }
-  }, [agencyId]);
-
-  // P2: Carregar clientes com cache
-  const loadClients = useCallback(async () => {
-    if (!agencyId) return;
-
-    setLoadingState(prev => ({ ...prev, clients: true }));
-
-    try {
-      const clientsData = await Client.filter(
-        { agencyId },
-        'name', // Ordenar por nome
-        undefined,
-        ['id', 'name', 'email', 'company'] // Campos essenciais
-      );
-
-      setClients(clientsData);
-
-    } catch (error) {
-      console.error('Erro ao carregar clientes:', error);
-    } finally {
-      setLoadingState(prev => ({ ...prev, clients: false }));
-    }
-  }, [agencyId]);
-
-  // P2: Load inteligente baseado na aba ativa
   useEffect(() => {
-    if (!agencyId) return;
+    if (agencyId) loadTemplates();
+  }, [agencyId, loadTemplates]);
 
-    const loadInitialData = async () => {
-      setLoadingState(prev => ({ ...prev, initialLoad: true }));
+  const handleServiceUpdate = useCallback((updatedService) => {
+    if (!updatedService?.id || !isTemplateRow(updatedService)) return;
 
-      // Sempre carregar clientes
-      await loadClients();
-
-      // Carregar dados baseado na aba ativa
-      if (activeTab === 'templates') {
-        await loadTemplates();
-      } else {
-        await loadInstances();
+    setTemplates((prev) => {
+      const index = prev.findIndex((s) => s.id === updatedService.id);
+      if (index >= 0) {
+        const next = [...prev];
+        next[index] = updatedService;
+        return next;
       }
+      return [...prev, updatedService];
+    });
+  }, []);
 
-      setLoadingState(prev => ({ ...prev, initialLoad: false }));
-    };
-
-    loadInitialData();
-  }, [agencyId, activeTab, loadTemplates, loadInstances, loadClients]);
-
-  // P2: Lazy loading quando muda de aba
-  useEffect(() => {
-    if (activeTab === 'templates' && templates.length === 0) {
-      loadTemplates();
-    } else if (activeTab === 'instances' && instances.length === 0) {
-      loadInstances();
+  const handleToggleActive = useCallback(async (template) => {
+    const nextActive = !isActiveTemplate(template);
+    try {
+      const updated = await Service.update(template.id, { is_active: nextActive });
+      const merged = { ...template, ...(updated || {}), is_active: nextActive };
+      handleServiceUpdate(merged);
+      toast.success(nextActive ? 'Template ativado' : 'Template desativado');
+    } catch (err) {
+      console.error('Erro ao alterar status do template:', err);
+      toast.error(err?.message || 'Não foi possível alterar o status');
     }
-  }, [activeTab, templates.length, instances.length, loadTemplates, loadInstances]);
+  }, [handleServiceUpdate]);
 
-  // P2: Refresh forçado
-  const handleRefresh = useCallback(async () => {
-    serviceCache.clear();
-    // Refresh all data
-    await loadClients();
-    await loadTemplates(true);
-    await loadInstances(true);
-  }, [loadTemplates, loadInstances, loadClients]);
-
-  // P2: Callback otimizado para atualização de UM serviço (usado por ServiceCard para edições)
-  const handleServiceUpdate = useCallback(async (updatedService) => {
-    console.log('🔄 Atualizando serviço no estado local e cache:', updatedService);
-
-    // Atualizar cache
-    serviceCache.updateService(updatedService);
-
-    // Atualizar estado local
-    if (updatedService.is_template) {
-      setTemplates(prev => {
-        const index = prev.findIndex(s => s.id === updatedService.id);
-        if (index >= 0) {
-          const newTemplates = [...prev];
-          newTemplates[index] = updatedService;
-          return newTemplates;
-        } else {
-          // This case could happen if a new service is created and this handler is also used for immediate add
-          return [...prev, updatedService];
-        }
-      });
-    } else {
-      setInstances(prev => {
-        const index = prev.findIndex(s => s.id === updatedService.id);
-        if (index >= 0) {
-          const newInstances = [...prev];
-          newInstances[index] = updatedService;
-          return newInstances;
-        } else {
-          // This case could happen if a new service is created and this handler is also used for immediate add
-          return [...prev, updatedService];
-        }
-      });
-    }
-    // IMPORTANT: Modal closing logic removed from here, as modals (or a general success handler) should manage their own visibility.
-  }, []);
-
-  // CORREÇÃO: Handlers CONTROLADOS - só abrir quando usuário clica
-  const handleCreateService = useCallback(() => {
-    console.log('➕ Usuário clicou para abrir modal de criar serviço (instância)');
-    setShowCreateModal(true);
-  }, []);
-
-  const handleCreateTemplate = useCallback(() => {
-    console.log('➕ Usuário clicou para abrir formulário de template');
-    setShowTemplateForm(true);
-  }, []);
-
-  // CORREÇÃO: Handlers de close com logs
-  const handleCloseCreateModal = useCallback(() => {
-    console.log('🔴 Fechando modal de criar serviço (instância)');
-    setShowCreateModal(false);
-  }, []);
-
-  const handleCloseTemplateForm = useCallback(() => {
-    console.log('🔴 Fechando formulário de template');
-    setShowTemplateForm(false);
-  }, []);
-
-  // Handler para sucesso de criação (chamado pelos modais quando a operação é concluída)
   const handleCreateSuccess = useCallback(() => {
-    console.log('✅ Serviço/Template criado com sucesso. Recarregando todos os dados.');
-    setShowCreateModal(false);
     setShowTemplateForm(false);
-    handleRefresh(); // Trigger a full refresh after creation
-  }, [handleRefresh]);
+    loadTemplates();
+  }, [loadTemplates]);
 
-  // P2: Filtros otimizados com debounce
+  const counts = React.useMemo(() => {
+    const active = templates.filter(isActiveTemplate).length;
+    return {
+      active,
+      inactive: templates.length - active,
+      all: templates.length,
+    };
+  }, [templates]);
+
   const filteredTemplates = React.useMemo(() => {
-    return templates.filter(template => {
-      const searchLower = debouncedSearchTerm.toLowerCase();
-      return !debouncedSearchTerm ||
-        template.name.toLowerCase().includes(searchLower) ||
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    return templates.filter((template) => {
+      const matchesStatus =
+        statusFilter === STATUS_FILTERS.all ||
+        (statusFilter === STATUS_FILTERS.active && isActiveTemplate(template)) ||
+        (statusFilter === STATUS_FILTERS.inactive && !isActiveTemplate(template));
+
+      const matchesSearch =
+        !debouncedSearchTerm ||
+        template.name?.toLowerCase().includes(searchLower) ||
         template.description?.toLowerCase().includes(searchLower) ||
         template.category?.toLowerCase().includes(searchLower);
-    });
-  }, [templates, debouncedSearchTerm]);
 
-  const filteredInstances = React.useMemo(() => {
-    return instances.filter(instance => {
-      const searchLower = debouncedSearchTerm.toLowerCase();
-      const client = clients.find(c => c.id === instance.clientId);
-      return !debouncedSearchTerm ||
-        instance.name.toLowerCase().includes(searchLower) ||
-        client?.name.toLowerCase().includes(searchLower) ||
-        instance.service_status?.toLowerCase().includes(searchLower);
+      return matchesStatus && matchesSearch;
     });
-  }, [instances, clients, debouncedSearchTerm]);
-
-  // P2: Loading state inteligente
-  const isLoading = loadingState.initialLoad ||
-    (activeTab === 'templates' && loadingState.templates) ||
-    (activeTab === 'instances' && loadingState.instances);
+  }, [templates, debouncedSearchTerm, statusFilter]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Gestão de Serviços</h1>
-            <p className="text-[#7A7595] mt-1">
-              Templates reutilizáveis e instâncias específicas por cliente
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Atualizar
-            </Button>
-            <Button onClick={handleCreateTemplate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Template
-            </Button>
-            <Button variant="outline" onClick={handleCreateService}>
-              <Building className="w-4 h-4 mr-2" />
-              Nova Instância
-            </Button>
-          </div>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Templates de Serviço</h1>
+          <p className="text-[#7A7595] mt-1">
+            Escolha quais modelos a agência usa ou crie um novo. Serviços por cliente ficam no hub do cliente.
+          </p>
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={loadTemplates} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          <Button onClick={() => setShowTemplateForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Template
+          </Button>
+        </div>
+      </div>
 
-        {/* Search and Filters */}
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Buscar por nome, categoria ou cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar por nome ou categoria..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
-        {/* Tabs com Loading States */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Templates
-              <Badge variant="secondary">{templates.length}</Badge>
-              {loadingState.templates && (
-                <Loader2 className="w-3 h-3 animate-spin ml-1" />
-              )}
+            <TabsTrigger value={STATUS_FILTERS.active} className="gap-2">
+              Ativos
+              <Badge variant="secondary">{counts.active}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="instances" className="flex items-center gap-2">
-              <Building className="w-4 h-4" />
-              Instâncias
-              <Badge variant="secondary">{instances.length}</Badge>
-              {loadingState.instances && (
-                <Loader2 className="w-3 h-3 animate-spin ml-1" />
-              )}
+            <TabsTrigger value={STATUS_FILTERS.inactive} className="gap-2">
+              Inativos
+              <Badge variant="secondary">{counts.inactive}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value={STATUS_FILTERS.all} className="gap-2">
+              Todos
+              <Badge variant="secondary">{counts.all}</Badge>
             </TabsTrigger>
           </TabsList>
-
-          {/* Templates Tab */}
-          <TabsContent value="templates">
-            {isLoading ? (
-              <ServicesLoadingSkeleton count={6} />
-            ) : filteredTemplates.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTemplates.map((template) => (
-                  <ServiceCard
-                    key={template.id}
-                    service={template}
-                    clients={clients}
-                    onServiceUpdate={handleServiceUpdate} // Still used for *editing* services
-                    showKPICount={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyServicesState
-                type="templates"
-                onCreateTemplate={handleCreateTemplate}
-                onInstallDefault={handleRefresh}
-                hasSearchTerm={!!debouncedSearchTerm}
-              />
-            )}
-          </TabsContent>
-
-          {/* Instances Tab */}
-          <TabsContent value="instances">
-            {isLoading ? (
-              <ServicesLoadingSkeleton count={8} />
-            ) : filteredInstances.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredInstances.map((instance) => (
-                  <ServiceCard
-                    key={instance.id}
-                    service={instance}
-                    clients={clients}
-                    onServiceUpdate={handleServiceUpdate} // Still used for *editing* services
-                    showInheritedInfo={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyServicesState
-                type="instances"
-                onCreateInstance={handleCreateService} // CORREÇÃO: Usando o handler correto
-                hasSearchTerm={!!debouncedSearchTerm}
-              />
-            )}
-          </TabsContent>
         </Tabs>
+      </div>
 
-      {showCreateModal && (
-        <ServiceModal
-          isOpen={showCreateModal}
-          onClose={handleCloseCreateModal}
-          onServiceCreated={handleCreateSuccess}
-          clients={clients}
-          templates={templates}
+      {loading ? (
+        <ServicesLoadingSkeleton count={6} />
+      ) : filteredTemplates.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map((template) => (
+            <ServiceCard
+              key={template.id}
+              service={template}
+              onServiceUpdate={handleServiceUpdate}
+              onToggleActive={handleToggleActive}
+              showKPICount
+              catalogMode
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyTemplatesState
+          statusFilter={statusFilter}
+          hasSearchTerm={!!debouncedSearchTerm}
+          onCreateTemplate={() => setShowTemplateForm(true)}
+          onRefresh={loadTemplates}
         />
       )}
 
       {showTemplateForm && (
         <ServiceTemplateWizard
           isOpen={showTemplateForm}
-          onClose={handleCloseTemplateForm}
+          onClose={() => setShowTemplateForm(false)}
           onTemplateCreated={handleCreateSuccess}
         />
       )}
@@ -526,28 +247,16 @@ export default function ServicesPage() {
   );
 }
 
-// P2: Loading skeleton component
 function ServicesLoadingSkeleton({ count = 6 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: count }).map((_, i) => (
         <Card key={i} className="animate-pulse">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-20"></div>
-                <div className="h-6 bg-gray-200 rounded w-32"></div>
-              </div>
-              <div className="h-8 w-8 bg-gray-200 rounded"></div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
+          <CardContent className="p-6 space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-20" />
+            <div className="h-6 bg-gray-200 rounded w-32" />
+            <div className="h-4 bg-gray-200 rounded w-full" />
+            <div className="h-4 bg-gray-200 rounded w-3/4" />
           </CardContent>
         </Card>
       ))}
@@ -555,8 +264,7 @@ function ServicesLoadingSkeleton({ count = 6 }) {
   );
 }
 
-// P2: Empty states component
-function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstallDefault, hasSearchTerm }) {
+function EmptyTemplatesState({ statusFilter, hasSearchTerm, onCreateTemplate, onRefresh }) {
   if (hasSearchTerm) {
     return (
       <Card className="border-dashed">
@@ -565,40 +273,23 @@ function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstal
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Nenhum resultado encontrado
           </h3>
-          <p className="text-gray-600">
-            Tente ajustar os termos de busca
-          </p>
+          <p className="text-gray-600">Tente ajustar os termos de busca</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (type === 'templates') {
+  if (statusFilter === STATUS_FILTERS.inactive) {
     return (
       <Card className="border-dashed">
         <CardContent className="p-8 text-center">
           <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nenhum template encontrado
+            Nenhum template inativo
           </h3>
-          <p className="text-gray-600 mb-4">
-            O template padrão <strong>Ciclo Mensal de Campanhas</strong> e os
-            operacionais (<strong>Produção de Conteúdo</strong>,{' '}
-            <strong>Sessão de Fotos</strong>) devem instalar ao abrir esta
-            página. Se a lista continuar vazia, reinstale abaixo.
+          <p className="text-gray-600">
+            Templates desativados aparecem aqui e deixam de ser oferecidos aos clientes.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {onInstallDefault && (
-              <Button variant="outline" onClick={onInstallDefault}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Instalar template padrão
-              </Button>
-            )}
-            <Button onClick={onCreateTemplate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Criar template
-            </Button>
-          </div>
         </CardContent>
       </Card>
     );
@@ -607,17 +298,24 @@ function EmptyServicesState({ type, onCreateTemplate, onCreateInstance, onInstal
   return (
     <Card className="border-dashed">
       <CardContent className="p-8 text-center">
-        <Building className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+        <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Nenhuma instância encontrada
+          Nenhum template encontrado
         </h3>
         <p className="text-gray-600 mb-4">
-          Crie instâncias de serviços para clientes específicos
+          O template padrão <strong>Ciclo Mensal de Campanhas</strong> e os operacionais devem
+          instalar ao abrir esta página. Se a lista continuar vazia, reinstale abaixo.
         </p>
-        <Button onClick={onCreateInstance}>
-          <Plus className="w-4 h-4 mr-2" />
-          Criar Primeira Instância
-        </Button>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button variant="outline" onClick={onRefresh}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Instalar template padrão
+          </Button>
+          <Button onClick={onCreateTemplate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Criar template
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

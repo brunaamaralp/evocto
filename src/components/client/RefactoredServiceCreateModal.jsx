@@ -163,7 +163,12 @@ export default function RefactoredServiceCreateModal({
         );
       }
 
-      setTemplates(templatesData || []);
+      // Catálogo: só templates ativos da agência
+      templatesData = (Array.isArray(templatesData) ? templatesData : []).filter(
+        (s) => s.is_active !== false && s.is_active !== 'false' && s.is_active !== 0
+      );
+
+      setTemplates(templatesData);
     } catch (error) {
       handleError(error, { action: 'load_templates' });
     } finally {

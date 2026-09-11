@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  User, Target, Clock, BarChart3, FileText, // New icons for service stats
-  Edit, Copy, Trash2, MoreHorizontal, // Updated icons for dropdown
-  Eye, CheckSquare // New icons for navigation buttons
+  User, Target, Clock, BarChart3, FileText,
+  Edit, Copy, Trash2, MoreHorizontal,
+  Eye, CheckSquare, Power
 } from 'lucide-react';
 import {
   Button
@@ -36,17 +36,19 @@ export default function ServiceCard({
   service,
   clients = [],
   onServiceUpdate,
+  onToggleActive,
   showKPICount = false,
   showInheritedInfo = false,
-  // New props for navigation functionality
-  navigate, // Function to handle navigation (e.g., from useNavigate hook)
-  createPageUrl // Utility function to construct page URLs
+  catalogMode = false,
+  navigate,
+  createPageUrl
 }) {
   const [showInstanceModal, setShowInstanceModal] = useState(false);
 
   const isTemplate = service.is_template;
+  const isActive = service.is_active !== false && service.is_active !== 'false' && service.is_active !== 0;
   const client = service.clientId ? clients.find(c => c.id === service.clientId) : null;
-  const clientId = service.clientId; // Extract clientId for use in navigation URLs
+  const clientId = service.clientId;
   const categoryColors = isTemplate ? getCategoryColor(service.category) : null;
 
   // Placeholder functions for actions. In a real app, these would trigger modals/navigation.
@@ -95,7 +97,7 @@ export default function ServiceCard({
                 </Badge>
               ) : (
                 <Badge variant="outline">
-                  Instância
+                  Serviço
                 </Badge>
               )}
               {isTemplate && service.category && (
@@ -103,11 +105,9 @@ export default function ServiceCard({
                   {getCategoryLabel(service.category)}
                 </Badge>
               )}
-              {!service.is_active && (
-                <Badge variant="destructive" className="text-xs">
-                  Inativo
-                </Badge>
-              )}
+              <Badge variant={isActive ? 'default' : 'secondary'} className="text-xs">
+                {isActive ? 'Ativo' : 'Inativo'}
+              </Badge>
             </div>
             <CardTitle className="text-lg">{service.name}</CardTitle>
             {client && (
@@ -129,10 +129,16 @@ export default function ServiceCard({
                 <Edit className="w-4 h-4 mr-2" />
                 {isTemplate ? 'Editar Template' : 'Editar Serviço'}
               </DropdownMenuItem>
-              {isTemplate && (
+              {isTemplate && onToggleActive && (
+                <DropdownMenuItem onClick={() => onToggleActive(service)}>
+                  <Power className="w-4 h-4 mr-2" />
+                  {isActive ? 'Desativar' : 'Ativar'}
+                </DropdownMenuItem>
+              )}
+              {isTemplate && !catalogMode && (
                 <DropdownMenuItem onClick={() => setShowInstanceModal(true)}>
                   <Copy className="w-4 h-4 mr-2" />
-                  Criar Instância
+                  Adicionar a cliente
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -235,27 +241,36 @@ export default function ServiceCard({
         )}
 
         {/* Action Buttons for Navigation */}
-        <div className="flex gap-2 pt-2 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleViewDetails}
-            className="flex-1"
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            Detalhes
-          </Button>
+        {!catalogMode && (
+          <div className="flex gap-2 pt-2 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleViewDetails}
+              className="flex-1"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Detalhes
+            </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManageTasks}
-            className="flex-1"
-          >
-            <CheckSquare className="w-4 h-4 mr-1" />
-            Tarefas
-          </Button>
-        </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageTasks}
+              className="flex-1"
+            >
+              <CheckSquare className="w-4 h-4 mr-1" />
+              Tarefas
+            </Button>
+          </div>
+        )}
+        {catalogMode && (
+          <div className="pt-2 border-t text-xs text-gray-500">
+            {isActive
+              ? 'Disponível ao adicionar serviço no cliente'
+              : 'Desativado — não aparece na oferta ao cliente'}
+          </div>
+        )}
       </CardContent>
 
       {/* Instance Creation Modal */}
