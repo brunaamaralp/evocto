@@ -39,6 +39,7 @@ export default function BriefingFormSimples({
   clientId,
   empresa,
   cicloId = null,
+  serviceId = null,
   onSuccess,
   onSwitchToText,
   onNeedEmpresa,
@@ -93,6 +94,7 @@ export default function BriefingFormSimples({
           userId: user?.id || user?.$id || null,
           generateTasks: true,
           empresaNome: empresa.nome,
+          serviceId: serviceId || null,
         });
       } catch (launchErr) {
         console.error(launchErr);

@@ -42,6 +42,7 @@ export default function BrainstormPage() {
   const mesParam = Number(searchParams.get('mes')) || null;
   const anoParam = Number(searchParams.get('ano')) || new Date().getFullYear();
   const planIdParam = searchParams.get('planId') || searchParams.get('planoId') || null;
+  const serviceIdParam = searchParams.get('serviceId') || null;
   const fromPlan = modoParam === 'plano';
 
   const [client, setClient] = useState(null);
@@ -260,6 +261,7 @@ export default function BrainstormPage() {
         userId,
         generateTasks: true,
         empresaNome: data.empresaNome || empresa?.nome || client?.name,
+        serviceId: data.serviceId || serviceIdParam || null,
       });
 
       // Atualiza plano anual com ciclo real do mês (quando veio do plano)
@@ -516,6 +518,7 @@ export default function BrainstormPage() {
               key={activeConversationId}
               conversationId={activeConversationId}
               clientId={clientId}
+              serviceId={serviceIdParam}
               initialMessages={initialMessages}
               contextoEnriquecido={chatContexto}
               onSaveAsBrief={handleSaveAsBrief}

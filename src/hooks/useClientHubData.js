@@ -16,6 +16,11 @@ import {
   getTaskCycleIds,
 } from '@/lib/taskScope';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import {
+  attachAttentionServiceIds,
+  deriveAttentionCountsByService,
+  getActiveContractedServices,
+} from '@/lib/deriveServiceLens';
 
 const DONE_TASK_STATUSES = new Set(['completed', 'done']);
 const CANCELLED_TASK_STATUSES = new Set(['cancelled', 'canceled']);
@@ -241,6 +246,7 @@ export function buildAttentionItems({
         title: task.title || 'Tarefa sem título',
         href: createPageUrl(`client-tasks?clientId=${clientId}`),
         priority: 1,
+        serviceId: task.serviceId ? String(task.serviceId) : null,
       });
     } else if (urgent && PENDING_TASK_STATUSES.has(String(task.status || ''))) {
       items.push({
@@ -250,6 +256,7 @@ export function buildAttentionItems({
         title: task.title || 'Tarefa sem título',
         href: createPageUrl(`client-tasks?clientId=${clientId}`),
         priority: 2,
+        serviceId: task.serviceId ? String(task.serviceId) : null,
       });
     }
   }
@@ -263,6 +270,7 @@ export function buildAttentionItems({
       title: approval.title || approval.subject || 'Solicitação de aprovação',
       href: createPageUrl(`approval-dashboard?clientId=${clientId}`),
       priority: 1,
+      serviceId: approval.serviceId ? String(approval.serviceId) : null,
     });
   }
 
@@ -275,6 +283,7 @@ export function buildAttentionItems({
       title: cycle.title || 'Ciclo sem título',
       href: createPageUrl(`client-services?clientId=${clientId}`),
       priority: 2,
+      serviceId: cycle.serviceId ? String(cycle.serviceId) : null,
     });
   }
 
@@ -292,12 +301,20 @@ export function buildAttentionItems({
         })
       ),
       priority: 3,
+      serviceId: brief.serviceId ? String(brief.serviceId) : null,
     });
   }
 
-  return items
+  const sorted = items
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 7);
+
+  return attachAttentionServiceIds(sorted, {
+    tasks,
+    cycles,
+    briefs,
+    approvals,
+  });
 }
 
 export function deriveHubMetrics({
@@ -312,7 +329,7 @@ export function deriveHubMetrics({
   kpis = [],
   clientId,
 }) {
-  const activeServices = services.filter((s) => s.is_active !== false && !s.is_template);
+  const activeServices = getActiveContractedServices(services);
   const activeCycles = cycles.filter((c) => ACTIVE_CYCLE_STATUSES.has(c.status));
   const pendingApprovals = approvals.filter((a) => a.status === 'pending');
   const attentionItems = buildAttentionItems({
@@ -322,6 +339,10 @@ export function deriveHubMetrics({
     briefs,
     clientId,
   });
+  const attentionCountsByService = deriveAttentionCountsByService(
+    attentionItems,
+    activeServices.map((s) => s.id)
+  );
   const taskStats = summarizeTasks(tasks);
   const activeCampaigns = deriveActiveCampaigns({
     briefs,
@@ -337,6 +358,7 @@ export function deriveHubMetrics({
     activeCampaigns,
     pendingApprovals,
     attentionItems,
+    attentionCountsByService,
     taskStats,
     counts: {
       services: activeServices.length,

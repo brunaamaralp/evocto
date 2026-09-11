@@ -61,6 +61,7 @@ export default function BriefingReviewSimples({
   parsed,
   initialForm,
   textoLivre,
+  serviceId = null,
   onBack,
   onSuccess,
 }) {
@@ -98,6 +99,7 @@ export default function BriefingReviewSimples({
           userId: user?.id || user?.$id || null,
           generateTasks: true,
           empresaNome: empresa?.nome,
+          serviceId: serviceId || null,
         });
       } catch (launchErr) {
         console.error(launchErr);

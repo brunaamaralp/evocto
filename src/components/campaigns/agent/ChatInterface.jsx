@@ -115,6 +115,7 @@ function flowHint({ isRefinada, isFinalizada }) {
 export default function ChatInterface({
   conversationId,
   clientId,
+  serviceId = null,
   initialMessages = [],
   contextoEnriquecido,
   onSaveAsBrief,
@@ -267,6 +268,7 @@ export default function ChatInterface({
         userId,
         generateTasks: true,
         empresaNome: data.empresaNome || contextoEnriquecido?.empresa?.nome,
+        serviceId: data.serviceId || serviceId || null,
       });
 
       if (data.modo === 'plano') {

@@ -39,18 +39,29 @@ export function cycleMonthKey(cycle) {
 
 /**
  * Busca o ciclo operacional do cliente no mês (YYYY-MM).
+ * Se serviceId for informado, só reutiliza ciclo daquele serviço.
  */
-export async function findClientMonthCycle({ agencyId, clientId, monthKey }) {
+export async function findClientMonthCycle({
+  agencyId,
+  clientId,
+  monthKey,
+  serviceId = null,
+}) {
   if (!agencyId || !clientId || !monthKey) return null;
   const list = await CyclePlan.filter({ agencyId, clientId }).catch(() => []);
   const cycles = Array.isArray(list) ? list : [];
-  return (
-    cycles.find(
-      (c) =>
-        ACTIVE_CYCLE_STATUSES.has(String(c?.status || '')) &&
-        cycleMonthKey(c) === monthKey
-    ) || null
+  const inMonth = cycles.filter(
+    (c) =>
+      ACTIVE_CYCLE_STATUSES.has(String(c?.status || '')) &&
+      cycleMonthKey(c) === monthKey
   );
+  if (serviceId) {
+    return (
+      inMonth.find((c) => String(c?.serviceId || '') === String(serviceId)) ||
+      null
+    );
+  }
+  return inMonth[0] || null;
 }
 
 /**
@@ -73,7 +84,12 @@ export async function ensureClientMonthCycle({
   const monthKey = monthKeyFromYmd(ymd);
   const title = formatClientMonthCycleTitle(ymd);
 
-  const existing = await findClientMonthCycle({ agencyId, clientId, monthKey });
+  const existing = await findClientMonthCycle({
+    agencyId,
+    clientId,
+    monthKey,
+    serviceId: serviceId || null,
+  });
   if (existing?.id) {
     let service = null;
     if (existing.serviceId) {
@@ -97,6 +113,7 @@ export async function ensureClientMonthCycle({
     };
   }
 
+  // Com serviceId explícito: não reutilizar ciclo de outro serviço no mesmo mês
   let resolvedServiceId = serviceId || null;
   if (!resolvedServiceId) {
     const list = await Service.filter({

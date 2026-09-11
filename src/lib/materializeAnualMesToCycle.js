@@ -28,6 +28,7 @@ export async function materializeAnualMesToCycle({
   startDate,
   generateTasks = true,
   tipo_campanha: tipoOverride = null,
+  serviceId = null,
 } = {}) {
   if (!briefingId || !clientId || !agencyId || !empresa?.id) {
     throw new Error('Salve o plano e configure a empresa antes de materializar');
@@ -106,6 +107,7 @@ export async function materializeAnualMesToCycle({
       linha_focal,
       generateTasks,
       ownerId: userId,
+      serviceId: serviceId || undefined,
       serviceName: `${empresa.nome || 'Cliente'} — ${form.nome_campanha}`,
       briefId: brief.id,
     });

@@ -65,13 +65,13 @@ export function buildClientTasksHref({
   briefingId = null,
   serviceId = null,
 }) {
-  if (!clientId) return 'client-tasks';
   const params = new URLSearchParams();
-  params.set('clientId', clientId);
-  if (serviceId) params.set('serviceId', serviceId);
+  if (clientId) params.set('clientId', clientId);
+  if (serviceId) params.set('serviceId', String(serviceId));
   if (cycleId) params.set('cycleId', cycleId);
   if (briefingId) params.set('briefingId', briefingId);
-  return `client-tasks?${params.toString()}`;
+  const qs = params.toString();
+  return qs ? `client-tasks?${qs}` : 'client-tasks';
 }
 
 /** Campos a gravar em tarefas novas a partir do contexto da URL/página. */

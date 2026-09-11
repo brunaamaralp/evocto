@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -56,7 +56,6 @@ function setServiceIdInUrl(serviceId) {
 }
 
 export default function ClientDetailPage() {
-  const navigate = useNavigate();
   const { agencyId, isAuthenticated, userId, user } = useSession();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
@@ -383,7 +382,7 @@ export default function ClientDetailPage() {
       completed: hasOperation,
       action:
         selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
-          ? 'Ver operação'
+          ? 'Iniciar operação'
           : selectedProfile
             ? String(getCreateCtaLabelSafe(selectedProfile)).replace(/^\+\s*/, '') ||
               'Criar'

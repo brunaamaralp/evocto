@@ -32,6 +32,7 @@ export default function BriefingCampanhaPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('clientId');
+  const serviceId = urlParams.get('serviceId');
   const existingBriefingId =
     urlParams.get('briefingId') || urlParams.get('campaignId');
   const initialMode = urlParams.get('mode'); // form | texto | brainstorm
@@ -335,6 +336,7 @@ export default function BriefingCampanhaPage() {
             <BriefingFormSimples
               clientId={clientId}
               empresa={empresa}
+              serviceId={serviceId}
               onNeedEmpresa={() => setEmpresaModalOpen(true)}
               onSwitchToText={() => setStep('texto')}
               onSuccess={handleCampaignCreated}
@@ -377,6 +379,7 @@ export default function BriefingCampanhaPage() {
               parsed={parsed}
               initialForm={reviewForm}
               textoLivre={textoLivre}
+              serviceId={serviceId}
               onBack={() => setStep('texto')}
               onSuccess={handleCampaignCreated}
             />

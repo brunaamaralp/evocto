@@ -31,7 +31,7 @@ import AnnualPlanSidebarBlock from '@/components/layout/AnnualPlanSidebarBlock';
 
 /**
  * Navegação de contexto do cliente (nav única do hub).
- * Hierarquia: Operação (campanha) → Cliente → Backstage.
+ * Hierarquia: Operação (hub/lente) → Planejamento → Cliente.
  */
 export default function ClientContextSidebar({
   clientId,
@@ -92,13 +92,20 @@ export default function ClientContextSidebar({
   const resolvedServiceCount =
     typeof serviceCount === 'number' ? serviceCount : services.length;
 
-  const inCampaign =
+  const serviceId = urlParams.get('serviceId');
+
+  const inUnit =
     Boolean(briefingId) &&
     (currentPage === 'client-campaign' ||
       currentPage === 'client-tasks' ||
-      currentPage === 'client-briefing' ||
       currentPage === 'briefing-campanha' ||
       currentPage === 'briefing-editor');
+
+  const hubHref = (() => {
+    let path = `client-detail?clientId=${clientId}`;
+    if (serviceId) path += `&serviceId=${encodeURIComponent(serviceId)}`;
+    return createPageUrl(path);
+  })();
 
   const menuItems = [
     { type: 'section', label: 'Operação' },
@@ -106,29 +113,31 @@ export default function ClientContextSidebar({
       type: 'link',
       label: 'Visão Geral',
       icon: BarChart3,
-      href: createPageUrl(`client-detail?clientId=${clientId}`),
+      href: hubHref,
       active:
-        location.pathname.includes('client-detail') && hash !== '#campanhas',
+        location.pathname.includes('client-detail') ||
+        hash === '#operacao' ||
+        hash === '#campanhas',
     },
     {
       type: 'link',
-      label: 'Campanhas',
-      icon: Megaphone,
-      href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
-      active:
-        hash === '#campanhas' ||
-        location.pathname.includes('briefing-campanha') ||
-        location.pathname.includes('client-campaign') ||
-        (location.pathname.includes('client-tasks') && Boolean(briefingId)) ||
-        (location.pathname.includes('client-briefing') && Boolean(briefingId)),
+      label: 'Tarefas',
+      icon: CheckSquare,
+      href: createPageUrl(
+        buildClientTasksHref({
+          clientId,
+          serviceId: serviceId || null,
+        })
+      ),
+      active: location.pathname.includes('client-tasks') && !briefingId,
     },
   ];
 
-  if (inCampaign && briefingId) {
+  if (inUnit && briefingId) {
     menuItems.push(
       {
         type: 'link',
-        label: 'Visão da campanha',
+        label: 'Unidade atual',
         icon: Megaphone,
         href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })),
         nested: true,
@@ -136,17 +145,21 @@ export default function ClientContextSidebar({
       },
       {
         type: 'link',
-        label: 'Tarefas',
+        label: 'Tarefas da unidade',
         icon: CheckSquare,
-        href: createPageUrl(buildClientTasksHref({ clientId, briefingId })),
+        href: createPageUrl(
+          buildClientTasksHref({ clientId, briefingId, serviceId })
+        ),
         nested: true,
-        active: location.pathname.includes('client-tasks'),
+        active: location.pathname.includes('client-tasks') && Boolean(briefingId),
       },
       {
         type: 'link',
         label: 'Ficha',
         icon: FileText,
-        href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })) + '#ficha',
+        href:
+          createPageUrl(buildClientCampaignHref({ clientId, briefingId })) +
+          '#ficha',
         nested: true,
         active: location.pathname.includes('client-campaign'),
       }
@@ -154,24 +167,7 @@ export default function ClientContextSidebar({
   }
 
   menuItems.push(
-    { type: 'section', label: 'Cliente' },
-    {
-      type: 'link',
-      label: 'Campanhas & plano',
-      icon: FileText,
-      href: createPageUrl(`client-briefing?clientId=${clientId}`),
-      active:
-        location.pathname.includes('client-briefing') && !briefingId,
-    },
-    {
-      type: 'link',
-      label: 'Brainstorm',
-      icon: Sparkles,
-      href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
-      active:
-        location.pathname.includes('client-brainstorm') ||
-        location.pathname.includes('/brainstorm'),
-    },
+    { type: 'section', label: 'Planejamento' },
     {
       type: 'link',
       label: 'Plano anual',
@@ -180,12 +176,34 @@ export default function ClientContextSidebar({
       active: location.pathname.includes('briefing-campanha-anual'),
     },
     {
+      type: 'link',
+      label: 'Brainstorm',
+      icon: Sparkles,
+      href: createPageUrl(
+        serviceId
+          ? `client-brainstorm?clientId=${clientId}&serviceId=${encodeURIComponent(serviceId)}`
+          : `client-brainstorm?clientId=${clientId}`
+      ),
+      active:
+        location.pathname.includes('client-brainstorm') ||
+        location.pathname.includes('/brainstorm'),
+    },
+    {
+      type: 'link',
+      label: 'Planejamento & briefs',
+      icon: FileText,
+      href: createPageUrl(`client-briefing?clientId=${clientId}`),
+      active:
+        location.pathname.includes('client-briefing') && !briefingId,
+    },
+    {
       type: 'custom',
       id: 'annual-plan-months',
       render: () => (
         <AnnualPlanSidebarBlock clientId={clientId} agencyId={agencyId} />
       ),
     },
+    { type: 'section', label: 'Cliente' },
     {
       type: 'link',
       label: 'Documentos',
@@ -221,7 +239,6 @@ export default function ClientContextSidebar({
       href: createPageUrl(`custom-reports?clientId=${clientId}`),
       active: location.pathname.includes('custom-reports'),
     },
-    { type: 'section', label: 'Backstage' },
     {
       type: 'link',
       label: 'Serviços',

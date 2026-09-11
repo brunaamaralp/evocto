@@ -22,6 +22,7 @@ export default function NewCampaignLauncher({
   open,
   onClose,
   clientId,
+  serviceId = null,
   annualPlan = null,
   mes = new Date().getMonth() + 1,
   ano = new Date().getFullYear(),
@@ -53,14 +54,16 @@ export default function NewCampaignLauncher({
     ano: year,
     planId: annualPlan?.id,
     modo: 'plano',
+    serviceId,
   });
   const brainstormAvulsoHref = buildBrainstormHref(clientId, {
     mes: selectedMes,
     ano,
     modo: 'avulso',
+    serviceId,
   });
-  const formHref = buildBriefingCampanhaHref(clientId, 'form');
-  const textoHref = buildBriefingCampanhaHref(clientId, 'texto');
+  const formHref = buildBriefingCampanhaHref(clientId, 'form', serviceId);
+  const textoHref = buildBriefingCampanhaHref(clientId, 'texto', serviceId);
   const planHref = buildAnnualPlanHref(clientId, annualPlan?.id);
 
   const handleMaterialize = async () => {
@@ -82,6 +85,7 @@ export default function NewCampaignLauncher({
         ano: year,
         userId: userId || user?.id || user?.$id || null,
         generateTasks: true,
+        serviceId: serviceId || null,
       });
       onPlanUpdated?.(result?.anualPayload || null);
       onClose?.();

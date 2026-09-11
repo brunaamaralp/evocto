@@ -100,13 +100,14 @@ export function buildAnnualPlanHref(clientId, planId = null) {
 
 export function buildBrainstormHref(
   clientId,
-  { mes, ano, planId, modo = 'avulso' } = {}
+  { mes, ano, planId, modo = 'avulso', serviceId = null } = {}
 ) {
   const m = Number(mes) || new Date().getMonth() + 1;
   const y = Number(ano) || new Date().getFullYear();
   const mode = modo === 'plano' ? 'plano' : 'avulso';
   let path = `client-brainstorm?clientId=${clientId}&modo=${mode}&mes=${m}&ano=${y}`;
   if (planId && mode === 'plano') path += `&planId=${planId}`;
+  if (serviceId) path += `&serviceId=${encodeURIComponent(serviceId)}`;
   return createPageUrl(path);
 }
 
@@ -115,9 +116,10 @@ export function buildBrainstormPlanHref(clientId, opts = {}) {
   return buildBrainstormHref(clientId, { ...opts, modo: 'plano' });
 }
 
-export function buildBriefingCampanhaHref(clientId, mode = null) {
+export function buildBriefingCampanhaHref(clientId, mode = null, serviceId = null) {
   let path = `briefing-campanha?clientId=${clientId}`;
   if (mode) path += `&mode=${mode}`;
+  if (serviceId) path += `&serviceId=${encodeURIComponent(serviceId)}`;
   return createPageUrl(path);
 }
 

@@ -1,3 +1,9 @@
+/**
+ * Soft UI rail: dark brand (global) vs teal (cliente).
+ * Hierarquia cliente: Operação (hub/lente) → Planejamento → Cliente.
+ * serviceId no hub é lente, não troca para shell de serviço.
+ */
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
@@ -29,12 +35,24 @@ import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
-import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
+import { buildAnnualPlanHref, buildBrainstormHref } from '@/lib/planoAnualHub';
 
-/**
- * Soft UI rail: dark brand (global) vs teal (cliente).
- * Hierarquia cliente: Operação (campanha) → Cliente → Backstage.
- */
+/** Páginas onde serviceId significa workspace de serviço (não lente do hub). */
+const SERVICE_SHELL_PAGES = new Set([
+  'service-detail',
+  'service-deliverables',
+  'delivery-workspace',
+  'service-instance-editor',
+  'service-editor',
+  'service-policies',
+]);
+
+function buildClientHubHref(clientId, serviceId = null) {
+  let path = `client-detail?clientId=${clientId}`;
+  if (serviceId) path += `&serviceId=${encodeURIComponent(serviceId)}`;
+  return createPageUrl(path);
+}
+
 export default function ContextualSidebar({
   currentPage,
   clientId,
@@ -47,9 +65,14 @@ export default function ContextualSidebar({
   const location = useLocation();
   const [client, setClient] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  const isClientMode = Boolean(clientId && !serviceId);
-  const theme = isClientMode ? CLIENT_CONTEXT : GLOBAL_SHELL;
   const hash = location.hash || '';
+
+  const useServiceShell =
+    Boolean(serviceId) &&
+    (SERVICE_SHELL_PAGES.has(currentPage) || !clientId);
+
+  const isClientMode = Boolean(clientId) && !useServiceShell;
+  const theme = isClientMode ? CLIENT_CONTEXT : GLOBAL_SHELL;
 
   useEffect(() => {
     if (!clientId) {
@@ -68,26 +91,25 @@ export default function ContextualSidebar({
   }, [clientId]);
 
   const getNavigationItems = () => {
-    if (clientId && !serviceId) {
-      const inCampaign =
+    if (isClientMode && clientId) {
+      const inUnit =
         Boolean(briefingId) &&
         (currentPage === 'client-campaign' ||
           currentPage === 'client-tasks' ||
-          currentPage === 'client-briefing' ||
           currentPage === 'briefing-campanha' ||
           currentPage === 'briefing-editor');
 
-      const campaignHref = briefingId
+      const unitHref = briefingId
         ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
-        : createPageUrl(`client-detail?clientId=${clientId}#campanhas`);
+        : null;
 
-      const tasksHref = briefingId
-        ? createPageUrl(
-            buildClientTasksHref({ clientId, briefingId })
-          )
-        : createPageUrl(`client-tasks?clientId=${clientId}`);
-
-      const hubHref = createPageUrl(`client-briefing?clientId=${clientId}`);
+      const tasksHref = createPageUrl(
+        buildClientTasksHref({
+          clientId,
+          serviceId: serviceId || null,
+          briefingId: inUnit ? briefingId : null,
+        })
+      );
 
       const items = [
         {
@@ -102,71 +124,59 @@ export default function ContextualSidebar({
           type: 'link',
           label: 'Visão Geral',
           icon: LayoutDashboard,
-          href: createPageUrl(`client-detail?clientId=${clientId}`),
+          href: buildClientHubHref(clientId, serviceId),
           isActive:
-            (currentPage === 'client' || currentPage === 'client-detail') &&
-            hash !== '#campanhas',
+            currentPage === 'client' ||
+            currentPage === 'client-detail' ||
+            hash === '#operacao' ||
+            hash === '#campanhas',
         },
         {
           type: 'link',
-          label: 'Campanhas',
-          icon: Megaphone,
-          href: createPageUrl(`client-detail?clientId=${clientId}#campanhas`),
-          isActive:
-            hash === '#campanhas' ||
-            currentPage === 'client-campaign' ||
-            currentPage === 'briefing-campanha' ||
-            (currentPage === 'client-tasks' && Boolean(briefingId)) ||
-            (currentPage === 'client-briefing' && Boolean(briefingId)),
+          label: 'Tarefas',
+          icon: CheckSquare,
+          href: createPageUrl(
+            buildClientTasksHref({
+              clientId,
+              serviceId: serviceId || null,
+            })
+          ),
+          isActive: currentPage === 'client-tasks' && !briefingId,
         },
       ];
 
-      if (inCampaign && briefingId) {
+      if (inUnit && briefingId && unitHref) {
         items.push(
           {
             type: 'link',
-            label: 'Visão da campanha',
+            label: 'Unidade atual',
             icon: Megaphone,
-            href: campaignHref,
+            href: unitHref,
             nested: true,
-            isActive: currentPage === 'client-campaign',
+            isActive: currentPage === 'client-campaign' && hash !== '#ficha',
           },
           {
             type: 'link',
-            label: 'Tarefas',
+            label: 'Tarefas da unidade',
             icon: CheckSquare,
             href: tasksHref,
             nested: true,
-            isActive: currentPage === 'client-tasks',
+            isActive: currentPage === 'client-tasks' && Boolean(briefingId),
           },
           {
             type: 'link',
             label: 'Ficha',
             icon: FileText,
-            href: `${campaignHref}#ficha`,
+            href: `${unitHref}#ficha`,
             nested: true,
-            isActive: currentPage === 'client-campaign',
+            isActive:
+              currentPage === 'client-campaign' && hash === '#ficha',
           }
         );
       }
 
       items.push(
-        { type: 'section', label: 'Cliente' },
-        {
-          type: 'link',
-          label: 'Campanhas & plano',
-          icon: FileText,
-          href: hubHref,
-          isActive: currentPage === 'client-briefing' && !briefingId,
-        },
-        {
-          type: 'link',
-          label: 'Brainstorm',
-          icon: Sparkles,
-          href: createPageUrl(`client-brainstorm?clientId=${clientId}`),
-          isActive:
-            currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
-        },
+        { type: 'section', label: 'Planejamento' },
         {
           type: 'link',
           label: 'Plano anual',
@@ -174,6 +184,24 @@ export default function ContextualSidebar({
           href: buildAnnualPlanHref(clientId),
           isActive: currentPage === 'briefing-campanha-anual',
         },
+        {
+          type: 'link',
+          label: 'Brainstorm',
+          icon: Sparkles,
+          href: buildBrainstormHref(clientId, {
+            serviceId: serviceId || null,
+          }),
+          isActive:
+            currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
+        },
+        {
+          type: 'link',
+          label: 'Planejamento & briefs',
+          icon: FileText,
+          href: createPageUrl(`client-briefing?clientId=${clientId}`),
+          isActive: currentPage === 'client-briefing' && !briefingId,
+        },
+        { type: 'section', label: 'Cliente' },
         {
           type: 'link',
           label: 'Documentos',
@@ -209,27 +237,27 @@ export default function ContextualSidebar({
           href: createPageUrl(`custom-reports?clientId=${clientId}`),
           isActive: currentPage === 'custom-reports',
         },
-        { type: 'section', label: 'Backstage' },
         {
           type: 'link',
           label: 'Serviços',
           icon: Target,
           href: createPageUrl(`client-services?clientId=${clientId}`),
           isActive: currentPage === 'client-services',
+          nested: false,
         }
       );
 
       return items;
     }
 
-    if (serviceId) {
+    if (useServiceShell && serviceId) {
       return [
         {
           type: 'link',
           label: 'Voltar para Cliente',
           icon: ArrowLeft,
           href: clientId
-            ? createPageUrl(`client-detail?clientId=${clientId}`)
+            ? buildClientHubHref(clientId, serviceId)
             : createPageUrl('clients'),
           isBack: true,
         },
@@ -251,14 +279,23 @@ export default function ContextualSidebar({
           type: 'link',
           label: 'Tarefas',
           icon: CheckSquare,
-          href: createPageUrl(`client-tasks?serviceId=${serviceId}`),
+          href: createPageUrl(
+            buildClientTasksHref({
+              clientId: clientId || undefined,
+              serviceId,
+            })
+          ),
           isActive: currentPage === 'client-tasks',
         },
         {
           type: 'link',
           label: 'Documentos',
           icon: FolderOpen,
-          href: createPageUrl(`client-documents?serviceId=${serviceId}`),
+          href: createPageUrl(
+            clientId
+              ? `client-documents?clientId=${clientId}&serviceId=${serviceId}`
+              : `client-documents?serviceId=${serviceId}`
+          ),
           isActive: currentPage === 'client-documents',
         },
       ];
