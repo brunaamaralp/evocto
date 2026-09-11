@@ -49,25 +49,6 @@ const STATUS_CONFIG = {
   }
 };
 
-const TEMPLATE_CATEGORY_CONFIG = {
-  standard: {
-    label: 'Padrão',
-    color: 'bg-blue-50 text-blue-600'
-  },
-  premium: {
-    label: 'Premium',
-    color: 'bg-purple-50 text-purple-600'
-  },
-  custom: {
-    label: 'Customizado',
-    color: 'bg-green-50 text-green-600'
-  },
-  deprecated: {
-    label: 'Descontinuado',
-    color: 'bg-gray-50 text-gray-500'
-  }
-};
-
 export default function ServiceTypeIndicator({ service, showStatus = true, size = 'default' }) {
   const isTemplate = service?.is_template;
   const serviceType = isTemplate ? 'template' : 'instance';
@@ -90,16 +71,6 @@ export default function ServiceTypeIndicator({ service, showStatus = true, size 
         <TypeIcon className="w-3 h-3" />
         {typeConfig.label}
       </Badge>
-
-      {/* Categoria do Template */}
-      {isTemplate && service?.template_category && (
-        <Badge 
-          variant="secondary"
-          className={`${TEMPLATE_CATEGORY_CONFIG[service.template_category]?.color || 'bg-gray-50 text-gray-600'} ${sizeClasses[size]}`}
-        >
-          {TEMPLATE_CATEGORY_CONFIG[service.template_category]?.label || service.template_category}
-        </Badge>
-      )}
 
       {/* Status do Serviço (apenas para instâncias) */}
       {!isTemplate && showStatus && service?.service_status && (

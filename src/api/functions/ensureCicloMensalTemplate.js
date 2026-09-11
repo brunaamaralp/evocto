@@ -78,6 +78,7 @@ export async function ensureCicloMensalTemplate(agencyId) {
         offering_key: CICLO_MENSAL_TEMPLATE_SLUG,
         slug: CICLO_MENSAL_TEMPLATE_SLUG,
         template_version: CICLO_MENSAL_TEMPLATE_VERSION,
+        pricing: CICLO_MENSAL_4_SEMANAS_TEMPLATE.pricing,
         is_template: true,
         is_active: true,
         category: CICLO_MENSAL_4_SEMANAS_TEMPLATE.category,

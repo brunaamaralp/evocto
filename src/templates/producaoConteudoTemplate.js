@@ -16,7 +16,7 @@ import { normalizeDeliverableTaskShapes } from './cicloMensal4SemanasTemplate.js
 
 export const PRODUCAO_CONTEUDO_TEMPLATE_KEY = 'producao_conteudo';
 export const PRODUCAO_CONTEUDO_TEMPLATE_SLUG = 'producao_conteudo';
-export const PRODUCAO_CONTEUDO_TEMPLATE_VERSION = '1.0';
+export const PRODUCAO_CONTEUDO_TEMPLATE_VERSION = '1.1';
 
 /** Etapas padrão de um conteúdo (sem bloqueio entre si). */
 export const DEFAULT_CONTENT_SUBTAREFAS = [
@@ -161,7 +161,7 @@ export const PRODUCAO_CONTEUDO_TEMPLATE = {
 
   pricing: {
     type: 'recorrente',
-    base_price: 5000,
+    base_price: 2800,
     currency: 'BRL',
     billing_cycle: 'monthly',
     estimated_hours: 40,

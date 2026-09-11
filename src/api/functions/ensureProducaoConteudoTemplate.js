@@ -68,6 +68,7 @@ export async function ensureProducaoConteudoTemplate(agencyId) {
         template_version: PRODUCAO_CONTEUDO_TEMPLATE_VERSION,
         pipeline: 'conteudo',
         content_item_template: PRODUCAO_CONTEUDO_TEMPLATE.content_item_template,
+        pricing: PRODUCAO_CONTEUDO_TEMPLATE.pricing,
         category: PRODUCAO_CONTEUDO_TEMPLATE.category,
         is_template: true,
         is_active: true,

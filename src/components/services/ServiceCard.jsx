@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { getCategoryColor, getCategoryLabel } from '@/constants/serviceCategories';
 
 // Assume ServiceModal exists for creating instances
 import ServiceModal from './ServiceModal'; // Adjust path as necessary for your project structure
@@ -46,6 +47,7 @@ export default function ServiceCard({
   const isTemplate = service.is_template;
   const client = service.clientId ? clients.find(c => c.id === service.clientId) : null;
   const clientId = service.clientId; // Extract clientId for use in navigation URLs
+  const categoryColors = isTemplate ? getCategoryColor(service.category) : null;
 
   // Placeholder functions for actions. In a real app, these would trigger modals/navigation.
   const handleEdit = () => {
@@ -79,12 +81,14 @@ export default function ServiceCard({
 
   return (
     <Card className={`hover:shadow-[var(--shadow-elevated)] transition-shadow duration-200 ${
-      isTemplate ? 'border-transparent bg-[#F3EAFB]' : 'border-[#E8E5F5]/70 bg-white'
+      isTemplate
+        ? `${categoryColors?.card || ''} border-transparent`
+        : 'border-[#E8E5F5]/70 bg-white'
     } flex flex-col h-full rounded-2xl`}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {isTemplate ? (
                 <Badge variant="secondary" className="bg-[#EDE9FB] text-[#4A2FA3]">
                   Template
@@ -94,12 +98,12 @@ export default function ServiceCard({
                   Instância
                 </Badge>
               )}
-              {service.template_category && (
-                <Badge variant="outline" className="capitalize">
-                  {service.template_category}
+              {isTemplate && service.category && (
+                <Badge variant="outline" className={categoryColors?.badge || ''}>
+                  {getCategoryLabel(service.category)}
                 </Badge>
               )}
-              {!service.is_active && ( // Keeping is_active badge if it exists
+              {!service.is_active && (
                 <Badge variant="destructive" className="text-xs">
                   Inativo
                 </Badge>

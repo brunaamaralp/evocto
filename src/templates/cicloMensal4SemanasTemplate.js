@@ -381,7 +381,7 @@ const PUBLICACAO = {
 
 export const CICLO_MENSAL_TEMPLATE_KEY = 'ciclo_mensal_4_semanas';
 export const CICLO_MENSAL_TEMPLATE_SLUG = 'ciclo_mensal_4_semanas';
-export const CICLO_MENSAL_TEMPLATE_VERSION = '2.0';
+export const CICLO_MENSAL_TEMPLATE_VERSION = '2.1';
 
 export const CICLO_MENSAL_4_SEMANAS_TEMPLATE = {
   id: 'ciclo_mensal_4_semanas_template',
@@ -395,7 +395,7 @@ export const CICLO_MENSAL_4_SEMANAS_TEMPLATE = {
 
   pricing: {
     type: 'recorrente',
-    base_price: 8000,
+    base_price: 5000,
     currency: 'BRL',
     billing_cycle: 'monthly',
     estimated_hours: 74,

@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { getCategoryLabel } from '@/constants/serviceCategories';
+import { getCategoryLabel, getCategoryColor } from '@/constants/serviceCategories';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 
@@ -145,17 +145,19 @@ const TemplateCard = ({ template, onEdit, onDuplicate, onUse }) => {
     ) || 0;
   };
 
+  const colors = getCategoryColor(template.category);
+
   return (
-    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 group">
+    <Card className={`border-0 shadow-sm hover:shadow-lg transition-all duration-200 group ${colors.card}`}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center">
-              <LayoutTemplate className="w-6 h-6 text-purple-600" />
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colors.icon}`}>
+              <LayoutTemplate className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-semibold text-slate-900">{template.name}</h3>
-              <Badge variant="outline" className="mt-1 text-xs">
+              <Badge variant="outline" className={`mt-1 text-xs ${colors.badge}`}>
                 {getCategoryLabel(template.category)}
               </Badge>
             </div>

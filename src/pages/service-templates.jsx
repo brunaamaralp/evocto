@@ -29,7 +29,7 @@ import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
-import { SERVICE_CATEGORIES } from '@/constants/serviceCategories';
+import { SERVICE_CATEGORIES, getCategoryColor, getCategoryLabel } from '@/constants/serviceCategories';
 
 export default function ServiceTemplatesPage() {
   const { _user, agencyId, loading: sessionLoading } = useSession();
@@ -261,14 +261,16 @@ export default function ServiceTemplatesPage() {
 
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTemplates.map((template) => (
-          <Card key={template.id} className="hover:shadow-lg transition-shadow">
+        {filteredTemplates.map((template) => {
+          const colors = getCategoryColor(template.category);
+          return (
+          <Card key={template.id} className={`hover:shadow-lg transition-shadow ${colors.card}`}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <CardTitle className="text-lg">{template.name}</CardTitle>
-                  <Badge variant="outline" className="mt-1">
-                    {template.category?.replace('_', ' ')}
+                  <Badge variant="outline" className={`mt-1 ${colors.badge}`}>
+                    {getCategoryLabel(template.category)}
                   </Badge>
                 </div>
                 <div className="flex gap-1">
@@ -311,7 +313,8 @@ export default function ServiceTemplatesPage() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {filteredTemplates.length === 0 && (

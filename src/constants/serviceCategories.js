@@ -27,6 +27,89 @@ export const SERVICE_CATEGORY_KEYS = Object.keys(SERVICE_CATEGORIES);
 export const DEFAULT_SERVICE_CATEGORY = 'marketing_digital';
 
 /**
+ * Cores visuais por categoria — separa templates na UI sem novo campo no banco.
+ * Usado em cards de template (borda/fundo + badge de categoria).
+ */
+export const SERVICE_CATEGORY_COLORS = {
+  marketing_digital: {
+    card: 'border-l-4 border-l-sky-500 bg-sky-50/50',
+    badge: 'bg-sky-100 text-sky-800 border-sky-200',
+    icon: 'bg-sky-100 text-sky-700',
+  },
+  branding: {
+    card: 'border-l-4 border-l-amber-500 bg-amber-50/50',
+    badge: 'bg-amber-100 text-amber-900 border-amber-200',
+    icon: 'bg-amber-100 text-amber-800',
+  },
+  comunicacao: {
+    card: 'border-l-4 border-l-teal-500 bg-teal-50/50',
+    badge: 'bg-teal-100 text-teal-800 border-teal-200',
+    icon: 'bg-teal-100 text-teal-700',
+  },
+  midia_paga: {
+    card: 'border-l-4 border-l-orange-500 bg-orange-50/50',
+    badge: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: 'bg-orange-100 text-orange-700',
+  },
+  organico: {
+    card: 'border-l-4 border-l-lime-500 bg-lime-50/50',
+    badge: 'bg-lime-100 text-lime-900 border-lime-200',
+    icon: 'bg-lime-100 text-lime-800',
+  },
+  conteudo: {
+    card: 'border-l-4 border-l-emerald-500 bg-emerald-50/50',
+    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    icon: 'bg-emerald-100 text-emerald-700',
+  },
+  copywriting: {
+    card: 'border-l-4 border-l-cyan-500 bg-cyan-50/50',
+    badge: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    icon: 'bg-cyan-100 text-cyan-700',
+  },
+  design: {
+    card: 'border-l-4 border-l-rose-500 bg-rose-50/50',
+    badge: 'bg-rose-100 text-rose-800 border-rose-200',
+    icon: 'bg-rose-100 text-rose-700',
+  },
+  email_marketing: {
+    card: 'border-l-4 border-l-indigo-500 bg-indigo-50/40',
+    badge: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    icon: 'bg-indigo-100 text-indigo-700',
+  },
+  analytics: {
+    card: 'border-l-4 border-l-slate-500 bg-slate-50',
+    badge: 'bg-slate-100 text-slate-800 border-slate-200',
+    icon: 'bg-slate-100 text-slate-700',
+  },
+  automacao: {
+    card: 'border-l-4 border-l-violet-500 bg-violet-50/40',
+    badge: 'bg-violet-100 text-violet-800 border-violet-200',
+    icon: 'bg-violet-100 text-violet-700',
+  },
+  produto: {
+    card: 'border-l-4 border-l-fuchsia-500 bg-fuchsia-50/40',
+    badge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+    icon: 'bg-fuchsia-100 text-fuchsia-700',
+  },
+  desenvolvimento: {
+    card: 'border-l-4 border-l-zinc-500 bg-zinc-50',
+    badge: 'bg-zinc-100 text-zinc-800 border-zinc-200',
+    icon: 'bg-zinc-100 text-zinc-700',
+  },
+  consultoria_estrategica: {
+    card: 'border-l-4 border-l-stone-500 bg-stone-50',
+    badge: 'bg-stone-100 text-stone-800 border-stone-200',
+    icon: 'bg-stone-100 text-stone-700',
+  },
+};
+
+const DEFAULT_CATEGORY_COLOR = {
+  card: 'border-l-4 border-l-gray-300 bg-gray-50/50',
+  badge: 'bg-gray-100 text-gray-700 border-gray-200',
+  icon: 'bg-gray-100 text-gray-600',
+};
+
+/**
  * Tipos principais de oferta (os 3 produtos padrão da agência)
  * Substitui o trio financeiro: diagnostico / mentoria margem / gestão 360
  */
@@ -132,6 +215,11 @@ export function resolveServiceCategory(key) {
 export function getCategoryLabel(key) {
   const resolved = resolveServiceCategory(key);
   return SERVICE_CATEGORIES[resolved] || String(key || '').replace(/_/g, ' ');
+}
+
+export function getCategoryColor(categoryKey) {
+  const resolved = resolveServiceCategory(categoryKey);
+  return SERVICE_CATEGORY_COLORS[resolved] || DEFAULT_CATEGORY_COLOR;
 }
 
 export function resolveOfferingType(key) {
