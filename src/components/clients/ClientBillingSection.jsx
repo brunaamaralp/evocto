@@ -45,8 +45,8 @@ export default function ClientBillingSection({
             {FINANCE_DOMAIN.recurringChargeTab} de serviço
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Quando ativo, o cliente entra nas {FINANCE_DOMAIN.recurringChargePlural.toLowerCase()} e
-            na conciliação.
+            Quando ativo, o cliente entra nas {FINANCE_DOMAIN.recurringChargePlural.toLowerCase()}. O
+            valor e o dia de vencimento viram uma receita recorrente no Financeiro.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

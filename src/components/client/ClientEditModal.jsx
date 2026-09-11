@@ -232,6 +232,20 @@ export default function ClientEditModal({ isOpen, onClose, onSuccess, client = n
         // roster refresh is best-effort
       }
 
+      // Espelha fee mensal no financeiro (af_recurring) quando cobrança de serviço está ativa
+      if (agencyId && savedClient?.id) {
+        try {
+          const { syncClientRecurringFromBilling } = await import('@/lib/agencyFinance/api');
+          await syncClientRecurringFromBilling({
+            agencyId,
+            client: savedClient,
+            billing: formData,
+          });
+        } catch (syncErr) {
+          console.warn('[ClientEditModal] sync recurring', syncErr);
+        }
+      }
+
       onSuccess?.(savedClient);
       onClose();
     } catch (err) {

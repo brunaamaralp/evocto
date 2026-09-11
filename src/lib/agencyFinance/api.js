@@ -2,7 +2,15 @@
  * API do Financeiro Agência — Appwrite TablesDB (af_charges, af_payables, af_cash).
  */
 import { getTablesDB, DATABASE_ID, ID, Query, Permission, Role } from '@/api/appwriteClient';
-import { ymNow, todayYmd, monthBounds, buildPayableInstallments } from './constants.js';
+import {
+  ymNow,
+  todayYmd,
+  monthBounds,
+  buildPayableInstallments,
+  shiftMonth,
+  dueDateForMonth,
+  recurringAppliesToMonth,
+} from './constants.js';
 
 export const AF_CHARGES =
   import.meta.env.VITE_APPWRITE_AF_CHARGES_COLLECTION_ID || 'af_charges';
@@ -10,6 +18,8 @@ export const AF_PAYABLES =
   import.meta.env.VITE_APPWRITE_AF_PAYABLES_COLLECTION_ID || 'af_payables';
 export const AF_CASH =
   import.meta.env.VITE_APPWRITE_AF_CASH_COLLECTION_ID || 'af_cash';
+export const AF_RECURRING =
+  import.meta.env.VITE_APPWRITE_AF_RECURRING_COLLECTION_ID || 'af_recurring';
 
 function db() {
   return getTablesDB();
@@ -112,6 +122,20 @@ const CASH_KEYS = [
   'note',
 ];
 
+const RECURRING_KEYS = [
+  'agencyId',
+  'clientId',
+  'clientName',
+  'description',
+  'amount',
+  'dueDay',
+  'startMonth',
+  'endMonth',
+  'status',
+  'type',
+  'note',
+];
+
 /* ─── Cash ─────────────────────────────────────────────── */
 
 export async function listCash({ agencyId, month, direction, limit = 200 } = {}) {
@@ -206,6 +230,7 @@ export async function createCharge({ agencyId, payload }) {
       competenceMonth: payload.competenceMonth || ymNow(),
       method: payload.method || '',
       note: payload.note || '',
+      ...(payload.recurringId ? { recurringId: String(payload.recurringId) } : {}),
     },
     CHARGE_KEYS
   );
@@ -444,15 +469,305 @@ export async function cancelPayable({ agencyId, id }) {
   return mapRow(updated);
 }
 
+/* ─── Recurring (contratos mensais) ────────────────────── */
+
+export async function listRecurring({ agencyId, status, clientId, limit = 200 } = {}) {
+  const aid = assertAgency(agencyId);
+  const queries = [
+    Query.equal('agencyId', aid),
+    Query.limit(Math.min(500, limit)),
+    Query.orderDesc('$createdAt'),
+  ];
+  if (status) queries.push(Query.equal('status', status));
+  if (clientId) queries.push(Query.equal('clientId', String(clientId)));
+  const res = await db().listRows({ databaseId: DATABASE_ID, tableId: AF_RECURRING, queries });
+  return (res.rows || []).map(mapRow);
+}
+
+export async function createRecurring({ agencyId, payload }) {
+  const aid = assertAgency(agencyId);
+  const amount = Number(payload.amount) || 0;
+  if (amount <= 0) throw new Error('valor_invalido');
+  if (!payload.clientId) throw new Error('cliente_obrigatorio');
+
+  const dueDay = Math.min(28, Math.max(1, Math.trunc(Number(payload.dueDay) || 1)));
+  const data = knownSplit(
+    {
+      agencyId: aid,
+      clientId: payload.clientId,
+      clientName: payload.clientName || '',
+      description: payload.description || '',
+      amount,
+      dueDay,
+      startMonth: payload.startMonth || ymNow(),
+      endMonth: payload.endMonth || '',
+      status: payload.status || 'active',
+      type: 'recorrente',
+      note: payload.note || '',
+    },
+    RECURRING_KEYS
+  );
+
+  const row = await db().createRow({
+    databaseId: DATABASE_ID,
+    tableId: AF_RECURRING,
+    rowId: ID.unique(),
+    data,
+    permissions: perms(),
+  });
+  return mapRow(row);
+}
+
+export async function updateRecurring({ agencyId, id, payload }) {
+  assertAgency(agencyId);
+  const existing = mapRow(
+    await db().getRow({ databaseId: DATABASE_ID, tableId: AF_RECURRING, rowId: id })
+  );
+  if (!existing) throw new Error('recorrencia_nao_encontrada');
+
+  const amount =
+    payload.amount != null ? Number(payload.amount) : Number(existing.amount) || 0;
+  if (amount <= 0) throw new Error('valor_invalido');
+
+  const dueDay = Math.min(
+    28,
+    Math.max(1, Math.trunc(Number(payload.dueDay ?? existing.dueDay) || 1))
+  );
+
+  const data = knownSplit(
+    {
+      clientId: payload.clientId ?? existing.clientId,
+      clientName: payload.clientName ?? existing.clientName ?? '',
+      description: payload.description ?? existing.description ?? '',
+      amount,
+      dueDay,
+      startMonth: payload.startMonth ?? existing.startMonth ?? ymNow(),
+      endMonth: payload.endMonth !== undefined ? payload.endMonth : existing.endMonth || '',
+      status: payload.status ?? existing.status ?? 'active',
+      type: 'recorrente',
+      note: payload.note ?? existing.note ?? '',
+    },
+    RECURRING_KEYS
+  );
+
+  const updated = await db().updateRow({
+    databaseId: DATABASE_ID,
+    tableId: AF_RECURRING,
+    rowId: id,
+    data,
+  });
+  return mapRow(updated);
+}
+
+export async function setRecurringStatus({ agencyId, id, status }) {
+  assertAgency(agencyId);
+  if (!['active', 'paused', 'ended'].includes(status)) throw new Error('status_invalido');
+  const updated = await db().updateRow({
+    databaseId: DATABASE_ID,
+    tableId: AF_RECURRING,
+    rowId: id,
+    data: { status },
+  });
+  return mapRow(updated);
+}
+
+/**
+ * Gera cobranças do mês a partir das recorrências ativas (idempotente).
+ * @returns {{ created: object[], skipped: number }}
+ */
+export async function materializeRecurringCharges({ agencyId, month } = {}) {
+  const aid = assertAgency(agencyId);
+  const ym = month || ymNow();
+  const [recurring, charges] = await Promise.all([
+    listRecurring({ agencyId: aid, limit: 500 }),
+    listCharges({ agencyId: aid, month: ym, limit: 500 }),
+  ]);
+
+  const existingByRecurring = new Set(
+    charges
+      .filter((c) => c.recurringId && c.status !== 'cancelled')
+      .map((c) => String(c.recurringId))
+  );
+
+  const created = [];
+  let skipped = 0;
+  for (const rec of recurring) {
+    if (!recurringAppliesToMonth(rec, ym)) continue;
+    if (existingByRecurring.has(String(rec.id))) {
+      skipped += 1;
+      continue;
+    }
+    const charge = await createCharge({
+      agencyId: aid,
+      payload: {
+        clientId: rec.clientId,
+        clientName: rec.clientName,
+        type: 'recorrente',
+        description: rec.description || `Fee mensal — ${rec.clientName || 'cliente'}`,
+        amount: rec.amount,
+        dueDate: dueDateForMonth(ym, rec.dueDay),
+        competenceMonth: ym,
+        recurringId: rec.id,
+      },
+    });
+    created.push(charge);
+  }
+  return { created, skipped };
+}
+
+/**
+ * Espelha cobrança de serviço do cadastro do cliente → contrato em af_recurring.
+ * Ativa/atualiza a recorrência principal; pausa se billing for desligado.
+ */
+export async function syncClientRecurringFromBilling({ agencyId, client, billing } = {}) {
+  const aid = assertAgency(agencyId);
+  const clientId = String(client?.id || client?.$id || '').trim();
+  if (!clientId) throw new Error('cliente_obrigatorio');
+
+  const clientName = client?.name || client?.company_name || '';
+  const enabled = Boolean(billing?.billing_enabled);
+  const price = Number(billing?.plan_price) || 0;
+  const discount = Number(billing?.discount_amount) || 0;
+  const amount = Math.max(0, price - discount);
+  const dueDay = Math.min(28, Math.max(1, Math.trunc(Number(billing?.due_day) || 10)));
+  const planName = String(billing?.plan || '').trim();
+  const description = planName ? `Fee — ${planName}` : 'Fee mensal';
+
+  const existing = await listRecurring({ agencyId: aid, clientId, limit: 50 });
+  const live = existing.filter((r) => r.status === 'active' || r.status === 'paused');
+
+  if (!enabled || amount < 0.01) {
+    for (const r of live.filter((x) => x.status === 'active')) {
+      await setRecurringStatus({ agencyId: aid, id: r.id, status: 'paused' });
+    }
+    return { action: 'paused', count: live.length };
+  }
+
+  const primary = live[0];
+  if (primary) {
+    const updated = await updateRecurring({
+      agencyId: aid,
+      id: primary.id,
+      payload: {
+        clientId,
+        clientName,
+        description,
+        amount,
+        dueDay,
+        status: 'active',
+        startMonth: primary.startMonth || ymNow(),
+        endMonth: primary.endMonth || '',
+      },
+    });
+    return { action: 'updated', recurring: updated };
+  }
+
+  const created = await createRecurring({
+    agencyId: aid,
+    payload: {
+      clientId,
+      clientName,
+      description,
+      amount,
+      dueDay,
+      startMonth: ymNow(),
+      status: 'active',
+    },
+  });
+  return { action: 'created', recurring: created };
+}
+
+/**
+ * Projeção de recebimentos (meses à frente a partir de `fromMonth`).
+ * Combina recorrências ativas + cobranças já existentes no mês.
+ */
+export async function getReceivablesForecast({ agencyId, fromMonth, months = 6 } = {}) {
+  const aid = assertAgency(agencyId);
+  const start = fromMonth || ymNow();
+  const horizon = Math.min(24, Math.max(1, Math.trunc(Number(months) || 6)));
+  const recurring = await listRecurring({ agencyId: aid, limit: 500 });
+  const active = recurring.filter((r) => r.status === 'active');
+
+  const monthList = Array.from({ length: horizon }, (_, i) => shiftMonth(start, i));
+  const chargeLists = await Promise.all(
+    monthList.map((ym) => listCharges({ agencyId: aid, month: ym, limit: 500 }))
+  );
+
+  const monthsOut = monthList.map((ym, idx) => {
+    const charges = chargeLists[idx] || [];
+    const byRecurring = new Map();
+    for (const c of charges) {
+      if (c.recurringId) byRecurring.set(String(c.recurringId), c);
+    }
+
+    let projected = 0;
+    let open = 0;
+    let paid = 0;
+    let count = 0;
+
+    for (const rec of active) {
+      if (!recurringAppliesToMonth(rec, ym)) continue;
+      const existing = byRecurring.get(String(rec.id));
+      if (existing) {
+        if (existing.status === 'cancelled') continue;
+        count += 1;
+        const amt = Number(existing.amount) || 0;
+        if (existing.status === 'paid') paid += amt;
+        else open += amt;
+      } else {
+        count += 1;
+        projected += Number(rec.amount) || 0;
+      }
+    }
+
+    // Cobranças avulsas (sem recorrência) no mês
+    for (const c of charges) {
+      if (c.recurringId) continue;
+      if (c.status === 'cancelled') continue;
+      count += 1;
+      const amt = Number(c.amount) || 0;
+      if (c.status === 'paid') paid += amt;
+      else open += amt;
+    }
+
+    const expected = projected + open;
+    return {
+      month: ym,
+      projected,
+      open,
+      paid,
+      expected,
+      total: expected + paid,
+      count,
+    };
+  });
+
+  const sum = (key) => monthsOut.reduce((acc, m) => acc + (Number(m[key]) || 0), 0);
+  return {
+    fromMonth: start,
+    months: monthsOut,
+    totals: {
+      projected: sum('projected'),
+      open: sum('open'),
+      paid: sum('paid'),
+      expected: sum('expected'),
+      total: sum('total'),
+    },
+    activeRecurringCount: active.length,
+    monthlyRunRate: active.reduce((acc, r) => acc + (Number(r.amount) || 0), 0),
+  };
+}
+
 /* ─── Overview / DRE ───────────────────────────────────── */
 
 export async function getOverview({ agencyId, month } = {}) {
   const aid = assertAgency(agencyId);
   const ym = month || ymNow();
-  const [charges, payables, cash] = await Promise.all([
+  const [charges, payables, cash, forecast] = await Promise.all([
     listCharges({ agencyId: aid, month: ym, limit: 500 }),
     listPayables({ agencyId: aid, month: ym, limit: 500 }),
     listCash({ agencyId: aid, month: ym, limit: 500 }),
+    getReceivablesForecast({ agencyId: aid, fromMonth: ym, months: 6 }),
   ]);
 
   const openCharges = charges.filter((c) => c.status === 'open');
@@ -469,6 +784,7 @@ export async function getOverview({ agencyId, month } = {}) {
   }
 
   const sum = (rows) => rows.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+  const thisMonth = forecast.months[0] || { expected: 0, projected: 0 };
 
   return {
     month: ym,
@@ -485,6 +801,13 @@ export async function getOverview({ agencyId, month } = {}) {
       openAmount: sum(openPayables),
       paidCount: paidPayables.length,
       paidAmount: sum(paidPayables),
+    },
+    forecast: {
+      monthlyRunRate: forecast.monthlyRunRate,
+      activeRecurringCount: forecast.activeRecurringCount,
+      thisMonthExpected: thisMonth.expected,
+      next6Expected: forecast.totals.expected,
+      months: forecast.months,
     },
   };
 }

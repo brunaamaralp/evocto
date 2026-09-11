@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
-  Plus,
   CheckCircle,
   Circle,
   AlertCircle,
@@ -15,10 +14,14 @@ import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
 import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
-import ClientActiveCampaignsPanel from '@/components/client/ClientActiveCampaignsPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
 import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
 import NewCampaignLauncher from '@/components/campaigns/NewCampaignLauncher';
+import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
+import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
+import ServiceOperationHeader from '@/components/client/hub/ServiceOperationHeader';
+import ServiceUnitsPanel from '@/components/client/hub/ServiceUnitsPanel';
+import CreateServiceUnitModal from '@/components/client/hub/CreateServiceUnitModal';
 import { toast } from 'sonner';
 import {
   buildAnnualPlanHref,
@@ -26,19 +29,43 @@ import {
   deriveAnnualPlanFromBriefs,
   getPlanMonth,
 } from '@/lib/planoAnualHub';
+import {
+  deriveServiceLensUnits,
+  filterAttentionForService,
+  getActiveContractedServices,
+  resolveSelectedServiceId,
+} from '@/lib/deriveServiceLens';
+import {
+  getServiceDisplayName,
+  getServiceOperationProfile,
+  OPERATION_PATTERNS,
+  PERIOD_MODES,
+  UNIT_KINDS,
+} from '@/lib/serviceOperationProfile';
+import { buildClientTasksHref } from '@/lib/taskScope';
+import {
+  createServiceUnitTask,
+  startSingleProjectOperation,
+} from '@/lib/createServiceUnitTask';
 
-function isActiveContractedService(service) {
-  if (!service?.id || service.is_template) return false;
-  if (service.is_active === false) return false;
-  const status = String(service.service_status || '').toLowerCase();
-  return !['cancelled', 'archived', 'completed'].includes(status);
+function setServiceIdInUrl(serviceId) {
+  const url = new URL(window.location.href);
+  if (serviceId) url.searchParams.set('serviceId', String(serviceId));
+  else url.searchParams.delete('serviceId');
+  window.history.replaceState({}, '', url.toString());
 }
 
 export default function ClientDetailPage() {
-  const { agencyId, isAuthenticated } = useSession();
+  const navigate = useNavigate();
+  const { agencyId, isAuthenticated, userId, user } = useSession();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [serviceSetupOpen, setServiceSetupOpen] = useState(false);
+  const [unitModalOpen, setUnitModalOpen] = useState(false);
+  const [unitSaving, setUnitSaving] = useState(false);
+  const [unitError, setUnitError] = useState('');
+  const [startingProject, setStartingProject] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const clientId = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -53,17 +80,21 @@ export default function ClientDetailPage() {
     if (params.get('setup') === 'service') {
       setServiceSetupOpen(true);
     }
+    const fromUrl = params.get('serviceId');
+    if (fromUrl) setSelectedServiceId(fromUrl);
   }, []);
 
   const {
     client,
     services,
+    cycles,
     briefs,
+    tasks,
     loading,
     error,
     reload,
-    activeCampaigns,
     attentionItems,
+    attentionCountsByService,
     counts,
   } = useClientHubData(clientId, agencyId);
 
@@ -80,32 +111,97 @@ export default function ClientDetailPage() {
   );
 
   const activeServices = useMemo(
-    () => (Array.isArray(services) ? services : []).filter(isActiveContractedService),
+    () => getActiveContractedServices(services),
     [services]
   );
   const hasService = activeServices.length > 0;
-  const primaryService = activeServices[0] || null;
+
+  useEffect(() => {
+    if (loading) return;
+    const resolved = resolveSelectedServiceId(activeServices, selectedServiceId);
+    if (resolved !== selectedServiceId) {
+      setSelectedServiceId(resolved);
+    }
+    if (resolved) setServiceIdInUrl(resolved);
+  }, [loading, activeServices, selectedServiceId]);
+
+  const selectedService = useMemo(
+    () =>
+      activeServices.find((s) => String(s.id) === String(selectedServiceId)) ||
+      null,
+    [activeServices, selectedServiceId]
+  );
+
+  const selectedProfile = useMemo(
+    () => (selectedService ? getServiceOperationProfile(selectedService) : null),
+    [selectedService]
+  );
+
+  const lens = useMemo(() => {
+    if (!selectedService) return null;
+    return deriveServiceLensUnits({
+      service: selectedService,
+      cycles,
+      briefs,
+      tasks,
+      clientId,
+      now: new Date(),
+    });
+  }, [selectedService, cycles, briefs, tasks, clientId]);
+
+  const primaryPeriodLabel = useMemo(() => {
+    if (!lens || lens.periodMode !== PERIOD_MODES.MONTHLY) return null;
+    const withPeriod = (lens.groups || []).find((g) => g.periodLabel);
+    return withPeriod?.periodLabel || null;
+  }, [lens]);
+
+  const lensForPanel = useMemo(() => {
+    if (!lens || !primaryPeriodLabel) return lens;
+    if ((lens.groups || []).length <= 1) {
+      return {
+        ...lens,
+        groups: (lens.groups || []).map((g) => ({
+          ...g,
+          periodLabel: null,
+        })),
+      };
+    }
+    // Vários meses: o mais recente já está no header; ocultar só o primeiro rótulo
+    const [first, ...rest] = lens.groups;
+    return {
+      ...lens,
+      groups: [{ ...first, periodLabel: null }, ...rest],
+    };
+  }, [lens, primaryPeriodLabel]);
+
+  const lensAttention = useMemo(
+    () => filterAttentionForService(attentionItems, selectedServiceId),
+    [attentionItems, selectedServiceId]
+  );
+
+  const isCampaignLens =
+    selectedProfile?.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF;
 
   useEffect(() => {
     if (loading) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('open') !== 'nova-campanha') return;
     if (!hasService) {
-      toast.info('Defina o serviço contratado antes de criar a campanha.');
+      toast.info('Defina o serviço contratado antes de operar.');
       setServiceSetupOpen(true);
       return;
     }
-    setLauncherOpen(true);
-  }, [loading, hasService]);
+    if (isCampaignLens) setLauncherOpen(true);
+  }, [loading, hasService, isCampaignLens]);
 
   useEffect(() => {
     if (loading) return;
-    if (window.location.hash !== '#campanhas') return;
-    const el = document.getElementById('campanhas');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.location.hash !== '#campanhas' && window.location.hash !== '#operacao') {
+      return;
     }
-  }, [loading, activeCampaigns.length]);
+    const el = document.getElementById('operacao');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [loading, selectedServiceId]);
 
   const clearSetupParam = () => {
     const url = new URL(window.location.href);
@@ -113,14 +209,83 @@ export default function ClientDetailPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  const openCampaignLauncher = () => {
-    if (!hasService) {
-      toast.info('Defina o serviço contratado antes de criar a campanha.');
+  const selectService = useCallback((serviceId) => {
+    setSelectedServiceId(serviceId);
+    setServiceIdInUrl(serviceId);
+  }, []);
+
+  const handleStartSingleProject = useCallback(async () => {
+    if (!selectedService || !agencyId || !clientId) return;
+    setStartingProject(true);
+    try {
+      const result = await startSingleProjectOperation({
+        agencyId,
+        clientId,
+        service: selectedService,
+        ownerId: userId || user?.id || user?.$id || null,
+      });
+      if (result.alreadyStarted) {
+        toast.message('Operação já iniciada');
+      } else {
+        toast.success('Operação iniciada');
+      }
+      await reload?.();
+    } catch (err) {
+      console.error('[client-detail] startSingleProject', err);
+      toast.error(err?.message || 'Não foi possível iniciar a operação');
+    } finally {
+      setStartingProject(false);
+    }
+  }, [selectedService, agencyId, clientId, userId, user, reload]);
+
+  const handleCreateUnit = useCallback(() => {
+    if (!selectedService || !selectedProfile) {
+      toast.info('Defina o serviço contratado antes de operar.');
       setServiceSetupOpen(true);
       return;
     }
-    setLauncherOpen(true);
-  };
+
+    if (selectedProfile.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF) {
+      setLauncherOpen(true);
+      return;
+    }
+
+    if (selectedProfile.unitKind === UNIT_KINDS.TASK) {
+      setUnitError('');
+      setUnitModalOpen(true);
+      return;
+    }
+
+    if (selectedProfile.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT) {
+      handleStartSingleProject();
+    }
+  }, [selectedService, selectedProfile, handleStartSingleProject]);
+
+  const handleSubmitUnit = useCallback(
+    async (title) => {
+      if (!selectedService || !agencyId || !clientId) return;
+      setUnitSaving(true);
+      setUnitError('');
+      try {
+        await createServiceUnitTask({
+          agencyId,
+          clientId,
+          service: selectedService,
+          title,
+          ownerId: userId || user?.id || user?.$id || null,
+        });
+        toast.success(`${title} criado`);
+        setUnitModalOpen(false);
+        await reload?.();
+      } catch (err) {
+        console.error('[client-detail] createUnit', err);
+        setUnitError(err?.message || 'Erro ao criar');
+      } finally {
+        setUnitSaving(false);
+      }
+    },
+    [selectedService, agencyId, clientId, userId, user, reload]
+  );
 
   if (!isAuthenticated) {
     return (
@@ -189,12 +354,7 @@ export default function ClientDetailPage() {
     );
   }
 
-  const hasCampaigns = activeCampaigns.length > 0;
-  const hasBriefingOrPlan = briefs.some(
-    (b) =>
-      b.brief_kind === 'campanha_anual' ||
-      b.brief_kind === 'campanha_mensal'
-  );
+  const hasOperation = Boolean(lens?.unitsCount > 0 || lens?.singleProject?.ready);
   const hasInvite = Boolean(client.portal_enabled || client.has_portal_access);
 
   const setupChecklist = [
@@ -202,29 +362,33 @@ export default function ClientDetailPage() {
       id: 'service',
       title: 'Definir serviço contratado',
       description: hasService
-        ? primaryService?.name || 'Serviço ativo neste cliente'
+        ? selectedService
+          ? getServiceDisplayName(selectedService)
+          : 'Serviço ativo neste cliente'
         : 'Escolha o template e o nome do contrato com o cliente',
       completed: hasService,
       action: 'Definir serviço',
       onClick: () => setServiceSetupOpen(true),
     },
     {
-      id: 'context',
-      title: 'Briefing inicial e plano',
-      description: 'Onboarding do cliente e planejamento do ano',
-      completed: hasBriefingOrPlan,
-      action: 'Abrir hub',
-      href: createPageUrl(`client-briefing?clientId=${clientId}`),
-    },
-    {
-      id: 'campaign',
-      title: 'Criar primeira campanha',
+      id: 'operate',
+      title: hasService
+        ? selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
+          ? 'Iniciar operação do serviço'
+          : `Criar primeiro ${selectedProfile?.itemLabel || 'item'}`
+        : 'Iniciar operação',
       description: hasService
-        ? 'Defina a campanha do mês neste serviço'
-        : 'Disponível depois de definir o serviço contratado',
-      completed: hasCampaigns,
-      action: 'Nova campanha',
-      onClick: openCampaignLauncher,
+        ? 'Comece o trabalho neste serviço'
+        : 'Disponível depois de definir o serviço',
+      completed: hasOperation,
+      action:
+        selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
+          ? 'Ver operação'
+          : selectedProfile
+            ? String(getCreateCtaLabelSafe(selectedProfile)).replace(/^\+\s*/, '') ||
+              'Criar'
+            : 'Criar',
+      onClick: hasService ? handleCreateUnit : () => setServiceSetupOpen(true),
     },
     {
       id: 'invite',
@@ -237,44 +401,24 @@ export default function ClientDetailPage() {
   ];
 
   const completedSteps = setupChecklist.filter((step) => step.completed).length;
-  const showSetup = completedSteps < setupChecklist.length;
+  const showSetup = !hasService || completedSteps < setupChecklist.length;
+
   const statusLabel = client.status
     ? String(client.status).charAt(0).toUpperCase() + String(client.status).slice(1)
     : null;
 
-  const metaParts = [
-    statusLabel,
-    hasService
-      ? `${activeServices.length} serviço${activeServices.length === 1 ? '' : 's'}`
-      : 'sem serviço',
-    `${counts.campaignsActive} campanha${counts.campaignsActive === 1 ? '' : 's'}`,
-    counts.tasksPending > 0
-      ? `${counts.tasksPending} tarefa${counts.tasksPending === 1 ? '' : 's'}`
-      : null,
-    counts.approvalsPending > 0
-      ? `${counts.approvalsPending} aprovação${counts.approvalsPending === 1 ? '' : 'ões'}`
-      : null,
-    client.legal_name || client.email || null,
-  ].filter(Boolean);
+  const showPlanBanner =
+    isCampaignLens && planMonth?.actionable;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
-      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <h1 className="truncate text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
-            {client.name || 'Cliente'}
-          </h1>
-          <p className="text-sm text-[#555]">{metaParts.join(' · ')}</p>
-        </div>
-        {hasService ? (
-          <Button
-            className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
-            onClick={openCampaignLauncher}
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Nova campanha
-          </Button>
-        ) : (
+    <div className="mx-auto max-w-4xl space-y-8 px-1 pb-8 sm:px-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <ClientHubHeader
+          clientName={client.name}
+          statusLabel={statusLabel}
+          serviceCount={activeServices.length}
+        />
+        {!hasService ? (
           <Button
             className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
             onClick={() => setServiceSetupOpen(true)}
@@ -282,8 +426,8 @@ export default function ClientDetailPage() {
             <Briefcase className="mr-1.5 h-4 w-4" />
             Definir serviço
           </Button>
-        )}
-      </header>
+        ) : null}
+      </div>
 
       {!hasService ? (
         <section className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
@@ -296,7 +440,7 @@ export default function ClientDetailPage() {
                 Qual serviço {client.name} contratou?
               </p>
               <p className="text-xs text-[#555]">
-                Sem serviço, campanhas e tarefas não têm contrato para operar.
+                Sem serviço, não há operação para executar.
               </p>
             </div>
             <Button
@@ -310,50 +454,72 @@ export default function ClientDetailPage() {
         </section>
       ) : null}
 
-      {planMonth?.actionable ? (
-        <section className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#007bff]">
-                Mês do plano · {planMonth.mesLabel}
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-[#111]">
-                {planMonth.campanha?.nome_campanha ||
-                  planMonth.tema?.titulo ||
-                  'Campanha planejada'}
-              </p>
-              <p className="text-xs text-[#555]">
-                Status: {planMonth.status_mes}
-                {planMonth.campanha?.ciclo_comercial
-                  ? ` · ${planMonth.campanha.ciclo_comercial}`
-                  : ''}
-              </p>
+      {hasService ? (
+        <ServiceLensSwitcher
+          services={activeServices}
+          selectedServiceId={selectedServiceId}
+          attentionCounts={attentionCountsByService || {}}
+          onSelect={selectService}
+          onAddService={() => setServiceSetupOpen(true)}
+        />
+      ) : null}
+
+      {hasService && selectedService ? (
+        <section id="operacao" className="space-y-5">
+          <ServiceOperationHeader
+            service={selectedService}
+            profile={selectedProfile}
+            periodLabel={primaryPeriodLabel}
+            onCreate={handleCreateUnit}
+          />
+
+          {showPlanBanner ? (
+            <div className="rounded-xl border border-[#d6e8ff] bg-[#f3f8ff] p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#007bff]">
+                    Mês do plano · {planMonth.mesLabel}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-semibold text-[#111]">
+                    {planMonth.campanha?.nome_campanha ||
+                      planMonth.tema?.titulo ||
+                      'Campanha planejada'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+                    <Link
+                      to={buildBrainstormHref(clientId, {
+                        mes: currentMes,
+                        ano: annualPlan?.ano || currentAno,
+                        planId: annualPlan?.id,
+                        modo: 'plano',
+                      })}
+                    >
+                      <CalendarDays className="mr-1.5 h-4 w-4" />
+                      Brainstorm deste mês
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to={buildAnnualPlanHref(clientId, annualPlan?.id)}>
+                      Ver plano anual
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
-                <Link
-                  to={buildBrainstormHref(clientId, {
-                    mes: currentMes,
-                    ano: annualPlan?.ano || currentAno,
-                    planId: annualPlan?.id,
-                    modo: 'plano',
-                  })}
-                >
-                  <CalendarDays className="mr-1.5 h-4 w-4" />
-                  Brainstorm deste mês
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to={buildAnnualPlanHref(clientId, annualPlan?.id)}>
-                  Ver plano anual
-                </Link>
-              </Button>
-            </div>
-          </div>
+          ) : null}
+
+          <ServiceUnitsPanel
+            lens={lensForPanel}
+            onCreate={handleCreateUnit}
+            onStartSingleProject={handleStartSingleProject}
+            startingSingleProject={startingProject}
+          />
         </section>
       ) : null}
 
-      {showSetup ? (
+      {showSetup && (!hasService || !hasOperation || !hasInvite) ? (
         <section
           aria-labelledby="setup-heading"
           className="rounded-xl border border-[#eee] bg-[#fafafa] p-5 sm:p-6"
@@ -362,7 +528,7 @@ export default function ClientDetailPage() {
             Configuração inicial ({completedSteps}/{setupChecklist.length})
           </h2>
           <p className="mt-1 text-sm text-[#555]">
-            Serviço → briefing → campanha → convite para {client.name}
+            Serviço → operação → convite para {client.name}
           </p>
           <ul className="mt-5 space-y-3">
             {setupChecklist.map((step) => (
@@ -382,23 +548,13 @@ export default function ClientDetailPage() {
                   </div>
                 </div>
                 {!step.completed ? (
-                  step.onClick ? (
-                    <Button
-                      size="sm"
-                      className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
-                      onClick={step.onClick}
-                    >
-                      {step.action}
-                    </Button>
-                  ) : (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
-                    >
-                      <Link to={step.href}>{step.action}</Link>
-                    </Button>
-                  )
+                  <Button
+                    size="sm"
+                    className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+                    onClick={step.onClick}
+                  >
+                    {step.action}
+                  </Button>
                 ) : null}
               </li>
             ))}
@@ -406,34 +562,30 @@ export default function ClientDetailPage() {
         </section>
       ) : null}
 
-      <div id="campanhas">
-        <ClientActiveCampaignsPanel
-          clientId={clientId}
-          campaigns={activeCampaigns}
-          showCreateCta={activeCampaigns.length === 0}
-          onCreateCampaign={openCampaignLauncher}
-        />
-      </div>
-
-      {attentionItems.length > 0 ? (
-        <ClientAttentionPanel items={attentionItems} />
+      {lensAttention.length > 0 ? (
+        <ClientAttentionPanel items={lensAttention} />
       ) : null}
 
       <section
         aria-labelledby="more-heading"
         className="border-t border-[#eee] pt-8"
       >
-        <h2 id="more-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#555]">
+        <h2
+          id="more-heading"
+          className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#555]"
+        >
           Mais neste cliente
         </h2>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
-          <Link
-            to={createPageUrl(`client-services?clientId=${clientId}`)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
-          >
-            Serviços e ciclos
-            {hasService ? ` (${activeServices.length})` : ''}
-          </Link>
+          {hasService ? (
+            <button
+              type="button"
+              onClick={() => setServiceSetupOpen(true)}
+              className="text-sm font-medium text-[#007bff] hover:underline"
+            >
+              Adicionar serviço
+            </button>
+          ) : null}
           <Link
             to={buildAnnualPlanHref(clientId, annualPlan?.id)}
             className="text-sm font-medium text-[#007bff] hover:underline"
@@ -453,10 +605,23 @@ export default function ClientDetailPage() {
             Campanhas & plano
           </Link>
           <Link
-            to={createPageUrl(`client-tasks?clientId=${clientId}`)}
+            to={createPageUrl(
+              selectedServiceId
+                ? buildClientTasksHref({
+                    clientId,
+                    serviceId: selectedServiceId,
+                  })
+                : `client-tasks?clientId=${clientId}`
+            )}
             className="text-sm font-medium text-[#007bff] hover:underline"
           >
             Tarefas
+          </Link>
+          <Link
+            to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
+            className="text-sm font-medium text-[#007bff] hover:underline"
+          >
+            Financeiro
           </Link>
           <Link
             to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
@@ -487,8 +652,11 @@ export default function ClientDetailPage() {
         agencyId={agencyId}
         clientId={clientId}
         clientName={client.name || 'Cliente'}
-        onCreated={async () => {
+        onCreated={async (instance) => {
           clearSetupParam();
+          if (instance?.id) {
+            selectService(instance.id);
+          }
           await reload?.();
         }}
       />
@@ -497,11 +665,32 @@ export default function ClientDetailPage() {
         open={launcherOpen}
         onClose={() => setLauncherOpen(false)}
         clientId={clientId}
+        serviceId={selectedServiceId}
         annualPlan={annualPlan}
         mes={currentMes}
         ano={currentAno}
         onPlanUpdated={() => reload?.()}
       />
+
+      <CreateServiceUnitModal
+        open={unitModalOpen}
+        onClose={() => {
+          if (!unitSaving) {
+            setUnitModalOpen(false);
+            setUnitError('');
+          }
+        }}
+        service={selectedService}
+        profile={selectedProfile}
+        saving={unitSaving}
+        error={unitError}
+        onSubmit={handleSubmitUnit}
+      />
     </div>
   );
+}
+
+function getCreateCtaLabelSafe(profile) {
+  if (!profile?.showCreateCta) return 'Criar';
+  return profile.createCta || 'Criar';
 }

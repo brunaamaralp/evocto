@@ -43,6 +43,7 @@ import {
   CASH_CATEGORIES_IN,
   CASH_CATEGORIES_OUT,
   PAYMENT_METHODS,
+  RECURRING_STATUSES,
   ymNow,
   todayYmd,
   formatBRL,
@@ -56,6 +57,7 @@ import './agency-finance.css';
 
 const TABS = [
   { id: 'overview', label: 'Visão geral' },
+  { id: 'recurring', label: 'Recorrentes' },
   { id: 'charges', label: 'Cobranças' },
   { id: 'payables', label: 'A pagar' },
   { id: 'cash', label: 'Caixa' },
@@ -72,9 +74,9 @@ function payableInstallmentLabel(p) {
 function StatusBadge({ status, map }) {
   const label = map[status] || status;
   const tone =
-    status === 'paid'
+    status === 'paid' || status === 'active'
       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-      : status === 'cancelled'
+      : status === 'cancelled' || status === 'ended'
         ? 'bg-slate-50 text-slate-500 border-slate-200'
         : 'bg-amber-50 text-amber-700 border-amber-200';
   return (
@@ -115,11 +117,14 @@ export default function AgencyFinancePage() {
   const [cash, setCash] = useState([]);
   const [dre, setDre] = useState(null);
   const [clients, setClients] = useState([]);
+  const [recurring, setRecurring] = useState([]);
 
   const [chargeOpen, setChargeOpen] = useState(false);
   const [payableOpen, setPayableOpen] = useState(false);
   const [editingPayableId, setEditingPayableId] = useState('');
   const [cashOpen, setCashOpen] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
+  const [editingRecurringId, setEditingRecurringId] = useState('');
   const [busyId, setBusyId] = useState('');
 
   const emptyPayableForm = () => ({
@@ -131,14 +136,24 @@ export default function AgencyFinancePage() {
     installments: '1',
   });
 
+  const emptyRecurringForm = () => ({
+    clientId: '',
+    description: '',
+    amount: '',
+    dueDay: '10',
+    startMonth: ymNow(),
+    endMonth: '',
+  });
+
   const [chargeForm, setChargeForm] = useState({
     clientId: '',
-    type: 'recorrente',
+    type: 'one_off',
     description: '',
     amount: '',
     dueDate: todayYmd(),
   });
   const [payableForm, setPayableForm] = useState(emptyPayableForm);
+  const [recurringForm, setRecurringForm] = useState(emptyRecurringForm);
   const [cashForm, setCashForm] = useState({
     direction: 'in',
     category: 'servicos',
@@ -157,13 +172,21 @@ export default function AgencyFinancePage() {
       if (opts.soft) setRefreshing(true);
       else setLoading(true);
       try {
-        const [ov, ch, py, cx, dr, cls] = await Promise.all([
+        // Gera cobranças do mês a partir dos contratos recorrentes (idempotente)
+        try {
+          await api.materializeRecurringCharges({ agencyId, month });
+        } catch (matErr) {
+          console.warn('[agency-finance] materialize', matErr);
+        }
+
+        const [ov, ch, py, cx, dr, cls, rec] = await Promise.all([
           api.getOverview({ agencyId, month }),
           api.listCharges({ agencyId, month }),
           api.listPayables({ agencyId, month }),
           api.listCash({ agencyId, month }),
           api.getDre({ agencyId, month }),
           Client.filter({ agencyId }, '-updated_date', 200).catch(() => []),
+          api.listRecurring({ agencyId }).catch(() => []),
         ]);
         setOverview(ov);
         setCharges(ch);
@@ -171,6 +194,7 @@ export default function AgencyFinancePage() {
         setCash(cx);
         setDre(dr);
         setClients(Array.isArray(cls) ? cls : []);
+        setRecurring(Array.isArray(rec) ? rec : []);
       } catch (err) {
         console.error(err);
         toast.error(err?.message || 'Falha ao carregar financeiro');
@@ -208,7 +232,7 @@ export default function AgencyFinancePage() {
       setChargeOpen(false);
       setChargeForm({
         clientId: '',
-        type: 'recorrente',
+        type: 'one_off',
         description: '',
         amount: '',
         dueDate: todayYmd(),
@@ -216,6 +240,66 @@ export default function AgencyFinancePage() {
       await load({ soft: true });
     } catch (err) {
       toast.error(err?.message || 'Erro ao criar cobrança');
+    }
+  }
+
+  function openNewRecurring() {
+    setEditingRecurringId('');
+    setRecurringForm(emptyRecurringForm());
+    setRecurringOpen(true);
+  }
+
+  function openEditRecurring(r) {
+    setEditingRecurringId(r.id);
+    setRecurringForm({
+      clientId: r.clientId || '',
+      description: r.description || '',
+      amount: String(r.amount ?? ''),
+      dueDay: String(r.dueDay || 10),
+      startMonth: r.startMonth || ymNow(),
+      endMonth: r.endMonth || '',
+    });
+    setRecurringOpen(true);
+  }
+
+  async function submitRecurring() {
+    try {
+      const client = clients.find((c) => c.id === recurringForm.clientId);
+      const payload = {
+        clientId: recurringForm.clientId,
+        clientName: client?.name || client?.company_name || '',
+        description: recurringForm.description,
+        amount: Number(String(recurringForm.amount).replace(',', '.')),
+        dueDay: Number(recurringForm.dueDay) || 10,
+        startMonth: recurringForm.startMonth || ymNow(),
+        endMonth: recurringForm.endMonth || '',
+      };
+      if (editingRecurringId) {
+        await api.updateRecurring({ agencyId, id: editingRecurringId, payload });
+        toast.success('Recorrência atualizada');
+      } else {
+        await api.createRecurring({ agencyId, payload });
+        toast.success('Recorrência criada — cobranças serão geradas nos meses');
+      }
+      setRecurringOpen(false);
+      setEditingRecurringId('');
+      setRecurringForm(emptyRecurringForm());
+      await load({ soft: true });
+    } catch (err) {
+      toast.error(err?.message || 'Erro ao salvar recorrência');
+    }
+  }
+
+  async function toggleRecurringStatus(r, status) {
+    setBusyId(r.id);
+    try {
+      await api.setRecurringStatus({ agencyId, id: r.id, status });
+      toast.success(status === 'active' ? 'Recorrência reativada' : status === 'paused' ? 'Recorrência pausada' : 'Recorrência encerrada');
+      await load({ soft: true });
+    } catch (err) {
+      toast.error(err?.message || 'Erro ao atualizar status');
+    } finally {
+      setBusyId('');
     }
   }
 
@@ -431,12 +515,47 @@ export default function AgencyFinancePage() {
                 <Kpi label="Saldo do mês" value={formatBRL(overview.cash.balance)} tone={overview.cash.balance >= 0 ? 'pos' : 'neg'} hint={`${overview.cash.count} lançamentos`} />
                 <Kpi label="Entradas" value={formatBRL(overview.cash.inflow)} tone="pos" />
                 <Kpi label="Saídas" value={formatBRL(overview.cash.outflow)} tone="neg" />
-                <Kpi label="A receber" value={formatBRL(overview.charges.openAmount)} hint={`${overview.charges.openCount} em aberto`} />
-                <Kpi label="A pagar" value={formatBRL(overview.payables.openAmount)} hint={`${overview.payables.openCount} em aberto`} />
+                <Kpi label="A receber (mês)" value={formatBRL(overview.forecast?.thisMonthExpected ?? overview.charges.openAmount)} hint={`${overview.charges.openCount} em aberto`} />
+                <Kpi
+                  label="Run rate mensal"
+                  value={formatBRL(overview.forecast?.monthlyRunRate || 0)}
+                  tone="pos"
+                  hint={`${overview.forecast?.activeRecurringCount || 0} recorrências ativas`}
+                />
+                <Kpi label="Projeção 6 meses" value={formatBRL(overview.forecast?.next6Expected || 0)} hint="A receber + a gerar" />
               </div>
-              <div className="af-quick">
-                <Button size="sm" onClick={() => { setTab('charges'); setChargeOpen(true); }}>
-                  <Plus className="h-4 w-4" /> Nova cobrança
+              {overview.forecast?.months?.length ? (
+                <div className="af-table-wrap" style={{ marginTop: '1rem' }}>
+                  <table className="af-table">
+                    <thead>
+                      <tr>
+                        <th>Mês</th>
+                        <th>A gerar</th>
+                        <th>Em aberto</th>
+                        <th>Recebido</th>
+                        <th>Esperado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {overview.forecast.months.map((m) => (
+                        <tr key={m.month}>
+                          <td>{formatMonthTitle(m.month)}</td>
+                          <td className="af-num">{formatBRL(m.projected)}</td>
+                          <td className="af-num">{formatBRL(m.open)}</td>
+                          <td className="af-num text-emerald-700">{formatBRL(m.paid)}</td>
+                          <td className="af-num">{formatBRL(m.expected)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+              <div className="af-quick" style={{ marginTop: '1rem' }}>
+                <Button size="sm" onClick={() => { setTab('recurring'); openNewRecurring(); }}>
+                  <Plus className="h-4 w-4" /> Nova recorrência
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setTab('charges'); setChargeOpen(true); }}>
+                  <Plus className="h-4 w-4" /> Cobrança avulsa
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => { setTab('payables'); openNewPayable(); }}>
                   <Plus className="h-4 w-4" /> Conta a pagar
@@ -445,6 +564,75 @@ export default function AgencyFinancePage() {
                   <Wallet className="h-4 w-4" /> Lançamento
                 </Button>
               </div>
+            </section>
+          ) : null}
+
+          {tab === 'recurring' ? (
+            <section className="af-section">
+              <div className="af-section__head">
+                <div>
+                  <h2>Receitas recorrentes</h2>
+                  <p className="af-muted">Contratos mensais (fee). Ao abrir um mês, as cobranças são geradas automaticamente.</p>
+                </div>
+                <Button size="sm" onClick={openNewRecurring}>
+                  <Plus className="h-4 w-4" /> Nova
+                </Button>
+              </div>
+              {recurring.length === 0 ? (
+                <p className="af-empty">Nenhuma recorrência cadastrada. Crie um fee mensal por cliente.</p>
+              ) : (
+                <div className="af-table-wrap">
+                  <table className="af-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente</th>
+                        <th>Descrição</th>
+                        <th>Dia</th>
+                        <th>Início</th>
+                        <th>Fim</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recurring.map((r) => (
+                        <tr key={r.id}>
+                          <td>{r.clientName || clientName[r.clientId] || '—'}</td>
+                          <td>{r.description || '—'}</td>
+                          <td>dia {r.dueDay || '—'}</td>
+                          <td>{r.startMonth || '—'}</td>
+                          <td>{r.endMonth || '—'}</td>
+                          <td className="af-num">{formatBRL(r.amount)}</td>
+                          <td>
+                            <StatusBadge status={r.status} map={RECURRING_STATUSES} />
+                          </td>
+                          <td className="af-actions">
+                            <Button size="sm" variant="ghost" onClick={() => openEditRecurring(r)} aria-label="Editar">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            {r.status === 'active' ? (
+                              <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => toggleRecurringStatus(r, 'paused')}>
+                                Pausar
+                              </Button>
+                            ) : null}
+                            {r.status === 'paused' ? (
+                              <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => toggleRecurringStatus(r, 'active')}>
+                                Ativar
+                              </Button>
+                            ) : null}
+                            {r.status !== 'ended' ? (
+                              <Button size="sm" variant="ghost" disabled={busyId === r.id} onClick={() => toggleRecurringStatus(r, 'ended')}>
+                                Encerrar
+                              </Button>
+                            ) : null}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           ) : null}
 
@@ -669,6 +857,90 @@ export default function AgencyFinancePage() {
       )}
 
       {/* Dialogs */}
+      <Dialog open={recurringOpen} onOpenChange={setRecurringOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingRecurringId ? 'Editar recorrência' : 'Nova receita recorrente'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Cliente</Label>
+              <Select
+                value={recurringForm.clientId}
+                onValueChange={(v) => setRecurringForm((f) => ({ ...f, clientId: v }))}
+                disabled={Boolean(editingRecurringId)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name || c.company_name || c.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Descrição</Label>
+              <Input
+                value={recurringForm.description}
+                onChange={(e) => setRecurringForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Fee mensal — redes sociais"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Valor mensal</Label>
+                <Input
+                  value={recurringForm.amount}
+                  onChange={(e) => setRecurringForm((f) => ({ ...f, amount: e.target.value }))}
+                  placeholder="3500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Dia do vencimento</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={recurringForm.dueDay}
+                  onChange={(e) => setRecurringForm((f) => ({ ...f, dueDay: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Início (mês)</Label>
+                <Input
+                  type="month"
+                  value={recurringForm.startMonth}
+                  onChange={(e) => setRecurringForm((f) => ({ ...f, startMonth: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Fim (opcional)</Label>
+                <Input
+                  type="month"
+                  value={recurringForm.endMonth}
+                  onChange={(e) => setRecurringForm((f) => ({ ...f, endMonth: e.target.value }))}
+                />
+              </div>
+            </div>
+            <p className="af-muted">
+              Cada mês no intervalo gera uma cobrança em aberto automaticamente (sem duplicar se já existir).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecurringOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={submitRecurring}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={chargeOpen} onOpenChange={setChargeOpen}>
         <DialogContent>
           <DialogHeader>
@@ -707,7 +979,7 @@ export default function AgencyFinancePage() {
             </div>
             <div className="space-y-1.5">
               <Label>Descrição</Label>
-              <Input value={chargeForm.description} onChange={(e) => setChargeForm((f) => ({ ...f, description: e.target.value }))} placeholder="Recorrente setembro…" />
+              <Input value={chargeForm.description} onChange={(e) => setChargeForm((f) => ({ ...f, description: e.target.value }))} placeholder="Projeto / avulso…" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

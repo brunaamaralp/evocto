@@ -94,6 +94,34 @@ export function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+export const RECURRING_STATUSES = {
+  active: 'Ativa',
+  paused: 'Pausada',
+  ended: 'Encerrada',
+};
+
+/** Dia de vencimento no mês (1–28) → YYYY-MM-DD. */
+export function dueDateForMonth(ym, dueDay) {
+  const month = String(ym || ymNow()).slice(0, 7);
+  if (!/^\d{4}-\d{2}$/.test(month)) return todayYmd();
+  const [y, m] = month.split('-').map(Number);
+  const last = new Date(y, m, 0).getDate();
+  const day = Math.min(Math.max(1, Math.trunc(Number(dueDay) || 1)), Math.min(28, last));
+  return `${month}-${String(day).padStart(2, '0')}`;
+}
+
+/** Recorrência vale para o mês de competência? */
+export function recurringAppliesToMonth(rec, ym) {
+  if (!rec || String(rec.status || '') !== 'active') return false;
+  const month = String(ym || '').slice(0, 7);
+  if (!/^\d{4}-\d{2}$/.test(month)) return false;
+  const start = String(rec.startMonth || '').slice(0, 7);
+  const end = String(rec.endMonth || '').slice(0, 7);
+  if (start && start > month) return false;
+  if (end && end < month) return false;
+  return true;
+}
+
 export const MAX_PAYABLE_INSTALLMENTS = 48;
 
 function roundMoney(n) {

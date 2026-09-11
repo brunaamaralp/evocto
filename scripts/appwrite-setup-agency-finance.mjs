@@ -115,12 +115,32 @@ const TABLES = [
     ],
     indexes: ['agencyId', 'direction', 'status', 'competenceMonth', 'date', 'refType', 'clientId', 'category'],
   },
+  {
+    id: 'af_recurring',
+    name: 'Agency Recurring Charges',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 64 },
+      { key: 'clientId', type: 'varchar', size: 64 },
+      { key: 'clientName', type: 'varchar', size: 255 },
+      { key: 'description', type: 'varchar', size: 512 },
+      { key: 'amount', type: 'float' },
+      { key: 'dueDay', type: 'integer' },
+      { key: 'startMonth', type: 'varchar', size: 7 },
+      { key: 'endMonth', type: 'varchar', size: 7 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'type', type: 'varchar', size: 32 },
+      { key: 'note', type: 'mediumtext' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'status', 'startMonth'],
+  },
 ];
 
 const ENV_MAP = {
   af_charges: 'VITE_APPWRITE_AF_CHARGES_COLLECTION_ID',
   af_payables: 'VITE_APPWRITE_AF_PAYABLES_COLLECTION_ID',
   af_cash: 'VITE_APPWRITE_AF_CASH_COLLECTION_ID',
+  af_recurring: 'VITE_APPWRITE_AF_RECURRING_COLLECTION_ID',
 };
 
 function isConflict(error) {
