@@ -303,7 +303,7 @@ export default function ClientDetailPage() {
   ]);
 
   const handleSubmitUnit = useCallback(
-    async (title) => {
+    async (title, { mode, keepOpen = false } = {}) => {
       if (!selectedService || !agencyId || !clientId) return;
       setUnitSaving(true);
       setUnitError('');
@@ -314,9 +314,12 @@ export default function ClientDetailPage() {
           service: selectedService,
           title,
           ownerId: userId || user?.id || user?.$id || null,
+          mode,
         });
-        toast.success(unitCreatedToast(selectedProfile, title));
-        setUnitModalOpen(false);
+        toast.success(unitCreatedToast(selectedProfile, title, mode));
+        if (!keepOpen) {
+          setUnitModalOpen(false);
+        }
         await reload?.();
       } catch (err) {
         console.error('[client-detail] createUnit', err);
@@ -759,7 +762,10 @@ const FEMININE_ITEM_LABELS = new Set([
   'ação',
 ]);
 
-function unitCreatedToast(profile, title) {
+function unitCreatedToast(profile, title, mode) {
+  if (mode === 'ready_for_approval') {
+    return `${title} enviado para aprovação`;
+  }
   const noun = String(profile?.itemLabel || '').trim();
   if (!noun) return `${title} criado`;
   const cap = noun.charAt(0).toUpperCase() + noun.slice(1);

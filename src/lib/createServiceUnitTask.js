@@ -17,9 +17,15 @@ import {
 } from '@/lib/serviceOperationProfile';
 import {
   buildChecklistFromContentItemTemplate,
+  buildReadyForApprovalChecklist,
   isItemCycleService,
   resolveItemCyclePipeline,
 } from '@/templates/itemCycleTemplateHelpers';
+
+export const UNIT_CREATION_MODES = Object.freeze({
+  FULL: 'full',
+  READY_FOR_APPROVAL: 'ready_for_approval',
+});
 
 const ACTIVE_CYCLE_STATUSES = new Set(['approved', 'in_execution']);
 
@@ -136,9 +142,18 @@ function buildUnitTaskPayload({
   title,
   ownerId,
   profile,
+  mode = UNIT_CREATION_MODES.FULL,
 }) {
   const tpl = service.content_item_template || {};
-  const checklist = buildChecklistFromContentItemTemplate(service);
+  const readyForApproval = mode === UNIT_CREATION_MODES.READY_FOR_APPROVAL;
+  const checklist = readyForApproval
+    ? buildReadyForApprovalChecklist(service)
+    : buildChecklistFromContentItemTemplate(service);
+  const completedCount = checklist.filter((item) => item.completed).length;
+  const progress =
+    checklist.length > 0
+      ? Math.round((completedCount / checklist.length) * 100)
+      : 0;
   const tag =
     String(service.offering_key || service.slug || profile.itemLabel || 'item')
       .trim() || 'item';
@@ -156,12 +171,13 @@ function buildUnitTaskPayload({
       `Novo ${profile.itemLabel || 'item'}`,
     description: tpl.description || '',
     type: tpl.type || 'creative',
-    status: 'todo',
+    status: readyForApproval ? 'in_review' : 'todo',
+    kanbanColumn: readyForApproval ? 'in_review' : 'todo',
     priority: tpl.priority || 'medium',
     estimatedHours: tpl.estimated_hours || null,
     checklist,
     tags: [tag],
-    progress: 0,
+    progress,
     assigneeId: ownerId || null,
     assignedTo: ownerId || null,
   };
@@ -177,6 +193,7 @@ export async function createServiceUnitTask({
   title,
   ownerId = null,
   startDate = todayYmd(),
+  mode = UNIT_CREATION_MODES.FULL,
 } = {}) {
   const service = await loadService(serviceOrId);
   const profile = getServiceOperationProfile(service);
@@ -197,6 +214,7 @@ export async function createServiceUnitTask({
     title,
     ownerId,
     profile,
+    mode,
   });
 
   const task = await Task.create(payload);

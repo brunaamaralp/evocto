@@ -18,10 +18,14 @@ export default function ClientBriefingStatusCard({
   if (!clientId) return null;
 
   const { status, brief, label } = resolveBriefingInicialStatus(briefs);
+  const isReady = status === 'ready';
+
+  // Visão geral: briefing concluído não precisa de card de pendência.
+  if (isReady && !compact) return null;
+
   const href = createPageUrl(
     buildBriefingInicialHref(clientId, { briefingId: brief?.id })
   );
-  const isReady = status === 'ready';
   const isDraft = status === 'draft';
   const cta = isReady ? 'Editar briefing' : isDraft ? 'Continuar briefing' : 'Preencher briefing';
 

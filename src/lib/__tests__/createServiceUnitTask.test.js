@@ -25,6 +25,7 @@ import {
   createServiceUnitTask,
   ensureServiceOperationalCycle,
   startSingleProjectOperation,
+  UNIT_CREATION_MODES,
 } from '../createServiceUnitTask.js';
 
 const contentService = {
@@ -81,6 +82,37 @@ describe('createServiceUnitTask', () => {
     );
     expect(result.task.id).toBe('task-1');
     expect(result.cycleCreated).toBe(false);
+  });
+
+  it('cria conteúdo pronto para aprovação com status in_review', async () => {
+    CyclePlan.filter.mockResolvedValue([
+      {
+        id: 'cycle-1',
+        serviceId: 'svc-1',
+        status: 'in_execution',
+        startDate: '2026-09-01',
+      },
+    ]);
+    Task.create.mockResolvedValue({ id: 'task-3', title: 'Reel pronto' });
+
+    await createServiceUnitTask({
+      agencyId: 'ag-1',
+      clientId: 'cli-1',
+      service: contentService,
+      title: 'Reel pronto',
+      mode: UNIT_CREATION_MODES.READY_FOR_APPROVAL,
+    });
+
+    expect(Task.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'in_review',
+        kanbanColumn: 'in_review',
+        checklist: expect.arrayContaining([
+          expect.objectContaining({ text: 'Roteiro', completed: true }),
+          expect.objectContaining({ text: 'Edição', completed: true }),
+        ]),
+      })
+    );
   });
 
   it('cria ciclo quando não há ciclo do mês para o serviço', async () => {

@@ -474,6 +474,16 @@ export default function useClientHubData(clientId, agencyId) {
     reload();
   }, [reload]);
 
+  useEffect(() => {
+    const onBriefUpdated = (event) => {
+      const updatedClientId = event?.detail?.clientId;
+      if (updatedClientId && String(updatedClientId) !== String(clientId)) return;
+      reload();
+    };
+    window.addEventListener('brief:updated', onBriefUpdated);
+    return () => window.removeEventListener('brief:updated', onBriefUpdated);
+  }, [clientId, reload]);
+
   const metrics = useMemo(
     () =>
       deriveHubMetrics({

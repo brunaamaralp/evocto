@@ -140,10 +140,29 @@ export function resolveBriefingInicialStatus(briefs = []) {
   }
   const annual = String(brief.status_anual || '').toLowerCase();
   const status = String(brief.status || '').toUpperCase();
-  if (annual === 'rascunho' || status === 'DRAFT') {
+  const isExplicitDraft = annual === 'rascunho' || status === 'DRAFT';
+  const isExplicitReady =
+    status === 'READY' ||
+    status === 'COMPLETED' ||
+    annual === 'input_pronto' ||
+    annual === 'pronto' ||
+    annual === 'concluido';
+
+  if (isExplicitReady) {
+    return { status: 'ready', brief, label: 'Preenchido' };
+  }
+  if (isExplicitDraft) {
     return { status: 'draft', brief, label: 'Rascunho' };
   }
   return { status: 'ready', brief, label: 'Preenchido' };
+}
+
+/** Notifica páginas do hub para recarregar briefs após salvar. */
+export function dispatchBriefingUpdated(clientId) {
+  if (typeof window === 'undefined' || !clientId) return;
+  window.dispatchEvent(
+    new CustomEvent('brief:updated', { detail: { clientId: String(clientId) } })
+  );
 }
 
 /** Rota canônica do editor de briefing inicial (sem hub intermediário). */
@@ -290,9 +309,9 @@ export async function saveBriefingInicialInterno({
     origem: 'equipe',
   });
 
-  payload.status = draft ? 'DRAFT' : payload.status || 'DRAFT';
+  payload.status = draft ? 'DRAFT' : 'READY';
   payload.status_anual = draft ? 'rascunho' : 'input_pronto';
-  payload.completion_score = draft ? 40 : 60;
+  payload.completion_score = draft ? 40 : 100;
   payload.origem_briefing_inicial = true;
   payload.origem_preenchimento = 'equipe';
   payload.is_public_briefing = Boolean(existing?.is_public_briefing);
@@ -309,6 +328,10 @@ export async function saveBriefingInicialInterno({
       ultimo_briefing_em: new Date().toISOString(),
       ultimo_briefing_objetivo: 'Briefing inicial (equipe)',
     }).catch(() => null);
+  }
+
+  if (!draft) {
+    dispatchBriefingUpdated(clientId);
   }
 
   return { empresa, brief, form: n };

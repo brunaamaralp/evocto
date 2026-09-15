@@ -113,6 +113,36 @@ export function buildChecklistFromContentItemTemplate(service, prefix = 'item') 
   }));
 }
 
+const PRE_APPROVAL_STEP_KEYS = new Set(['roteiro', 'producao', 'edicao']);
+
+function normalizeChecklistStepKey(text = '') {
+  return String(text || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function isPreApprovalChecklistStep(item = {}) {
+  const stepId = String(item.id || '').toLowerCase();
+  if (PRE_APPROVAL_STEP_KEYS.has(stepId)) return true;
+  const normalized = normalizeChecklistStepKey(item.text || item.title);
+  return PRE_APPROVAL_STEP_KEYS.has(normalized);
+}
+
+/**
+ * Checklist para conteúdo já produzido: etapas anteriores marcadas, aprovação em aberto.
+ */
+export function buildReadyForApprovalChecklist(service, prefix = 'item') {
+  const checklist = buildChecklistFromContentItemTemplate(service, prefix);
+  if (!checklist.length) return checklist;
+
+  return checklist.map((item) => ({
+    ...item,
+    completed: isPreApprovalChecklistStep(item) ? true : item.completed,
+  }));
+}
+
 /**
  * Título do ciclo: "{Nome do template} — Setembro/2026"
  */
