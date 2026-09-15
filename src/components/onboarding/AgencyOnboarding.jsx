@@ -11,6 +11,7 @@ import { Service } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { showToast } from '@/components/feedback/EnhancedFeedback';
 import { createPageUrl } from '@/utils';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 import { 
   CheckCircle, Users, Briefcase, FileText, 
   ArrowRight, Play, Target, Sparkles
@@ -132,7 +133,7 @@ export default function AgencyOnboarding() {
       const clients = await Client.filter({ agencyId });
       const first = Array.isArray(clients) ? clients[0] : null;
       if (first?.id) {
-        navigate(createPageUrl(`client-briefing?clientId=${first.id}`));
+        navigate(createPageUrl(buildBriefingInicialHref(first.id)));
         return;
       }
     } catch {

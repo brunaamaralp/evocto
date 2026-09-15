@@ -1,21 +1,20 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
-import { buildPlanningCreateCampaignPath } from '@/lib/campaignWorkspaceHref';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 
 /**
- * Aba Contexto: referência ao Briefing do Serviço (casa canônica no Planejamento).
+ * Aba Contexto: referência ao briefing inicial (editor) e Panorama.
  */
 export default function CampaignWorkspaceContexto({
   clientId,
   clientName,
   serviceName,
 }) {
-  const planningHref = clientId
-    ? buildPlanningCreateCampaignPath(clientId)
-    : createPageUrl('clients');
+  const panoramaHref = clientId ? buildAnnualPlanHref(clientId) : createPageUrl('clients');
   const inicialHref = clientId
-    ? `${createPageUrl('briefing-inicial')}?clientId=${encodeURIComponent(clientId)}`
+    ? createPageUrl(buildBriefingInicialHref(clientId))
     : null;
 
   return (
@@ -23,8 +22,8 @@ export default function CampaignWorkspaceContexto({
       <div>
         <h2 className="text-lg font-semibold text-slate-900">Contexto</h2>
         <p className="text-sm text-slate-500 mt-1">
-          Briefing do serviço e base estratégica do cliente. A edição completa fica no
-          Planejamento — aqui só a referência para operar.
+          Briefing inicial e base estratégica do cliente. A edição fica no
+          formulário de briefing — aqui só a referência para operar.
         </p>
       </div>
 
@@ -40,14 +39,14 @@ export default function CampaignWorkspaceContexto({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" asChild>
-          <Link to={planningHref}>Abrir Planejamento &amp; briefs</Link>
-        </Button>
         {inicialHref ? (
-          <Button type="button" variant="outline" asChild>
-            <Link to={inicialHref}>Briefing do serviço</Link>
+          <Button type="button" asChild>
+            <Link to={inicialHref}>Abrir briefing inicial</Link>
           </Button>
         ) : null}
+        <Button type="button" variant="outline" asChild>
+          <Link to={panoramaHref}>Abrir Panorama</Link>
+        </Button>
       </div>
     </section>
   );

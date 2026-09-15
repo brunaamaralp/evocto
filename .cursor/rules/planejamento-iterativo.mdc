@@ -14,7 +14,8 @@ alwaysApply: true
 
 - Rota: `/planejamento?clientId=` (sidebar **Panorama**)
 - Timeline 12 meses, ciclos, tendências, sugestão, Nova Campanha / Planejar Múltiplos
-- Click mês ⭕ → Nova Campanha; ✅/🔄 → Workspace
+- Click mês vazio → Nova Campanha; mês planejado/em execução/concluído → Workspace
+- UI: preferir ícones Lucide (sem emoji) para status do mês
 
 ## Três modos
 
@@ -31,7 +32,8 @@ alwaysApply: true
 ## Manter
 
 - Workspace (Contexto · Ideia · Tarefas · Histórico) + finalize
-- Brainstorm, Briefing do Serviço, Hub (sem create), inbox Tarefas
+- Brainstorm, Hub (sem create), inbox Tarefas
+- Briefing inicial: editor `/briefing-inicial` (status+CTA na Visão Geral e Serviços; sem item no menu de Planejamento). `/client-briefing` redireciona.
 
 ## Campos em campanha
 

@@ -6,6 +6,7 @@ import { useSession } from '@/components/auth/SessionManager';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildCampaignWorkspaceIdeiaPath } from '@/lib/campaignWorkspaceHref';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 import AgentMarkdown from '@/components/campaigns/agent/AgentMarkdown';
 
 const API_BASE = '/api/campaigns-agent';
@@ -258,7 +259,9 @@ export default function ChatInterface({
                   briefingId: data.briefId,
                   serviceId: data.serviceId || serviceId || null,
                 })
-              : `client-briefing?briefingId=${data.briefId}`
+              : buildBriefingInicialHref(clientId || data.clientId, {
+                  briefingId: data.briefId,
+                })
           )
         );
         return;

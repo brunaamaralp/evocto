@@ -201,6 +201,42 @@ export default function DeliveryWorkspacePage() {
     return () => window.removeEventListener('pipeline:updated', onPipeline);
   }, [serviceId, handleServiceUpdated]);
 
+  useEffect(() => {
+    const onTaskUpdated = (ev) => {
+      const { taskId, status, deleted } = ev?.detail || {};
+      if (!taskId) {
+        refreshTasks();
+        return;
+      }
+      if (deleted) {
+        setTasks((prev) => prev.filter((t) => String(t.id) !== String(taskId)));
+        return;
+      }
+      if (status) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            String(t.id) === String(taskId)
+              ? {
+                  ...t,
+                  status,
+                  kanbanColumn:
+                    status === 'completed' || status === 'done' ? 'publicacao' : status,
+                }
+              : t
+          )
+        );
+        return;
+      }
+      refreshTasks();
+    };
+    window.addEventListener('task:updated', onTaskUpdated);
+    window.addEventListener('task:refresh', onTaskUpdated);
+    return () => {
+      window.removeEventListener('task:updated', onTaskUpdated);
+      window.removeEventListener('task:refresh', onTaskUpdated);
+    };
+  }, [refreshTasks]);
+
   if (!isAuthenticated) {
     return (
       <div className="p-6 text-slate-600 text-sm">Faça login para acessar o workspace de entrega.</div>

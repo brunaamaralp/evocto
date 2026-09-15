@@ -18,6 +18,7 @@ import { Brief } from '@/api/entities';
 import { PublicBriefingToken } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 import { Link } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 
@@ -135,7 +136,7 @@ export default function BriefingTab({ client }) {
       {/* Ações Principais */}
       <div className="flex gap-3">
         <Button asChild>
-          <Link to={`${createPageUrl('client-briefing')}?clientId=${client.id}`}>
+          <Link to={createPageUrl(buildBriefingInicialHref(client.id))}>
             <FileText className="w-4 h-4 mr-2" />
             Campanhas & plano
           </Link>
@@ -210,7 +211,7 @@ export default function BriefingTab({ client }) {
             {briefings.length > 3 && (
               <div className="mt-4 text-center">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`${createPageUrl('client-briefing')}?clientId=${client.id}`}>
+                  <Link to={createPageUrl(buildBriefingInicialHref(client.id))}>
                     Ver todas as {briefings.length} campanhas
                     <ExternalLink className="w-4 h-4 ml-1" />
                   </Link>

@@ -1,8 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Layers, FileText, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import {
-  panoramaStatusIcon,
+  Plus,
+  Layers,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  CheckCircle2,
+  RefreshCw,
+  Circle,
+} from 'lucide-react';
+import {
   panoramaStatusLabel,
   summarizeCicloDistribution,
   extractPanoramaTrends,
@@ -12,7 +21,30 @@ import {
 } from '@/lib/panoramaAnual';
 import { buildNovaCampanhaHref } from '@/lib/planoAnualHub';
 import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 import { createPageUrl } from '@/utils';
+
+function PanoramaStatusGlyph({ status, className = 'h-4 w-4' }) {
+  switch (status) {
+    case 'done':
+      return <CheckCircle2 className={`${className} text-emerald-600`} aria-hidden />;
+    case 'active':
+      return <RefreshCw className={`${className} text-amber-600`} aria-hidden />;
+    case 'planned':
+      return <FileText className={`${className} text-slate-600`} aria-hidden />;
+    default:
+      return <Circle className={`${className} text-slate-400`} aria-hidden />;
+  }
+}
+
+function PanoramaLegendItem({ status, label }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <PanoramaStatusGlyph status={status} className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
 
 /**
  * HOME de Planejamento — Panorama Anual (sempre visível).
@@ -119,8 +151,8 @@ export default function AnnualPanorama({
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
                 ].join(' ')}
               >
-                <span className="text-base leading-none" aria-hidden>
-                  {panoramaStatusIcon(m.status)}
+                <span className="leading-none" aria-hidden>
+                  <PanoramaStatusGlyph status={m.status} />
                 </span>
                 <span className="text-xs font-semibold text-slate-800">{m.label}</span>
                 <span className="text-[10px] text-slate-500 line-clamp-1 px-0.5">
@@ -130,9 +162,14 @@ export default function AnnualPanorama({
             );
           })}
         </div>
-        <p className="text-xs text-slate-500">
-          ✅ concluído · 🔄 em execução · 📝 planejado · ⭕ a planejar
-          {isCurrentYear ? ' · mês atual destacado' : ''}
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+          <PanoramaLegendItem status="done" label="concluído" />
+          <PanoramaLegendItem status="active" label="em execução" />
+          <PanoramaLegendItem status="planned" label="planejado" />
+          <PanoramaLegendItem status="empty" label="a planejar" />
+          {isCurrentYear ? (
+            <span className="text-slate-400">· mês atual destacado</span>
+          ) : null}
         </p>
       </section>
 
@@ -233,9 +270,9 @@ export default function AnnualPanorama({
           Planejar Múltiplos
         </Button>
         <Button asChild variant="ghost" className="gap-1.5">
-          <Link to={createPageUrl(`client-briefing?clientId=${clientId}`)}>
+          <Link to={createPageUrl(buildBriefingInicialHref(clientId))}>
             <FileText className="h-4 w-4" />
-            Briefing do Serviço
+            Briefing inicial
           </Link>
         </Button>
       </section>

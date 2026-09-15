@@ -48,6 +48,7 @@ export default function ContextualLayout({ user, children }) {
 
     const clientContextPages = [
       'briefing-editor',
+      'briefing-inicial',
       'client-briefing',
       'client-brainstorm',
       'brainstorm',

@@ -5,21 +5,8 @@ import { ArrowRight } from 'lucide-react';
 import {
   TooltipProvider,
 } from '@/components/ui/tooltip';
-
-// Placeholder for createPageUrl, assuming it's defined elsewhere in a real application
-// or imported from a utility file. For this component to be standalone and functional,
-// we'll define a basic version.
-const createPageUrl = (pageName) => {
-  switch (pageName) {
-    case 'client': return '/app/clients';
-    case 'service-detail': return '/app/services';
-    case 'client-tasks': return '/app/tasks';
-    case 'client-briefing': return '/app/briefings';
-    case 'approval-dashboard': return '/app/approvals';
-    case 'dashboard':
-    default: return '/app/dashboard';
-  }
-};
+import { createPageUrl } from '@/utils';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 
 const riskConfig = {
   critical: { badgeClass: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'Crítico' },
@@ -46,7 +33,7 @@ export default function ActionableItemCard({ item }) {
       case 'task':
         return createPageUrl('client-tasks') + `?taskId=${item.entityId}`;
       case 'briefing':
-        return createPageUrl('client-briefing') + `?clientId=${item.metadata?.clientId}`;
+        return createPageUrl(buildBriefingInicialHref(item.metadata?.clientId));
       case 'approval':
         return createPageUrl('approval-dashboard') + `?approvalId=${item.entityId}`;
       default:

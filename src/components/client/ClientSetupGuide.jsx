@@ -12,6 +12,7 @@ import {
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 
 import { Service } from "@/api/entities";
 import { Project } from "@/api/entities";
@@ -151,8 +152,8 @@ export default function ClientSetupGuide(props) {
       icon: briefingDone ? CheckCircle : Circle,
       color: briefingDone ? 'text-green-600' : 'text-gray-400',
       action: {
-        label: briefingDone ? 'Ver hub' : 'Abrir briefing inicial',
-        href: createPageUrl('client-briefing') + `?clientId=${client.id}`,
+        label: briefingDone ? 'Ver briefing' : 'Abrir briefing inicial',
+        href: createPageUrl(buildBriefingInicialHref(client.id)),
         enabled: true // Always enabled to allow editing/completion
       },
       extraAction: canConclude ? {

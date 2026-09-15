@@ -39,7 +39,7 @@ export default function BriefingInicialPage() {
   const [done, setDone] = useState(false);
 
   const backToHub = () => {
-    navigate(`${createPageUrl('client-briefing')}?clientId=${clientId}`);
+    navigate(`${createPageUrl('client-detail')}?clientId=${clientId}`);
   };
 
   const load = useCallback(async () => {
@@ -180,7 +180,7 @@ export default function BriefingInicialPage() {
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Button variant="outline" onClick={backToHub}>
-            Voltar ao hub
+            Voltar à visão geral
           </Button>
           <Button
             className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"

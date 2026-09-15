@@ -225,7 +225,8 @@ export function resolveLegacyCampaignRedirect({
 }
 
 /**
- * Destinos de “não cria no Hub” — empty state / CTA legado.
+ * Destinos de “não cria no Hub” — empty state / CTA.
+ * PI: criação de campanha vive no Panorama (não no hub de briefing).
  */
 export function buildPlanningCreateCampaignPath(clientId, { serviceId = null } = {}) {
   const id = String(clientId || '').trim();
@@ -233,7 +234,7 @@ export function buildPlanningCreateCampaignPath(clientId, { serviceId = null } =
   const params = new URLSearchParams();
   params.set('clientId', id);
   if (serviceId) params.set('serviceId', String(serviceId));
-  return `/client-briefing?${params.toString()}`;
+  return `/planejamento?${params.toString()}`;
 }
 
 /**

@@ -14,7 +14,6 @@ import {
   CheckSquare,
   BookOpen,
   Settings,
-  FileText,
   FolderOpen,
   ArrowLeft,
   ChevronLeft,
@@ -153,13 +152,6 @@ export default function ContextualSidebar({
           }),
           isActive:
             currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
-        },
-        {
-          type: 'link',
-          label: 'Briefing do Serviço',
-          icon: FileText,
-          href: createPageUrl(`client-briefing?clientId=${clientId}`),
-          isActive: currentPage === 'client-briefing' && !briefingId,
         },
         { type: 'section', label: 'Cliente' },
         {

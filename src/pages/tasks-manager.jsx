@@ -236,11 +236,13 @@ export default function TasksManagerPage() {
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'week'
 
   // Carregar dados
-  const loadData = useCallback(async (_useCache = true) => {
+  const loadData = useCallback(async ({ silent = false } = {}) => {
     if (!agencyId) return;
     
-    setLoading(true);
-    setError('');
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     
     try {
       console.log('📊 Carregando dados do servidor');
@@ -262,15 +264,50 @@ export default function TasksManagerPage() {
 
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
-      setError('Erro ao carregar dados. Tente novamente.');
-      toast.error('Erro ao carregar tarefas');
+      if (!silent) {
+        setError('Erro ao carregar dados. Tente novamente.');
+        toast.error('Erro ao carregar tarefas');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [agencyId]);
 
   useEffect(() => {
     loadData();
+  }, [loadData]);
+
+  // Drawer / dashboard / outras telas: refletir conclusão sem reload completo
+  useEffect(() => {
+    const onUpdated = (event) => {
+      const { taskId, status, deleted } = event?.detail || {};
+      if (!taskId) {
+        loadData({ silent: true });
+        return;
+      }
+      if (deleted) {
+        setTasks((prev) => prev.filter((t) => String(t.id) !== String(taskId)));
+        return;
+      }
+      if (status) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            String(t.id) === String(taskId)
+              ? { ...t, status, kanbanColumn: status }
+              : t
+          )
+        );
+        return;
+      }
+      loadData({ silent: true });
+    };
+    const onRefresh = () => loadData({ silent: true });
+    window.addEventListener('task:updated', onUpdated);
+    window.addEventListener('task:refresh', onRefresh);
+    return () => {
+      window.removeEventListener('task:updated', onUpdated);
+      window.removeEventListener('task:refresh', onRefresh);
+    };
   }, [loadData]);
 
   // Aplicar filtros
@@ -370,7 +407,7 @@ export default function TasksManagerPage() {
     } catch (error) {
       console.error('Erro ao mover tarefa:', error);
       toast.error('Erro ao mover tarefa');
-      loadData(false);
+      loadData({ silent: true });
     }
   }, [tasks, agencyId, loadData, user]);
 
@@ -403,7 +440,7 @@ export default function TasksManagerPage() {
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => loadData(false)} className="gap-2">
+            <Button onClick={() => loadData()} className="gap-2">
               <RefreshCcw className="w-4 h-4" />
               Tentar novamente
             </Button>
@@ -640,7 +677,7 @@ export default function TasksManagerPage() {
         onOpenChange={setCreateOpen}
         onSuccess={() => {
           setCreateOpen(false);
-          loadData(false);
+          loadData({ silent: true });
         }}
       />
     </div>

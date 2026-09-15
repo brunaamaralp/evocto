@@ -8,6 +8,7 @@ import {
   Plus,
   RefreshCw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -17,9 +18,8 @@ import { Task } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { CyclePlan } from '@/api/entities';
 import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
-import { buildClientCampaignHref } from '@/lib/campaignHref';
-import { buildClientTasksHref } from '@/lib/taskScope';
 import { buildGreetingLine } from '@/lib/dashboardDayBriefing';
+import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 
 function firstNameFromFullName(fullName) {
   const first = String(fullName || '')
@@ -106,20 +106,9 @@ function resolveClientName(clients, clientId) {
   return client?.name || null;
 }
 
-function resolveTaskHref(task) {
-  const briefingId = task.briefingId || task.briefId || null;
-  if (briefingId) {
-    return createPageUrl(
-      buildClientCampaignHref({
-        clientId: task.clientId,
-        briefingId,
-      })
-    );
-  }
-  if (task.clientId) {
-    return createPageUrl(buildClientTasksHref({ clientId: task.clientId }));
-  }
-  return createPageUrl('tasks-manager');
+function openTaskDrawer(taskId) {
+  if (!taskId) return;
+  window.dispatchEvent(new CustomEvent('task:open', { detail: { taskId } }));
 }
 
 function groupCampaignsByClient(clients, briefs, cycles, tasks, services) {
@@ -162,12 +151,13 @@ function buildTaskItem(task, clients, todayStart, kind) {
   const due = parseDueDate(task.dueDate);
   return {
     id: `task:${task.id}`,
+    taskId: task.id,
+    task,
     kind,
     title: task.title || 'Tarefa',
     clientName: resolveClientName(clients, task.clientId),
     dueLabel: formatDueLabel(due, todayStart),
     priority: String(task.priority || 'medium').toLowerCase(),
-    href: resolveTaskHref(task),
     sortAt: due ? due.getTime() : Number.MAX_SAFE_INTEGER,
   };
 }
@@ -360,29 +350,62 @@ function kindBadge(kind) {
   }
 }
 
-function ItemRow({ item, showKindBadge = false }) {
+function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
   const badge = showKindBadge ? kindBadge(item.kind) : null;
+  const isTask = Boolean(item.taskId);
+  const isCompleting = completingId === item.taskId;
+
+  const meta = (
+    <>
+      <div className="min-w-0 flex-1 text-left">
+        <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
+        <p className="text-xs text-[#555]">
+          {[item.clientName, item.dueLabel].filter(Boolean).join(' · ')}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {item.priority === 'high' && item.kind !== 'overdue' ? (
+          <span className="text-xs font-semibold text-[#c0392b]">Alta</span>
+        ) : null}
+        {badge ? (
+          <span className={`text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+        ) : null}
+      </div>
+    </>
+  );
+
+  const rowClassName =
+    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]';
+
   return (
-    <li>
-      <Link
-        to={item.href}
-        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
-      >
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
-          <p className="text-xs text-[#555]">
-            {[item.clientName, item.dueLabel].filter(Boolean).join(' · ')}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {item.priority === 'high' && item.kind !== 'overdue' ? (
-            <span className="text-xs font-semibold text-[#c0392b]">Alta</span>
-          ) : null}
-          {badge ? (
-            <span className={`text-xs font-semibold ${badge.className}`}>{badge.label}</span>
-          ) : null}
-        </div>
-      </Link>
+    <li className="flex items-center gap-0.5">
+      {isTask ? (
+        <button type="button" onClick={() => openTaskDrawer(item.taskId)} className={rowClassName}>
+          {meta}
+        </button>
+      ) : (
+        <Link to={item.href} className={rowClassName}>
+          {meta}
+        </Link>
+      )}
+      {isTask && onComplete ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-[#555] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
+          disabled={isCompleting}
+          title="Marcar como concluída"
+          aria-label={`Marcar "${item.title}" como concluída`}
+          onClick={() => onComplete(item)}
+        >
+          {isCompleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
+        </Button>
+      ) : null}
     </li>
   );
 }
@@ -391,19 +414,22 @@ function ItemRow({ item, showKindBadge = false }) {
  * Home operacional — campanhas + agenda + fila de atenção.
  */
 export default function DashboardPage() {
-  const { agencyId, userName, loading: sessionLoading } = useSession();
+  const { agencyId, userName, user, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
+  const [completingId, setCompletingId] = useState(null);
 
-  const loadDashboardData = useCallback(async () => {
+  const loadDashboardData = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
 
       if (!agencyId) {
         setError('ID da organização não encontrado.');
-        setLoading(false);
+        if (!silent) setLoading(false);
         return;
       }
 
@@ -472,9 +498,11 @@ export default function DashboardPage() {
       });
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
-      setError(`Erro ao carregar dados: ${err.message}`);
+      if (!silent) {
+        setError(`Erro ao carregar dados: ${err.message}`);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [agencyId]);
 
@@ -483,6 +511,64 @@ export default function DashboardPage() {
       loadDashboardData();
     }
   }, [sessionLoading, agencyId, loadDashboardData]);
+
+  useEffect(() => {
+    const onTaskUpdated = () => {
+      if (!agencyId || sessionLoading) return;
+      loadDashboardData({ silent: true });
+    };
+    window.addEventListener('task:updated', onTaskUpdated);
+    return () => window.removeEventListener('task:updated', onTaskUpdated);
+  }, [agencyId, sessionLoading, loadDashboardData]);
+
+  const handleCompleteTask = useCallback(
+    async (item) => {
+      const task = item?.task;
+      if (!task?.id || completingId) return;
+
+      setCompletingId(task.id);
+      try {
+        const result = await transitionTaskStatus(task, 'completed', {
+          agencyId: agencyId || task.agencyId,
+          user,
+        });
+        if (!result.success) {
+          toast.error(result.message || 'Não é possível concluir esta tarefa');
+          return;
+        }
+
+        const savedStatus = String(result.task?.status || 'completed').toLowerCase();
+        if (savedStatus !== 'completed' && savedStatus !== 'done') {
+          toast.error('A tarefa não foi marcada como concluída. Tente de novo.');
+          return;
+        }
+
+        // Remove na hora da fila/agenda (não espera o reload).
+        const removeId = `task:${task.id}`;
+        setDashboardData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            attentionQueue: (prev.attentionQueue || []).filter((i) => i.id !== removeId),
+            agenda: (prev.agenda || []).filter((i) => i.id !== removeId),
+          };
+        });
+
+        toast.success('Tarefa concluída');
+        window.dispatchEvent(
+          new CustomEvent('task:updated', {
+            detail: { taskId: task.id, status: 'completed' },
+          })
+        );
+      } catch (err) {
+        console.error('[dashboard] complete task failed:', err);
+        toast.error(err?.message || 'Erro ao concluir tarefa');
+      } finally {
+        setCompletingId(null);
+      }
+    },
+    [agencyId, completingId, user]
+  );
 
   if (sessionLoading || loading) {
     return (
@@ -561,7 +647,13 @@ export default function DashboardPage() {
           </div>
           <ul className="space-y-1 rounded-xl border border-[#eee] bg-white px-1 py-1">
             {attentionQueue.map((item) => (
-              <ItemRow key={item.id} item={item} showKindBadge />
+              <ItemRow
+                key={item.id}
+                item={item}
+                showKindBadge
+                onComplete={handleCompleteTask}
+                completingId={completingId}
+              />
             ))}
           </ul>
         </section>
@@ -586,7 +678,12 @@ export default function DashboardPage() {
           {agenda.length > 0 ? (
             <ul className="space-y-1">
               {agenda.map((item) => (
-                <ItemRow key={item.id} item={item} />
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  onComplete={handleCompleteTask}
+                  completingId={completingId}
+                />
               ))}
             </ul>
           ) : (

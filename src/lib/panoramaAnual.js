@@ -125,11 +125,16 @@ function statusRank(status) {
   return 0;
 }
 
+export function panoramaStatusIconKey(status) {
+  if (status === 'done') return 'done';
+  if (status === 'active') return 'active';
+  if (status === 'planned') return 'planned';
+  return 'empty';
+}
+
+/** @deprecated Preferir ícones Lucide via panoramaStatusIconKey — não usar emoji na UI. */
 export function panoramaStatusIcon(status) {
-  if (status === 'done') return '✅';
-  if (status === 'active') return '🔄';
-  if (status === 'planned') return '📝';
-  return '⭕';
+  return panoramaStatusIconKey(status);
 }
 
 export function panoramaStatusLabel(status) {

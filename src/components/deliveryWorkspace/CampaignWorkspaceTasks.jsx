@@ -61,6 +61,12 @@ export function columnForTask(task) {
     .toLowerCase()
     .trim();
 
+  // Status terminal manda — evita tarefa concluída presa em "Planejamento"/"A Fazer"
+  // quando kanbanColumn ficou desatualizado.
+  if (['completed', 'done', 'approved', 'published'].includes(status)) {
+    return 'publicacao';
+  }
+
   if (stage) {
     for (const col of CAMPAIGN_KANBAN_COLUMNS) {
       if (col.id === stage || col.statuses.includes(stage)) return col.id;

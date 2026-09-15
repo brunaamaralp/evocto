@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, FileText, ArrowRight, Plus } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 
 function briefStatusLabel(status) {
   const map = {
@@ -23,8 +24,7 @@ export default function ClientKnowledgeSummary({
   briefs = [],
   kpisCount = 0,
 }) {
-  const briefingHref = createPageUrl(`briefing-campanha?clientId=${clientId}`);
-  const briefingListHref = createPageUrl(`client-briefing?clientId=${clientId}`);
+  const campaignsHref = buildAnnualPlanHref(clientId);
   const kpisHref = createPageUrl(`performance-kpis?clientId=${clientId}`);
 
   const masterBrief = useMemo(() => {
@@ -58,7 +58,7 @@ export default function ClientKnowledgeSummary({
               Campanhas
             </span>
             <Button asChild variant="ghost" size="sm" className="h-7 px-2">
-              <Link to={briefingListHref}>
+              <Link to={campaignsHref}>
                 Ver
                 <ArrowRight className="w-3 h-3 ml-1" />
               </Link>
@@ -70,7 +70,7 @@ export default function ClientKnowledgeSummary({
             <div className="rounded-lg border border-dashed p-3 text-center">
               <p className="text-sm text-gray-600 mb-2">Nenhuma campanha ainda</p>
               <Button asChild size="sm" variant="outline">
-                <Link to={briefingHref}>
+                <Link to={campaignsHref}>
                   <Plus className="w-3.5 h-3.5 mr-1" />
                   Nova campanha
                 </Link>

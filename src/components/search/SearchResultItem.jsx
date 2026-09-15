@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Users, Briefcase, RotateCcw, FileText, Library, GitBranch, File, Package
 } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 
 const typeConfig = {
   client: { icon: Users, color: 'text-sky-500' },
@@ -18,7 +20,7 @@ const typeConfig = {
 
 // Helper function to create base page URLs
 // Assumes that pathSegment directly corresponds to the route part (e.g., 'client' -> '/client')
-const createPageUrl = (pathSegment) => `/${pathSegment}`;
+const toPage = (pathSegment) => createPageUrl(pathSegment);
 
 /**
  * Determines the navigation URL for a given search result item.
@@ -30,20 +32,17 @@ const createPageUrl = (pathSegment) => `/${pathSegment}`;
 const getResultUrl = (item) => {
   switch (item.type) {
     case 'client':
-      return createPageUrl('client') + `?clientId=${item.id}`;
+      return toPage('client') + `?clientId=${item.id}`;
     case 'service':
-      return createPageUrl('service-detail') + `?serviceId=${item.id}`;
+      return toPage('service-detail') + `?serviceId=${item.id}`;
     case 'task':
-      return createPageUrl('client-tasks') + `?taskId=${item.id}`;
+      return toPage('client-tasks') + `?taskId=${item.id}`;
     case 'briefing':
-      // Assumes item.metadata will contain clientId for briefings
-      return createPageUrl('client-briefing') + `?clientId=${item.metadata?.clientId}`;
+      return createPageUrl(buildBriefingInicialHref(item.metadata?.clientId));
     case 'document':
-      return createPageUrl('client-documents') + `?documentId=${item.id}`;
+      return toPage('client-documents') + `?documentId=${item.id}`;
     default:
-      // Fallback for types not explicitly handled, or for client-cycles
-      // as per the request to remove references to client-cycles and clean navigation.
-      return createPageUrl('dashboard');
+      return toPage('dashboard');
   }
 };
 

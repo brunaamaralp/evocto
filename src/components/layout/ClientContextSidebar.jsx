@@ -196,14 +196,6 @@ export default function ClientContextSidebar({
         location.pathname.includes('client-brainstorm') ||
         location.pathname.includes('/brainstorm'),
     },
-    {
-      type: 'link',
-      label: 'Briefing do Serviço',
-      icon: FileText,
-      href: createPageUrl(`client-briefing?clientId=${clientId}`),
-      active:
-        location.pathname.includes('client-briefing') && !briefingId,
-    },
     { type: 'section', label: 'Cliente' },
     {
       type: 'link',

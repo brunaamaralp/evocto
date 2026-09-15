@@ -15,6 +15,7 @@ import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
 import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
+import ClientBriefingStatusCard from '@/components/client/ClientBriefingStatusCard';
 import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
 import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
 import ServiceOperationHeader from '@/components/client/hub/ServiceOperationHeader';
@@ -26,6 +27,10 @@ import {
   buildNovaCampanhaHref,
 } from '@/lib/planoAnualHub';
 import { buildPlanningCreateCampaignPath } from '@/lib/campaignWorkspaceHref';
+import {
+  buildBriefingInicialHref,
+  resolveBriefingInicialStatus,
+} from '@/lib/briefingInicial';
 import {
   deriveServiceLensUnits,
   filterAttentionForService,
@@ -392,6 +397,11 @@ export default function ClientDetailPage() {
 
   const hasOperation = Boolean(lens?.unitsCount > 0 || lens?.singleProject?.ready);
   const hasInvite = Boolean(client.portal_enabled || client.has_portal_access);
+  const briefingStatus = resolveBriefingInicialStatus(briefs);
+  const hasBriefing = briefingStatus.status === 'ready';
+  const briefingHref = createPageUrl(
+    buildBriefingInicialHref(clientId, { briefingId: briefingStatus.brief?.id })
+  );
 
   const setupChecklist = [
     {
@@ -405,6 +415,18 @@ export default function ClientDetailPage() {
       completed: hasService,
       action: 'Definir serviço',
       onClick: () => setServiceSetupOpen(true),
+    },
+    {
+      id: 'briefing',
+      title: 'Preencher briefing inicial',
+      description: hasBriefing
+        ? 'DNA do cliente preenchido'
+        : briefingStatus.status === 'draft'
+          ? 'Há um rascunho — continue o preenchimento'
+          : 'Base estratégica do cliente (público, tom, oferta)',
+      completed: hasBriefing,
+      action: hasBriefing ? 'Editar briefing' : 'Preencher briefing',
+      onClick: () => navigate(briefingHref),
     },
     {
       id: 'operate',
@@ -481,6 +503,8 @@ export default function ClientDetailPage() {
           </p>
         </section>
       ) : null}
+
+      <ClientBriefingStatusCard clientId={clientId} briefs={briefs} />
 
       {hasService ? (
         <ServiceLensSwitcher
@@ -646,12 +670,6 @@ export default function ClientDetailPage() {
             className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
             Brainstorm
-          </Link>
-          <Link
-            to={createPageUrl(`client-briefing?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
-          >
-            Briefing do Serviço
           </Link>
           <Link
             to={createPageUrl(

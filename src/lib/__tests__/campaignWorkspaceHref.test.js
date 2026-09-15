@@ -142,9 +142,9 @@ describe('resolveLegacyCampaignRedirect', () => {
 });
 
 describe('buildPlanningCreateCampaignPath', () => {
-  it('aponta para Planejamento & briefs (A2)', () => {
+  it('aponta para Panorama (criação fora do Hub)', () => {
     expect(buildPlanningCreateCampaignPath('cli', { serviceId: 's1' })).toBe(
-      '/client-briefing?clientId=cli&serviceId=s1'
+      '/planejamento?clientId=cli&serviceId=s1'
     );
   });
 });

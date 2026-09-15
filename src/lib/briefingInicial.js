@@ -113,6 +113,49 @@ export function isBriefingInicialFormComplete(form) {
   return validateBriefingInicialForm(form).valid;
 }
 
+/**
+ * Localiza o brief de DNA / briefing inicial do cliente.
+ */
+export function findBriefingInicialBrief(briefs = []) {
+  const list = Array.isArray(briefs) ? briefs : [];
+  return (
+    list.find((b) => b?.brief_kind === BRIEF_KIND_INICIAL) ||
+    list.find(
+      (b) =>
+        (b?.brief_kind === BRIEF_KIND_ANUAL || b?.brief_kind === 'campanha_anual') &&
+        b?.origem_briefing_inicial
+    ) ||
+    list.find((b) => b?.origem_briefing_inicial) ||
+    null
+  );
+}
+
+/**
+ * @returns {{ status: 'missing' | 'draft' | 'ready', brief: object | null, label: string }}
+ */
+export function resolveBriefingInicialStatus(briefs = []) {
+  const brief = findBriefingInicialBrief(briefs);
+  if (!brief) {
+    return { status: 'missing', brief: null, label: 'Não preenchido' };
+  }
+  const annual = String(brief.status_anual || '').toLowerCase();
+  const status = String(brief.status || '').toUpperCase();
+  if (annual === 'rascunho' || status === 'DRAFT') {
+    return { status: 'draft', brief, label: 'Rascunho' };
+  }
+  return { status: 'ready', brief, label: 'Preenchido' };
+}
+
+/** Rota canônica do editor de briefing inicial (sem hub intermediário). */
+export function buildBriefingInicialHref(clientId, { briefingId = null } = {}) {
+  const id = String(clientId || '').trim();
+  if (!id) return 'briefing-inicial';
+  const params = new URLSearchParams();
+  params.set('clientId', id);
+  if (briefingId) params.set('briefingId', String(briefingId));
+  return `briefing-inicial?${params.toString()}`;
+}
+
 /** Progresso do formulário público/interno (para progressData do token). */
 export function countInicialProgress(form) {
   const n = normalizeBriefingInicialForm(form);

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
+import { buildBriefingInicialHref } from '@/lib/briefingInicial';
 import { format, isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { isBriefingCompleted, getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
@@ -270,7 +271,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
               {!briefingStatus?.exists && (
                 <div className="flex gap-2">
                   {/* These buttons need to be implemented to perform actions like opening a form or sending a link */}
-                  <Button size="sm" variant="outline" onClick={() => navigate(createPageUrl('client-briefing') + `?clientId=${client.id}`)}>
+                  <Button size="sm" variant="outline" onClick={() => navigate(createPageUrl(buildBriefingInicialHref(client.id)))}>
                     Preencher Briefing
                   </Button>
                   <Button size="sm" onClick={() => toast.info('Funcionalidade de enviar link em breve!')}>
@@ -601,7 +602,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
                       title: 'Campanhas & plano',
                       description: 'Briefing inicial e campanhas',
                       icon: FileText,
-                      href: createPageUrl('client-briefing') + `?clientId=${client.id}`,
+                      href: createPageUrl(buildBriefingInicialHref(client.id)),
                       color: 'bg-orange-50 text-orange-600 border-orange-200'
                     }
                   ];

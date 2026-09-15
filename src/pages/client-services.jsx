@@ -20,11 +20,17 @@ import {
 } from 'lucide-react';
 import { Service } from '@/api/entities';
 import { Client } from '@/api/entities';
+import { Brief } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { getCardPastel } from '@/lib/modulePastels';
+import ClientBriefingStatusCard from '@/components/client/ClientBriefingStatusCard';
+import {
+  buildBriefingInicialHref,
+  resolveBriefingInicialStatus,
+} from '@/lib/briefingInicial';
 
 /**
  * Página de serviços de um cliente específico
@@ -40,6 +46,7 @@ export default function ClientServicesPage() {
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
+  const [briefs, setBriefs] = useState([]);
   const [serviceTemplates, setServiceTemplates] = useState([]);
   const [stats, setStats] = useState({});
   const [error, setError] = useState(null);
@@ -67,6 +74,9 @@ export default function ClientServicesPage() {
         is_template: false
       });
       setServices(clientServices);
+
+      const clientBriefs = await Brief.filter({ agencyId, clientId }).catch(() => []);
+      setBriefs(Array.isArray(clientBriefs) ? clientBriefs : []);
 
       // Carregar templates disponíveis
       const templates = await Service.filter({
@@ -184,6 +194,10 @@ export default function ClientServicesPage() {
   const clientHref = clientId
     ? createPageUrl(`client-detail?clientId=${clientId}`)
     : createPageUrl('clients');
+  const briefingInfo = resolveBriefingInicialStatus(briefs);
+  const briefingHref = createPageUrl(
+    buildBriefingInicialHref(clientId, { briefingId: briefingInfo.brief?.id })
+  );
 
   return (
     <ErrorBoundary>
@@ -224,6 +238,8 @@ export default function ClientServicesPage() {
               Novo serviço
             </Button>
           </div>
+
+          <ClientBriefingStatusCard clientId={clientId} briefs={briefs} compact />
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
@@ -342,6 +358,17 @@ export default function ClientServicesPage() {
                               <Eye className="w-4 h-4 mr-2" />
                               Ver Detalhes
                             </Button>
+
+                            {service.service_status === 'briefing_pending' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(briefingHref)}
+                                title="Preencher briefing inicial"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                            ) : null}
                             
                             <Button
                               variant="outline"

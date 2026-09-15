@@ -4,6 +4,14 @@ import { appendStatusHistoryEntry } from '@/lib/taskActivityHistory';
 const TERMINAL = new Set(['completed', 'cancelled']);
 const ACTIVE_STATUSES = new Set(['in_progress', 'in_review', 'completed']);
 
+/** Coluna kanban ao concluir: campanha → Publicação; board global → Concluído. */
+export function completedKanbanColumnForTask(task) {
+  const stage = String(task?.kanbanColumn || '').toLowerCase();
+  const hasCampaign =
+    Boolean(task?.briefingId || task?.briefId || task?.campaignId) ||
+    ['planejamento', 'roteiros', 'producao', 'revisao', 'publicacao'].includes(stage);
+  return hasCampaign ? 'publicacao' : 'completed';
+}
 /**
  * Verifica se as dependências FS permitem mover a tarefa para nextStatus.
  * @returns {{ allowed: boolean, message?: string, blocking?: object[] }}
@@ -119,6 +127,7 @@ export async function transitionTaskStatus(task, nextStatus, { agencyId, user, r
   if (nextStatus === 'completed') {
     payload.completedAt = new Date().toISOString();
     payload.progress = 100;
+    payload.kanbanColumn = completedKanbanColumnForTask(task);
     if (payload.actualHours == null) {
       payload.actualHours = task.actualHours || task.estimatedHours || 0;
     }
