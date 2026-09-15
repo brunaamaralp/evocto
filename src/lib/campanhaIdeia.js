@@ -19,9 +19,30 @@ export const EMPTY_IDEIA = Object.freeze({
   ciclo: '',
 });
 
+/** PI-3 — métricas de fechamento da campanha (Brief top-level). */
+export const EMPTY_RESULTADO = Object.freeze({
+  vendas_realizado: null,
+  engajamento_realizado: null,
+  nota_geral: null,
+  o_que_funcionou: '',
+  o_que_nao_funcionou: '',
+});
+
+export const EMPTY_FINALIZE = Object.freeze({
+  resultado: { ...EMPTY_RESULTADO },
+  aprendizado: '',
+  feedbackCliente: '',
+});
+
 function asString(v) {
   if (v == null) return '';
   return String(v).trim();
+}
+
+function asNullableNumber(v) {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 
 function firstNonEmpty(...values) {
@@ -124,6 +145,62 @@ export function operacaoFromBrief(brief) {
 }
 
 /**
+ * PI-3 — lê finalize do Brief (top-level).
+ * @param {object | null | undefined} brief
+ */
+export function finalizeFromBrief(brief) {
+  const raw = brief?.resultado && typeof brief.resultado === 'object'
+    ? brief.resultado
+    : {};
+  return {
+    resultado: {
+      vendas_realizado: asNullableNumber(raw.vendas_realizado),
+      engajamento_realizado: asNullableNumber(raw.engajamento_realizado),
+      nota_geral: asNullableNumber(raw.nota_geral),
+      o_que_funcionou: asString(raw.o_que_funcionou),
+      o_que_nao_funcionou: asString(raw.o_que_nao_funcionou),
+    },
+    aprendizado: asString(brief?.aprendizado),
+    feedbackCliente: asString(brief?.feedbackCliente),
+  };
+}
+
+/**
+ * Patch Brief.update para finalize (não mexe na Ideia).
+ * @param {Partial<typeof EMPTY_FINALIZE> & { resultado?: Partial<typeof EMPTY_RESULTADO> }} finalize
+ * @param {{ appendHistorico?: boolean, historicoAtual?: object[] }} [opts]
+ */
+export function briefPatchFromFinalize(finalize = {}, opts = {}) {
+  const current = finalizeFromBrief({
+    resultado: finalize.resultado,
+    aprendizado: finalize.aprendizado,
+    feedbackCliente: finalize.feedbackCliente,
+  });
+  const patch = {
+    resultado: current.resultado,
+    aprendizado: current.aprendizado || null,
+    feedbackCliente: current.feedbackCliente || null,
+    editado_em: new Date().toISOString(),
+  };
+
+  if (opts.appendHistorico) {
+    const prev = Array.isArray(opts.historicoAtual) ? opts.historicoAtual : [];
+    patch.historico = [
+      ...prev,
+      {
+        acao: 'finalize',
+        em: patch.editado_em,
+        aprendizado: current.aprendizado || undefined,
+        feedbackCliente: current.feedbackCliente || undefined,
+        nota_geral: current.resultado.nota_geral,
+      },
+    ];
+  }
+
+  return patch;
+}
+
+/**
  * Unidade de campanha normalizada para Hub / Workspace (Fase 1+).
  * @param {object | null | undefined} brief
  */
@@ -131,6 +208,7 @@ export function normalizeCampanhaUnit(brief) {
   if (!brief || typeof brief !== 'object') return null;
 
   const ideia = ideiaFromBrief(brief);
+  const finalize = finalizeFromBrief(brief);
   const historico = Array.isArray(brief.historico) ? brief.historico : [];
 
   return {
@@ -151,6 +229,9 @@ export function normalizeCampanhaUnit(brief) {
     status_campanha: asString(brief.status_campanha) || null,
     ideia,
     operacao: operacaoFromBrief(brief),
+    resultado: finalize.resultado,
+    aprendizado: finalize.aprendizado,
+    feedbackCliente: finalize.feedbackCliente,
     historico,
     /** Título de lista (Hub) */
     label: ideia.titulo || 'Campanha',

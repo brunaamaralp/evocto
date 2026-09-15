@@ -26,7 +26,6 @@ import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { buildClientTasksHref } from '@/lib/taskScope';
 import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
-import AnnualPlanSidebarBlock from '@/components/layout/AnnualPlanSidebarBlock';
 
 /**
  * Navegação de contexto do cliente (nav única do hub).
@@ -177,10 +176,12 @@ export default function ClientContextSidebar({
     { type: 'section', label: 'Planejamento' },
     {
       type: 'link',
-      label: 'Plano anual',
+      label: 'Panorama',
       icon: CalendarDays,
       href: buildAnnualPlanHref(clientId),
-      active: location.pathname.includes('briefing-campanha-anual'),
+      active:
+        location.pathname.includes('planejamento') ||
+        location.pathname.includes('briefing-campanha-anual'),
     },
     {
       type: 'link',
@@ -197,18 +198,11 @@ export default function ClientContextSidebar({
     },
     {
       type: 'link',
-      label: 'Planejamento & briefs',
+      label: 'Briefing do Serviço',
       icon: FileText,
       href: createPageUrl(`client-briefing?clientId=${clientId}`),
       active:
         location.pathname.includes('client-briefing') && !briefingId,
-    },
-    {
-      type: 'custom',
-      id: 'annual-plan-months',
-      render: () => (
-        <AnnualPlanSidebarBlock clientId={clientId} agencyId={agencyId} />
-      ),
     },
     { type: 'section', label: 'Cliente' },
     {

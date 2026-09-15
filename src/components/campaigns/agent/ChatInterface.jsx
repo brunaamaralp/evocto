@@ -5,7 +5,7 @@ import { Brief } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
-import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
+import { buildCampaignWorkspaceIdeiaPath } from '@/lib/campaignWorkspaceHref';
 import AgentMarkdown from '@/components/campaigns/agent/AgentMarkdown';
 
 const API_BASE = '/api/campaigns-agent';
@@ -297,7 +297,7 @@ export default function ChatInterface({
 
       if (landingBriefId && landingServiceId) {
         navigate(
-          buildCampaignWorkspaceTasksPath({
+          buildCampaignWorkspaceIdeiaPath({
             serviceId: landingServiceId,
             clientId: resolvedClientId,
             campaignId: landingBriefId,
@@ -311,6 +311,7 @@ export default function ChatInterface({
               clientId: resolvedClientId,
               briefingId: landingBriefId,
               serviceId: landingServiceId,
+              tab: 'ideia',
             })
           ),
           { replace: true }

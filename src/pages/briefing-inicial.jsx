@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Brief, Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 import { getEmpresaByClientId, empresaToForm } from '@/lib/empresaConfig';
 import {
   emptyBriefingInicialForm,
@@ -174,8 +175,8 @@ export default function BriefingInicialPage() {
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
         <h1 className="text-xl font-semibold text-[#18162A]">Briefing inicial salvo</h1>
         <p className="text-sm text-[#7A7595]">
-          Empresa e insumos do plano anual de {client?.name} estão prontos. Você pode
-          seguir para temas e campanhas.
+          Empresa e contexto de {client?.name} estão prontos. Siga para o Panorama
+          e planeje mês a mês.
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Button variant="outline" onClick={backToHub}>
@@ -183,15 +184,9 @@ export default function BriefingInicialPage() {
           </Button>
           <Button
             className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
-            onClick={() =>
-              navigate(
-                `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}${
-                  briefingId ? `&briefingId=${briefingId}` : ''
-                }`
-              )
-            }
+            onClick={() => navigate(buildAnnualPlanHref(clientId))}
           >
-            Abrir plano anual
+            Abrir panorama
           </Button>
         </div>
       </div>

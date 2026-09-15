@@ -1,6 +1,7 @@
 /**
- * API Vercel — Gerador de Campanhas Anuais (P1).
+ * API Vercel — Gerador de Campanhas Anuais (legado PI-5).
  * POST /api/campanha-anual
+ * UI de plano anual removida; endpoint mantido por compat/ops.
  * Auth: Authorization Bearer <Appwrite JWT>
  */
 import gerarCampanhaAnualHandler from '../lib/server/gerarCampanhaAnualHandler.js';

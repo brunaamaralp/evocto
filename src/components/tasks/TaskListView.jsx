@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
+import {
   Calendar,
   Edit,
   Eye,
@@ -21,7 +21,7 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,7 +31,7 @@ const PRIORITY_COLORS = {
   low: 'bg-blue-500',
   medium: 'bg-yellow-500',
   high: 'bg-orange-500',
-  urgent: 'bg-red-500'
+  urgent: 'bg-red-500',
 };
 
 const STATUS_COLORS = {
@@ -41,43 +41,47 @@ const STATUS_COLORS = {
   in_review: 'bg-purple-100 text-purple-700',
   completed: 'bg-green-100 text-green-700',
   cancelled: 'bg-red-100 text-red-700',
-  blocked: 'bg-orange-100 text-orange-700'
+  blocked: 'bg-orange-100 text-orange-700',
 };
 
 /**
- * Visualização Lista com tabela e exportação
+ * Visualização Lista com tabela e exportação.
+ * layout="client" — inbox do cliente: sem status/prioridade/progresso; com Campanha.
  */
-export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExport, loading }) {
+export default function TaskListView({
+  tasks,
+  _onTaskUpdate,
+  onEditTask,
+  onExport,
+  loading,
+  layout = 'default',
+}) {
+  const isClientLayout = layout === 'client';
   const [sortField, setSortField] = useState('dueDate');
   const [sortDirection, setSortDirection] = useState('asc');
 
-  // Ordenar tarefas
   const sortedTasks = useMemo(() => {
     return [...tasks].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
-      // Tratamento especial para datas
       if (sortField === 'dueDate') {
         aValue = aValue ? new Date(aValue) : new Date('2099-12-31');
         bValue = bValue ? new Date(bValue) : new Date('2099-12-31');
       }
 
-      // Tratamento especial para strings
       if (typeof aValue === 'string') {
         aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
+        bValue = (bValue || '').toLowerCase();
       }
 
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
       }
+      return aValue < bValue ? 1 : -1;
     });
   }, [tasks, sortField, sortDirection]);
 
-  // Handler de ordenação
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -87,47 +91,61 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
     }
   };
 
-  // Renderizar ícone de ordenação
   const renderSortIcon = (field) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="w-4 h-4" /> : 
-      <ChevronDown className="w-4 h-4" />;
+    return sortDirection === 'asc' ? (
+      <ChevronUp className="w-4 h-4" />
+    ) : (
+      <ChevronDown className="w-4 h-4" />
+    );
   };
 
-  // Renderizar linha da tabela
+  const colSpan = isClientLayout ? 6 : 8;
+
   const renderTaskRow = (task) => {
-    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
-    const hasSpecialFlags = task.impactsKPI || task.generatesLearning || task.requiresApproval;
+    const isOverdue =
+      task.dueDate &&
+      new Date(task.dueDate) < new Date() &&
+      task.status !== 'completed';
+    const hasSpecialFlags =
+      task.impactsKPI || task.generatesLearning || task.requiresApproval;
+    const campaignLabel =
+      task.campaignName || task.campanhaNome || task.briefingTitle || null;
 
     return (
-      <TableRow 
-        key={task.id} 
+      <TableRow
+        key={task.id}
         className={`hover:bg-gray-50 cursor-pointer ${isOverdue ? 'bg-red-50' : ''}`}
         onClick={() => onEditTask(task)}
       >
-        {/* Título */}
         <TableCell className="font-medium">
           <div className="flex items-center gap-2">
             <span className="line-clamp-1">{task.title}</span>
-            
-            {/* Flags Especiais */}
             {hasSpecialFlags && (
               <div className="flex items-center gap-1">
                 {task.impactsKPI && (
-                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                  >
                     <Target className="w-3 h-3 mr-1" />
                     KPI
                   </Badge>
                 )}
                 {task.generatesLearning && (
-                  <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                  >
                     <Lightbulb className="w-3 h-3 mr-1" />
                     Aprendizado
                   </Badge>
                 )}
                 {task.requiresApproval && (
-                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-orange-50 text-orange-700 border-orange-200"
+                  >
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Aprovação
                   </Badge>
@@ -137,13 +155,26 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
           </div>
         </TableCell>
 
-        {/* Responsável */}
+        {isClientLayout ? (
+          <TableCell>
+            {campaignLabel ? (
+              <span className="text-sm text-gray-800 line-clamp-1">{campaignLabel}</span>
+            ) : (
+              <span className="text-sm text-gray-400">Sem campanha</span>
+            )}
+          </TableCell>
+        ) : null}
+
         <TableCell>
           {task.assigneeName ? (
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
                 <AvatarFallback className="text-xs">
-                  {task.assigneeName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {task.assigneeName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm">{task.assigneeName}</span>
@@ -153,17 +184,19 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
           )}
         </TableCell>
 
-        {/* Entregável/Fase */}
         <TableCell>
           <span className="text-sm text-gray-600">
             {task.deliverableName || 'Sem fase'}
           </span>
         </TableCell>
 
-        {/* Data de Entrega */}
         <TableCell>
           {task.dueDate ? (
-            <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+            <div
+              className={`flex items-center gap-1 ${
+                isOverdue ? 'text-red-600 font-medium' : 'text-gray-600'
+              }`}
+            >
               <Calendar className="w-3 h-3" />
               <span className="text-sm">
                 {format(new Date(task.dueDate), 'dd/MM/yyyy', { locale: ptBR })}
@@ -175,45 +208,45 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
           )}
         </TableCell>
 
-        {/* Status */}
-        <TableCell>
-          <Badge className={`${STATUS_COLORS[task.status]} text-xs`}>
-            {getStatusLabel(task.status)}
-          </Badge>
-        </TableCell>
+        {!isClientLayout ? (
+          <>
+            <TableCell>
+              <Badge className={`${STATUS_COLORS[task.status]} text-xs`}>
+                {getStatusLabel(task.status)}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              {shouldShowPriorityBadge(task.priority) ? (
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority]}`}
+                  />
+                  <span className="text-sm text-gray-600 capitalize">
+                    {getPriorityLabel(task.priority)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-400">-</span>
+              )}
+            </TableCell>
+            <TableCell>
+              {task.progress !== undefined ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-16 bg-gray-200 rounded-full h-1">
+                    <div
+                      className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </div>
+                  <span className="text-sm text-gray-600">{task.progress}%</span>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-400">-</span>
+              )}
+            </TableCell>
+          </>
+        ) : null}
 
-        {/* Prioridade */}
-        <TableCell>
-          {shouldShowPriorityBadge(task.priority) ? (
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority]}`}></div>
-              <span className="text-sm text-gray-600 capitalize">
-                {getPriorityLabel(task.priority)}
-              </span>
-            </div>
-          ) : (
-            <span className="text-sm text-gray-400">-</span>
-          )}
-        </TableCell>
-
-        {/* Progresso */}
-        <TableCell>
-          {task.progress !== undefined ? (
-            <div className="flex items-center gap-2">
-              <div className="w-16 bg-gray-200 rounded-full h-1">
-                <div 
-                  className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-                  style={{ width: `${task.progress}%` }}
-                ></div>
-              </div>
-              <span className="text-sm text-gray-600">{task.progress}%</span>
-            </div>
-          ) : (
-            <span className="text-sm text-gray-400">-</span>
-          )}
-        </TableCell>
-
-        {/* Ações */}
         <TableCell>
           <div className="flex items-center gap-1">
             <Button
@@ -239,39 +272,39 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
 
   return (
     <div className="space-y-4">
-      {/* Header com Ações - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Lista de Tarefas
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">Lista de Tarefas</h3>
           <p className="text-sm text-gray-600">
             {tasks.length} tarefas • Clique em uma tarefa para editar
           </p>
         </div>
-        
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onExport} 
-            disabled={tasks.length === 0}
-            className="flex-1 sm:flex-none"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Exportar CSV</span>
-            <span className="sm:hidden">Exportar</span>
-          </Button>
-        </div>
+
+        {typeof onExport === 'function' ? (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExport}
+              disabled={tasks.length === 0}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Exportar CSV</span>
+              <span className="sm:hidden">Exportar</span>
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      {/* Lista mobile (cards) */}
       <div className="space-y-3 md:hidden">
         {sortedTasks.length === 0 ? (
           <Card>
             <CardContent className="py-10 text-center">
               <Eye className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <h3 className="text-base font-medium text-gray-900">Nenhuma tarefa encontrada</h3>
+              <h3 className="text-base font-medium text-gray-900">
+                Nenhuma tarefa encontrada
+              </h3>
               <p className="text-sm text-gray-600 mt-1">
                 Ajuste os filtros ou crie uma nova tarefa para começar.
               </p>
@@ -283,6 +316,8 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
               task.dueDate &&
               new Date(task.dueDate) < new Date() &&
               task.status !== 'completed';
+            const campaignLabel =
+              task.campaignName || task.campanhaNome || task.briefingTitle || null;
             return (
               <Card
                 key={task.id}
@@ -290,22 +325,26 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
                 onClick={() => onEditTask(task)}
               >
                 <CardContent className="p-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="font-medium text-sm text-gray-900 line-clamp-2 min-w-0">
-                      {task.title}
-                    </h4>
-                    <Badge className={`${STATUS_COLORS[task.status]} text-xs shrink-0`}>
-                      {getStatusLabel(task.status)}
-                    </Badge>
-                  </div>
+                  <h4 className="font-medium text-sm text-gray-900 line-clamp-2 min-w-0">
+                    {task.title}
+                  </h4>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                    {isClientLayout ? (
+                      <span className="truncate font-medium text-gray-800">
+                        {campaignLabel || 'Sem campanha'}
+                      </span>
+                    ) : (
+                      <Badge className={`${STATUS_COLORS[task.status]} text-xs shrink-0`}>
+                        {getStatusLabel(task.status)}
+                      </Badge>
+                    )}
                     <span className="truncate">{task.assigneeName || 'Não atribuído'}</span>
                     {task.dueDate && (
                       <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
                         {format(new Date(task.dueDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </span>
                     )}
-                    {shouldShowPriorityBadge(task.priority) && (
+                    {!isClientLayout && shouldShowPriorityBadge(task.priority) && (
                       <span className="capitalize">{getPriorityLabel(task.priority)}</span>
                     )}
                   </div>
@@ -316,177 +355,196 @@ export default function TaskListView({ tasks, _onTaskUpdate, onEditTask, onExpor
         )}
       </div>
 
-      {/* Tabela - desktop */}
       <Card className="overflow-hidden hidden md:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('title')}
-                >
-                  <div className="flex items-center gap-2">
-                    Título
-                    {renderSortIcon('title')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('assigneeName')}
-                >
-                  <div className="flex items-center gap-2">
-                    Responsável
-                    {renderSortIcon('assigneeName')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('deliverableName')}
-                >
-                  <div className="flex items-center gap-2">
-                    Entregável/Fase
-                    {renderSortIcon('deliverableName')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('dueDate')}
-                >
-                  <div className="flex items-center gap-2">
-                    Data de Entrega
-                    {renderSortIcon('dueDate')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    {renderSortIcon('status')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('priority')}
-                >
-                  <div className="flex items-center gap-2">
-                    Prioridade
-                    {renderSortIcon('priority')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('progress')}
-                >
-                  <div className="flex items-center gap-2">
-                    Progresso
-                    {renderSortIcon('progress')}
-                  </div>
-                </TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedTasks.length === 0 ? (
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <div className="flex flex-col items-center gap-2">
-                      <Eye className="w-8 h-8 text-gray-400" />
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Nenhuma tarefa encontrada
-                      </h3>
-                      <p className="text-gray-600">
-                        Ajuste os filtros ou crie uma nova tarefa para começar.
-                      </p>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('title')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Título
+                      {renderSortIcon('title')}
                     </div>
-                  </TableCell>
+                  </TableHead>
+                  {isClientLayout ? (
+                    <TableHead
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleSort('campaignName')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Campanha
+                        {renderSortIcon('campaignName')}
+                      </div>
+                    </TableHead>
+                  ) : null}
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('assigneeName')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Responsável
+                      {renderSortIcon('assigneeName')}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('deliverableName')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Entregável/Fase
+                      {renderSortIcon('deliverableName')}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('dueDate')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Data de Entrega
+                      {renderSortIcon('dueDate')}
+                    </div>
+                  </TableHead>
+                  {!isClientLayout ? (
+                    <>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Status
+                          {renderSortIcon('status')}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleSort('priority')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Prioridade
+                          {renderSortIcon('priority')}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleSort('progress')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Progresso
+                          {renderSortIcon('progress')}
+                        </div>
+                      </TableHead>
+                    </>
+                  ) : null}
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ) : (
-                sortedTasks.map(renderTaskRow)
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {sortedTasks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={colSpan} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Eye className="w-8 h-8 text-gray-400" />
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Nenhuma tarefa encontrada
+                        </h3>
+                        <p className="text-gray-600">
+                          Ajuste os filtros ou crie uma nova tarefa para começar.
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedTasks.map(renderTaskRow)
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-gray-900">{tasks.length}</div>
-            <div className="text-sm text-gray-600">Total</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {tasks.filter(t => t.status === 'completed').length}
-            </div>
-            <div className="text-sm text-gray-600">Concluídas</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {tasks.filter(t => t.status === 'in_progress').length}
-            </div>
-            <div className="text-sm text-gray-600">Em Progresso</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed').length}
-            </div>
-            <div className="text-sm text-gray-600">Atrasadas</div>
-          </CardContent>
-        </Card>
-      </div>
+      {!isClientLayout ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {tasks.filter((t) => t.status === 'todo').length}
+              </div>
+              <div className="text-sm text-gray-600">A Fazer</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {tasks.filter((t) => t.status === 'in_progress').length}
+              </div>
+              <div className="text-sm text-gray-600">Em Progresso</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {tasks.filter((t) => t.status === 'completed').length}
+              </div>
+              <div className="text-sm text-gray-600">Concluídas</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {
+                  tasks.filter(
+                    (t) =>
+                      t.dueDate &&
+                      new Date(t.dueDate) < new Date() &&
+                      t.status !== 'completed'
+                  ).length
+                }
+              </div>
+              <div className="text-sm text-gray-600">Atrasadas</div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-// Funções auxiliares
 function getStatusLabel(status) {
   const labels = {
-    'backlog': 'Backlog',
-    'todo': 'A Fazer',
-    'in_progress': 'Em Progresso',
-    'in_review': 'Em Revisão',
-    'completed': 'Concluído',
-    'cancelled': 'Cancelado',
-    'blocked': 'Bloqueado'
+    backlog: 'Backlog',
+    todo: 'A Fazer',
+    in_progress: 'Em Progresso',
+    in_review: 'Em Revisão',
+    completed: 'Concluída',
+    cancelled: 'Cancelada',
+    blocked: 'Bloqueada',
   };
   return labels[status] || status;
 }
 
 function getPriorityLabel(priority) {
   const labels = {
-    'low': 'Baixa',
-    'medium': 'Média',
-    'high': 'Alta',
-    'urgent': 'Urgente'
+    low: 'Baixa',
+    medium: 'Média',
+    high: 'Alta',
+    urgent: 'Urgente',
   };
   return labels[priority] || priority;
 }
 
-// Skeleton de Loading
 function ListLoadingSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="h-8 bg-gray-300 rounded w-1/3"></div>
+      <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" />
       <Card>
-        <CardContent className="p-0">
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200"></div>
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-16 bg-gray-100 border-t"></div>
-            ))}
-          </div>
+        <CardContent className="p-4 space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+          ))}
         </CardContent>
       </Card>
     </div>

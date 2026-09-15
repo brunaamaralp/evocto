@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Task } from '@/api/entities';
+import { Task, Brief } from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +29,7 @@ import {
 } from '@/lib/taskFilterPresets';
 import {
   filterTasksByScope,
+  getTaskBriefIds,
 } from '@/lib/taskScope';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 
@@ -70,7 +71,7 @@ export default function TaskManager({
     }
   }
 
-  // Carregar tarefas
+  // Carregar tarefas (+ nomes de campanha no inbox do cliente)
   const loadTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -81,7 +82,33 @@ export default function TaskManager({
 
       const tasksData = await Task.filter(taskFilters, '-created_date');
       const scoped = filterTasksByScope(tasksData, { cycleId, briefingId });
-      setTasks(scoped.tasks);
+      let nextTasks = scoped.tasks;
+
+      if (embedded && nextTasks.length > 0) {
+        const briefIds = [
+          ...new Set(nextTasks.flatMap((t) => getTaskBriefIds(t))),
+        ];
+        const nameById = {};
+        await Promise.all(
+          briefIds.map(async (id) => {
+            const brief = await Brief.get(id).catch(() => null);
+            if (brief?.id) {
+              nameById[String(brief.id)] =
+                brief.nome_campanha || brief.title || 'Campanha';
+            }
+          })
+        );
+        nextTasks = nextTasks.map((t) => {
+          const bid = getTaskBriefIds(t)[0] || null;
+          return {
+            ...t,
+            campaignId: bid,
+            campaignName: bid ? nameById[String(bid)] || null : null,
+          };
+        });
+      }
+
+      setTasks(nextTasks);
     } catch (err) {
       console.error('Erro ao carregar tarefas:', err);
       setError('Erro ao carregar tarefas');
@@ -89,7 +116,7 @@ export default function TaskManager({
     } finally {
       setLoading(false);
     }
-  }, [clientId, serviceId, cycleId, briefingId]);
+  }, [clientId, serviceId, cycleId, briefingId, embedded]);
 
   useEffect(() => {
     loadTasks();
@@ -181,20 +208,36 @@ export default function TaskManager({
 
   // Gerar CSV
   const generateCSV = (tasks) => {
-    const headers = ['Título', 'Responsável', 'Fase', 'Data de Entrega', 'Status', 'Prioridade', 'Progresso'];
-    const rows = tasks.map(task => [
-      task.title,
-      task.assigneeName || 'Não atribuído',
-      task.deliverableName || 'Sem fase',
-      task.dueDate ? new Date(task.dueDate).toLocaleDateString('pt-BR') : 'Sem data',
-      getStatusLabel(task.status),
-      getPriorityLabel(task.priority),
-      `${task.progress || 0}%`
-    ]);
+    const headers = embedded
+      ? ['Título', 'Campanha', 'Responsável', 'Fase', 'Data de Entrega']
+      : ['Título', 'Responsável', 'Fase', 'Data de Entrega', 'Status', 'Prioridade', 'Progresso'];
+    const rows = tasks.map((task) =>
+      embedded
+        ? [
+            task.title,
+            task.campaignName || 'Sem campanha',
+            task.assigneeName || 'Não atribuído',
+            task.deliverableName || 'Sem fase',
+            task.dueDate
+              ? new Date(task.dueDate).toLocaleDateString('pt-BR')
+              : 'Sem data',
+          ]
+        : [
+            task.title,
+            task.assigneeName || 'Não atribuído',
+            task.deliverableName || 'Sem fase',
+            task.dueDate
+              ? new Date(task.dueDate).toLocaleDateString('pt-BR')
+              : 'Sem data',
+            getStatusLabel(task.status),
+            getPriorityLabel(task.priority),
+            `${task.progress || 0}%`,
+          ]
+    );
 
-    return [headers, ...rows].map(row => 
-      row.map(field => `"${field}"`).join(',')
-    ).join('\n');
+    return [headers, ...rows]
+      .map((row) => row.map((field) => `"${field}"`).join(','))
+      .join('\n');
   };
 
   // Download CSV
@@ -378,6 +421,7 @@ export default function TaskManager({
             onEditTask={handleEditTask}
             onExport={embedded ? undefined : handleExportTasks}
             loading={loading}
+            layout={embedded ? 'client' : 'default'}
           />
         </TabsContent>
 

@@ -1,0 +1,40 @@
+---
+description: Planejamento iterativo — Panorama Anual HOME (substitui plano anual rígido)
+alwaysApply: true
+---
+
+# Planejamento iterativo (confirmado 2026-09-11; PI-0–5)
+
+## Filosofia
+
+- ❌ Plano anual rígido (preencher 12 meses antes / materializar)
+- ✅ Planejamento mês a mês com feedback; **Panorama Anual = HOME de Planejamento** (sempre visível)
+
+## Home
+
+- Rota: `/planejamento?clientId=` (sidebar **Panorama**)
+- Timeline 12 meses, ciclos, tendências, sugestão, Nova Campanha / Planejar Múltiplos
+- Click mês ⭕ → Nova Campanha; ✅/🔄 → Workspace
+
+## Três modos
+
+1. **Nova Campanha** (padrão) — Brainstorm avulso + FeedbackSidebar → Workspace Ideia
+2. **Planejar Múltiplos** — 3–5 meses, `linkedToBatch`
+3. **Panorama** — visão viva
+
+## Removido (PI-5)
+
+- UI de materializar / temas anuais / NewCampaignLauncher / AnnualPlanSidebarBlock
+- `/briefing-campanha-anual` = redirect → Panorama (rota mantida por bookmarks)
+- Schema `campanha_anual` permanece só como arquivo/compat (sem editor)
+
+## Manter
+
+- Workspace (Contexto · Ideia · Tarefas · Histórico) + finalize
+- Brainstorm, Briefing do Serviço, Hub (sem create), inbox Tarefas
+
+## Campos em campanha
+
+- `resultado`, `aprendizado`, `feedbackCliente`, `linkedToBatch?`
+
+Spec: `docs/SPEC_PLANEJAMENTO_ITERATIVO.md`

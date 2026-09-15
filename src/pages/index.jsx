@@ -210,6 +210,8 @@ import briefingCampanha from "./briefing-campanha";
 
 import briefingCampanhaAnual from "./briefing-campanha-anual";
 
+import planejamento from "./planejamento";
+
 import briefingInicial from "./briefing-inicial";
 
 import clientCampaign from "./client-campaign";
@@ -458,6 +460,8 @@ const PAGES = {
     "briefing-campanha": briefingCampanha,
 
     "briefing-campanha-anual": briefingCampanhaAnual,
+
+    "planejamento": planejamento,
 
     "briefing-inicial": briefingInicial,
 
@@ -736,6 +740,8 @@ function PagesContent() {
                 <Route path="/spa-test-dashboard" element={createElement(spaTestDashboard)} />
                 
                 <Route path="/client-briefing" element={createElement(clientbriefing)} />
+
+                <Route path="/planejamento" element={createElement(planejamento)} />
 
                 <Route path="/briefing-campanha" element={createElement(briefingCampanha)} />
 

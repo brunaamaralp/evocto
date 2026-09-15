@@ -137,10 +137,12 @@ export default function ContextualSidebar({
         { type: 'section', label: 'Planejamento' },
         {
           type: 'link',
-          label: 'Plano anual',
+          label: 'Panorama',
           icon: CalendarDays,
           href: buildAnnualPlanHref(clientId),
-          isActive: currentPage === 'briefing-campanha-anual',
+          isActive:
+            currentPage === 'planejamento' ||
+            currentPage === 'briefing-campanha-anual',
         },
         {
           type: 'link',
@@ -154,7 +156,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Planejamento & briefs',
+          label: 'Briefing do Serviço',
           icon: FileText,
           href: createPageUrl(`client-briefing?clientId=${clientId}`),
           isActive: currentPage === 'client-briefing' && !briefingId,

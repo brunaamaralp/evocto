@@ -65,6 +65,7 @@ export default function ContextualLayout({ user, children }) {
       'scope-editor',
       'briefing-campanha',
       'briefing-campanha-anual',
+      'planejamento',
     ];
 
     const currentPage = pathname.split('/').pop() || pathname.substring(1);

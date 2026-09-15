@@ -23,9 +23,7 @@ import CreateServiceUnitModal from '@/components/client/hub/CreateServiceUnitMod
 import { toast } from 'sonner';
 import {
   buildAnnualPlanHref,
-  buildBrainstormHref,
-  deriveAnnualPlanFromBriefs,
-  getPlanMonth,
+  buildNovaCampanhaHref,
 } from '@/lib/planoAnualHub';
 import { buildPlanningCreateCampaignPath } from '@/lib/campaignWorkspaceHref';
 import {
@@ -106,14 +104,21 @@ export default function ClientDetailPage() {
   const now = new Date();
   const currentMes = now.getMonth() + 1;
   const currentAno = now.getFullYear();
-  const annualPlan = useMemo(
-    () => deriveAnnualPlanFromBriefs(briefs, currentAno),
-    [briefs, currentAno]
-  );
-  const planMonth = useMemo(
-    () => getPlanMonth(annualPlan, currentMes),
-    [annualPlan, currentMes]
-  );
+  const mesLabels = [
+    '',
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ];
 
   const activeServices = useMemo(
     () => getActiveContractedServices(services),
@@ -445,8 +450,7 @@ export default function ClientDetailPage() {
     ? String(client.status).charAt(0).toUpperCase() + String(client.status).slice(1)
     : null;
 
-  const showPlanBanner =
-    isCampaignLens && planMonth?.actionable;
+  const showPlanBanner = isCampaignLens;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-1 pb-8 sm:px-0">
@@ -517,31 +521,27 @@ export default function ClientDetailPage() {
             <div className="flex flex-col gap-2 border-l-2 border-[#d0d7e2] pl-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="text-sm text-[#666]">
-                  Planejamento · {planMonth.mesLabel}
+                  Planejamento · {mesLabels[currentMes]}
                 </p>
                 <p className="truncate text-sm text-[#333]">
-                  {planMonth.campanha?.nome_campanha ||
-                    planMonth.tema?.titulo ||
-                    'Campanha planejada'}
+                  Planeje o mês no Panorama ou abra uma nova campanha
                 </p>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                 <Link
-                  to={buildBrainstormHref(clientId, {
+                  to={buildNovaCampanhaHref(clientId, {
                     mes: currentMes,
-                    ano: annualPlan?.ano || currentAno,
-                    planId: annualPlan?.id,
-                    modo: 'plano',
+                    ano: currentAno,
                   })}
                   className="font-medium text-[#007bff] hover:underline"
                 >
-                  Brainstorm
+                  Nova Campanha
                 </Link>
                 <Link
-                  to={buildAnnualPlanHref(clientId, annualPlan?.id)}
+                  to={buildAnnualPlanHref(clientId)}
                   className="font-medium text-[#666] hover:text-[#111] hover:underline"
                 >
-                  Plano anual
+                  Panorama
                 </Link>
               </div>
             </div>
@@ -636,10 +636,10 @@ export default function ClientDetailPage() {
             </button>
           ) : null}
           <Link
-            to={buildAnnualPlanHref(clientId, annualPlan?.id)}
+            to={buildAnnualPlanHref(clientId)}
             className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
-            Plano anual
+            Panorama
           </Link>
           <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
@@ -651,7 +651,7 @@ export default function ClientDetailPage() {
             to={createPageUrl(`client-briefing?clientId=${clientId}`)}
             className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
           >
-            Campanhas & plano
+            Briefing do Serviço
           </Link>
           <Link
             to={createPageUrl(

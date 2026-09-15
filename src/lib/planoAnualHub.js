@@ -103,9 +103,14 @@ export function planMonthStatusTone(status) {
   return 'empty';
 }
 
-export function buildAnnualPlanHref(clientId, planId = null) {
-  const base = `briefing-campanha-anual?clientId=${clientId}`;
-  return createPageUrl(planId ? `${base}&briefingId=${planId}` : base);
+export function buildAnnualPlanHref(clientId, _planId = null, ano = null) {
+  // PI-0: Plano anual legado → HOME Panorama
+  return createPageUrl(buildPlanejamentoPath(clientId, ano));
+}
+
+function buildPlanejamentoPath(clientId, ano = null) {
+  const base = `planejamento?clientId=${clientId}`;
+  return ano ? `${base}&ano=${ano}` : base;
 }
 
 export function buildBrainstormHref(
@@ -121,7 +126,15 @@ export function buildBrainstormHref(
   return createPageUrl(path);
 }
 
-/** @deprecated use buildBrainstormHref */
+/** PI-2 — Nova Campanha a partir do Panorama (mês, sem tema imposto). */
+export function buildNovaCampanhaHref(clientId, opts = {}) {
+  return buildBrainstormHref(clientId, {
+    ...opts,
+    modo: 'avulso',
+  });
+}
+
+/** @deprecated PI-5 — use buildNovaCampanhaHref (avulso). Mantido por bookmarks. */
 export function buildBrainstormPlanHref(clientId, opts = {}) {
   return buildBrainstormHref(clientId, { ...opts, modo: 'plano' });
 }

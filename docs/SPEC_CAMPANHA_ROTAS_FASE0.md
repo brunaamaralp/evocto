@@ -91,7 +91,7 @@ Resolver puro (sem navegar): `resolveLegacyCampaignRedirect({ pageName, params }
 | Rota | Papel |
 |------|--------|
 | `/client-briefing?clientId=` | Planejamento & briefs; **Nova campanha** |
-| `/briefing-campanha-anual?clientId=` | Plano anual; **Materializar mês** → Brainstorm |
+| `/briefing-campanha-anual?clientId=` | **Redirect** → `/planejamento` (PI-0/5). Sem materializar. |
 | `/client-brainstorm?…` | Entrada do fluxo de criação (não é casa operacional) |
 | `/briefing-campanha?…` | Fluxo interno form/texto (só a partir do Planejamento) |
 

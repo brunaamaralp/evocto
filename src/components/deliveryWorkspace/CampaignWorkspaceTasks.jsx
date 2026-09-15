@@ -1,5 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Check, ChevronRight, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Task } from '@/api/entities';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
 
 /** Colunas Kanban da campanha (spec produto). */
@@ -37,31 +41,108 @@ export const CAMPAIGN_KANBAN_COLUMNS = Object.freeze([
   },
 ]);
 
-function columnForTask(task) {
+/** Payload ao avançar para a próxima coluna. */
+export const CAMPAIGN_COLUMN_ADVANCE = Object.freeze({
+  planejamento: { kanbanColumn: 'roteiros', status: 'roteiro' },
+  roteiros: { kanbanColumn: 'producao', status: 'in_progress' },
+  producao: { kanbanColumn: 'revisao', status: 'in_review' },
+  revisao: { kanbanColumn: 'publicacao', status: 'completed' },
+  publicacao: null,
+});
+
+export const CAMPAIGN_DONE_PATCH = Object.freeze({
+  kanbanColumn: 'publicacao',
+  status: 'completed',
+});
+
+export function columnForTask(task) {
   const status = String(task?.status || 'todo').toLowerCase();
   const stage = String(task?.kanbanColumn || task?.stage || task?.pipeline_stage || '')
     .toLowerCase()
     .trim();
 
+  if (stage) {
+    for (const col of CAMPAIGN_KANBAN_COLUMNS) {
+      if (col.id === stage || col.statuses.includes(stage)) return col.id;
+    }
+  }
+
   for (const col of CAMPAIGN_KANBAN_COLUMNS) {
-    if (stage && col.statuses.includes(stage)) return col.id;
     if (col.statuses.includes(status)) return col.id;
   }
-  // Fallback: sem match explícito → Planejamento
+
   if (['blocked', 'rejected', 'cancelled'].includes(status)) return 'revisao';
   return 'planejamento';
 }
 
-function TaskCard({ task }) {
+function isDoneTask(task) {
+  const status = String(task?.status || '').toLowerCase();
+  return ['completed', 'done', 'approved', 'published'].includes(status);
+}
+
+function openTaskDrawer(task) {
+  if (!task?.id || typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('task:open', { detail: { taskId: task.id } }));
+}
+
+function TaskCard({ task, busyId, onAdvance, onComplete }) {
+  const col = columnForTask(task);
+  const done = isDoneTask(task) || col === 'publicacao';
+  const busy = busyId === task.id;
+  const canAdvance = !done && CAMPAIGN_COLUMN_ADVANCE[col];
+
   return (
     <li className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm">
-      <p className="text-sm font-medium text-slate-800 leading-snug">{task.title}</p>
+      <button
+        type="button"
+        className="w-full text-left"
+        onClick={() => openTaskDrawer(task)}
+      >
+        <p className="text-sm font-medium text-slate-800 leading-snug">{task.title}</p>
+      </button>
       <div className="mt-2 flex items-center justify-between gap-2">
         <Badge variant="outline" className="text-[10px]">
           {(task.status || 'todo').replace(/_/g, ' ')}
         </Badge>
         <TaskTimerButton task={task} showLabel={false} />
       </div>
+      {!done ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {canAdvance ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-[11px]"
+              disabled={busy}
+              onClick={() => onAdvance(task)}
+            >
+              {busy ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+              Avançar
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 px-2 text-[11px] bg-emerald-600 hover:bg-emerald-700"
+            disabled={busy}
+            onClick={() => onComplete(task)}
+          >
+            {busy ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Check className="h-3 w-3" />
+            )}
+            Concluir
+          </Button>
+        </div>
+      ) : (
+        <p className="mt-2 text-[11px] font-medium text-emerald-700">Concluída</p>
+      )}
     </li>
   );
 }
@@ -73,15 +154,63 @@ export default function CampaignWorkspaceTasks({
   tasks = [],
   scopeLabel = null,
   sharedCycleFallback = false,
+  onTasksNeedReload = null,
 }) {
+  const [busyId, setBusyId] = useState(null);
+  const [localOverrides, setLocalOverrides] = useState({});
+
+  const effectiveTasks = useMemo(() => {
+    return (Array.isArray(tasks) ? tasks : []).map((t) =>
+      localOverrides[t.id] ? { ...t, ...localOverrides[t.id] } : t
+    );
+  }, [tasks, localOverrides]);
+
   const byColumn = useMemo(() => {
     const map = Object.fromEntries(CAMPAIGN_KANBAN_COLUMNS.map((c) => [c.id, []]));
-    for (const task of tasks) {
+    for (const task of effectiveTasks) {
       const col = columnForTask(task);
       map[col].push(task);
     }
     return map;
-  }, [tasks]);
+  }, [effectiveTasks]);
+
+  const patchTask = async (task, patch, successMsg) => {
+    if (!task?.id || busyId) return;
+    setBusyId(task.id);
+    try {
+      const updated = await Task.update(task.id, {
+        ...patch,
+        editado_em: new Date().toISOString(),
+      });
+      setLocalOverrides((prev) => ({
+        ...prev,
+        [task.id]: {
+          status: updated?.status ?? patch.status,
+          kanbanColumn: updated?.kanbanColumn ?? patch.kanbanColumn,
+        },
+      }));
+      toast.success(successMsg);
+      if (typeof onTasksNeedReload === 'function') {
+        await onTasksNeedReload();
+      }
+    } catch (err) {
+      console.error('[CampaignWorkspaceTasks]', err);
+      toast.error(err?.message || 'Não foi possível atualizar a tarefa');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleAdvance = async (task) => {
+    const col = columnForTask(task);
+    const next = CAMPAIGN_COLUMN_ADVANCE[col];
+    if (!next) return;
+    await patchTask(task, next, 'Tarefa avançada');
+  };
+
+  const handleComplete = async (task) => {
+    await patchTask(task, CAMPAIGN_DONE_PATCH, 'Tarefa concluída');
+  };
 
   return (
     <section className="space-y-4">
@@ -90,7 +219,9 @@ export default function CampaignWorkspaceTasks({
           <h2 className="text-lg font-semibold text-slate-900">Tarefas</h2>
           <p className="text-sm text-slate-500 mt-1">
             Kanban da campanha
-            {scopeLabel ? ` · ${scopeLabel}` : ''}.
+            {scopeLabel ? ` · ${scopeLabel}` : ''}. Use{' '}
+            <span className="font-medium text-slate-700">Concluir</span> ou{' '}
+            <span className="font-medium text-slate-700">Avançar</span>.
           </p>
         </div>
         {sharedCycleFallback ? (
@@ -100,7 +231,7 @@ export default function CampaignWorkspaceTasks({
         ) : null}
       </div>
 
-      {tasks.length === 0 ? (
+      {effectiveTasks.length === 0 ? (
         <p className="text-sm text-slate-500">
           Nenhuma tarefa nesta campanha ainda.
         </p>
@@ -121,7 +252,13 @@ export default function CampaignWorkspaceTasks({
               </div>
               <ul className="space-y-2 min-h-[80px]">
                 {byColumn[col.id].map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    busyId={busyId}
+                    onAdvance={handleAdvance}
+                    onComplete={handleComplete}
+                  />
                 ))}
               </ul>
             </div>

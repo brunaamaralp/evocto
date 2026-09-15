@@ -3,12 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ConversationList from '@/components/campaigns/agent/ConversationList';
 import ChatInterface from '@/components/campaigns/agent/ChatInterface';
 import ContextSidebar from '@/components/campaigns/agent/ContextSidebar';
+import FeedbackSidebar from '@/components/campaigns/agent/FeedbackSidebar';
 import { useSession } from '@/components/auth/SessionManager';
 import { Brief, Client } from '@/api/entities';
 import { getEmpresaByClientId } from '@/lib/empresaConfig';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
+import { extractRecentCampaignFeedback } from '@/lib/panoramaAnual';
 import { createPageUrl } from '@/utils';
-import { clientCampaignPageUrl } from '@/lib/campaignHref';
+import { clientCampaignIdeiaPageUrl } from '@/lib/campaignHref';
 
 const API_BASE = '/api/campaigns-agent';
 
@@ -61,7 +63,8 @@ export default function BrainstormPage() {
   const [savingBrief, setSavingBrief] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(true);
+  const [rightCollapsed, setRightCollapsed] = useState(() => !mesParam);
+  const [feedbackItems, setFeedbackItems] = useState([]);
 
   const empresaKey = empresa?.id || empresa?.nome || '';
 
@@ -82,9 +85,12 @@ export default function BrainstormPage() {
       setBootLoading(true);
       setBootError(null);
       try {
-        const [clientData, empresaData] = await Promise.all([
+        const [clientData, empresaData, briefList] = await Promise.all([
           Client.get(clientId),
           getEmpresaByClientId(clientId, agencyId),
+          agencyId
+            ? Brief.filter({ clientId, agencyId }).catch(() => [])
+            : Promise.resolve([]),
         ]);
         if (cancelled) return;
         if (!clientData) {
@@ -93,6 +99,12 @@ export default function BrainstormPage() {
         }
         setClient(clientData);
         setEmpresa(empresaData);
+        setFeedbackItems(
+          extractRecentCampaignFeedback(
+            Array.isArray(briefList) ? briefList : [],
+            { limit: 3 }
+          )
+        );
         if (!empresaData) {
           setBootError('empresa_nao_configurada');
         }
@@ -145,15 +157,15 @@ export default function BrainstormPage() {
     if (empresaKey) loadConversations();
   }, [empresaKey, loadConversations]);
 
-  // Auto-inicia conversa quando veio do plano (?modo=plano&mes=)
+  // Auto-inicia conversa quando a URL traz mês (Panorama / plano)
   useEffect(() => {
     if (bootLoading || bootError || !empresaKey || autoStarted) return;
-    if (!fromPlan || !mesParam) return;
+    if (!mesParam) return;
     setAutoStarted(true);
     handleNewConversation({
       mes: mesParam,
       ano: anoParam,
-      modo: 'plano',
+      modo: fromPlan ? 'plano' : 'avulso',
       empresa: empresaKey,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,22 +309,23 @@ export default function BrainstormPage() {
       );
       await new Promise((r) => setTimeout(r, 600));
 
-      if (launched.briefing?.id) {
+      const landingBriefId = launched.briefing?.id || data.briefId;
+      const landingServiceId =
+        launched.service?.id || data.serviceId || serviceIdParam || null;
+
+      // PI-2: Nova Campanha (Brainstorm) → Workspace aba Ideia
+      if (landingBriefId) {
         navigate(
-          clientCampaignPageUrl({
+          clientCampaignIdeiaPageUrl({
             clientId: resolvedClientId,
-            briefingId: launched.briefing.id,
-          })
+            briefingId: landingBriefId,
+            campaignId: landingBriefId,
+            serviceId: landingServiceId,
+          }),
+          { replace: true }
         );
       } else if (launched.cyclePlan?.id) {
         navigate(`/campaigns/cycles/${launched.cyclePlan.id}`);
-      } else {
-        navigate(
-          clientCampaignPageUrl({
-            clientId: resolvedClientId,
-            briefingId: data.briefId,
-          })
-        );
       }
     } catch (err) {
       console.error('[Brainstorm] save-brief', err);
@@ -402,8 +415,10 @@ export default function BrainstormPage() {
           <p style={styles.subtitle}>
             {client?.name || 'Cliente'}
             {empresa?.nome ? ` · ${empresa.nome}` : ''}
-            {fromPlan && mesParam
-              ? ` · plano ${mesParam}/${anoParam}`
+            {mesParam
+              ? fromPlan
+                ? ` · plano ${mesParam}/${anoParam}`
+                : ` · nova campanha ${mesParam}/${anoParam}`
               : ' — explorar → refinar → criar campanha'}
           </p>
         </div>
@@ -591,11 +606,14 @@ export default function BrainstormPage() {
               i
             </button>
           ) : (
-            <ContextSidebar
-              contextoEnriquecido={contextoEnriquecido}
-              conversationStatus={activeConversation?.status}
-              compact
-            />
+            <div style={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
+              <FeedbackSidebar items={feedbackItems} compact />
+              <ContextSidebar
+                contextoEnriquecido={contextoEnriquecido}
+                conversationStatus={activeConversation?.status}
+                compact
+              />
+            </div>
           )}
         </div>
       </div>

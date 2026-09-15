@@ -1,6 +1,7 @@
 /**
- * API Vercel — Sugestão de temas do plano anual.
+ * API Vercel — Sugestão de temas do plano anual (legado PI-5).
  * POST /api/campanha-anual-temas
+ * UI removida; endpoint mantido por compat.
  */
 import gerarTemasAnualHandler from '../lib/server/gerarTemasAnualHandler.js';
 

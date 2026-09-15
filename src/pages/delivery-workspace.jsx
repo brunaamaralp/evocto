@@ -272,6 +272,7 @@ export default function DeliveryWorkspacePage() {
                   : null
             }
             sharedCycleFallback={scopedTasks.sharedCycleFallback}
+            onTasksNeedReload={refreshTasks}
           />
         );
         break;

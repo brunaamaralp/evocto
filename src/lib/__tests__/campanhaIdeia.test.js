@@ -6,6 +6,8 @@ import {
   operacaoFromBrief,
   normalizeCampanhaUnit,
   briefPatchFromIdeia,
+  briefPatchFromFinalize,
+  finalizeFromBrief,
   mergeIdeiaIntoCampanhaForm,
   attachIdeiaToCampanhaPayload,
   isCampanhaUnitBrief,
@@ -193,5 +195,63 @@ describe('attachIdeiaToCampanhaPayload / helpers', () => {
         tipo_campanha: '',
       }).tipo_campanha
     ).toBe('5_videos');
+  });
+});
+
+describe('PI-3 finalize', () => {
+  it('finalizeFromBrief lê top-level', () => {
+    expect(
+      finalizeFromBrief({
+        aprendizado: '  Reels  ',
+        feedbackCliente: 'Gostaram',
+        resultado: {
+          nota_geral: '8',
+          vendas_realizado: 12,
+          o_que_funcionou: 'UGC',
+        },
+      })
+    ).toEqual({
+      aprendizado: 'Reels',
+      feedbackCliente: 'Gostaram',
+      resultado: {
+        vendas_realizado: 12,
+        engajamento_realizado: null,
+        nota_geral: 8,
+        o_que_funcionou: 'UGC',
+        o_que_nao_funcionou: '',
+      },
+    });
+  });
+
+  it('briefPatchFromFinalize grava campos e historico opcional', () => {
+    const patch = briefPatchFromFinalize(
+      {
+        aprendizado: 'Focar prova social',
+        feedbackCliente: 'Pediu mais stories',
+        resultado: { nota_geral: 7, vendas_realizado: '' },
+      },
+      { appendHistorico: true, historicoAtual: [{ acao: 'create' }] }
+    );
+    expect(patch.aprendizado).toBe('Focar prova social');
+    expect(patch.feedbackCliente).toBe('Pediu mais stories');
+    expect(patch.resultado.nota_geral).toBe(7);
+    expect(patch.resultado.vendas_realizado).toBe(null);
+    expect(patch.historico).toHaveLength(2);
+    expect(patch.historico[1].acao).toBe('finalize');
+  });
+
+  it('normalizeCampanhaUnit inclui finalize', () => {
+    const unit = normalizeCampanhaUnit({
+      id: 'b1',
+      brief_kind: BRIEF_KIND_CAMPANHA_MENSAL,
+      nome_campanha: 'Set',
+      aprendizado: 'X',
+      feedbackCliente: 'Y',
+      resultado: { nota_geral: 9 },
+    });
+    expect(unit.aprendizado).toBe('X');
+    expect(unit.feedbackCliente).toBe('Y');
+    expect(unit.resultado.nota_geral).toBe(9);
+    expect(unit.ux_kind).toBe(UX_KIND_CAMPANHA);
   });
 });

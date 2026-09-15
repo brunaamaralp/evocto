@@ -21,3 +21,5 @@ Status: **implementado**.
 
 - [x] Create → Workspace tasks quando `serviceId` resolvido
 - [x] Plano anual: não materializado → Brainstorm; materializado → Workspace
+
+**Atualização PI-2:** fluxo **Nova Campanha / Brainstorm** a partir do Panorama landa em Workspace **Ideia** (`section=ideia`). Form/texto e default geral do Workspace permanecem em **tasks** (D1) até alinhamento explícito.

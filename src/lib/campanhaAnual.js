@@ -12,7 +12,8 @@ import {
 } from '@/lib/campanhaAnualSchema';
 
 /**
- * Salva (create/update) plano anual no Brief.
+ * @deprecated PI-5 — editor/materializar anual removidos. Preferir Panorama + Nova Campanha.
+ * Mantido só se algum fluxo legado ainda persistir `campanha_anual`.
  */
 export async function saveCampanhaAnualBriefing({
   briefingId = null,

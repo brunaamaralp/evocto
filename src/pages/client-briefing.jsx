@@ -22,6 +22,7 @@ import { Brief } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { PublicBriefingToken } from '@/api/entities';
 import { createPageUrl } from '@/utils';
+import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 import { useNavigate } from 'react-router-dom';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -191,14 +192,7 @@ export default function ClientBriefingPage() {
   };
 
   const handleCreatePlanoAnual = () => {
-    const existing = planosAnuais[0];
-    if (existing?.id) {
-      navigate(
-        `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}&briefingId=${existing.id}`
-      );
-      return;
-    }
-    navigate(`${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}`);
+    navigate(buildAnnualPlanHref(clientId));
   };
 
   const handleFillInicialInterno = () => {
@@ -211,9 +205,7 @@ export default function ClientBriefingPage() {
 
   const handleEditBriefing = (brief) => {
     if (isCampanhaAnual(brief) || brief.brief_kind === 'campanha_anual') {
-      navigate(
-        `${createPageUrl('briefing-campanha-anual')}?clientId=${clientId}&briefingId=${brief.id}`
-      );
+      navigate(buildAnnualPlanHref(clientId));
       return;
     }
     // Campanhas mensais → Workspace (redirect via campaignHref se sem serviceId)
@@ -276,7 +268,7 @@ export default function ClientBriefingPage() {
           )}
           {(brief.brief_kind === 'campanha_anual' || isCampanhaAnual(brief)) && (
             <Badge className="bg-[#F5F2FC] text-[#6C47D8] border border-[#D4CBF5]">
-              Plano anual {brief.ano ? brief.ano : ''}
+              Arquivo anual {brief.ano ? brief.ano : ''}
             </Badge>
           )}
           {brief.status_anual && brief.brief_kind === 'campanha_anual' && (
@@ -307,7 +299,7 @@ export default function ClientBriefingPage() {
       >
         <Edit className="w-4 h-4 mr-1" />
         {isCampanhaAnual(brief) || brief.brief_kind === 'campanha_anual'
-          ? 'Abrir plano'
+          ? 'Abrir panorama'
           : 'Abrir ficha'}
       </Button>
     </div>
@@ -335,15 +327,9 @@ export default function ClientBriefingPage() {
       done: hasSubmittedInicial || planosAnuais.length > 0,
     },
     {
-      id: 'anual',
-      label: 'Plano anual',
-      done: planosAnuais.some(
-        (b) =>
-          b.status_anual === 'ia_gerou' ||
-          b.status_anual === 'temas_prontos' ||
-          b.status_anual === 'aprovado' ||
-          b.status_anual === 'aprovado_parcial'
-      ),
+      id: 'panorama',
+      label: 'Panorama',
+      done: campanhas.length > 0 || planosAnuais.length > 0,
     },
     {
       id: 'campanhas',
@@ -358,10 +344,10 @@ export default function ClientBriefingPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between sm:items-center">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
-              Campanhas & plano
+              Briefing & campanhas
             </h1>
             <p className="text-xs text-[#7A7595]">
-              Briefing inicial, plano anual e campanhas do cliente
+              Briefing inicial, panorama e campanhas do cliente
             </p>
           </div>
 
@@ -383,7 +369,7 @@ export default function ClientBriefingPage() {
             )}
             <Button size="sm" variant="outline" onClick={handleCreatePlanoAnual}>
               <CalendarRange className="w-4 h-4 mr-1" />
-              Plano anual
+              Panorama
             </Button>
             <Button size="sm" variant="outline" onClick={handleCreateCampanha}>
               <Plus className="w-4 h-4 mr-1" />
@@ -504,11 +490,14 @@ export default function ClientBriefingPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <CalendarRange className="w-5 h-5 text-[#6C47D8]" />
-              Plano anual
-              <Badge variant="outline">{planosAnuais.length}</Badge>
+              Panorama
+              {planosAnuais.length > 0 ? (
+                <Badge variant="outline">{planosAnuais.length} arquivo(s)</Badge>
+              ) : null}
             </CardTitle>
             <p className="text-sm text-[#7A7595] font-normal">
-              Temas com IA e campanhas do ano — uso interno da equipe.
+              Planejamento mês a mês. Documentos anuais antigos ficam só como arquivo
+              (leitura → Panorama).
             </p>
           </CardHeader>
           <CardContent>
@@ -516,18 +505,29 @@ export default function ClientBriefingPage() {
               <div className="text-center py-8">
                 <CalendarRange className="w-10 h-10 text-[#D4CBF5] mx-auto mb-3" />
                 <h3 className="text-lg font-medium text-[#18162A] mb-2">
-                  Nenhum plano anual
+                  Abrir panorama do ano
                 </h3>
                 <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
-                  Depois do briefing inicial, monte o plano aqui e peça sugestão de temas à IA.
+                  Planeje mês a mês no Panorama Anual — sem preencher 12 meses de uma vez.
                 </p>
                 <Button onClick={handleCreatePlanoAnual}>
                   <CalendarRange className="w-4 h-4 mr-2" />
-                  Criar plano anual
+                  Abrir panorama
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">{planosAnuais.map(renderBriefRow)}</div>
+              <div className="space-y-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCreatePlanoAnual}
+                  className="mb-1"
+                >
+                  <CalendarRange className="w-4 h-4 mr-2" />
+                  Abrir panorama
+                </Button>
+                {planosAnuais.map(renderBriefRow)}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -551,7 +551,7 @@ export default function ClientBriefingPage() {
                   Nenhuma campanha
                 </h3>
                 <p className="text-[#7A7595] mb-4 max-w-md mx-auto">
-                  No plano anual, materialize o mês ou crie uma campanha nova.
+                  Crie a campanha pelo Panorama (Nova Campanha) ou pelo formulário.
                 </p>
                 <Button variant="outline" onClick={handleCreateCampanha}>
                   <Plus className="w-4 h-4 mr-2" />
