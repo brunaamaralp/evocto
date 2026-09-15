@@ -196,11 +196,13 @@ export default function BriefingTab({ client }) {
                           buildClientCampaignHref({
                             clientId: client.id,
                             briefingId: brief.id,
+                            serviceId: brief.serviceId || null,
+                            tab: 'ideia',
                           })
                         )}
                       >
                         <Edit className="w-4 h-4 mr-1" />
-                        Abrir ficha
+                        Abrir campanha
                       </Link>
                     </Button>
                   </div>

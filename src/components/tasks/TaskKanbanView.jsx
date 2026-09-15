@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +19,9 @@ import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const KANBAN_COLUMNS = [
-  { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
-  { id: 'todo', title: 'A Fazer', status: 'todo', color: 'bg-blue-100', textColor: 'text-blue-700' },
-  { id: 'in_progress', title: 'Em Progresso', status: 'in_progress', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
+  { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
+  { id: 'todo', title: 'A fazer', status: 'todo', color: 'bg-blue-100', textColor: 'text-blue-700' },
+  { id: 'in_progress', title: 'Em andamento', status: 'in_progress', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
   { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100', textColor: 'text-green-700' }
 ];
 
@@ -40,7 +40,10 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
 
   // Agrupar tarefas por status
   const tasksByStatus = tasks.reduce((acc, task) => {
-    const status = task.status || 'backlog';
+    let status = String(task.status || 'backlog').toLowerCase();
+    if (status === 'done' || status === 'concluido' || status === 'concluida' || status === 'concluída') {
+      status = 'completed';
+    }
     if (!acc[status]) acc[status] = [];
     acc[status].push(task);
     return acc;

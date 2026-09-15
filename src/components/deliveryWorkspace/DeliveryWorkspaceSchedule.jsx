@@ -14,6 +14,7 @@ import {
 } from '@/lib/deliverableScheduleCore';
 import { formatYmdBr, todayYmd } from '@/lib/businessDaysCore';
 import StageGantt from './StageGantt';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 export default function DeliveryWorkspaceSchedule({ service, tasks = [], onServiceUpdated }) {
   const [localDeliverables, setLocalDeliverables] = useState([]);
@@ -157,7 +158,7 @@ export default function DeliveryWorkspaceSchedule({ service, tasks = [], onServi
                   </p>
                 </div>
                 <Badge variant="outline" className="text-xs">
-                  {(r.status || '').replace(/_/g, ' ')}
+                  {statusLabelPt(r.status)}
                 </Badge>
                 <div className="flex items-center gap-1">
                   <Input

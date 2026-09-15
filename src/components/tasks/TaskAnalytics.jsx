@@ -1,4 +1,4 @@
-
+﻿
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import {
   TrendingUp, TrendingDown, Clock, Users, Target, 
   AlertCircle, CheckCircle, Zap, Flag 
 } from 'lucide-react';
+import WorkloadByPersonPanel from './WorkloadByPersonPanel';
 
 const _COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
 
@@ -123,9 +124,9 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
     ].filter(item => item.value > 0);
 
     const statusData = [
-      { name: 'Backlog', value: tasks.filter(t => t.status === 'backlog').length },
-      { name: 'A Fazer', value: tasks.filter(t => t.status === 'todo').length },
-      { name: 'Em Progresso', value: tasks.filter(t => t.status === 'in_progress').length },
+      { name: 'Fila', value: tasks.filter(t => t.status === 'backlog').length },
+      { name: 'A fazer', value: tasks.filter(t => t.status === 'todo').length },
+      { name: 'Em andamento', value: tasks.filter(t => t.status === 'in_progress').length },
       { name: 'Em Revisão', value: tasks.filter(t => t.status === 'in_review').length },
       { name: 'Concluído', value: tasks.filter(t => t.status === 'completed').length },
       { name: 'Bloqueado', value: tasks.filter(t => t.status === 'blocked').length }
@@ -299,6 +300,8 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
         </Card>
       </div>
 
+      <WorkloadByPersonPanel tasks={tasks} users={users} />
+
       {/* User Performance */}
       <Card>
         <CardHeader>
@@ -332,7 +335,7 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
                   </div>
                   <div className="text-center">
                     <p className="font-medium text-blue-600">{user.inProgress}</p>
-                    <p className="text-gray-600">Em Progresso</p>
+                    <p className="text-gray-600">Em andamento</p>
                   </div>
                   {user.overdue > 0 && (
                     <div className="text-center">

@@ -218,7 +218,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Workspace',
+          label: briefingId ? 'Campanha' : 'Entrega',
           icon: Megaphone,
           href: workspaceHref,
           isActive: currentPage === 'delivery-workspace',

@@ -1,4 +1,4 @@
-
+﻿
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
@@ -43,9 +43,9 @@ import {
 
 // Status das tarefas
 const TASK_STATUSES = [
-  { value: 'backlog', label: 'Backlog', color: 'bg-gray-100 text-gray-700' },
-  { value: 'todo', label: 'A Fazer', color: 'bg-blue-100 text-blue-700' },
-  { value: 'in_progress', label: 'Em Progresso', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'backlog', label: 'Fila', color: 'bg-gray-100 text-gray-700' },
+  { value: 'todo', label: 'A fazer', color: 'bg-blue-100 text-blue-700' },
+  { value: 'in_progress', label: 'Em andamento', color: 'bg-yellow-100 text-yellow-700' },
   { value: 'in_review', label: 'Em Revisão', color: 'bg-purple-100 text-purple-700' },
   { value: 'completed', label: 'Concluído', color: 'bg-green-100 text-green-700' },
   { value: 'cancelled', label: 'Cancelado', color: 'bg-red-100 text-red-700' },

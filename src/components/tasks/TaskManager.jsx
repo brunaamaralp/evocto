@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task, Brief } from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +22,6 @@ import TaskPhaseView from './TaskPhaseView';
 import TaskCalendarView from './TaskCalendarView';
 import TaskFilters from './TaskFilters';
 import TaskForm from './TaskForm';
-import WorkloadByPersonPanel from './WorkloadByPersonPanel';
 import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
@@ -32,6 +31,7 @@ import {
   getTaskBriefIds,
 } from '@/lib/taskScope';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
+import { completeTask } from '@/lib/completeTask';
 
 /**
  * Componente principal de tarefas com 4 visualizações
@@ -123,14 +123,38 @@ export default function TaskManager({
   }, [loadTasks, refreshKey]);
 
   useEffect(() => {
-    const handler = () => {
+    const onUpdated = (event) => {
+      const { taskId, status, deleted, kanbanColumn } = event?.detail || {};
+      if (taskId && deleted) {
+        setTasks((prev) => prev.filter((t) => String(t.id) !== String(taskId)));
+        return;
+      }
+      if (taskId && status) {
+        const normalized = String(status).toLowerCase();
+        const isDone = normalized === 'completed' || normalized === 'done';
+        setTasks((prev) =>
+          prev.map((t) =>
+            String(t.id) === String(taskId)
+              ? {
+                  ...t,
+                  status: isDone ? 'completed' : status,
+                  kanbanColumn:
+                    kanbanColumn ||
+                    (isDone ? 'completed' : t.kanbanColumn || status),
+                }
+              : t
+          )
+        );
+        window.setTimeout(() => loadTasks(), 900);
+        return;
+      }
       loadTasks();
     };
-    window.addEventListener('task:refresh', handler);
-    window.addEventListener('task:updated', handler);
+    window.addEventListener('task:refresh', onUpdated);
+    window.addEventListener('task:updated', onUpdated);
     return () => {
-      window.removeEventListener('task:refresh', handler);
-      window.removeEventListener('task:updated', handler);
+      window.removeEventListener('task:refresh', onUpdated);
+      window.removeEventListener('task:updated', onUpdated);
     };
   }, [loadTasks]);
 
@@ -178,16 +202,37 @@ export default function TaskManager({
       if (updates?.status) {
         const task = tasks.find((t) => t.id === taskId);
         if (task) {
-          const result = await transitionTaskStatus(task, updates.status, {
-            agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
-            user,
-          });
+          const nextStatus = updates.status;
+          const isDone = nextStatus === 'completed' || nextStatus === 'done';
+          // Optimistic
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === taskId
+                ? {
+                    ...t,
+                    status: isDone ? 'completed' : nextStatus,
+                    kanbanColumn: isDone ? 'completed' : nextStatus,
+                  }
+                : t
+            )
+          );
+
+          const result = isDone
+            ? await completeTask(task, {
+                agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+                user,
+              })
+            : await transitionTaskStatus(task, nextStatus, {
+                agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+                user,
+              });
           if (!result.success) {
             toast.error(result.message || 'Não é possível alterar o status');
+            await loadTasks();
             return;
           }
-          await loadTasks();
           toast.success('Tarefa atualizada!');
+          window.setTimeout(() => loadTasks(), 900);
           return;
         }
       }
@@ -256,9 +301,9 @@ export default function TaskManager({
   // Labels
   const getStatusLabel = (status) => {
     const labels = {
-      'backlog': 'Backlog',
-      'todo': 'A Fazer',
-      'in_progress': 'Em Progresso',
+      'backlog': 'Fila',
+      'todo': 'A fazer',
+      'in_progress': 'Em andamento',
       'in_review': 'Em Revisão',
       'completed': 'Concluído',
       'cancelled': 'Cancelado',
@@ -350,19 +395,6 @@ export default function TaskManager({
         currentUserId={currentUserId}
         compact={embedded}
       />
-
-      {!embedded && (
-        <WorkloadByPersonPanel
-          tasks={tasks}
-          onSelectAssignee={(assigneeId) =>
-            setFilters((prev) => ({
-              ...prev,
-              assignee: assigneeId,
-              preset: null,
-            }))
-          }
-        />
-      )}
 
       <Tabs value={activeView} onValueChange={setActiveView} className="space-y-4">
         <div className="overflow-x-auto -mx-1 px-1">

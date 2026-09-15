@@ -1,6 +1,7 @@
 import './App.css'
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import PWAInstallBanner from "@/components/pwa/PWAInstallBanner"
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
     <>
       <Pages />
       <Toaster />
+      <SonnerToaster position="top-center" richColors closeButton />
       <PWAInstallBanner />
     </>
   )

@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useCallback } from 'react';
 import { Task } from '@/api/entities';
 import { Client } from '@/api/entities';
@@ -25,11 +25,11 @@ import {
   CalendarDays
 } from 'lucide-react';
 import { toast } from 'sonner';
-import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import TaskCalendarView from '@/components/tasks/TaskCalendarView';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
-import { transitionTaskStatus } from '@/lib/taskStatusTransition';
+import { transitionTaskStatus, completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
+import { completeTask } from '@/lib/completeTask';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
@@ -37,13 +37,13 @@ import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 const KANBAN_COLUMNS = [
   { 
     id: 'backlog', 
-    title: 'Backlog', 
+    title: 'Fila', 
     color: 'bg-[#EDE8F5]',
     description: 'Tarefas em espera'
   },
   { 
     id: 'todo', 
-    title: 'A Fazer', 
+    title: 'A fazer', 
     color: 'bg-[#DCEAF8]',
     description: 'Prontas para iniciar'
   },
@@ -280,7 +280,7 @@ export default function TasksManagerPage() {
   // Drawer / dashboard / outras telas: refletir conclusão sem reload completo
   useEffect(() => {
     const onUpdated = (event) => {
-      const { taskId, status, deleted } = event?.detail || {};
+      const { taskId, status, deleted, kanbanColumn } = event?.detail || {};
       if (!taskId) {
         loadData({ silent: true });
         return;
@@ -291,12 +291,22 @@ export default function TasksManagerPage() {
       }
       if (status) {
         setTasks((prev) =>
-          prev.map((t) =>
-            String(t.id) === String(taskId)
-              ? { ...t, status, kanbanColumn: status }
-              : t
-          )
+          prev.map((t) => {
+            if (String(t.id) !== String(taskId)) return t;
+            const normalized = String(status).toLowerCase();
+            const isDone = normalized === 'completed' || normalized === 'done';
+            const nextColumn = isDone
+              ? kanbanColumn || completedKanbanColumnForTask({ ...t, status: normalized })
+              : kanbanColumn || status;
+            return {
+              ...t,
+              status: isDone ? 'completed' : status,
+              kanbanColumn: nextColumn,
+            };
+          })
         );
+        // Confirma no servidor com atraso — evita reverter UI otimista
+        window.setTimeout(() => loadData({ silent: true }), 900);
         return;
       }
       loadData({ silent: true });
@@ -346,14 +356,24 @@ export default function TasksManagerPage() {
     });
   }, [tasks, selectedClient, selectedUser, selectedStatus, searchTerm]);
 
-  // Organizar tarefas por coluna
+  // Organizar tarefas por coluna (status canônico + aliases done)
   const tasksByStatus = React.useMemo(() => {
     const organized = {};
-    
-    KANBAN_COLUMNS.forEach(column => {
-      organized[column.id] = filteredTasks.filter(task => task.status === column.id);
+    const columnOf = (task) => {
+      const raw = String(task?.status || '').toLowerCase();
+      if (raw === 'done' || raw === 'concluido' || raw === 'concluída' || raw === 'concluida') {
+        return 'completed';
+      }
+      if (KANBAN_COLUMNS.some((c) => c.id === raw)) return raw;
+      const stage = String(task?.kanbanColumn || '').toLowerCase();
+      if (stage === 'completed' || stage === 'publicacao') return 'completed';
+      return raw || 'todo';
+    };
+
+    KANBAN_COLUMNS.forEach((column) => {
+      organized[column.id] = filteredTasks.filter((task) => columnOf(task) === column.id);
     });
-    
+
     return organized;
   }, [filteredTasks]);
 
@@ -378,14 +398,29 @@ export default function TasksManagerPage() {
       // Optimistic UI
       setTasks(prevTasks => 
         prevTasks.map(t => 
-          t.id === taskId ? { ...t, status: newStatus } : t
+          t.id === taskId
+            ? {
+                ...t,
+                status: newStatus,
+                kanbanColumn:
+                  newStatus === 'completed'
+                    ? completedKanbanColumnForTask({ ...t, status: newStatus })
+                    : newStatus,
+              }
+            : t
         )
       );
 
-      const transition = await transitionTaskStatus(task, newStatus, {
-        agencyId: task.agencyId || agencyId,
-        user,
-      });
+      const transition =
+        newStatus === 'completed'
+          ? await completeTask(task, {
+              agencyId: task.agencyId || agencyId,
+              user,
+            })
+          : await transitionTaskStatus(task, newStatus, {
+              agencyId: task.agencyId || agencyId,
+              user,
+            });
 
       if (!transition.success) {
         setTasks(prevTasks =>
@@ -401,7 +436,14 @@ export default function TasksManagerPage() {
       toast.success(`Tarefa movida para "${statusLabel}"`);
       
       window.dispatchEvent(new CustomEvent('task:updated', { 
-        detail: { taskId, status: newStatus } 
+        detail: {
+          taskId,
+          status: newStatus === 'completed' ? 'completed' : newStatus,
+          kanbanColumn:
+            newStatus === 'completed'
+              ? completedKanbanColumnForTask(task)
+              : newStatus,
+        },
       }));
 
     } catch (error) {
@@ -586,14 +628,6 @@ export default function TasksManagerPage() {
           )}
         </CardContent>
       </Card>
-
-      <div className="mb-6 max-w-xl">
-        <WorkloadByPersonPanel
-          tasks={filteredTasks}
-          users={users}
-          onSelectAssignee={(id) => setSelectedUser(id)}
-        />
-      </div>
 
       {/* Quadro Kanban ou Calendário semanal */}
       {viewMode === 'week' ? (

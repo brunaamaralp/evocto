@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Task } from '@/api/entities';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
+import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
+import { completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 /** Colunas Kanban da campanha (spec produto). */
 export const CAMPAIGN_KANBAN_COLUMNS = Object.freeze([
@@ -108,7 +111,7 @@ function TaskCard({ task, busyId, onAdvance, onComplete }) {
       </button>
       <div className="mt-2 flex items-center justify-between gap-2">
         <Badge variant="outline" className="text-[10px]">
-          {(task.status || 'todo').replace(/_/g, ' ')}
+          {statusLabelPt(task.status || 'todo')}
         </Badge>
         <TaskTimerButton task={task} showLabel={false} />
       </div>
@@ -215,7 +218,36 @@ export default function CampaignWorkspaceTasks({
   };
 
   const handleComplete = async (task) => {
-    await patchTask(task, CAMPAIGN_DONE_PATCH, 'Tarefa concluída');
+    if (!task?.id || busyId) return;
+    setBusyId(task.id);
+    try {
+      const result = await completeTask(task);
+      if (!result.success) {
+        toastTaskCompleteError(result.message || 'Não é possível concluir esta tarefa');
+        return;
+      }
+      setLocalOverrides((prev) => ({
+        ...prev,
+        [task.id]: {
+          status: 'completed',
+          kanbanColumn: completedKanbanColumnForTask(task),
+        },
+      }));
+      toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+      notifyTaskCompleted(task.id, {
+        kanbanColumn: completedKanbanColumnForTask(task),
+      });
+      if (typeof onTasksNeedReload === 'function') {
+        window.setTimeout(() => {
+          void onTasksNeedReload();
+        }, 900);
+      }
+    } catch (err) {
+      console.error('[CampaignWorkspaceTasks]', err);
+      toastTaskCompleteError(err?.message || 'Não foi possível atualizar a tarefa');
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (

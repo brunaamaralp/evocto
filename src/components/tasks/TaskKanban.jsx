@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -26,9 +26,9 @@ import TaskCreateModal from './TaskCreateModal';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const KANBAN_COLUMNS = [
-  { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-gray-100' },
-  { id: 'todo', title: 'A Fazer', status: 'todo', color: 'bg-blue-100' },
-  { id: 'in_progress', title: 'Em Progresso', status: 'in_progress', color: 'bg-yellow-100' },
+  { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-gray-100' },
+  { id: 'todo', title: 'A fazer', status: 'todo', color: 'bg-blue-100' },
+  { id: 'in_progress', title: 'Em andamento', status: 'in_progress', color: 'bg-yellow-100' },
   { id: 'in_review', title: 'Em Revisão', status: 'in_review', color: 'bg-purple-100' },
   { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100' },
   { id: 'cancelled', title: 'Cancelado', status: 'cancelled', color: 'bg-red-100' },

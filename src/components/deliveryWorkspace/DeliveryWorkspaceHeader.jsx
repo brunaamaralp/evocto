@@ -3,8 +3,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Menu, Pencil } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
-const STATUS_LABELS = {
+const SERVICE_STATUS_LABELS = {
   setup: 'Configuração',
   briefing_pending: 'Aguardando briefing',
   kpis_setup: 'KPIs',
@@ -15,6 +16,22 @@ const STATUS_LABELS = {
   archived: 'Arquivado',
 };
 
+function serviceStatusLabel(status) {
+  const key = String(status || '').trim().toLowerCase();
+  if (!key) return null;
+  return SERVICE_STATUS_LABELS[key] || statusLabelPt(key, null);
+}
+
+function campaignStatusLabel(status) {
+  const key = String(status || '').trim();
+  if (!key) return null;
+  return statusLabelPt(key, key.replace(/_/g, ' '));
+}
+
+/**
+ * Header do /delivery-workspace.
+ * Modo campanha vs serviço deve ser óbvio (badge + título + subtítulo).
+ */
 export default function DeliveryWorkspaceHeader({
   service,
   client,
@@ -24,21 +41,28 @@ export default function DeliveryWorkspaceHeader({
 }) {
   if (!service) return null;
 
-  const serviceName = service.name || 'Entrega';
-  const campaignTitle = campaignUnit?.label || campaignUnit?.ideia?.titulo || null;
-  const name = campaignTitle || serviceName;
-  const status = campaignUnit
-    ? campaignUnit.status_campanha || ''
-    : service.service_status || service.status || '';
-  const statusLabel = campaignUnit
-    ? status || 'Campanha'
-    : STATUS_LABELS[status] || status || '—';
+  const isCampaign = Boolean(campaignUnit);
+  const serviceName = service.name || 'Serviço';
+  const campaignTitle =
+    campaignUnit?.label ||
+    campaignUnit?.ideia?.titulo ||
+    campaignUnit?.nome_campanha ||
+    'Campanha';
+  const title = isCampaign ? campaignTitle : serviceName;
   const clientName = client?.name || client?.legal_name || service.clientName || 'Cliente';
   const clientId = service.clientId || client?.id || campaignUnit?.clientId;
   const clientHref = clientId
     ? `${createPageUrl('client-detail')}?clientId=${clientId}`
     : null;
   const editHref = `${createPageUrl('service-instance-editor')}?serviceId=${service.id}`;
+  const serviceWorkspaceHref = `${createPageUrl('delivery-workspace')}?serviceId=${service.id}&section=overview`;
+
+  const statusRaw = isCampaign
+    ? campaignUnit.status_campanha || campaignUnit.status || ''
+    : service.service_status || service.status || '';
+  const statusLabel = isCampaign
+    ? campaignStatusLabel(statusRaw)
+    : serviceStatusLabel(statusRaw);
 
   return (
     <header className="delivery-workspace-header">
@@ -71,9 +95,11 @@ export default function DeliveryWorkspaceHeader({
               <span>{clientName}</span>
             )}
             <span className="mx-1.5">/</span>
-            {campaignTitle ? (
+            {isCampaign ? (
               <>
-                <span className="text-slate-600">{serviceName}</span>
+                <Link to={serviceWorkspaceHref} className="hover:text-slate-800 text-slate-600">
+                  {serviceName}
+                </Link>
                 <span className="mx-1.5">/</span>
                 <span className="text-slate-800 font-medium">{campaignTitle}</span>
               </>
@@ -83,10 +109,42 @@ export default function DeliveryWorkspaceHeader({
           </nav>
 
           <div className="delivery-workspace-header__identity">
-            <h1 className="delivery-workspace-header__name">{name}</h1>
+            <div className="delivery-workspace-header__title-row">
+              <h1 className="delivery-workspace-header__name">{title}</h1>
+              <Badge
+                className={
+                  isCampaign
+                    ? 'bg-violet-100 text-violet-800 border-violet-200'
+                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                }
+                variant="outline"
+              >
+                {isCampaign ? 'Campanha' : 'Serviço'}
+              </Badge>
+            </div>
+
             <div className="delivery-workspace-header__meta">
-              <Badge variant="secondary">{statusLabel}</Badge>
-              {clientHref ? (
+              {statusLabel ? (
+                <Badge variant="secondary">{statusLabel}</Badge>
+              ) : null}
+              {isCampaign ? (
+                <p className="delivery-workspace-header__subtitle">
+                  <Link
+                    to={serviceWorkspaceHref}
+                    className="hover:text-slate-900 underline-offset-2 hover:underline"
+                  >
+                    {serviceName}
+                  </Link>
+                  <span className="mx-1.5 text-slate-300">·</span>
+                  {clientHref ? (
+                    <Link to={clientHref} className="hover:text-slate-900 underline-offset-2 hover:underline">
+                      {clientName}
+                    </Link>
+                  ) : (
+                    <span>{clientName}</span>
+                  )}
+                </p>
+              ) : clientHref ? (
                 <Link to={clientHref} className="text-sm text-slate-600 hover:text-slate-900">
                   {clientName}
                 </Link>
@@ -97,7 +155,7 @@ export default function DeliveryWorkspaceHeader({
           </div>
         </div>
 
-        {!campaignUnit ? (
+        {!isCampaign ? (
           <Button asChild variant="outline" size="sm">
             <Link to={editHref}>
               <Pencil className="w-3.5 h-3.5 mr-1" />

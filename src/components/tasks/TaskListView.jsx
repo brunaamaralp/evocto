@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -481,7 +481,7 @@ export default function TaskListView({
               <div className="text-2xl font-bold text-yellow-600">
                 {tasks.filter((t) => t.status === 'in_progress').length}
               </div>
-              <div className="text-sm text-gray-600">Em Progresso</div>
+              <div className="text-sm text-gray-600">Em andamento</div>
             </CardContent>
           </Card>
           <Card>
@@ -515,9 +515,9 @@ export default function TaskListView({
 
 function getStatusLabel(status) {
   const labels = {
-    backlog: 'Backlog',
-    todo: 'A Fazer',
-    in_progress: 'Em Progresso',
+    backlog: 'Fila',
+    todo: 'A fazer',
+    in_progress: 'Em andamento',
     in_review: 'Em Revisão',
     completed: 'Concluída',
     cancelled: 'Cancelada',

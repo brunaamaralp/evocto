@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+﻿import { useEffect, useState, useCallback } from "react";
 import { useSession } from "@/components/auth/SessionManager";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -21,9 +21,9 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS = [
-  { value: "backlog", label: "Backlog" },
-  { value: "todo", label: "A Fazer" },
-  { value: "in_progress", label: "Em Progresso" },
+  { value: "backlog", label: "Fila" },
+  { value: "todo", label: "A fazer" },
+  { value: "in_progress", label: "Em andamento" },
   { value: "in_review", label: "Em Revisão" },
   { value: "completed", label: "Concluído" },
   { value: "blocked", label: "Bloqueado" },

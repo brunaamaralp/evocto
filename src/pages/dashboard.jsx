@@ -8,7 +8,6 @@ import {
   Plus,
   RefreshCw,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -19,7 +18,7 @@ import { Brief } from '@/api/entities';
 import { CyclePlan } from '@/api/entities';
 import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
 import { buildGreetingLine } from '@/lib/dashboardDayBriefing';
-import { transitionTaskStatus } from '@/lib/taskStatusTransition';
+import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
 
 function firstNameFromFullName(fullName) {
   const first = String(fullName || '')
@@ -342,7 +341,7 @@ function kindBadge(kind) {
     case 'blocked':
       return { label: 'Bloqueada', className: 'text-[#b45309]' };
     case 'waiting_client':
-      return { label: 'Cliente', className: 'text-[#555]' };
+      return { label: 'Aguardando cliente', className: 'text-[#555]' };
     case 'approval':
       return { label: 'Aprovar', className: 'text-[#b45309]' };
     default:
@@ -513,8 +512,28 @@ export default function DashboardPage() {
   }, [sessionLoading, agencyId, loadDashboardData]);
 
   useEffect(() => {
-    const onTaskUpdated = () => {
+    const onTaskUpdated = (event) => {
       if (!agencyId || sessionLoading) return;
+      const { taskId, status, deleted } = event?.detail || {};
+
+      // Conclusão / exclusão: ajusta filas na hora; evita reload imediato
+      // trazer a tarefa de volta antes da leitura consistente.
+      if (taskId && (deleted || status === 'completed' || status === 'done')) {
+        const removeId = `task:${taskId}`;
+        setDashboardData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            attentionQueue: (prev.attentionQueue || []).filter((i) => i.id !== removeId),
+            agenda: (prev.agenda || []).filter((i) => i.id !== removeId),
+          };
+        });
+        window.setTimeout(() => {
+          loadDashboardData({ silent: true });
+        }, 800);
+        return;
+      }
+
       loadDashboardData({ silent: true });
     };
     window.addEventListener('task:updated', onTaskUpdated);
@@ -528,22 +547,15 @@ export default function DashboardPage() {
 
       setCompletingId(task.id);
       try {
-        const result = await transitionTaskStatus(task, 'completed', {
+        const result = await completeTask(task, {
           agencyId: agencyId || task.agencyId,
           user,
         });
         if (!result.success) {
-          toast.error(result.message || 'Não é possível concluir esta tarefa');
+          toastTaskCompleteError(result.message || 'Não é possível concluir esta tarefa');
           return;
         }
 
-        const savedStatus = String(result.task?.status || 'completed').toLowerCase();
-        if (savedStatus !== 'completed' && savedStatus !== 'done') {
-          toast.error('A tarefa não foi marcada como concluída. Tente de novo.');
-          return;
-        }
-
-        // Remove na hora da fila/agenda (não espera o reload).
         const removeId = `task:${task.id}`;
         setDashboardData((prev) => {
           if (!prev) return prev;
@@ -554,15 +566,11 @@ export default function DashboardPage() {
           };
         });
 
-        toast.success('Tarefa concluída');
-        window.dispatchEvent(
-          new CustomEvent('task:updated', {
-            detail: { taskId: task.id, status: 'completed' },
-          })
-        );
+        toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+        notifyTaskCompleted(task.id);
       } catch (err) {
         console.error('[dashboard] complete task failed:', err);
-        toast.error(err?.message || 'Erro ao concluir tarefa');
+        toastTaskCompleteError(err?.message || 'Erro ao concluir tarefa');
       } finally {
         setCompletingId(null);
       }

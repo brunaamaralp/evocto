@@ -1,6 +1,8 @@
 /**
  * Aba Histórico — versões / eventos gravados no Brief da campanha.
  */
+import { historyActionLabelPt } from '@/lib/statusLabelsPt';
+
 export default function CampaignWorkspaceHistorico({ historico = [] }) {
   const rows = Array.isArray(historico) ? [...historico].reverse() : [];
 
@@ -27,8 +29,8 @@ export default function CampaignWorkspaceHistorico({ historico = [] }) {
                 className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-medium text-slate-800 capitalize">
-                    {String(action).replace(/_/g, ' ')}
+                  <span className="font-medium text-slate-800">
+                    {historyActionLabelPt(action)}
                   </span>
                   {when ? (
                     <time className="text-xs text-slate-500 shrink-0">

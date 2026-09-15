@@ -11,11 +11,11 @@ import { EvolutionEvent } from '@/api/entities';
 import { FinancialKPI } from '@/api/entities';
 import { createPageUrl } from '@/utils';
 import {
-  buildClientTasksHref,
   getTaskBriefIds,
   getTaskCycleIds,
 } from '@/lib/taskScope';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
+import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 import {
   attachAttentionServiceIds,
   deriveAttentionCountsByService,
@@ -173,27 +173,30 @@ export function deriveActiveCampaigns({
           buildClientCampaignHref({
             clientId,
             briefingId: brief.id,
+            serviceId: resolvedServiceId,
           })
         ),
         briefingHref: createPageUrl(
           buildClientCampaignHref({
             clientId,
             briefingId: brief.id,
+            serviceId: resolvedServiceId,
+            tab: 'ideia',
           })
-        ) + '#ficha',
+        ),
         tasksHref: createPageUrl(
-          buildClientTasksHref({
+          buildClientCampaignHref({
             clientId,
-            cycleId: resolvedCycleId,
             briefingId: brief.id,
             serviceId: resolvedServiceId,
+            tab: 'tasks',
           })
         ),
-        cycleHref: createPageUrl(
-          cycle?.serviceId
-            ? `delivery-workspace?serviceId=${cycle.serviceId}&section=tasks`
-            : `client-services?clientId=${clientId}`
-        ),
+        cycleHref: cycle?.serviceId
+          ? buildDeliveryWorkspacePath(cycle.serviceId, 'overview', {
+              clientId: clientId || undefined,
+            })
+          : createPageUrl(`client-services?clientId=${clientId}`),
       };
     })
     .sort((a, b) => {

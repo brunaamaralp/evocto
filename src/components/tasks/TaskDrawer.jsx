@@ -48,21 +48,25 @@ import TaskTimerButton from "@/components/tasks/TaskTimerButton";
 import TaskTimeSessionsPanel from "@/components/tasks/TaskTimeSessionsPanel";
 import TaskDependencies from "@/components/tasks/TaskDependencies";
 import TaskHistory from "@/components/tasks/TaskHistory";
-import { transitionTaskStatus } from "@/lib/taskStatusTransition";
+import { transitionTaskStatus, completedKanbanColumnForTask } from "@/lib/taskStatusTransition";
+import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from "@/lib/completeTask";
 import { appendAssignmentHistoryEntry } from "@/lib/taskActivityHistory";
 import TaskNotificationService from "@/components/notifications/TaskNotificationService";
 import { syncPipelineAfterTaskComplete } from "@/api/functions/transitionPipelinePhase";
+import { statusLabelPt } from "@/lib/statusLabelsPt";
 
 const UNASSIGNED = "unassigned";
 
 const STATUS_CONFIG = {
-  backlog: { label: "Backlog", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-500" },
-  todo: { label: "A Fazer", color: "bg-blue-100 text-blue-800", kanbanColor: "bg-blue-500" },
-  in_progress: { label: "Em Progresso", color: "bg-yellow-100 text-yellow-800", kanbanColor: "bg-yellow-500" },
-  in_review: { label: "Em Revisão", color: "bg-purple-100 text-purple-800", kanbanColor: "bg-purple-500" },
+  backlog: { label: "Fila", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-500" },
+  todo: { label: "A fazer", color: "bg-blue-100 text-blue-800", kanbanColor: "bg-blue-500" },
+  in_progress: { label: "Em andamento", color: "bg-yellow-100 text-yellow-800", kanbanColor: "bg-yellow-500" },
+  in_review: { label: "Em revisão", color: "bg-purple-100 text-purple-800", kanbanColor: "bg-purple-500" },
   completed: { label: "Concluído", color: "bg-green-100 text-green-800", kanbanColor: "bg-green-500" },
   cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800", kanbanColor: "bg-red-500" },
   blocked: { label: "Bloqueado", color: "bg-orange-100 text-orange-800", kanbanColor: "bg-orange-500" },
+  not_started: { label: "Não iniciado", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-400" },
+  waiting_client: { label: "Aguardando cliente", color: "bg-amber-100 text-amber-800", kanbanColor: "bg-amber-500" },
 };
 
 const PRIORITY_CONFIG = {
@@ -269,18 +273,35 @@ export default function TaskDrawer() {
     const prev = task;
     setSavingField("status");
     try {
-      const result = await transitionTaskStatus(task, newStatus, {
-        agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
-        user,
-      });
-      if (!result.success) {
-        toast.error(result.message || "Não é possível alterar o status");
-        return;
+      let updated;
+      if (newStatus === "completed") {
+        const result = await completeTask(task, {
+          agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+          user,
+        });
+        if (!result.success) {
+          toastTaskCompleteError(result.message || "Não é possível concluir esta tarefa");
+          return;
+        }
+        updated = result.task;
+        setTask(updated);
+        toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+      } else {
+        const result = await transitionTaskStatus(task, newStatus, {
+          agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+          user,
+        });
+        if (!result.success) {
+          toast.error(result.message || "Não é possível alterar o status");
+          return;
+        }
+        updated = result.task;
+        setTask(updated);
+        const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);
+        toast.success(`Status: ${statusLabel}`, { duration: 1600 });
       }
-      let updated = result.task;
-      setTask(updated);
-      const statusLabel = STATUS_CONFIG[newStatus]?.label || newStatus;
-      toast.success(`Status: ${statusLabel}`, { duration: 1600 });
+
+      const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);
 
       const systemComment = {
         id: `sys_${Date.now()}`,
@@ -291,11 +312,31 @@ export default function TaskDrawer() {
         type: "system",
         createdAt: new Date().toISOString(),
       };
-      updated = await Task.update(task.id, {
+      // Reenvia status/kanbanColumn no mesmo update dos comentários para não
+      // regravar um status antigo se o getRow intermediário vier defasado.
+      const commentPatch = {
         comments: [...(updated.comments || []), systemComment],
-      });
+        status: newStatus,
+        kanbanColumn:
+          newStatus === "completed"
+            ? completedKanbanColumnForTask({ ...task, ...updated, status: newStatus })
+            : newStatus,
+      };
+      if (newStatus === "completed") {
+        commentPatch.completedAt =
+          updated?.completedAt || new Date().toISOString();
+        commentPatch.progress = 100;
+      }
+      updated = await Task.update(task.id, commentPatch);
       setTask(updated);
-      notifyLists(task.id, { status: newStatus });
+
+      if (newStatus === "completed") {
+        notifyTaskCompleted(task.id, {
+          kanbanColumn: commentPatch.kanbanColumn,
+        });
+      } else {
+        notifyLists(task.id, { status: newStatus });
+      }
 
       if (newStatus === "completed" && task.serviceId) {
         syncPipelineAfterTaskComplete({
@@ -887,7 +928,11 @@ export default function TaskDrawer() {
                       onClick={() => handleStatusChange("completed")}
                       disabled={!!savingField}
                     >
-                      <Check className="w-3.5 h-3.5 mr-1" />
+                      {savingField === "status" ? (
+                        <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5 mr-1" />
+                      )}
                       Concluir
                     </Button>
                   )}

@@ -3,6 +3,8 @@
  * Padronização de linguagem em toda aplicação
  */
 
+import { statusLabelPt } from '@/lib/statusLabelsPt';
+
 export const TERMS = {
   // Entidades principais
   ENTITIES: {
@@ -25,7 +27,7 @@ export const TERMS = {
     INACTIVE: 'Inativo',
     PENDING: 'Pendente',
     COMPLETED: 'Concluído',
-    IN_PROGRESS: 'Em Andamento',
+    IN_PROGRESS: 'Em andamento',
     CANCELLED: 'Cancelado',
     APPROVED: 'Aprovado',
     REJECTED: 'Rejeitado'
@@ -118,7 +120,10 @@ export const formatRole = (role) => {
 };
 
 export const formatStatus = (status) => {
-  return TERMS.STATUS[status?.toUpperCase()] || status;
+  if (!status) return status;
+  const key = String(status).toUpperCase();
+  if (TERMS.STATUS[key]) return TERMS.STATUS[key];
+  return statusLabelPt(status, status);
 };
 
 export const formatAction = (action) => {

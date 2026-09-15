@@ -1,4 +1,4 @@
-
+﻿
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -357,9 +357,9 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="backlog">Backlog</SelectItem>
+                    <SelectItem value="backlog">Fila</SelectItem>
                     <SelectItem value="todo">A Fazer</SelectItem>
-                    <SelectItem value="in_progress">Em Progresso</SelectItem>
+                    <SelectItem value="in_progress">Em andamento</SelectItem>
                     <SelectItem value="in_review">Em Revisão</SelectItem>
                     <SelectItem value="completed">Concluída</SelectItem>
                   </SelectContent>

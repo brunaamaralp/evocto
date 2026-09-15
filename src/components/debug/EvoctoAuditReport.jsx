@@ -153,7 +153,7 @@ const StatusBadge = ({ status }) => {
   const variants = {
     fixed: { color: 'default', label: '✅ Corrigido', className: 'bg-green-100 text-green-800' },
     pending: { color: 'destructive', label: '🔄 Pendente', className: 'bg-orange-100 text-orange-800' },
-    'in-progress': { color: 'default', label: '⏳ Em Progresso', className: 'bg-blue-100 text-blue-800' }
+    'in-progress': { color: 'default', label: 'Em andamento', className: 'bg-blue-100 text-blue-800' }
   };
   
   const variant = variants[status] || variants.pending;

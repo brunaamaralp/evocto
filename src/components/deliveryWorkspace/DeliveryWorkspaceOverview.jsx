@@ -8,7 +8,6 @@ import NewMonthCycleWizard from '@/components/cycles/NewMonthCycleWizard';
 import DuplicateCycleWizard from '@/components/cycles/DuplicateCycleWizard';
 import PipelineTimeline from '@/components/cycles/PipelineTimeline';
 import CycleFeedbackForm from '@/components/cycles/CycleFeedbackForm';
-import WorkloadByPersonPanel from '@/components/tasks/WorkloadByPersonPanel';
 import { buildDeliveryWeeklyStatusCopy } from '@/lib/deliveryWeeklyStatusCopy';
 import { isNarrativaPipeline } from '@/lib/pipelineNarrativa';
 import { CyclePlan } from '@/api/entities';
@@ -22,6 +21,7 @@ import {
   buildClientHistoryPrintDoc,
 } from '@/lib/printableReport';
 import { toast } from 'sonner';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 function deliverableProgress(deliverables = [], _tasks = []) {
   if (!deliverables.length) return 0;
@@ -212,8 +212,6 @@ export default function DeliveryWorkspaceOverview({
         </div>
       </div>
 
-      <WorkloadByPersonPanel tasks={tasks} />
-
       {linkedCycle?.id ? (
         <CycleFeedbackForm
           cyclePlanId={linkedCycle.id}
@@ -265,7 +263,7 @@ export default function DeliveryWorkspaceOverview({
                       <span className="text-sm text-slate-800 truncate">{d.name}</span>
                     </div>
                     <Badge variant="outline" className="shrink-0 text-xs">
-                      {(d.status || 'not_started').replace(/_/g, ' ')}
+                      {statusLabelPt(d.status || 'not_started')}
                     </Badge>
                   </li>
                 );

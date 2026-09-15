@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task, CyclePlan } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 // Status badges para tarefas
 const getStatusBadge = (status) => {
   const statusConfig = {
-    'todo': { color: 'bg-gray-100 text-gray-700', label: 'A Fazer', icon: Clock },
+    'todo': { color: 'bg-gray-100 text-gray-700', label: 'A fazer', icon: Clock },
     'in_progress': { color: 'bg-blue-100 text-blue-700', label: 'Em Andamento', icon: Play },
     'in_review': { color: 'bg-yellow-100 text-yellow-700', label: 'Em Revisão', icon: Eye },
     'completed': { color: 'bg-green-100 text-green-700', label: 'Concluído', icon: CheckCircle },
@@ -480,7 +480,7 @@ export const ClientTasksPortal = ({ clientId, cycleId, showApprovalActions = tru
               size="sm"
               onClick={() => setFilter('in_progress')}
             >
-              Em Progresso ({tasks.filter(t => ['todo', 'in_progress'].includes(t.status)).length})
+              Em andamento ({tasks.filter(t => ['todo', 'in_progress'].includes(t.status)).length})
             </Button>
             <Button
               variant={filter === 'completed' ? 'default' : 'outline'}

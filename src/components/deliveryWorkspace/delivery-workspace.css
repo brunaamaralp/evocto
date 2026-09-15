@@ -89,8 +89,16 @@
   font-size: 1.5rem;
   font-weight: 650;
   color: #0f172a;
-  margin: 6px 0 4px;
+  margin: 0;
   line-height: 1.25;
+}
+
+.delivery-workspace-header__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
 }
 
 .delivery-workspace-header__meta {
@@ -98,6 +106,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+
+.delivery-workspace-header__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
 }
 
 .delivery-workspace-header__nav-toggle {

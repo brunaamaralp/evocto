@@ -170,7 +170,7 @@ export default function ClientServicesPage() {
 
   const handleViewService = (serviceId) => {
     navigate(
-      `${createPageUrl('delivery-workspace')}?serviceId=${serviceId}&clientId=${clientId}&section=tasks`
+      `${createPageUrl('delivery-workspace')}?serviceId=${serviceId}&clientId=${clientId}&section=overview`
     );
   };
 
@@ -356,7 +356,7 @@ export default function ClientServicesPage() {
                               className="flex-1"
                             >
                               <Eye className="w-4 h-4 mr-2" />
-                              Ver Detalhes
+                              Abrir serviço
                             </Button>
 
                             {service.service_status === 'briefing_pending' ? (

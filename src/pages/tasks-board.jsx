@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+﻿import { useEffect, useMemo, useState, useCallback } from "react";
 import { Task } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -18,8 +18,8 @@ import { getStagePastel } from "@/lib/modulePastels";
 const STATUSES = ["backlog", "todo", "in_progress", "in_review", "completed"];
 
 const STATUS_LABELS = {
-  backlog: "Backlog",
-  todo: "A Fazer",
+  backlog: "Fila",
+  todo: "A fazer",
   in_progress: "Em Andamento",
   in_review: "Em Revisão",
   completed: "Concluído",

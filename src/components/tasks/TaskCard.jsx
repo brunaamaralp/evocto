@@ -10,6 +10,7 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-100 text-blue-800',
@@ -96,7 +97,7 @@ export default function TaskCard({ task, users = [], onClick, isDragging = false
               className={`text-xs px-2 py-0.5 ${PRIORITY_COLORS[task.priority] || 'bg-gray-100 text-gray-800'}`}
             >
               <Flag className="w-3 h-3 mr-1" />
-              {task.priority}
+              {{ low: 'Baixa', medium: 'Média', high: 'Alta', urgent: 'Urgente' }[task.priority] || task.priority}
             </Badge>
           )}
           
@@ -105,7 +106,7 @@ export default function TaskCard({ task, users = [], onClick, isDragging = false
               variant="outline" 
               className={`text-xs px-2 py-0.5 ${TYPE_COLORS[task.type] || 'bg-gray-100 text-gray-800'}`}
             >
-              {task.type.replace(/_/g, ' ')}
+              {statusLabelPt(task.type)}
             </Badge>
           )}
         </div>

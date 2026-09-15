@@ -9,12 +9,12 @@ export default function DeliveryWorkspaceNav({
 }) {
   const isCampaign = mode === 'campaign';
   const items = isCampaign ? CAMPAIGN_WORKSPACE_TABS : DELIVERY_WORKSPACE_NAV_ITEMS;
-  const label = isCampaign ? 'Campanha' : 'Entrega';
+  const label = isCampaign ? 'Campanha' : 'Serviço';
 
   return (
     <nav
       className={`delivery-workspace-nav${className ? ` ${className}` : ''}`}
-      aria-label={isCampaign ? 'Seções da campanha' : 'Seções da entrega'}
+      aria-label={isCampaign ? 'Seções da campanha' : 'Seções do serviço'}
     >
       <p className="delivery-workspace-nav__label">{label}</p>
       <ul className="delivery-workspace-nav__list">

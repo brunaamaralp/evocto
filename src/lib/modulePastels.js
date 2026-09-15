@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Soft-UI pastel map for stages and modules.
  * Tailwind-ready class tokens used across shell, kanban, and cards.
  */
@@ -180,8 +180,8 @@ export function getCardPastel(index = 0) {
 
 /** Kanban column definitions aligned with pastel map */
 export const KANBAN_COLUMNS = [
-  { id: 'backlog', title: 'Backlog', status: 'backlog', limit: null },
-  { id: 'todo', title: 'A Fazer', status: 'todo', limit: 10 },
+  { id: 'backlog', title: 'Fila', status: 'backlog', limit: null },
+  { id: 'todo', title: 'A fazer', status: 'todo', limit: 10 },
   { id: 'in_progress', title: 'Em Andamento', status: 'in_progress', limit: 8 },
   { id: 'in_review', title: 'Em Revisão', status: 'in_review', limit: 6 },
   { id: 'completed', title: 'Concluído', status: 'completed', limit: null },

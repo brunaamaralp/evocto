@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { canStartDeliverable } from '@/lib/startDeliverableStage';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 const STATUS_BADGE = {
   not_started: 'bg-[#EDE8F5] text-[#4A4068]',
@@ -34,7 +35,7 @@ function TaskRow({ task }) {
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
         <Badge variant="outline" className="text-xs">
-          {(task.status || 'todo').replace(/_/g, ' ')}
+          {statusLabelPt(task.status || 'todo')}
         </Badge>
         <TaskTimerButton task={task} showLabel={false} />
       </div>
@@ -170,7 +171,7 @@ export default function DeliveryWorkspaceTasks({
                   </button>
                 </div>
                 <Badge className={STATUS_BADGE[status] || STATUS_BADGE.not_started}>
-                  {String(status).replace(/_/g, ' ')}
+                  {statusLabelPt(status)}
                 </Badge>
                 {canStart ? (
                   <Button
@@ -198,7 +199,7 @@ export default function DeliveryWorkspaceTasks({
                     ) : (
                       <CheckSquare className="w-3.5 h-3.5 mr-1" />
                     )}
-                    Sync checklist
+                    Atualizar checklist
                   </Button>
                 ) : null}
               </div>

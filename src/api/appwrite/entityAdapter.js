@@ -69,9 +69,18 @@ function splitPayload(tableId, data = {}) {
     }
   }
 
-  if (Object.keys(extra).length > 0) {
-    row.payload = JSON.stringify(extra);
+  // Colunas tipadas não devem viver também no JSON (evita status fantasma no payload
+  // sobrescrever leitura quando a coluna tipada vem vazia na resposta).
+  for (const key of known) {
+    if (key in extra) delete extra[key];
   }
+  // assignedTo é espelho de assigneeId — só assigneeId é tipado
+  if (tableId === 'tasks' && 'assignedTo' in extra) {
+    delete extra.assignedTo;
+  }
+
+  // Sempre persiste payload (mesmo vazio) para limpar chaves tipadas antigas no JSON.
+  row.payload = JSON.stringify(extra);
 
   return row;
 }
@@ -98,6 +107,11 @@ function mergeRow(row) {
     $collectionId,
     ...rest
   } = row;
+
+  // Se a coluna tipada existe (mesmo null), ela manda — remove do payload.
+  for (const key of Object.keys(rest)) {
+    if (key in extra) delete extra[key];
+  }
 
   const merged = {
     ...extra,

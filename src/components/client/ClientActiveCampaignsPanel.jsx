@@ -74,7 +74,7 @@ function CampaignRow({ campaign }) {
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
         <Button asChild size="sm" className="bg-[#007bff] hover:bg-[#0056b3]">
           <Link to={campaign.href}>
-            Abrir
+            Abrir campanha
             <ArrowRight className="ml-1 h-3.5 w-3.5" />
           </Link>
         </Button>
@@ -85,10 +85,10 @@ function CampaignRow({ campaign }) {
           Tarefas
         </Link>
         <Link
-          to={campaign.href}
+          to={campaign.briefingHref || campaign.href}
           className="text-sm font-medium text-[#555] hover:text-[#111]"
         >
-          Ficha
+          Ideia
         </Link>
       </div>
     </li>
@@ -184,8 +184,9 @@ export default function ClientActiveCampaignsPanel({
                     <Link
                       to={group.cycleHref}
                       className="shrink-0 text-sm font-medium text-[#555] hover:text-[#111]"
+                      title="Abrir workspace do serviço (não da campanha)"
                     >
-                      Workspace
+                      Serviço
                     </Link>
                   ) : null}
                 </div>

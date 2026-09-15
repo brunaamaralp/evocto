@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -289,9 +289,9 @@ export default function TaskFilters({
 
 function getStatusLabel(status) {
   const labels = {
-    backlog: 'Backlog',
-    todo: 'A Fazer',
-    in_progress: 'Em Progresso',
+    backlog: 'Fila',
+    todo: 'A fazer',
+    in_progress: 'Em andamento',
     in_review: 'Em Revisão',
     completed: 'Concluído',
     cancelled: 'Cancelado',

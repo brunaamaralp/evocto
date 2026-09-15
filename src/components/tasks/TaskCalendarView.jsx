@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -478,9 +478,9 @@ export default function TaskCalendarView({
 
 function getStatusLabel(status) {
   const labels = {
-    'backlog': 'Backlog',
-    'todo': 'A Fazer',
-    'in_progress': 'Em Progresso',
+    'backlog': 'Fila',
+    'todo': 'A fazer',
+    'in_progress': 'Em andamento',
     'in_review': 'Em Revisão',
     'completed': 'Concluído',
     'cancelled': 'Cancelado',

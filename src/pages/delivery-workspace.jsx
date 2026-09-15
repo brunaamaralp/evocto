@@ -218,13 +218,19 @@ export default function DeliveryWorkspacePage() {
             String(t.id) === String(taskId)
               ? {
                   ...t,
-                  status,
+                  status:
+                    status === 'completed' || status === 'done'
+                      ? 'completed'
+                      : status,
                   kanbanColumn:
-                    status === 'completed' || status === 'done' ? 'publicacao' : status,
+                    status === 'completed' || status === 'done'
+                      ? 'publicacao'
+                      : status,
                 }
               : t
           )
         );
+        window.setTimeout(() => refreshTasks(), 900);
         return;
       }
       refreshTasks();

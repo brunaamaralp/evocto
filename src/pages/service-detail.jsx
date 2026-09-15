@@ -72,7 +72,7 @@ export default function ServiceDetailPage() {
       ? `&clientId=${service.clientId || context.client.id}`
       : '';
     window.location.href =
-      createPageUrl('delivery-workspace') + `?serviceId=${service.id}${clientQs}&section=tasks`;
+      createPageUrl('delivery-workspace') + `?serviceId=${service.id}${clientQs}&section=overview`;
   };
 
   const handleViewClient = () => {
@@ -238,7 +238,7 @@ export default function ServiceDetailPage() {
                 {!service.is_template && (
                   <Button variant="default" onClick={handleOpenWorkspace} className="gap-2">
                     <Target className="w-4 h-4" />
-                    Workspace
+                    Abrir serviço
                   </Button>
                 )}
                 <Button onClick={handleEditService} variant="outline" className="gap-2">

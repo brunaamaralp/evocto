@@ -9,25 +9,25 @@ import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 const TASK_STATUS_CONFIGS = {
   backlog: {
-    label: 'Backlog',
+    label: 'Fila',
     icon: Circle,
     color: getStagePastel('backlog').badge,
     description: 'Aguardando priorização',
   },
   todo: {
-    label: 'A Fazer',
+    label: 'A fazer',
     icon: Circle,
     color: getStagePastel('todo').badge,
     description: 'Pronta para início',
   },
   in_progress: {
-    label: 'Em Progresso',
+    label: 'Em andamento',
     icon: Play,
     color: getStagePastel('in_progress').badge,
     description: 'Sendo executada',
   },
   in_review: {
-    label: 'Em Revisão',
+    label: 'Em revisão',
     icon: Eye,
     color: getStagePastel('in_review').badge,
     description: 'Aguardando revisão (tarefa)',
@@ -54,25 +54,25 @@ const TASK_STATUS_CONFIGS = {
 
 const DELIVERABLE_STATUS_CONFIGS = {
   not_started: {
-    label: 'Não Iniciada',
+    label: 'Não iniciado',
     icon: Pause,
     color: getStagePastel('backlog').badge,
     description: 'Aguardando início (fase)',
   },
   in_progress: {
-    label: 'Em Progresso',
+    label: 'Em andamento',
     icon: GitBranch,
     color: getStagePastel('in_progress').badge,
     description: 'Fase sendo executada',
   },
   ready_for_review: {
-    label: 'Pronta para Revisão',
+    label: 'Pronto para revisão',
     icon: Target,
     color: getStagePastel('in_review').badge,
     description: 'Aguardando revisão (fase)',
   },
   ready_for_approval: {
-    label: 'Aguardando Aprovação',
+    label: 'Aguardando aprovação',
     icon: Clock,
     color: getStagePastel('in_progress').badge,
     description: 'Enviada para aprovação',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,7 +19,7 @@ import {
 import { summarizeChecklistProgress } from '@/lib/deriveServiceLens';
 
 const STATUS_LABELS = {
-  backlog: 'Backlog',
+  backlog: 'Fila',
   todo: 'A fazer',
   in_progress: 'Em andamento',
   in_review: 'Em revisão',

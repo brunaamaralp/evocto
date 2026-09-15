@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,9 +21,9 @@ import { processDeliverableApproval } from '@/api/functions';
 
 const DELIVERABLE_STATUS = {
   'not_started': { label: 'Não Iniciado', color: 'bg-gray-100 text-gray-700', icon: Clock },
-  'in_progress': { label: 'Em Progresso', color: 'bg-blue-100 text-blue-700', icon: Clock },
+  'in_progress': { label: 'Em andamento', color: 'bg-blue-100 text-blue-700', icon: Clock },
   'ready_for_review': { label: 'Pronto para Revisão', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle },
-  'pending_approval': { label: 'Aguardando Aprovação', color: 'bg-purple-100 text-purple-700', icon: Clock },
+  'pending_approval': { label: 'Aguardando aprovação', color: 'bg-purple-100 text-purple-700', icon: Clock },
   'approved': { label: 'Aprovado', color: 'bg-green-100 text-green-700', icon: CheckCircle },
   'rejected': { label: 'Rejeitado', color: 'bg-red-100 text-red-700', icon: XCircle },
   'completed': { label: 'Concluído', color: 'bg-green-100 text-green-700', icon: CheckCircle }

@@ -1,4 +1,4 @@
-import { Notification } from '@/api/entities';
+﻿import { Notification } from '@/api/entities';
 import { User } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { format, differenceInHours, differenceInDays } from 'date-fns';
@@ -228,9 +228,9 @@ export class TaskNotificationService {
       const client = await Client.get(task.clientId);
       
       const statusLabels = {
-        backlog: 'Backlog',
-        todo: 'A Fazer',
-        in_progress: 'Em Progresso',
+        backlog: 'Fila',
+        todo: 'A fazer',
+        in_progress: 'Em andamento',
         in_review: 'Em Revisão',
         completed: 'Concluída',
         cancelled: 'Cancelada',

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -345,9 +345,9 @@ export default function TaskPhaseView({ tasks, _onTaskUpdate, onEditTask, loadin
 // Funções auxiliares
 function getStatusLabel(status) {
   const labels = {
-    'backlog': 'Backlog',
-    'todo': 'A Fazer',
-    'in_progress': 'Em Progresso',
+    'backlog': 'Fila',
+    'todo': 'A fazer',
+    'in_progress': 'Em andamento',
     'in_review': 'Em Revisão',
     'completed': 'Concluído',
     'cancelled': 'Cancelado',

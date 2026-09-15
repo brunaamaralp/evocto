@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -499,9 +499,9 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
 
   // Columns configuration — soft pastel stages
   const KANBAN_COLUMNS = [
-    { id: 'backlog', title: 'Backlog', status: 'backlog', color: 'bg-[#EDE8F5]', limit: null },
-    { id: 'todo', title: 'A Fazer', status: 'todo', color: 'bg-[#DCEAF8]', limit: 10 },
-    { id: 'in_progress', title: 'Em Progresso', status: 'in_progress', color: 'bg-[#FFE4D1]', limit: 5 },
+    { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-[#EDE8F5]', limit: null },
+    { id: 'todo', title: 'A fazer', status: 'todo', color: 'bg-[#DCEAF8]', limit: 10 },
+    { id: 'in_progress', title: 'Em andamento', status: 'in_progress', color: 'bg-[#FFE4D1]', limit: 5 },
     { id: 'in_review', title: 'Em Revisão', status: 'in_review', color: 'bg-[#E8D9F7]', limit: 3 },
     { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-[#D0F0E4]', limit: null },
     { id: 'cancelled', title: 'Cancelado', status: 'cancelled', color: 'bg-[#E6E6EA]', limit: null },
@@ -818,11 +818,11 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
             <TabsList className="grid w-fit grid-cols-4">
               <TabsTrigger value="board" className="gap-2">
                 <Eye className="w-4 h-4" />
-                Board
+                Quadro
               </TabsTrigger>
               <TabsTrigger value="analytics" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Analytics
+                Análises
               </TabsTrigger>
               <TabsTrigger value="automations" className="gap-2">
                 <Zap className="w-4 h-4" />
@@ -847,7 +847,7 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
                 `}>
                   {syncStatus === 'synced' && 'Sincronizado'}
                   {syncStatus === 'syncing' && 'Sincronizando...'}
-                  {syncStatus === 'offline' && 'Offline'}
+                  {syncStatus === 'offline' && 'Sem conexão'}
                 </span>
               </div>
 
@@ -927,7 +927,7 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                <span>Em Progresso: {taskAnalytics.inProgress}</span>
+                <span>Em andamento: {taskAnalytics.inProgress}</span>
               </div>
               {taskAnalytics.overdue > 0 && (
                 <div className="flex items-center gap-2">
@@ -1037,7 +1037,7 @@ export default function EnhancedTaskKanban({ clientId, serviceId, filters = {} }
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Cache & Storage</CardTitle>
+                  <CardTitle className="text-lg">Cache e armazenamento</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Button 

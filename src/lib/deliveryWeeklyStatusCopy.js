@@ -1,18 +1,19 @@
 import { getWeekRange } from '@/lib/taskFilterPresets';
+import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 const OPEN = new Set(['backlog', 'todo', 'in_progress', 'in_review', 'blocked']);
 
 function statusLabel(status) {
   const map = {
-    backlog: 'backlog',
+    backlog: 'na fila',
     todo: 'a fazer',
-    in_progress: 'em progresso',
+    in_progress: 'em andamento',
     in_review: 'em revisão',
     completed: 'concluídas',
     blocked: 'bloqueadas',
     cancelled: 'canceladas',
   };
-  return map[status] || status;
+  return map[status] || statusLabelPt(status, status);
 }
 
 function weekLabelForDeliverable(d, index) {
@@ -76,7 +77,7 @@ export function buildDeliveryWeeklyStatusCopy({
       const done = stageTasks.filter((t) => t.status === 'completed').length;
       const total = stageTasks.length;
       const week = weekLabelForDeliverable(d, i);
-      const st = (d.status || 'not_started').replace(/_/g, ' ');
+      const st = statusLabelPt(d.status || 'not_started');
       lines.push(
         `• ${week} — ${d.name}: ${done}/${total || 0} tarefas · ${st}`
       );
@@ -87,7 +88,7 @@ export function buildDeliveryWeeklyStatusCopy({
   lines.push(`*Resumo ${scopeLabel}:*`);
   lines.push(`• ${completed} concluídas`);
   if (inReview) lines.push(`• ${inReview} em revisão`);
-  if (inProgress) lines.push(`• ${inProgress} em progresso`);
+  if (inProgress) lines.push(`• ${inProgress} em andamento`);
   lines.push(`• ${open} abertas no total`);
 
   const nextItems = scope

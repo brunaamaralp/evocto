@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,25 +25,25 @@ import DeliverableStateMachine from './DeliverableStateMachine';
 
 const STATUS_CONFIGS = {
   not_started: {
-    label: 'Não Iniciada',
+    label: 'Não iniciado',
     color: 'bg-gray-100 text-gray-800',
     icon: Pause,
     description: 'Aguardando início'
   },
   in_progress: {
-    label: 'Em Progresso',
+    label: 'Em andamento',
     color: 'bg-blue-100 text-blue-800',
     icon: Play,
     description: 'Trabalho em andamento'
   },
   ready_for_review: {
-    label: 'Pronta para Revisão',
+    label: 'Pronto para revisão',
     color: 'bg-yellow-100 text-yellow-800',
     icon: Eye,
     description: 'Aguardando revisão interna'
   },
   ready_for_approval: {
-    label: 'Aguardando Aprovação',
+    label: 'Aguardando aprovação',
     color: 'bg-orange-100 text-orange-800',
     icon: Clock,
     description: 'Enviada para aprovação do cliente'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task, User } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -209,8 +209,8 @@ const TaskDistributionChart = ({ tasks }) => {
     }, {});
 
     const statusLabels = {
-      todo: 'A Fazer',
-      in_progress: 'Em Progresso',
+      todo: 'A fazer',
+      in_progress: 'Em andamento',
       in_review: 'Em Revisão', 
       completed: 'Concluídas',
       blocked: 'Bloqueadas',

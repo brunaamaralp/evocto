@@ -194,7 +194,7 @@ const ptTranslations = {
     "status": {
       "draft": "Rascunho",
       "linkSent": "Link Enviado",
-      "inProgress": "Em Progresso",
+      "inProgress": "Em andamento",
       "completed": "Concluído",
       "expired": "Expirado"
     },
@@ -430,7 +430,7 @@ const ptTranslations = {
     "active": "Ativo",
     "inactive": "Inativo",
     "completed": "Concluído",
-    "inProgress": "Em Progresso",
+    "inProgress": "Em andamento",
     "planning": "Planejamento",
     "execution": "Execução",
     "closing": "Fechamento",
