@@ -566,7 +566,10 @@ export default function DashboardPage() {
           };
         });
 
-        toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+        toastTaskCompleted(task, {
+          alreadyCompleted: result.alreadyCompleted,
+          warning: result.warning,
+        });
         notifyTaskCompleted(task.id);
       } catch (err) {
         console.error('[dashboard] complete task failed:', err);

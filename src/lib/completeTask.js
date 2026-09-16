@@ -14,7 +14,10 @@ export function isTaskCompletedStatus(status) {
   return ['completed', 'done'].includes(normalizeStatus(status));
 }
 
-export function toastTaskCompleted(task, { alreadyCompleted = false } = {}) {
+export function toastTaskCompleted(
+  task,
+  { alreadyCompleted = false, warning = null } = {}
+) {
   const title = String(task?.title || '').trim();
   if (alreadyCompleted) {
     toast.message('Esta tarefa já estava concluída', {
@@ -27,6 +30,9 @@ export function toastTaskCompleted(task, { alreadyCompleted = false } = {}) {
     description: title || undefined,
     duration: 2200,
   });
+  if (warning) {
+    toast.warning(warning, { duration: 4500 });
+  }
 }
 
 export function toastTaskCompleteError(message) {
@@ -94,6 +100,8 @@ export async function completeTask(task, { agencyId, user, reason } = {}) {
 
   return {
     success: true,
+    warning: result.warning || null,
+    blocking: result.blocking || null,
     task: {
       ...(saved || result.task || task),
       status: 'completed',

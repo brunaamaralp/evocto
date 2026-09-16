@@ -233,7 +233,10 @@ export default function CampaignWorkspaceTasks({
           kanbanColumn: completedKanbanColumnForTask(task),
         },
       }));
-      toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+      toastTaskCompleted(task, {
+        alreadyCompleted: result.alreadyCompleted,
+        warning: result.warning,
+      });
       notifyTaskCompleted(task.id, {
         kanbanColumn: completedKanbanColumnForTask(task),
       });

@@ -434,6 +434,9 @@ export default function TasksManagerPage() {
 
       const statusLabel = KANBAN_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
       toast.success(`Tarefa movida para "${statusLabel}"`);
+      if (transition.warning) {
+        toast.warning(transition.warning, { duration: 4500 });
+      }
       
       window.dispatchEvent(new CustomEvent('task:updated', { 
         detail: {

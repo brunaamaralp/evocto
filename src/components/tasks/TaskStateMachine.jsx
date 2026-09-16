@@ -40,34 +40,24 @@ export class TaskStateMachine {
       }
     }
 
-    // 2. Validar dependências (nenhuma deve estar in_progress ou blocked)
+    // 2. Dependências pendentes: só aviso (não bloqueia conclusão)
+    const dependencyWarnings = [];
     if (this.task.dependencies && this.task.dependencies.length > 0) {
-      const unresolvedDependencies = [];
-
       for (const dependency of this.task.dependencies) {
         if (!dependency.isResolved) {
           try {
             const dependentTask = await Task.get(dependency.taskId);
             
             if (dependentTask && !['completed', 'cancelled'].includes(dependentTask.status)) {
-              unresolvedDependencies.push({
-                task: dependentTask.title,
-                status: dependentTask.status,
-                type: dependency.type || 'finish_to_start'
-              });
+              dependencyWarnings.push(
+                `"${dependentTask.title}" (${dependentTask.status})`
+              );
             }
           } catch (error) {
             console.error('Erro ao validar dependência:', error);
-            errors.push(`Erro ao verificar dependência: ${dependency.taskId}`);
+            dependencyWarnings.push(`dependência ${dependency.taskId}`);
           }
         }
-      }
-
-      if (unresolvedDependencies.length > 0) {
-        const depMessages = unresolvedDependencies.map(dep => 
-          `"${dep.task}" (${dep.status})`
-        ).join(', ');
-        errors.push(`Dependências não resolvidas: ${depMessages}`);
       }
     }
 
@@ -84,6 +74,10 @@ export class TaskStateMachine {
     return {
       valid: errors.length === 0,
       errors,
+      warnings:
+        dependencyWarnings.length > 0
+          ? [`Dependências ainda pendentes: ${dependencyWarnings.join(', ')}`]
+          : [],
       message: errors.length === 0 ? 'Todos os critérios atendidos' : errors.join('; ')
     };
   }
@@ -249,7 +243,8 @@ export class TaskStateMachine {
       }
 
       return { 
-        success: true, 
+        success: true,
+        warnings: validation.warnings || [],
         actions: [
           'Status alterado para completed', 
           'Data de conclusão registrada',

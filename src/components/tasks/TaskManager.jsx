@@ -232,6 +232,9 @@ export default function TaskManager({
             return;
           }
           toast.success('Tarefa atualizada!');
+          if (result.warning) {
+            toast.warning(result.warning, { duration: 4500 });
+          }
           window.setTimeout(() => loadTasks(), 900);
           return;
         }

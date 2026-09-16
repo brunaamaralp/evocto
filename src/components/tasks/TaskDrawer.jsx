@@ -285,7 +285,10 @@ export default function TaskDrawer() {
         }
         updated = result.task;
         setTask(updated);
-        toastTaskCompleted(task, { alreadyCompleted: result.alreadyCompleted });
+        toastTaskCompleted(task, {
+          alreadyCompleted: result.alreadyCompleted,
+          warning: result.warning,
+        });
       } else {
         const result = await transitionTaskStatus(task, newStatus, {
           agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
@@ -299,6 +302,9 @@ export default function TaskDrawer() {
         setTask(updated);
         const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);
         toast.success(`Status: ${statusLabel}`, { duration: 1600 });
+        if (result.warning) {
+          toast.warning(result.warning, { duration: 4500 });
+        }
       }
 
       const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);

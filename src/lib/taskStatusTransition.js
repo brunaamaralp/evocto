@@ -12,9 +12,15 @@ export function completedKanbanColumnForTask(task) {
     ['planejamento', 'roteiros', 'producao', 'revisao', 'publicacao'].includes(stage);
   return hasCampaign ? 'publicacao' : 'completed';
 }
+function isCompletionStatus(status) {
+  return ['completed', 'done'].includes(String(status || '').toLowerCase());
+}
+
 /**
- * Verifica se as dependências FS permitem mover a tarefa para nextStatus.
- * @returns {{ allowed: boolean, message?: string, blocking?: object[] }}
+ * Verifica dependências FS ao avançar status.
+ * Conclusão nunca é bloqueada — só retorna aviso.
+ * Outros avanços (in_progress / in_review) ainda avisam, mas também não bloqueiam.
+ * @returns {{ allowed: boolean, message?: string, warning?: string, blocking?: object[] }}
  */
 export async function canTransitionTaskStatus(task, nextStatus) {
   if (!task) return { allowed: false, message: 'Tarefa inválida' };
@@ -23,8 +29,10 @@ export async function canTransitionTaskStatus(task, nextStatus) {
   const deps = Array.isArray(task.dependencies) ? task.dependencies : [];
   if (deps.length === 0) return { allowed: true };
 
-  // Só bloqueia ao avançar para progresso / conclusão
-  if (!ACTIVE_STATUSES.has(nextStatus)) return { allowed: true };
+  // Só avalia ao avançar para progresso / conclusão
+  if (!ACTIVE_STATUSES.has(nextStatus) && !isCompletionStatus(nextStatus)) {
+    return { allowed: true };
+  }
 
   const blocking = [];
 
@@ -54,9 +62,12 @@ export async function canTransitionTaskStatus(task, nextStatus) {
 
   if (blocking.length > 0) {
     const names = blocking.map((b) => `"${b.title}" (${b.status})`).join(', ');
+    const warning = `Dependências ainda pendentes: ${names}`;
+    // Nunca bloqueia — só avisa (toast no caller / completeTask).
     return {
-      allowed: false,
-      message: `Dependências não resolvidas: ${names}`,
+      allowed: true,
+      warning,
+      message: warning,
       blocking,
     };
   }
@@ -144,7 +155,12 @@ export async function transitionTaskStatus(task, nextStatus, { agencyId, user, r
     );
   }
 
-  return { success: true, task: updated };
+  return {
+    success: true,
+    task: updated,
+    warning: gate.warning || null,
+    blocking: gate.blocking || null,
+  };
 }
 
 export default transitionTaskStatus;

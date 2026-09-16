@@ -142,7 +142,13 @@ export default function TaskActionButtons({
           break;
 
         case 'complete':
-          await taskStateMachine.complete();
+          {
+            const result = await taskStateMachine.complete();
+            toast.success('Tarefa concluída');
+            for (const warning of result?.warnings || []) {
+              toast.warning(warning, { duration: 4500 });
+            }
+          }
           break;
 
         case 'approve':
