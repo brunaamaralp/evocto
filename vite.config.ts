@@ -2,9 +2,11 @@
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import { apiDevPlugin } from './vite-plugin-api-dev.js'
 
 export default defineConfig({
   plugins: [
+    apiDevPlugin(),
     react(),
     VitePWA({
       registerType: 'prompt',
@@ -85,6 +87,8 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     proxy: {
+      // Outras /api* → netlify/vercel dev na 8888, se estiver rodando.
+      // /api/invite-client e /api/team-members: apiDevPlugin (antes do proxy).
       '/api': {
         target: 'http://127.0.0.1:8888',
         changeOrigin: true,

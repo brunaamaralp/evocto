@@ -89,15 +89,23 @@ async function inviteViaApi({ clientId, email, fullName, password, sendEmail }) 
 
   const contentType = String(res.headers.get('content-type') || '');
   if (res.status === 404 || contentType.includes('text/html')) {
+    console.warn(
+      '[inviteClient] API não respondeu JSON (status=%s, content-type=%s). Em local, reinicie o Vite; em produção, confira a function Netlify.',
+      res.status,
+      contentType
+    );
     return null;
   }
 
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.success === false) {
-    return fail(
-      json.error || 'api_error',
-      json.message || 'Não foi possível convidar o cliente.'
-    );
+    const message =
+      json.message
+      || (json.error === 'appwrite_not_configured' || /APPWRITE_API_KEY|não configurado/i.test(String(json.message || json.error || ''))
+        ? 'Appwrite admin não configurado. Defina APPWRITE_API_KEY no .env.local (local) ou nas env vars do Netlify.'
+        : null)
+      || 'Não foi possível convidar o cliente.';
+    return fail(json.error || 'api_error', message);
   }
 
   const payload = json.data || json;
