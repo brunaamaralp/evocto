@@ -300,9 +300,21 @@ export function createEntityAdapter(tableId, { allowEmpty = false } = {}) {
         payload.clientVisible = false;
       }
       const row = splitPayload(tableId, payload);
-      const extraPerms = tableId === 'profiles' && data.id
-        ? [Permission.read(Role.user(data.id)), Permission.update(Role.user(data.id))]
-        : [];
+      // Só Role.user(target) quando target === sessão atual (SDK rejeita outro userId).
+      let extraPerms = [];
+      if (tableId === 'profiles' && data.id) {
+        try {
+          const me = await getAccount().get();
+          if (me?.$id && me.$id === data.id) {
+            extraPerms = [
+              Permission.read(Role.user(data.id)),
+              Permission.update(Role.user(data.id)),
+            ];
+          }
+        } catch {
+          // ignore
+        }
+      }
       const created = await tables.createRow({
         databaseId: DATABASE_ID,
         tableId,

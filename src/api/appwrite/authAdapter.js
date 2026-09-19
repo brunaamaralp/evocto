@@ -110,6 +110,35 @@ export const authAdapter = {
       }
     }
 
+    // Client SDK só pode atribuir Role.user(self). Role.user(outroId) → 401.
+    // Perfis de terceiros (ex.: invite client) precisam da API admin.
+    let actorId = null;
+    try {
+      actorId = (await account.get()).$id;
+    } catch {
+      actorId = null;
+    }
+    const selfAccess = actorId && actorId === userId;
+    const profilePerms = [];
+    if (userData.agencyId) {
+      profilePerms.push(
+        Permission.read(Role.team(userData.agencyId)),
+        Permission.update(Role.team(userData.agencyId)),
+        Permission.delete(Role.team(userData.agencyId)),
+      );
+    }
+    if (selfAccess) {
+      profilePerms.push(
+        Permission.read(Role.user(userId)),
+        Permission.update(Role.user(userId)),
+      );
+    } else if (actorId) {
+      profilePerms.push(
+        Permission.read(Role.user(actorId)),
+        Permission.update(Role.user(actorId)),
+      );
+    }
+
     const profile = await tables.createRow({
       databaseId: DATABASE_ID,
       tableId: 'profiles',
@@ -127,14 +156,7 @@ export const authAdapter = {
           createdBy: userData.createdBy || null,
         }),
       },
-      permissions: [
-        Permission.read(Role.user(userId)),
-        Permission.update(Role.user(userId)),
-        ...(userData.agencyId ? [
-          Permission.read(Role.team(userData.agencyId)),
-          Permission.update(Role.team(userData.agencyId)),
-        ] : []),
-      ],
+      permissions: profilePerms,
     });
 
     return {

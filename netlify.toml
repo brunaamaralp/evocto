@@ -45,6 +45,18 @@
   force = true
 
 [[redirects]]
+  from = "/api/invite-client"
+  to = "/.netlify/functions/invite-client"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/invite-client/"
+  to = "/.netlify/functions/invite-client"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/campaigns-agent"
   to = "/.netlify/functions/campaigns-agent"
   status = 200

@@ -161,21 +161,7 @@ export async function inviteClient(params = {}) {
     throw new Error('Cliente não pertence à sua agência');
   }
 
-  const viaApi = await inviteViaApi({
-    clientId,
-    email,
-    fullName,
-    password,
-    sendEmail,
-  });
-  if (viaApi) {
-    if (viaApi.success === false) {
-      throw new Error(viaApi.message || 'Erro ao enviar convite');
-    }
-    return viaApi;
-  }
-
-  // Fallback client SDK
+  // Já existe profile deste e-mail para este cliente? (evita round-trip desnecessário)
   const agencyProfiles = await Profile.filter({ agencyId: actor.agencyId }, undefined, 200).catch(() => []);
   const sameEmail = (agencyProfiles || []).find((p) => normalizeEmail(p.email) === email);
   if (sameEmail) {
@@ -196,43 +182,22 @@ export async function inviteClient(params = {}) {
     throw new Error('Este e-mail já está em uso nesta agência');
   }
 
-  const { authAdapter } = await import('../appwrite/authAdapter.js');
-  try {
-    const created = await authAdapter.create({
-      email,
-      password,
-      name: fullName,
-      full_name: fullName,
-      role: 'client',
-      agencyId: actor.agencyId,
-      clientId,
-      status: 'active',
-      isTemporaryPassword: true,
-      createdBy: actor.userId,
-    });
-
-    await markClientPortalAccess(clientId);
-
-    return ok({
-      alreadyExists: false,
-      emailSent: false,
-      message: 'Usuário criado. Compartilhe e-mail e senha com o contato.',
-      temporaryPassword: password,
-      email,
-      name: fullName,
-      userId: created?.id,
-      clientId,
-      loginUrl: portalLoginUrl(),
-    });
-  } catch (error) {
-    const msg = String(error?.message || '').toLowerCase();
-    const code = error?.code;
-    if (code === 409 || msg.includes('already') || msg.includes('exists')) {
-      throw new Error(
-        'Já existe uma conta Auth com este e-mail. Use outro e-mail, ou no Appwrite Console apague esse usuário e tente de novo.'
-      );
+  const viaApi = await inviteViaApi({
+    clientId,
+    email,
+    fullName,
+    password,
+    sendEmail,
+  });
+  if (viaApi) {
+    if (viaApi.success === false) {
+      throw new Error(viaApi.message || 'Erro ao enviar convite');
     }
-    console.error('[inviteClient] fallback create:', error);
-    throw new Error(error?.message || 'Não foi possível criar o usuário do cliente.');
+    return viaApi;
   }
+
+  // Sem API admin não dá para conceder Role.user(convidado) pelo SDK web.
+  throw new Error(
+    'API de convite indisponível. Em produção, confira o deploy da function /api/invite-client; em local, rode o backend de API (Netlify/Vercel dev).'
+  );
 }
