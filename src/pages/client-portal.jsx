@@ -27,6 +27,7 @@ import {
   FileText,
   ThumbsUp,
   MessageCircle,
+  Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -42,6 +43,8 @@ import {
   listClientApprovals,
   getClientApprovalDetail,
   decideClientApproval,
+  listClientSharedMonths,
+  getClientSharedMonth,
 } from '@/lib/clientPortalApi';
 
 function isImageAtt(a) {
@@ -481,17 +484,141 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
   );
 }
 
+function statusLabelPt(status) {
+  const map = {
+    todo: 'A fazer',
+    in_progress: 'Em andamento',
+    in_review: 'Em revisão',
+    completed: 'Concluído',
+    blocked: 'Bloqueado',
+  };
+  return map[String(status || '')] || status || '—';
+}
+
+function SharedMonthPanel({
+  months,
+  monthDetail,
+  selectedId,
+  loading,
+  onSelect,
+  onBack,
+  onDecided,
+}) {
+  if (loading && !months?.length && !monthDetail) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (selectedId && monthDetail) {
+    const pending = (monthDetail.items || []).filter((i) => i.itemKind === 'approval');
+    const rest = (monthDetail.items || []).filter((i) => i.itemKind !== 'approval');
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Button type="button" variant="ghost" size="sm" className="px-0" onClick={onBack}>
+              ← Meses
+            </Button>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {monthDetail.month?.title || 'Mês'}
+            </h2>
+            {monthDetail.month?.serviceName ? (
+              <p className="text-sm text-gray-500">{monthDetail.month.serviceName}</p>
+            ) : null}
+          </div>
+        </div>
+
+        {pending.length > 0 ? (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-800">Aguardando sua aprovação</h3>
+            <ApprovalsPanel approvals={pending} loading={false} onDecided={onDecided} />
+          </div>
+        ) : null}
+
+        {rest.length > 0 ? (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-800">Conteúdos do mês</h3>
+            <ul className="space-y-2">
+              {rest.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-lg border bg-white px-3 py-3 space-y-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-gray-900">{item.title}</p>
+                    <Badge variant="outline">{statusLabelPt(item.status)}</Badge>
+                  </div>
+                  {item.attachments?.length ? (
+                    <ContentAttachmentsPreview attachments={item.attachments} />
+                  ) : (
+                    <p className="text-xs text-gray-500">Sem anexos ainda</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {!pending.length && !rest.length ? (
+          <EmptyState
+            icon={Layers}
+            title="Nenhum conteúdo neste mês"
+            description="Quando a agência compartilhar peças, elas aparecem aqui."
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  if (!months?.length) {
+    return (
+      <EmptyState
+        icon={Layers}
+        title="Nenhum mês compartilhado"
+        description="Quando a agência compartilhar o mês operacional, ele aparece aqui."
+      />
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {months.map((m) => (
+        <li key={m.id}>
+          <button
+            type="button"
+            className="w-full text-left rounded-lg border bg-white px-4 py-3 hover:bg-slate-50"
+            onClick={() => onSelect?.(m.id)}
+          >
+            <p className="text-sm font-medium text-gray-900">{m.title}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {[m.serviceName, m.sharedAt ? `Desde ${formatDue(m.sharedAt)}` : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function ClientPortalPage() {
   const { user, isAuthenticated, loading: sessionLoading } = useSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
   const campaignIdParam = searchParams.get('campaignId');
+  const monthIdParam = searchParams.get('monthId');
 
   const [overview, setOverview] = useState(null);
   const [plan, setPlan] = useState(null);
   const [campaigns, setCampaigns] = useState(null);
   const [campaignDetail, setCampaignDetail] = useState(null);
   const [approvals, setApprovals] = useState(null);
+  const [months, setMonths] = useState(null);
+  const [monthDetail, setMonthDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -505,6 +632,8 @@ export default function ClientPortalPage() {
       else next.set('tab', tab);
       if (extra.campaignId) next.set('campaignId', extra.campaignId);
       else next.delete('campaignId');
+      if (extra.monthId) next.set('monthId', extra.monthId);
+      else next.delete('monthId');
       setSearchParams(next, { replace: true });
     },
     [searchParams, setSearchParams]
@@ -568,6 +697,18 @@ export default function ClientPortalPage() {
           const data = await listClientApprovals();
           if (!cancelled) setApprovals(data.approvals || []);
         }
+        if (activeTab === 'months') {
+          if (!months) {
+            const data = await listClientSharedMonths();
+            if (!cancelled) setMonths(data.months || []);
+          }
+          if (monthIdParam) {
+            const data = await getClientSharedMonth(monthIdParam);
+            if (!cancelled) setMonthDetail(data);
+          } else if (!cancelled) {
+            setMonthDetail(null);
+          }
+        }
       } catch (err) {
         if (!cancelled) toast.error(err.message || 'Erro ao carregar dados');
       } finally {
@@ -578,7 +719,17 @@ export default function ClientPortalPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, overview, plan, campaigns, campaignIdParam, approvals, user?.role]);
+  }, [
+    activeTab,
+    overview,
+    plan,
+    campaigns,
+    campaignIdParam,
+    approvals,
+    months,
+    monthIdParam,
+    user?.role,
+  ]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -587,6 +738,8 @@ export default function ClientPortalPage() {
       setCampaigns(null);
       setCampaignDetail(null);
       setApprovals(null);
+      setMonths(null);
+      setMonthDetail(null);
       await loadOverview();
       toast.success('Dados atualizados');
     } catch (err) {
@@ -606,6 +759,8 @@ export default function ClientPortalPage() {
       setCampaigns(null);
       setCampaignDetail(null);
       setApprovals(null);
+      setMonths(null);
+      setMonthDetail(null);
       await loadOverview();
       if (campaignIdParam) {
         const data = await getClientCampaign(campaignIdParam);
@@ -616,6 +771,19 @@ export default function ClientPortalPage() {
     } finally {
       setBusyActionId(null);
     }
+  };
+
+  const handleMonthDecided = async () => {
+    setApprovals(null);
+    setMonthDetail(null);
+    setMonths(null);
+    await loadOverview();
+    if (monthIdParam) {
+      const data = await getClientSharedMonth(monthIdParam);
+      setMonthDetail(data);
+    }
+    const list = await listClientSharedMonths();
+    setMonths(list.months || []);
   };
 
   if (sessionLoading || loading) {
@@ -654,6 +822,7 @@ export default function ClientPortalPage() {
   const upcoming = overview?.upcomingCampaigns || [];
   const needs = overview?.needsFromYou || [];
   const pendingApprovalsPreview = overview?.pendingApprovals || [];
+  const sharedMonthsPreview = overview?.sharedMonths || [];
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
@@ -663,7 +832,7 @@ export default function ClientPortalPage() {
             Olá, {clientName}
           </h1>
           <p className="text-gray-600 text-sm sm:text-base">
-            Acompanhe o planejamento e o que precisamos de você
+            Acompanhe o mês compartilhado, o planejamento e o que precisamos de você
           </p>
         </div>
         <Button
@@ -691,6 +860,15 @@ export default function ClientPortalPage() {
             <TabsTrigger value="overview" className="shrink-0 gap-2">
               <ClipboardList className="w-4 h-4" />
               <span className="hidden sm:inline">Visão geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="months" className="shrink-0 gap-2">
+              <Layers className="w-4 h-4" />
+              <span className="hidden sm:inline">Conteúdo do mês</span>
+              {stats.sharedMonths > 0 ? (
+                <Badge variant="secondary" className="ml-1">
+                  {stats.sharedMonths}
+                </Badge>
+              ) : null}
             </TabsTrigger>
             <TabsTrigger value="plan" className="shrink-0 gap-2">
               <CalendarRange className="w-4 h-4" />
@@ -781,6 +959,33 @@ export default function ClientPortalPage() {
             </Card>
           </div>
 
+          {sharedMonthsPreview.length > 0 ? (
+            <Card>
+              <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Conteúdo do mês</CardTitle>
+                <Badge variant="secondary">{stats.sharedMonths}</Badge>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {sharedMonthsPreview.slice(0, 4).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className="w-full text-left flex justify-between gap-3 text-sm border-b last:border-0 py-2 hover:text-[#007bff]"
+                    onClick={() => setTab('months', { monthId: m.id })}
+                  >
+                    <span className="font-medium text-gray-900 truncate">{m.title}</span>
+                    <span className="text-xs text-gray-500 shrink-0">
+                      {m.serviceName || 'Abrir'}
+                    </span>
+                  </button>
+                ))}
+                <Button variant="link" className="px-0" onClick={() => setTab('months')}>
+                  Ver meses
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {pendingApprovalsPreview.length > 0 ? (
             <Card>
               <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
@@ -809,6 +1014,18 @@ export default function ClientPortalPage() {
               </CardContent>
             </Card>
           ) : null}
+        </TabsContent>
+
+        <TabsContent value="months" className="space-y-4">
+          <SharedMonthPanel
+            months={months || sharedMonthsPreview}
+            monthDetail={monthDetail}
+            selectedId={monthIdParam}
+            loading={tabLoading}
+            onSelect={(id) => setTab('months', { monthId: id })}
+            onBack={() => setTab('months')}
+            onDecided={handleMonthDecided}
+          />
         </TabsContent>
 
         <TabsContent value="plan" className="space-y-4">

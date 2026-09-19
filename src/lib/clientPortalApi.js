@@ -41,6 +41,18 @@ export function listClientSharedTasks() {
   return portalGet('shared-tasks');
 }
 
+export function listClientSharedMonths() {
+  return portalGet('shared-months');
+}
+
+export async function getClientSharedMonth(cyclePlanId) {
+  const params = new URLSearchParams({
+    route: 'shared-month',
+    id: String(cyclePlanId || ''),
+  });
+  return portalGetWithParams(params);
+}
+
 export function listClientPortalDocuments() {
   return portalGet('documents');
 }

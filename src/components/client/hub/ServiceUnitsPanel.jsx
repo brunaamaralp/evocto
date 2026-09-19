@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Loader2, Plus, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   getCreateCtaLabel,
   shouldShowCreateCta,
   UNIT_KINDS,
 } from '@/lib/serviceOperationProfile';
+import {
+  cycleShareLabel,
+  isCycleSharedWithClient,
+} from '@/lib/shareCycleMonth';
 
 function capitalizeLabel(label) {
   const s = String(label || '').trim();
@@ -196,13 +201,108 @@ function EmptyUnits({ profile, onCreate }) {
   );
 }
 
+function MonthGroupHeader({
+  group,
+  cycle,
+  profile,
+  onShareMonth,
+  sharingCycleId,
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const shared = isCycleSharedWithClient(cycle);
+  const shareHint = cycleShareLabel(cycle);
+  const canShare = Boolean(group.cycleId && onShareMonth);
+  const busy = sharingCycleId && String(sharingCycleId) === String(group.cycleId);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0">
+        {group.periodLabel || group.cycleId ? (
+          <p className="text-sm font-medium text-[#555]">
+            {group.periodLabel || 'Este mês'}
+            <span className="ml-2 font-normal text-[#888]">
+              {group.units.length}{' '}
+              {group.units.length === 1
+                ? profile?.itemLabel || 'trabalho'
+                : profile?.itemLabelPlural || 'trabalhos'}
+            </span>
+          </p>
+        ) : null}
+        {shared && shareHint ? (
+          <p className="mt-0.5 text-xs text-[#27ae60]">{shareHint} com o cliente</p>
+        ) : null}
+      </div>
+      {canShare ? (
+        <div className="flex items-center gap-2">
+          {confirming && !shared ? (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs"
+                disabled={busy}
+                onClick={() => setConfirming(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs bg-[#007bff] hover:bg-[#0056b3]"
+                disabled={busy}
+                onClick={async () => {
+                  await onShareMonth?.(group.cycleId);
+                  setConfirming(false);
+                }}
+              >
+                {busy ? (
+                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                ) : null}
+                Confirmar
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant={shared ? 'outline' : 'default'}
+              className={`h-8 text-xs ${
+                shared ? '' : 'bg-[#007bff] hover:bg-[#0056b3]'
+              }`}
+              disabled={busy}
+              onClick={() => {
+                if (shared) {
+                  onShareMonth?.(group.cycleId);
+                  return;
+                }
+                setConfirming(true);
+              }}
+            >
+              {busy ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Share2 className="mr-1 h-3.5 w-3.5" />
+              )}
+              {shared ? 'Atualizar compartilhamento' : 'Compartilhar mês'}
+            </Button>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Lista de unidades / operação single_project / empty da lente.
  */
 export default function ServiceUnitsPanel({
   lens,
+  cyclesById = {},
   onCreate,
   onStartSingleProject,
+  onShareMonth,
+  sharingCycleId = null,
   startingSingleProject = false,
 }) {
   if (!lens) return null;
@@ -232,29 +332,30 @@ export default function ServiceUnitsPanel({
         Em andamento · {lens.unitsCount} {noun}
       </p>
       <div className="space-y-6">
-        {lens.groups.map((group, index) => (
-          <section
-            key={group.periodKey || group.cycleId || `group-${index}`}
-            className="space-y-2.5"
-          >
-            {group.periodLabel ? (
-              <p className="text-sm font-medium text-[#555]">
-                {group.periodLabel}
-                <span className="ml-2 font-normal text-[#888]">
-                  {group.units.length}{' '}
-                  {group.units.length === 1
-                    ? lens.profile?.itemLabel || 'trabalho'
-                    : lens.profile?.itemLabelPlural || 'trabalhos'}
-                </span>
-              </p>
-            ) : null}
-            <ul className="space-y-2">
-              {group.units.map((unit) => (
-                <UnitCard key={unit.id} unit={unit} />
-              ))}
-            </ul>
-          </section>
-        ))}
+        {lens.groups.map((group, index) => {
+          const cycle = group.cycleId
+            ? cyclesById[String(group.cycleId)] || null
+            : null;
+          return (
+            <section
+              key={group.periodKey || group.cycleId || `group-${index}`}
+              className="space-y-2.5"
+            >
+              <MonthGroupHeader
+                group={group}
+                cycle={cycle}
+                profile={lens.profile}
+                onShareMonth={onShareMonth}
+                sharingCycleId={sharingCycleId}
+              />
+              <ul className="space-y-2">
+                {group.units.map((unit) => (
+                  <UnitCard key={unit.id} unit={unit} />
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

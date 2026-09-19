@@ -1,7 +1,8 @@
 /**
  * API Portal do Cliente.
  * Rotas: ?route=bootstrap|overview|annual-plan|campaigns|campaign|client-actions|
- * complete-client-action|shared-tasks|documents|services|pending-actions|approvals|approval-detail|decide
+ * complete-client-action|decide-content|shared-tasks|shared-months|shared-month|
+ * documents|services|pending-actions|approvals|approval-detail|decide
  */
 import clientPortalHandler from '../lib/server/clientPortalHandler.js';
 

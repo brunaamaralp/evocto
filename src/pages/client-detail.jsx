@@ -52,6 +52,7 @@ import {
   UNIT_CREATION_MODES,
 } from '@/lib/createServiceUnitTask';
 import { appendFilesToTaskAttachments } from '@/lib/taskAttachmentsUpload';
+import { shareCycleMonth } from '@/lib/shareCycleMonth';
 
 function setServiceIdInUrl(serviceId) {
   const url = new URL(window.location.href);
@@ -75,6 +76,7 @@ export default function ClientDetailPage() {
   const [unitSaving, setUnitSaving] = useState(false);
   const [unitError, setUnitError] = useState('');
   const [unitUploadProgress, setUnitUploadProgress] = useState(0);
+  const [sharingCycleId, setSharingCycleId] = useState(null);
   const [startingProject, setStartingProject] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
 
@@ -304,6 +306,41 @@ export default function ClientDetailPage() {
     handleStartSingleProject,
     goToPlanningCreate,
   ]);
+
+  const cyclesById = useMemo(() => {
+    const map = {};
+    for (const c of Array.isArray(cycles) ? cycles : []) {
+      if (c?.id) map[String(c.id)] = c;
+    }
+    return map;
+  }, [cycles]);
+
+  const handleShareMonth = useCallback(
+    async (cycleId) => {
+      if (!cycleId || !agencyId || !clientId) return;
+      setSharingCycleId(cycleId);
+      try {
+        const result = await shareCycleMonth({
+          cyclePlanId: cycleId,
+          agencyId,
+          clientId,
+          sharedBy: userId || user?.id || user?.$id || null,
+        });
+        toast.success(
+          result.tasksShared > 0
+            ? `Mês compartilhado · ${result.tasksTotal} conteúdo(s) no portal`
+            : 'Mês compartilhado com o cliente'
+        );
+        await reload?.();
+      } catch (err) {
+        console.error('[client-detail] shareMonth', err);
+        toast.error(err?.message || 'Não foi possível compartilhar o mês');
+      } finally {
+        setSharingCycleId(null);
+      }
+    },
+    [agencyId, clientId, userId, user, reload]
+  );
 
   const handleSubmitUnit = useCallback(
     async (title, { mode, keepOpen = false, files = [] } = {}) => {
@@ -618,8 +655,11 @@ export default function ClientDetailPage() {
 
           <ServiceUnitsPanel
             lens={lensForPanel}
+            cyclesById={cyclesById}
             onCreate={handleCreateUnit}
             onStartSingleProject={handleStartSingleProject}
+            onShareMonth={handleShareMonth}
+            sharingCycleId={sharingCycleId}
             startingSingleProject={startingProject}
           />
         </section>
