@@ -753,6 +753,9 @@ export default function ClientDetailPage() {
           window.history.replaceState({}, '', url.toString());
         }}
         client={client}
+        onSuccess={() => {
+          reload?.();
+        }}
       />
 
       <ContractedServiceSetup

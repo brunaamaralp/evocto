@@ -492,11 +492,38 @@ export default function TaskDrawer() {
       toast.error("Anexe o conteúdo antes de enviar para aprovação");
       return;
     }
-    if (task.status === "in_review") {
-      toast.message("Já está em revisão");
+    if (task.status === "in_review" && task.clientVisible === true) {
+      toast.message("Já está em revisão com o cliente");
       return;
     }
-    await handleStatusChange("in_review");
+    setSavingField("status");
+    try {
+      let current = task;
+      if (current.status !== "in_review") {
+        const result = await transitionTaskStatus(current, "in_review", {
+          agencyId: current.agencyId || user?.agencyId || user?.data?.agencyId,
+          user,
+        });
+        if (!result.success) {
+          toast.error(result.message || "Não é possível enviar para aprovação");
+          return;
+        }
+        current = result.task;
+        setTask(current);
+        notifyLists(current.id);
+      }
+      if (current.clientVisible !== true) {
+        const updated = await Task.update(current.id, { clientVisible: true });
+        setTask(updated);
+        notifyLists(current.id);
+      }
+      toast.success("Enviado para aprovação do cliente");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível enviar para aprovação");
+    } finally {
+      setSavingField("");
+    }
   };
 
   const duplicateTask = async () => {
@@ -1001,9 +1028,9 @@ export default function TaskDrawer() {
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {(task.attachments || []).length > 0 &&
-                    task.status !== "in_review" &&
                     task.status !== "completed" &&
-                    task.status !== "cancelled" ? (
+                    task.status !== "cancelled" &&
+                    !(task.status === "in_review" && task.clientVisible === true) ? (
                       <Button
                         type="button"
                         size="sm"

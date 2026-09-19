@@ -173,6 +173,8 @@ function buildUnitTaskPayload({
     type: tpl.type || 'creative',
     status: readyForApproval ? 'in_review' : 'todo',
     kanbanColumn: readyForApproval ? 'in_review' : 'todo',
+    // Conteúdo pronto precisa aparecer no portal do cliente
+    clientVisible: readyForApproval ? true : false,
     priority: tpl.priority || 'medium',
     estimatedHours: tpl.estimated_hours || null,
     checklist,

@@ -196,7 +196,7 @@ export {
 } from '../functions/approvalWorkflow.js';
 export const taskNotificationScheduler = notMigrated('taskNotificationScheduler');
 export const extractLearningsFromTasks = notMigrated('extractLearningsFromTasks');
-export const inviteClient = notMigrated('inviteClient');
+export { inviteClient } from '../functions/inviteClient.js';
 
 /** Compat: dashboard antigo → overview do portal seguro */
 export async function getClientDashboardData() {

@@ -113,8 +113,7 @@ export default function ClientTeamTab({ clientId, clientName }) {
       <InviteClientModal
         isOpen={isInviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
-        clientId={clientId}
-        clientName={clientName}
+        client={{ id: clientId, name: clientName }}
         onInviteSent={loadTeams}
       />
     </>

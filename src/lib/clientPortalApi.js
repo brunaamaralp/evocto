@@ -99,12 +99,19 @@ export async function getClientApprovalDetail(approvalId) {
   return portalGetWithParams(params);
 }
 
-export async function decideClientApproval({ approvalId, action, comment } = {}) {
-  const params = new URLSearchParams({ route: 'decide' });
+export async function decideClientApproval({ approvalId, action, comment, kind } = {}) {
+  const isContent = kind === 'content' || kind === 'content_task';
+  const params = new URLSearchParams({
+    route: isContent ? 'decide-content' : 'decide',
+  });
   const res = await authedFetch(`/api/client-portal?${params}`, {
     method: 'POST',
     headers: await authHeaders(),
-    body: JSON.stringify({ approvalId, action, comment }),
+    body: JSON.stringify(
+      isContent
+        ? { taskId: approvalId, action, comment, kind: 'content' }
+        : { approvalId, action, comment }
+    ),
   });
   return parseRes(res);
 }

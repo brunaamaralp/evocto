@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import {
   AlertCircle,
   RefreshCw,
   Loader2,
@@ -17,6 +24,9 @@ import {
   CircleCheck,
   CheckCircle,
   ExternalLink,
+  FileText,
+  ThumbsUp,
+  MessageCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
@@ -33,6 +43,99 @@ import {
   getClientApprovalDetail,
   decideClientApproval,
 } from '@/lib/clientPortalApi';
+
+function isImageAtt(a) {
+  const mime = String(a?.mimeType || '');
+  const type = String(a?.type || '');
+  return mime.startsWith('image/') || type === 'image';
+}
+
+function ContentAttachmentsPreview({ attachments }) {
+  const list = Array.isArray(attachments) ? attachments.filter((a) => a?.url) : [];
+  if (!list.length) {
+    return (
+      <p className="text-sm text-amber-700">
+        Nenhum arquivo anexado. Peça à agência para reenviar o conteúdo.
+      </p>
+    );
+  }
+
+  const images = list.filter(isImageAtt);
+  const others = list.filter((a) => !isImageAtt(a));
+
+  return (
+    <div className="space-y-3">
+      {images.length === 1 ? (
+        <a
+          href={images[0].url}
+          target="_blank"
+          rel="noreferrer"
+          className="block overflow-hidden rounded-lg border bg-slate-50"
+        >
+          <img
+            src={images[0].url}
+            alt={images[0].name || 'Anexo'}
+            className="max-h-72 w-full object-contain"
+          />
+        </a>
+      ) : null}
+
+      {images.length >= 2 ? (
+        <div className="relative px-10">
+          <p className="mb-2 text-xs text-gray-500">
+            Carrossel · {images.length} slides
+          </p>
+          <Carousel opts={{ loop: false }} className="w-full">
+            <CarouselContent>
+              {images.map((attachment, index) => (
+                <CarouselItem key={attachment.id || `${attachment.url}-${index}`}>
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block overflow-hidden rounded-lg border bg-slate-50"
+                  >
+                    <img
+                      src={attachment.url}
+                      alt={attachment.name || `Slide ${index + 1}`}
+                      className="max-h-72 w-full object-contain"
+                    />
+                    <div className="border-t bg-white px-3 py-1.5 text-center text-xs text-gray-600">
+                      {index + 1} / {images.length}
+                      {attachment.name ? ` · ${attachment.name}` : ''}
+                    </div>
+                  </a>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-gray-200 bg-white" />
+            <CarouselNext className="right-0 border-gray-200 bg-white" />
+          </Carousel>
+        </div>
+      ) : null}
+
+      {others.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {others.map((attachment, index) => (
+            <Button
+              key={attachment.id || `${attachment.url}-${index}`}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              asChild
+            >
+              <a href={attachment.url} target="_blank" rel="noreferrer">
+                <FileText className="w-3 h-3 mr-1" />
+                {attachment.name || 'Arquivo'}
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+            </Button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function formatDue(dateStr) {
   if (!dateStr) return null;
@@ -187,10 +290,13 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
     }
     setBusyId(approval.id);
     try {
+      const isContent =
+        approval.kind === 'content' || approval.contentType === 'content_task';
       await decideClientApproval({
         approvalId: approval.id,
         action,
         comment,
+        kind: isContent ? 'content' : undefined,
       });
       toast.success(action === 'approve' ? 'Aprovado com sucesso' : 'Ajustes solicitados');
       onDecided?.(approval.id);
@@ -205,20 +311,27 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
     <div className="space-y-4">
       {approvals.map((a) => {
         const isMaterial = a.kind === 'material' || a.contentType === 'material_delivery';
+        const isContent = a.kind === 'content' || a.contentType === 'content_task';
         const preview = previewById[a.id];
         const isOpen = expandedId === a.id;
+        const kindLabel = isContent
+          ? 'Conteúdo'
+          : isMaterial
+            ? 'Material'
+            : 'Aprovação';
         return (
           <Card key={`${a.kind || 'classic'}-${a.id}`}>
             <CardContent className="p-4 space-y-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-medium text-gray-900">{a.title}</h3>
-                  <Badge variant="outline">
-                    {isMaterial ? 'Material' : 'Aprovação'}
-                  </Badge>
+                  <Badge variant="outline">{kindLabel}</Badge>
                 </div>
                 {a.description ? (
                   <p className="text-sm text-gray-600 mt-1">{a.description}</p>
+                ) : null}
+                {a.serviceName ? (
+                  <p className="text-xs text-gray-500 mt-1">{a.serviceName}</p>
                 ) : null}
                 {a.version?.fileName ? (
                   <p className="text-xs text-gray-500 mt-1">
@@ -238,7 +351,43 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
                 </div>
               </div>
 
-              {isMaterial ? (
+              {isContent ? (
+                <>
+                  <ContentAttachmentsPreview attachments={a.attachments} />
+                  <Textarea
+                    placeholder="Comentários ou o que precisa ajustar"
+                    value={commentById[a.id] || ''}
+                    onChange={(e) =>
+                      setCommentById((prev) => ({ ...prev, [a.id]: e.target.value }))
+                    }
+                    rows={3}
+                    disabled={busyId === a.id}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => decide(a, 'approve')}
+                      disabled={busyId === a.id}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {busyId === a.id ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <ThumbsUp className="w-4 h-4 mr-2" />
+                      )}
+                      Aprovar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => decide(a, 'reject')}
+                      disabled={busyId === a.id}
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Solicitar ajustes
+                    </Button>
+                  </div>
+                </>
+              ) : isMaterial ? (
                 a.reviewUrl ? (
                   <Button asChild className="bg-blue-600 hover:bg-blue-700">
                     <a href={a.reviewUrl} target="_blank" rel="noopener noreferrer">
@@ -646,7 +795,11 @@ export default function ClientPortalPage() {
                   >
                     <span className="font-medium text-gray-900 truncate">{a.title}</span>
                     <Badge variant="outline" className="shrink-0">
-                      {a.kind === 'material' ? 'Material' : 'Aprovação'}
+                      {a.kind === 'content'
+                        ? 'Conteúdo'
+                        : a.kind === 'material'
+                          ? 'Material'
+                          : 'Aprovação'}
                     </Badge>
                   </div>
                 ))}

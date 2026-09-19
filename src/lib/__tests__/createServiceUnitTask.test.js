@@ -107,6 +107,7 @@ describe('createServiceUnitTask', () => {
       expect.objectContaining({
         status: 'in_review',
         kanbanColumn: 'in_review',
+        clientVisible: true,
         checklist: expect.arrayContaining([
           expect.objectContaining({ text: 'Roteiro', completed: true }),
           expect.objectContaining({ text: 'Edição', completed: true }),
