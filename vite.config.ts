@@ -87,9 +87,29 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     proxy: {
-      // Outras /api* → netlify/vercel dev na 8888, se estiver rodando.
-      // /api/invite-client e /api/team-members: apiDevPlugin (antes do proxy).
-      '/api': {
+      // NÃO proxyar /api inteiro — senão compete com apiDevPlugin (invite-client/team-members).
+      // Só rotas que precisam do netlify/vercel dev na 8888:
+      '/api/material-deliveries': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+      '/api/client-portal': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+      '/api/schedule-push': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+      '/api/campaigns-agent': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+      '/api/campanha-anual': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+      '/api/approval-workflow': {
         target: 'http://127.0.0.1:8888',
         changeOrigin: true,
       },

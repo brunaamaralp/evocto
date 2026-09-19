@@ -64,7 +64,12 @@ async function getActor() {
 
 async function inviteViaApi({ clientId, email, fullName, password, sendEmail }) {
   const jwt = await createSessionJwt();
-  if (!jwt) return null;
+  if (!jwt) {
+    return fail(
+      'no_session_jwt',
+      'Não foi possível autenticar a requisição. Faça login novamente e tente o convite.'
+    );
+  }
 
   let res;
   try {
@@ -83,25 +88,32 @@ async function inviteViaApi({ clientId, email, fullName, password, sendEmail }) 
       }),
     });
   } catch (err) {
-    console.warn('[inviteClient] API indisponível:', err?.message || err);
-    return null;
+    console.warn('[inviteClient] fetch falhou:', err?.message || err);
+    return fail(
+      'network_error',
+      'Não foi possível alcançar /api/invite-client. Reinicie o Vite (npm run dev) e tente de novo.'
+    );
   }
 
   const contentType = String(res.headers.get('content-type') || '');
   if (res.status === 404 || contentType.includes('text/html')) {
     console.warn(
-      '[inviteClient] API não respondeu JSON (status=%s, content-type=%s). Em local, reinicie o Vite; em produção, confira a function Netlify.',
+      '[inviteClient] API não respondeu JSON (status=%s, content-type=%s)',
       res.status,
       contentType
     );
-    return null;
+    return fail(
+      'api_unavailable',
+      'API de convite indisponível neste ambiente. Reinicie o Vite (npm run dev). Em produção, confira o deploy da function /api/invite-client no Netlify.'
+    );
   }
 
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.success === false) {
     const message =
       json.message
-      || (json.error === 'appwrite_not_configured' || /APPWRITE_API_KEY|não configurado/i.test(String(json.message || json.error || ''))
+      || (json.error === 'appwrite_not_configured'
+        || /APPWRITE_API_KEY|não configurado/i.test(String(json.message || json.error || ''))
         ? 'Appwrite admin não configurado. Defina APPWRITE_API_KEY no .env.local (local) ou nas env vars do Netlify.'
         : null)
       || 'Não foi possível convidar o cliente.';
@@ -197,15 +209,8 @@ export async function inviteClient(params = {}) {
     password,
     sendEmail,
   });
-  if (viaApi) {
-    if (viaApi.success === false) {
-      throw new Error(viaApi.message || 'Erro ao enviar convite');
-    }
-    return viaApi;
+  if (viaApi.success === false) {
+    throw new Error(viaApi.message || 'Erro ao enviar convite');
   }
-
-  // Sem API admin não dá para conceder Role.user(convidado) pelo SDK web.
-  throw new Error(
-    'API de convite indisponível. Em produção, confira o deploy da function /api/invite-client; em local, rode o backend de API (Netlify/Vercel dev).'
-  );
+  return viaApi;
 }

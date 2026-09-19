@@ -1,6 +1,9 @@
 /**
  * Serve critical /api handlers during `npm run dev` (sem precisar de netlify/vercel dev).
  * Carrega .env / .env.local via Vite loadEnv (inclui APPWRITE_API_KEY).
+ *
+ * Importante: o middleware NÃO pode ser `async` — o Connect do Vite não espera
+ * a Promise e o `server.proxy` captura /api antes do handler terminar.
  */
 import { loadEnv } from 'vite';
 
@@ -62,6 +65,18 @@ function buildFakeRes() {
   return res;
 }
 
+function sendJson(res, statusCode, headers, body) {
+  if (res.writableEnded || res.headersSent) return;
+  res.statusCode = statusCode;
+  for (const [key, value] of Object.entries(headers || {})) {
+    res.setHeader(key, value);
+  }
+  if (!res.getHeader('Content-Type')) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  }
+  res.end(body != null ? JSON.stringify(body) : '');
+}
+
 export function apiDevPlugin() {
   return {
     name: 'evocto-api-dev',
@@ -71,64 +86,63 @@ export function apiDevPlugin() {
         if (process.env[key] === undefined) process.env[key] = value;
       }
 
-      server.middlewares.use(async (req, res, next) => {
+      // Função sync: não devolver Promise ao Connect.
+      server.middlewares.use((req, res, next) => {
         const pathname = String(req.url || '').split('?')[0];
         const loader = ROUTES[pathname];
-        if (!loader) return next();
-        if (req.method !== 'POST' && req.method !== 'OPTIONS') return next();
+        if (!loader) {
+          next();
+          return;
+        }
+        if (req.method !== 'POST' && req.method !== 'OPTIONS') {
+          next();
+          return;
+        }
 
-        try {
-          const raw = req.method === 'POST' ? await readBody(req) : '';
-          let body = raw;
-          const ct = String(req.headers['content-type'] || '');
-          if (raw && ct.includes('application/json')) {
-            try {
-              body = JSON.parse(raw);
-            } catch {
-              body = raw;
+        ;(async () => {
+          try {
+            const raw = req.method === 'POST' ? await readBody(req) : '';
+            let body = raw;
+            const ct = String(req.headers['content-type'] || '');
+            if (raw && ct.includes('application/json')) {
+              try {
+                body = JSON.parse(raw);
+              } catch {
+                body = raw;
+              }
             }
-          }
 
-          const query = Object.fromEntries(
-            new URL(req.url || '/', 'http://127.0.0.1').searchParams
-          );
+            const query = Object.fromEntries(
+              new URL(req.url || '/', 'http://127.0.0.1').searchParams
+            );
 
-          const fakeReq = {
-            method: req.method,
-            headers: req.headers,
-            query,
-            body,
-            url: req.url,
-          };
-          const fakeRes = buildFakeRes();
+            const fakeReq = {
+              method: req.method,
+              headers: req.headers,
+              query,
+              body,
+              url: req.url,
+            };
+            const fakeRes = buildFakeRes();
 
-          const mod = await loader();
-          await mod.default(fakeReq, fakeRes);
+            const mod = await loader();
+            await mod.default(fakeReq, fakeRes);
 
-          if (!fakeRes.finished) {
-            res.statusCode = 500;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: false, error: 'handler_no_response' }));
-            return;
-          }
+            if (!fakeRes.finished) {
+              sendJson(res, 500, {}, { success: false, error: 'handler_no_response' });
+              return;
+            }
 
-          res.statusCode = fakeRes.statusCode;
-          for (const [key, value] of Object.entries(fakeRes.headers)) {
-            res.setHeader(key, value);
-          }
-          res.end(fakeRes.jsonBody != null ? JSON.stringify(fakeRes.jsonBody) : '');
-        } catch (err) {
-          console.error('[api-dev]', pathname, err);
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(
-            JSON.stringify({
+            sendJson(res, fakeRes.statusCode, fakeRes.headers, fakeRes.jsonBody);
+          } catch (err) {
+            console.error('[api-dev]', pathname, err);
+            sendJson(res, 500, {}, {
               success: false,
               error: 'internal',
               message: err?.message || 'Erro na API local de desenvolvimento',
-            })
-          );
-        }
+            });
+          }
+        })();
       });
     },
   };
