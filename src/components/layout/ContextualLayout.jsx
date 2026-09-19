@@ -166,7 +166,7 @@ export default function ContextualLayout({ user, children }) {
         <main
           className={`flex-1 min-h-0 ${
             isBrainstormPage
-              ? 'overflow-hidden p-0 pb-0 flex flex-col'
+              ? 'overflow-hidden p-0 pb-0 flex flex-col h-full'
               : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-28'
           } ${isClientShell ? CLIENT_CONTEXT.contentAccent : ''}`}
         >

@@ -146,7 +146,6 @@ import clientsettings from "./client-settings";
 
 import document from "./document";
 
-import publicDeliverableApproval from "./public-deliverable-approval";
 import materialReview from "./material-review";
 import personaDashboard from "./persona-dashboard";
 import campaignShare from "./campaign-share";
@@ -394,8 +393,7 @@ const PAGES = {
     "client-settings": clientsettings,
     
     document: document,
-    
-    "public-deliverable-approval": publicDeliverableApproval,
+
     "material-review": materialReview,
     "persona-dashboard": personaDashboard,
     "campaign-share": campaignShare,
@@ -674,8 +672,7 @@ function PagesContent() {
                 <Route path="/client-settings" element={createElement(clientsettings)} />
                 
                 <Route path="/document" element={createElement(document)} />
-                
-                <Route path="/public-deliverable-approval" element={createElement(publicDeliverableApproval)} />
+
                 <Route path="/review/:token" element={createElement(materialReview)} />
                 <Route path="/review" element={createElement(materialReview)} />
                 <Route path="/campaigns/:shareToken" element={createElement(campaignShare)} />

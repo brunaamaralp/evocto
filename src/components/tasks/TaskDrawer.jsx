@@ -2,9 +2,7 @@ import React from "react";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Client } from "@/api/entities";
-import { ClientDocument } from "@/api/entities";
 import { Notification } from "@/api/entities";
-import { UploadPrivateFile } from "@/api/integrations";
 import { useSession } from "@/components/auth/SessionManager";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -41,7 +39,7 @@ import {
   Loader2, Calendar, Paperclip, CheckSquare, Send,
   AlertCircle, MessageCircle, Clock,
   Flag, Eye, AtSign, Check, Download, Trash2, Plus, Link2, History,
-  MoreVertical, Copy, X, Upload
+  MoreVertical, Copy, X, Upload, ChevronUp, ChevronDown, Image as ImageIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import TaskTimerButton from "@/components/tasks/TaskTimerButton";
@@ -54,6 +52,12 @@ import { appendAssignmentHistoryEntry } from "@/lib/taskActivityHistory";
 import TaskNotificationService from "@/components/notifications/TaskNotificationService";
 import { syncPipelineAfterTaskComplete } from "@/api/functions/transitionPipelinePhase";
 import { statusLabelPt } from "@/lib/statusLabelsPt";
+import {
+  appendFilesToTaskAttachments,
+  isImageAttachment,
+  reorderAttachments,
+  saveTaskAttachmentsOrder,
+} from "@/lib/taskAttachmentsUpload";
 
 const UNASSIGNED = "unassigned";
 
@@ -412,66 +416,32 @@ export default function TaskDrawer() {
     const files = Array.from(fileList);
     setUploading(true);
     setUploadProgress(5);
-    let attachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
-
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      try {
-        setUploadProgress(10 + Math.round((i / files.length) * 80));
-        const uploaded = await UploadPrivateFile({ file: f });
-        const fileUrl = uploaded.file_url || uploaded.url || uploaded.file_uri;
-        if (!fileUrl) throw new Error("URL do arquivo não retornada");
-
-        if (task.agencyId && task.clientId) {
-          await ClientDocument.create({
-            agencyId: task.agencyId,
-            clientId: task.clientId,
-            serviceId: task.serviceId || null,
-            deliverable_id: task.deliverableId || null,
-            group: "other",
-            fileName: f.name,
-            title: f.name,
-            description: `Anexo da tarefa: ${task.title}`,
-            fileUrl,
-            fileType: f.type || "application/octet-stream",
-            fileSize: f.size || 0,
-            version: "1.0",
-            visibility: "internal",
-            status: "approved",
-            metadata: { attached_to_task: task.id },
-            uploadedBy: currentUserId,
-          }).catch(() => {});
-        }
-
-        attachments = [
-          {
-            id: `att_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-            name: f.name,
-            url: fileUrl,
-            type: f.type?.startsWith("image/") ? "image" : "document",
-            mimeType: f.type || "application/octet-stream",
-            size: f.size || 0,
-            uploadedBy: currentUserId,
-            uploadedByName: user?.full_name || user?.email,
-            uploadedAt: new Date().toISOString(),
-            description: f.name,
-            isEvidence: false,
-          },
-          ...attachments,
-        ];
-      } catch (e) {
-        console.error(e);
-        toast.error(`Falha ao anexar ${f.name}`);
-      }
-    }
-
     try {
-      const updated = await Task.update(task.id, { attachments });
-      setTask(updated);
-      notifyLists(task.id);
-      toast.success(
-        files.length === 1 ? "Arquivo anexado" : `${files.length} arquivos anexados`
+      const { task: updated, added, failures } = await appendFilesToTaskAttachments(
+        task,
+        files,
+        {
+          uploadedBy: currentUserId,
+          uploadedByName: user?.full_name || user?.email,
+          prepend: true,
+          onProgress: setUploadProgress,
+        }
       );
+      if (updated) {
+        setTask(updated);
+        notifyLists(task.id);
+      }
+      if (failures.length && !added.length) {
+        toast.error("Não foi possível anexar os arquivos");
+      } else if (failures.length) {
+        toast.warning(
+          `${added.length} anexado(s); ${failures.length} falhou(aram)`
+        );
+      } else {
+        toast.success(
+          files.length === 1 ? "Arquivo anexado" : `${files.length} arquivos anexados`
+        );
+      }
     } catch (e) {
       console.error(e);
       toast.error("Não foi possível salvar os anexos");
@@ -491,6 +461,42 @@ export default function TaskDrawer() {
     const next = prev.filter((a) => a.id !== attachmentId);
     await patchTask({ attachments: next }, { field: "attachments", silent: true });
     toast.success("Anexo removido");
+  };
+
+  const moveAttachment = async (fromIndex, delta) => {
+    if (!task) return;
+    const toIndex = fromIndex + delta;
+    const next = reorderAttachments(task.attachments, fromIndex, toIndex);
+    if (next === task.attachments) return;
+    setTask({ ...task, attachments: next });
+    try {
+      const updated = await saveTaskAttachmentsOrder(task.id, next);
+      setTask(updated);
+      notifyLists(task.id);
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível reordenar");
+      try {
+        const fresh = await Task.get(task.id);
+        setTask(fresh);
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
+  const sendForApproval = async () => {
+    if (!task) return;
+    const attachments = task.attachments || [];
+    if (!attachments.length) {
+      toast.error("Anexe o conteúdo antes de enviar para aprovação");
+      return;
+    }
+    if (task.status === "in_review") {
+      toast.message("Já está em revisão");
+      return;
+    }
+    await handleStatusChange("in_review");
   };
 
   const duplicateTask = async () => {
@@ -978,18 +984,49 @@ export default function TaskDrawer() {
 
               <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-[#18162A]">Anexos</h3>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-8 text-xs"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                  >
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    Adicionar arquivo
-                  </Button>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-[#18162A]">Anexos</h3>
+                    {(() => {
+                      const atts = task.attachments || [];
+                      const imageCount = atts.filter((a) => isImageAttachment(a)).length;
+                      if (imageCount >= 2) {
+                        return (
+                          <p className="text-xs text-muted-foreground">
+                            Carrossel ({imageCount} slides)
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {(task.attachments || []).length > 0 &&
+                    task.status !== "in_review" &&
+                    task.status !== "completed" &&
+                    task.status !== "cancelled" ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8 text-xs bg-[#007bff] hover:bg-[#0056b3]"
+                        onClick={sendForApproval}
+                        disabled={savingField === "status" || uploading}
+                      >
+                        <Send className="w-3.5 h-3.5 mr-1" />
+                        Enviar para aprovação
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" />
+                      Adicionar arquivo
+                    </Button>
+                  </div>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1031,15 +1068,46 @@ export default function TaskDrawer() {
                   )}
                 </div>
 
+                {(task.attachments || []).some((a) => isImageAttachment(a)) ? (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {(task.attachments || [])
+                      .filter((a) => isImageAttachment(a))
+                      .map((a) => (
+                        <a
+                          key={`preview-${a.id}`}
+                          href={a.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="group relative aspect-square overflow-hidden rounded-md border bg-muted"
+                        >
+                          <img
+                            src={a.url}
+                            alt={a.name}
+                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <span className="absolute inset-x-0 bottom-0 truncate bg-black/50 px-1 py-0.5 text-[10px] text-white">
+                            {a.name}
+                          </span>
+                        </a>
+                      ))}
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
-                  {(task.attachments || []).map((a) => (
+                  {(task.attachments || []).map((a, index) => (
                     <div
                       key={`${a.id}-${a.name}`}
                       className="flex items-center gap-3 p-2.5 rounded-lg border bg-white"
                     >
-                      <Paperclip className="w-4 h-4 text-muted-foreground shrink-0" />
+                      {isImageAttachment(a) ? (
+                        <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                      ) : (
+                        <Paperclip className="w-4 h-4 text-muted-foreground shrink-0" />
+                      )}
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium truncate">{a.name}</div>
+                        <div className="text-sm font-medium truncate">
+                          {index + 1}. {a.name}
+                        </div>
                         <div className="text-xs text-muted-foreground truncate">
                           {[
                             a.mimeType || a.type,
@@ -1053,7 +1121,27 @@ export default function TaskDrawer() {
                             .join(" · ")}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={index === 0}
+                          onClick={() => moveAttachment(index, -1)}
+                          aria-label="Mover para cima"
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={index === (task.attachments || []).length - 1}
+                          onClick={() => moveAttachment(index, 1)}
+                          aria-label="Mover para baixo"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                           <a href={a.url} target="_blank" rel="noreferrer" aria-label="Abrir">
                             <Eye className="w-4 h-4" />

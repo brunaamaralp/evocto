@@ -406,7 +406,7 @@ export default function ChatInterface({
               }}
             >
               <div
-                className="agent-chat-bubble"
+                className="brainstorm-chat-bubble"
                 style={{
                   ...styles.bubble,
                   background: isUser ? '#007bff' : '#f0f0f0',
@@ -455,60 +455,62 @@ export default function ChatInterface({
         </div>
       ) : null}
 
-      <div style={styles.inputArea}>
-        <textarea
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="Ex.: foco em vendas, público X, 5 vídeos…"
-          disabled={loading || !conversationId || isFinalizada}
-          rows={3}
-          style={{
-            ...styles.textarea,
-            background: loading ? '#fafafa' : '#fff',
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={!canSend || isFinalizada}
-          style={btnSend(!canSend || isFinalizada)}
-        >
-          Enviar
-        </button>
-      </div>
+      <div style={styles.composer}>
+        <div style={styles.inputArea}>
+          <textarea
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Ex.: foco em vendas, público X, 5 vídeos…"
+            disabled={loading || !conversationId || isFinalizada}
+            rows={2}
+            style={{
+              ...styles.textarea,
+              background: loading ? '#fafafa' : '#fff',
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!canSend || isFinalizada}
+            style={btnSend(!canSend || isFinalizada)}
+          >
+            Enviar
+          </button>
+        </div>
 
-      <div style={styles.stickyBar}>
-        <button
-          type="button"
-          className="chat-primary-btn"
-          onClick={openCreateCampaign}
-          disabled={!canSaveBrief}
-          style={btnSave(!canSaveBrief)}
-          title={
-            isFinalizada
-              ? 'Campanha já criada'
-              : !isRefinada
-                ? 'Disponível quando a ideia estiver refinada'
-                : 'Cria brief e ciclo de execução'
-          }
-        >
-          {savingCampaign
-            ? 'Criando campanha…'
-            : isFinalizada
-              ? 'Campanha criada'
-              : 'Criar campanha'}
-        </button>
-        {!isRefinada && !isFinalizada ? (
-          <p style={styles.saveHint}>
-            Liberado no passo 3, quando o status for <strong>Refinada</strong>
-          </p>
-        ) : null}
-        {isRefinada && !isFinalizada ? (
-          <p style={styles.saveHint}>
-            Gera o brief e vincula ao ciclo operacional do mês (sem duplicar ciclo)
-          </p>
-        ) : null}
+        <div style={styles.stickyBar}>
+          <button
+            type="button"
+            className="chat-primary-btn"
+            onClick={openCreateCampaign}
+            disabled={!canSaveBrief}
+            style={btnSave(!canSaveBrief)}
+            title={
+              isFinalizada
+                ? 'Campanha já criada'
+                : !isRefinada
+                  ? 'Disponível quando a ideia estiver refinada'
+                  : 'Cria brief e ciclo de execução'
+            }
+          >
+            {savingCampaign
+              ? 'Criando campanha…'
+              : isFinalizada
+                ? 'Campanha criada'
+                : 'Criar campanha'}
+          </button>
+          {!isRefinada && !isFinalizada ? (
+            <p style={styles.saveHint}>
+              Liberado no passo 3, quando o status for <strong>Refinada</strong>
+            </p>
+          ) : null}
+          {isRefinada && !isFinalizada ? (
+            <p style={styles.saveHint}>
+              Gera o brief e vincula ao ciclo operacional do mês (sem duplicar ciclo)
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {confirmOpen ? (
@@ -570,7 +572,7 @@ export default function ChatInterface({
           background: #0056b3 !important;
         }
         @media (max-width: 640px) {
-          .agent-chat-bubble {
+          .brainstorm-chat-bubble {
             font-size: 13px !important;
             padding: 0.6rem 0.85rem !important;
             max-width: 92% !important;
@@ -599,11 +601,12 @@ const styles = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    flex: '1 1 0',
     minHeight: 0,
-    flex: 1,
+    height: '100%',
     gap: '0.55rem',
     color: '#1a1a1a',
+    overflow: 'hidden',
   },
   header: {
     display: 'flex',
@@ -636,8 +639,9 @@ const styles = {
   },
   list: {
     flex: '1 1 0',
-    minHeight: 0,
+    minHeight: 220,
     overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
     padding: '0.35rem 0.15rem',
     display: 'flex',
     flexDirection: 'column',
@@ -662,7 +666,7 @@ const styles = {
     fontSize: 13,
     color: '#555',
   },
-  error: { margin: 0, fontSize: 12, color: '#c0392b' },
+  error: { margin: 0, fontSize: 12, color: '#c0392b', flexShrink: 0 },
   secondaryRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -681,18 +685,23 @@ const styles = {
     fontSize: 13,
     cursor: 'pointer',
   },
+  composer: {
+    flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem',
+  },
   inputArea: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.4rem',
     alignItems: 'flex-end',
-    flexShrink: 0,
   },
   textarea: {
     width: '100%',
-    minHeight: 64,
-    maxHeight: 120,
-    padding: '0.75rem 0.9rem',
+    minHeight: 52,
+    maxHeight: 96,
+    padding: '0.65rem 0.85rem',
     borderRadius: 8,
     border: '1px solid #ddd',
     resize: 'vertical',
@@ -707,7 +716,6 @@ const styles = {
     gap: 4,
     paddingTop: 4,
     borderTop: '1px solid #eee',
-    flexShrink: 0,
   },
   saveHint: {
     margin: 0,

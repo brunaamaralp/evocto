@@ -13,7 +13,7 @@
   - `GOOGLE_CLIENT_ID`
   - `GOOGLE_CLIENT_SECRET`
   - `GOOGLE_OAUTH_REDIRECT_URI` = `{API_ORIGIN}/api/material-deliveries?route=drive-callback`
-  - `DRIVE_TOKEN_ENCRYPTION_KEY` (string forte ou 64 hex)
+  - `MATERIAL_ENCRYPTION_KEY` (string forte ou 64 hex — obrigatória; sem fallback)
   - `APP_PUBLIC_URL` (ex. `http://localhost:5173`)
   - `APPWRITE_API_KEY` (já usado)
 - [ ] No Google Console, adicionar o redirect URI autorizado

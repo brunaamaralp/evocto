@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import { 
   CheckCircle, Clock, Play, FileText, 
   Calendar, Target, Eye, ThumbsUp,
@@ -15,6 +22,92 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { isImageAttachment } from '@/lib/taskAttachmentsUpload';
+
+function TaskAttachmentsPreview({ attachments }) {
+  const list = Array.isArray(attachments) ? attachments.filter((a) => a?.url) : [];
+  if (!list.length) return null;
+
+  const images = list.filter((a) => isImageAttachment(a));
+  const others = list.filter((a) => !isImageAttachment(a));
+
+  return (
+    <div className="mb-4 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="text-sm font-medium text-gray-700">
+          {images.length >= 2 ? `Conteúdo (${images.length} slides)` : 'Anexos'}
+        </h4>
+        {images.length >= 2 ? (
+          <span className="text-xs text-gray-500">Carrossel</span>
+        ) : null}
+      </div>
+
+      {images.length === 1 ? (
+        <a
+          href={images[0].url}
+          target="_blank"
+          rel="noreferrer"
+          className="block overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+        >
+          <img
+            src={images[0].url}
+            alt={images[0].name || 'Anexo'}
+            className="max-h-72 w-full object-contain"
+          />
+        </a>
+      ) : null}
+
+      {images.length >= 2 ? (
+        <div className="relative px-10">
+          <Carousel opts={{ loop: false }} className="w-full">
+            <CarouselContent>
+              {images.map((attachment, index) => (
+                <CarouselItem key={attachment.id || `${attachment.url}-${index}`}>
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                  >
+                    <img
+                      src={attachment.url}
+                      alt={attachment.name || `Slide ${index + 1}`}
+                      className="max-h-72 w-full object-contain"
+                    />
+                    <div className="border-t bg-white px-3 py-1.5 text-center text-xs text-gray-600">
+                      {index + 1} / {images.length}
+                      {attachment.name ? ` · ${attachment.name}` : ''}
+                    </div>
+                  </a>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-gray-200 bg-white" />
+            <CarouselNext className="right-0 border-gray-200 bg-white" />
+          </Carousel>
+        </div>
+      ) : null}
+
+      {others.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {others.map((attachment, index) => (
+            <Button
+              key={attachment.id || `${attachment.url}-${index}`}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => window.open(attachment.url, '_blank')}
+            >
+              <FileText className="w-3 h-3 mr-1" />
+              {attachment.name || 'Arquivo'}
+              <ExternalLink className="w-3 h-3 ml-1" />
+            </Button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 // Status badges para tarefas
 const getStatusBadge = (status) => {
@@ -171,27 +264,8 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
           </div>
         )}
 
-        {/* Anexos */}
-        {task.attachments && task.attachments.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Anexos</h4>
-            <div className="flex flex-wrap gap-2">
-              {task.attachments.map((attachment, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => window.open(attachment.url, '_blank')}
-                >
-                  <FileText className="w-3 h-3 mr-1" />
-                  {attachment.name}
-                  <ExternalLink className="w-3 h-3 ml-1" />
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Anexos / carrossel */}
+        <TaskAttachmentsPreview attachments={task.attachments} />
 
         {/* Ações de aprovação */}
         {canApprove && (

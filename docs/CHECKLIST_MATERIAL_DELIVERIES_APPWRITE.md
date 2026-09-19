@@ -48,7 +48,7 @@ Script idempotente: `scripts/appwrite-setup-material-deliveries.mjs`
 
 ## Próximas fases (não feito)
 
-- [ ] OAuth Google Drive + `DRIVE_TOKEN_ENCRYPTION_KEY`
+- [ ] OAuth Google Drive + `MATERIAL_ENCRYPTION_KEY`
 - [ ] Endpoints `/api/review/{token}` (+ file/approve/changes)
 - [ ] UI delivery workspace + página pública
 - [ ] Soft-delete / reopen / regenerate token no produto

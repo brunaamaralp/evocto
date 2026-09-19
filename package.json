@@ -12,6 +12,8 @@
     "appwrite:setup-finance": "node scripts/appwrite-setup-finance.mjs",
     "appwrite:setup-agency-finance": "node scripts/appwrite-setup-agency-finance.mjs",
     "appwrite:setup-material-deliveries": "node scripts/appwrite-setup-material-deliveries.mjs",
+    "appwrite:audit-material-permissions": "node scripts/audit-material-permissions.mjs",
+    "appwrite:smoke-material-phase1": "node scripts/smoke-material-phase1.mjs",
     "appwrite:setup-client-visible": "node scripts/appwrite-setup-client-visible.mjs",
     "appwrite:smoke-agency-finance": "node scripts/smoke-agency-finance.mjs",
     "appwrite:smoke-client-portal": "node scripts/smoke-client-portal-isolation.mjs",

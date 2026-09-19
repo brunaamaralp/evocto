@@ -49,7 +49,9 @@ import { buildClientTasksHref } from '@/lib/taskScope';
 import {
   createServiceUnitTask,
   startSingleProjectOperation,
+  UNIT_CREATION_MODES,
 } from '@/lib/createServiceUnitTask';
+import { appendFilesToTaskAttachments } from '@/lib/taskAttachmentsUpload';
 
 function setServiceIdInUrl(serviceId) {
   const url = new URL(window.location.href);
@@ -72,6 +74,7 @@ export default function ClientDetailPage() {
   const [unitModalOpen, setUnitModalOpen] = useState(false);
   const [unitSaving, setUnitSaving] = useState(false);
   const [unitError, setUnitError] = useState('');
+  const [unitUploadProgress, setUnitUploadProgress] = useState(0);
   const [startingProject, setStartingProject] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
 
@@ -303,29 +306,68 @@ export default function ClientDetailPage() {
   ]);
 
   const handleSubmitUnit = useCallback(
-    async (title, { mode, keepOpen = false } = {}) => {
+    async (title, { mode, keepOpen = false, files = [] } = {}) => {
       if (!selectedService || !agencyId || !clientId) return;
       setUnitSaving(true);
       setUnitError('');
+      setUnitUploadProgress(0);
+      const ownerId = userId || user?.id || user?.$id || null;
+      const isReady = mode === UNIT_CREATION_MODES.READY_FOR_APPROVAL;
       try {
-        await createServiceUnitTask({
+        const { task } = await createServiceUnitTask({
           agencyId,
           clientId,
           service: selectedService,
           title,
-          ownerId: userId || user?.id || user?.$id || null,
+          ownerId,
           mode,
         });
+
+        if (isReady && files?.length) {
+          const { failures } = await appendFilesToTaskAttachments(task, files, {
+            uploadedBy: ownerId,
+            uploadedByName: user?.full_name || user?.name || user?.email || null,
+            prepend: false,
+            onProgress: setUnitUploadProgress,
+          });
+          if (failures.length && failures.length === files.length) {
+            setUnitError(
+              'Tarefa criada, mas nenhum anexo foi enviado. Abra a tarefa e anexe de novo.'
+            );
+            toast.error('Falha ao enviar anexos');
+            if (task?.id) {
+              window.dispatchEvent(
+                new CustomEvent('task:open', { detail: { taskId: task.id } })
+              );
+            }
+            await reload?.();
+            return;
+          }
+          if (failures.length) {
+            toast.warning(
+              `Enviado com ${files.length - failures.length} de ${files.length} anexos`
+            );
+          }
+        }
+
         toast.success(unitCreatedToast(selectedProfile, title, mode));
         if (!keepOpen) {
           setUnitModalOpen(false);
         }
         await reload?.();
+
+        // Fluxo completo: abre a tarefa para anexar conteúdo quando estiver pronto
+        if (!isReady && task?.id && !keepOpen) {
+          window.dispatchEvent(
+            new CustomEvent('task:open', { detail: { taskId: task.id } })
+          );
+        }
       } catch (err) {
         console.error('[client-detail] createUnit', err);
         setUnitError(err?.message || 'Erro ao criar');
       } finally {
         setUnitSaving(false);
+        setUnitUploadProgress(0);
       }
     },
     [selectedService, selectedProfile, agencyId, clientId, userId, user, reload]
@@ -737,12 +779,14 @@ export default function ClientDetailPage() {
           if (!unitSaving) {
             setUnitModalOpen(false);
             setUnitError('');
+            setUnitUploadProgress(0);
           }
         }}
         service={selectedService}
         profile={selectedProfile}
         saving={unitSaving}
         error={unitError}
+        uploadProgress={unitUploadProgress}
         onSubmit={handleSubmitUnit}
       />
     </div>

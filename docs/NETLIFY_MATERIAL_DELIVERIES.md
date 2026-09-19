@@ -28,7 +28,7 @@ Requer no `.env.local`:
 | `GOOGLE_CLIENT_ID` | para Drive |
 | `GOOGLE_CLIENT_SECRET` | para Drive |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `https://SEU-SITE.netlify.app/api/material-deliveries?route=drive-callback` |
-| `DRIVE_TOKEN_ENCRYPTION_KEY` | para Drive |
+| `MATERIAL_ENCRYPTION_KEY` | obrigatória — tokens públicos, OAuth state e refresh do Drive |
 
 ## 3. Deploy
 

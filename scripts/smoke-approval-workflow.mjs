@@ -56,12 +56,10 @@ function hashToken(raw) {
 }
 
 function encryptSecret(plainText) {
-  const raw = String(
-    process.env.DRIVE_TOKEN_ENCRYPTION_KEY ||
-      process.env.MATERIAL_SECRET_KEY ||
-      process.env.APPWRITE_API_KEY ||
-      ''
-  ).trim();
+  const raw = String(process.env.MATERIAL_ENCRYPTION_KEY || '').trim();
+  if (!raw) {
+    throw new Error('Defina MATERIAL_ENCRYPTION_KEY (string forte ou 64 hex)');
+  }
   const key = /^[0-9a-fA-F]{64}$/.test(raw)
     ? Buffer.from(raw, 'hex')
     : createHash('sha256').update(raw).digest();

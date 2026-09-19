@@ -20,7 +20,6 @@ const publicRoutes = [
   '/privacy-policy',
   '/public-approval',
   '/public-briefing',
-  '/public-deliverable-approval',
   '/review',
   '/campaigns',
 ];

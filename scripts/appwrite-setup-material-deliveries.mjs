@@ -58,12 +58,12 @@ if (!ENDPOINT || !PROJECT_ID || !API_KEY || !DATABASE_ID) {
 const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID).setKey(API_KEY);
 const tables = new TablesDB(client);
 
-/** Autenticados podem criar rows; RLS por row. */
+/** Autenticados podem criar rows; RLS por row (legado notifications/audit). */
 const usersCreatePerms = [Permission.create(Role.users())];
 
 /**
  * Sem permissões de client SDK — somente API key / Functions.
- * Usado em agency_drive_connections (refresh tokens).
+ * Material Deliveries e Drive: acesso exclusivo via backend.
  */
 const serverOnlyPerms = [];
 
@@ -71,7 +71,7 @@ const TABLES = [
   {
     id: 'material_deliveries',
     name: 'Material Deliveries',
-    permissions: usersCreatePerms,
+    permissions: serverOnlyPerms,
     columns: [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'clientId', type: 'varchar', size: 36 },
@@ -101,7 +101,7 @@ const TABLES = [
   {
     id: 'material_delivery_versions',
     name: 'Material Delivery Versions',
-    permissions: usersCreatePerms,
+    permissions: serverOnlyPerms,
     columns: [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'deliveryId', type: 'varchar', size: 36 },
