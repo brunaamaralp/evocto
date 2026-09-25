@@ -97,14 +97,19 @@ async function inviteViaApi({ clientId, email, fullName, password, sendEmail }) 
 
   const contentType = String(res.headers.get('content-type') || '');
   if (res.status === 404 || contentType.includes('text/html')) {
+    const host = typeof window !== 'undefined' ? window.location.host : '';
+    const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host);
     console.warn(
-      '[inviteClient] API não respondeu JSON (status=%s, content-type=%s)',
+      '[inviteClient] API não respondeu JSON (status=%s, content-type=%s, host=%s)',
       res.status,
-      contentType
+      contentType,
+      host
     );
     return fail(
       'api_unavailable',
-      'API de convite indisponível neste ambiente. Reinicie o Vite (npm run dev). Em produção, confira o deploy da function /api/invite-client no Netlify.'
+      isLocal
+        ? 'API de convite indisponível. Pare e rode de novo: npm run dev (em http://127.0.0.1:5173). Não use vite preview sem o plugin, nem uma aba com Service Worker antigo — limpe o SW se necessário.'
+        : `API /api/invite-client ausente em ${host || 'produção'} (404 HTML). Faça redeploy no Netlify com a function invite-client e a env APPWRITE_API_KEY.`
     );
   }
 

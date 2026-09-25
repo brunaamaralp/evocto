@@ -21,6 +21,7 @@ import {
   isItemCycleService,
   resolveItemCyclePipeline,
 } from '@/templates/itemCycleTemplateHelpers';
+import { normalizeActivityKind } from '@/constants/activityKinds';
 
 export const UNIT_CREATION_MODES = Object.freeze({
   FULL: 'full',
@@ -182,6 +183,8 @@ function buildUnitTaskPayload({
     progress,
     assigneeId: ownerId || null,
     assignedTo: ownerId || null,
+    // V2.1: kind só da unit template (explícito). Checklist steps → V2.3.
+    activityKind: normalizeActivityKind(tpl.activityKind),
   };
 }
 

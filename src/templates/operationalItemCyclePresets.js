@@ -5,11 +5,17 @@
  * dedicados (compatibilidade). Os demais entram aqui via factory.
  *
  * `group` é apenas organização conceitual/UI — não cria campo novo no Appwrite.
+ * `activityKind` nos passos: natureza do trabalho (registry V2.1); null = ambíguo.
  */
 
 import { buildItemCycleServiceTemplate } from './buildItemCycleServiceTemplate.js';
 
 /** @typedef {{ key: string, group: string, label: string, selectLabel: string, hint: string, emptyCycleMessage: string, aliases?: string[] }} ItemCycleOptionMeta */
+
+/** @param {string} title @param {string|null} activityKind */
+function step(title, activityKind = null) {
+  return { title, text: title, activityKind };
+}
 
 export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
   {
@@ -23,14 +29,14 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Campanhas',
     defaultTaskTitle: 'Nova campanha pontual',
     steps: [
-      'Briefing',
-      'Objetivo',
-      'Conceito / Ideia',
-      'Planejamento',
-      'Produção',
-      'Aprovação',
-      'Publicação / Execução',
-      'Encerramento',
+      step('Briefing', 'briefing'),
+      step('Objetivo', 'planning'),
+      step('Conceito / Ideia', 'planning'),
+      step('Planejamento', 'planning'),
+      step('Produção', null), // bundle heterogêneo
+      step('Aprovação', 'approval'),
+      step('Publicação / Execução', 'publishing'),
+      step('Encerramento', 'reporting'),
     ],
   },
   {
@@ -44,16 +50,16 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Produções',
     defaultTaskTitle: 'Nova produção de vídeo',
     steps: [
-      'Briefing',
-      'Roteiro',
-      'Referências',
-      'Checklist de Produção',
-      'Agendamento',
-      'Captação',
-      'Edição',
-      'Revisão',
-      'Aprovação',
-      'Entrega',
+      step('Briefing', 'briefing'),
+      step('Roteiro', 'script'),
+      step('Referências', 'planning'),
+      step('Checklist de Produção', 'admin'),
+      step('Agendamento', 'scheduling'),
+      step('Captação', 'capture'),
+      step('Edição', 'editing'),
+      step('Revisão', 'revision'),
+      step('Aprovação', 'approval'),
+      step('Entrega', 'delivery'),
     ],
   },
   {
@@ -67,15 +73,16 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Coberturas',
     defaultTaskTitle: 'Nova cobertura de evento',
     steps: [
-      'Briefing',
-      'Alinhamento do Evento',
-      'Checklist de Cobertura',
-      'Agendamento',
-      'Cobertura / Captação',
-      'Seleção de Material',
-      'Edição',
-      'Aprovação',
-      'Entrega',
+      step('Briefing', 'briefing'),
+      step('Alinhamento do Evento', 'planning'),
+      step('Checklist de Cobertura', 'admin'),
+      step('Agendamento', 'scheduling'),
+      // foto e/ou vídeo — natureza mista
+      step('Cobertura / Captação', null),
+      step('Seleção de Material', 'curation'),
+      step('Edição', 'editing'),
+      step('Aprovação', 'approval'),
+      step('Entrega', 'delivery'),
     ],
   },
   {
@@ -89,13 +96,13 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Ações',
     defaultTaskTitle: 'Nova ação Storymaker',
     steps: [
-      'Briefing',
-      'Alinhamento da Programação',
-      'Referências / Direção',
-      'Checklist',
-      'Cobertura em Tempo Real',
-      'Organização dos Materiais',
-      'Entrega / Arquivamento',
+      step('Briefing', 'briefing'),
+      step('Alinhamento da Programação', 'planning'),
+      step('Referências / Direção', 'planning'),
+      step('Checklist', 'admin'),
+      step('Cobertura em Tempo Real', 'capture'),
+      step('Organização dos Materiais', 'admin'),
+      step('Entrega / Arquivamento', 'delivery'),
     ],
   },
   {
@@ -109,18 +116,18 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Projetos',
     defaultTaskTitle: 'Novo posicionamento de marca',
     steps: [
-      'Briefing',
-      'Diagnóstico',
-      'Pesquisa',
-      'Público',
-      'Posicionamento',
-      'Territórios de Comunicação',
-      'Tom de Voz',
-      'Direção Visual',
-      'Apresentação',
-      'Ajustes',
-      'Aprovação',
-      'Entrega',
+      step('Briefing', 'briefing'),
+      step('Diagnóstico', 'analysis'),
+      step('Pesquisa', 'research'),
+      step('Público', 'research'),
+      step('Posicionamento', 'strategy'),
+      step('Territórios de Comunicação', 'strategy'),
+      step('Tom de Voz', 'strategy'),
+      step('Direção Visual', 'planning'),
+      step('Apresentação', 'meeting'),
+      step('Ajustes', 'revision'),
+      step('Aprovação', 'approval'),
+      step('Entrega', 'delivery'),
     ],
   },
   {
@@ -134,15 +141,16 @@ export const OPERATIONAL_ITEM_CYCLE_PRESETS = [
     phaseName: 'Projetos',
     defaultTaskTitle: 'Nova identidade / papelaria de evento',
     steps: [
-      'Briefing',
-      'Levantamento de Materiais',
-      'Referências',
-      'Direção Visual',
-      'Criação',
-      'Revisão',
-      'Aprovação',
-      'Fechamento de Arquivos',
-      'Entrega',
+      step('Briefing', 'briefing'),
+      step('Levantamento de Materiais', 'research'),
+      step('Referências', 'planning'),
+      step('Direção Visual', 'planning'),
+      // criação gráfica — sem kind de design dedicado
+      step('Criação', null),
+      step('Revisão', 'revision'),
+      step('Aprovação', 'approval'),
+      step('Fechamento de Arquivos', 'delivery'),
+      step('Entrega', 'delivery'),
     ],
   },
 ];

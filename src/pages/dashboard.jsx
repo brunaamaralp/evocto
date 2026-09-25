@@ -17,7 +17,17 @@ import { Task } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { CyclePlan } from '@/api/entities';
 import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
-import { buildGreetingLine } from '@/lib/dashboardDayBriefing';
+import { buildGreetingLine, formatTodayHeroDate } from '@/lib/dashboardDayBriefing';
+import {
+  getOperationalCycleConfigFromAgency,
+  resolveAgencyOperationalCycle,
+} from '@/lib/agencyOperationalCycle';
+import { resolveOperationalPhaseWork } from '@/lib/resolveOperationalPhaseWork';
+import {
+  buildPhaseFocusAttentionItems,
+  mergePhaseFocusIntoAttentionQueue,
+} from '@/lib/prioritizeDashboardPhaseFocus';
+import AgencyOperationalPhaseIndicator from '@/components/dashboard/AgencyOperationalPhaseIndicator';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
 
 function firstNameFromFullName(fullName) {
@@ -26,14 +36,6 @@ function firstNameFromFullName(fullName) {
     .split(/\s+/)[0];
   if (!first || first === 'Usuário') return '';
   return first;
-}
-
-function formatDashboardDate(date = new Date()) {
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
 }
 
 const OPEN_TASK_STATUSES = new Set([
@@ -162,7 +164,8 @@ function buildTaskItem(task, clients, todayStart, kind) {
 }
 
 /**
- * Fila de atenção: atrasadas, bloqueadas, aguardando cliente, aprovações.
+ * Fila de atenção base: atrasadas, bloqueadas, aguardando cliente, aprovações.
+ * O foco da fase é mesclado depois via mergePhaseFocusIntoAttentionQueue.
  */
 function buildAttentionQueue(tasks, clients, cycles, todayStart) {
   const items = [];
@@ -338,6 +341,8 @@ function kindBadge(kind) {
   switch (kind) {
     case 'overdue':
       return { label: 'Atrasada', className: 'text-[#c0392b]' };
+    case 'phase_focus':
+      return { label: 'Fase', className: 'text-[#007bff]' };
     case 'blocked':
       return { label: 'Bloqueada', className: 'text-[#b45309]' };
     case 'waiting_client':
@@ -353,13 +358,20 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
   const badge = showKindBadge ? kindBadge(item.kind) : null;
   const isTask = Boolean(item.taskId);
   const isCompleting = completingId === item.taskId;
+  const canComplete = isTask && onComplete && item.completable !== false;
 
   const meta = (
     <>
       <div className="min-w-0 flex-1 text-left">
         <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
         <p className="text-xs text-[#555]">
-          {[item.clientName, item.dueLabel].filter(Boolean).join(' · ')}
+          {[
+            item.clientName,
+            item.dueLabel,
+            item.kind === 'phase_focus' ? item.activityKindLabel : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
@@ -387,7 +399,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
           {meta}
         </Link>
       )}
-      {isTask && onComplete ? (
+      {canComplete ? (
         <Button
           type="button"
           variant="ghost"
@@ -413,7 +425,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
  * Home operacional — campanhas + agenda + fila de atenção.
  */
 export default function DashboardPage() {
-  const { agencyId, userName, user, loading: sessionLoading } = useSession();
+  const { agencyId, userName, user, agency, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
@@ -452,7 +464,26 @@ export default function DashboardPage() {
         services
       );
 
-      const attentionQueue = buildAttentionQueue(tasks, clients, cycles, todayStart);
+      const cycleConfig = getOperationalCycleConfigFromAgency(agency);
+      const operationalCycle = resolveAgencyOperationalCycle(new Date(), cycleConfig);
+      const phaseWorkForQueue = resolveOperationalPhaseWork(tasks, {
+        agencyId,
+        currentPhase: operationalCycle?.currentPhase || null,
+        maxItems: 16,
+      });
+      const phaseFocusItems = buildPhaseFocusAttentionItems(phaseWorkForQueue, {
+        tasks,
+        clients,
+        todayStart,
+        resolveClientName,
+        formatDueLabel,
+        parseDueDate,
+      });
+      const attentionQueue = mergePhaseFocusIntoAttentionQueue(
+        buildAttentionQueue(tasks, clients, cycles, todayStart),
+        phaseFocusItems,
+        { max: 8 }
+      );
       const agenda = buildAgenda(tasks, clients, todayStart);
       const setupSteps = buildSetupSteps({
         clients: clientsForCampaigns,
@@ -494,6 +525,7 @@ export default function DashboardPage() {
         setupSteps,
         clientsWithoutCampaigns,
         clientsWithoutService,
+        tasks,
       });
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
@@ -503,7 +535,7 @@ export default function DashboardPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [agencyId]);
+  }, [agencyId, agency]);
 
   useEffect(() => {
     if (!sessionLoading && agencyId) {
@@ -524,8 +556,12 @@ export default function DashboardPage() {
           if (!prev) return prev;
           return {
             ...prev,
-            attentionQueue: (prev.attentionQueue || []).filter((i) => i.id !== removeId),
-            agenda: (prev.agenda || []).filter((i) => i.id !== removeId),
+            attentionQueue: (prev.attentionQueue || []).filter(
+              (i) => i.id !== removeId && i.taskId !== taskId
+            ),
+            agenda: (prev.agenda || []).filter(
+              (i) => i.id !== removeId && i.taskId !== taskId
+            ),
           };
         });
         window.setTimeout(() => {
@@ -544,6 +580,7 @@ export default function DashboardPage() {
     async (item) => {
       const task = item?.task;
       if (!task?.id || completingId) return;
+      if (item?.completable === false) return;
 
       setCompletingId(task.id);
       try {
@@ -561,8 +598,12 @@ export default function DashboardPage() {
           if (!prev) return prev;
           return {
             ...prev,
-            attentionQueue: (prev.attentionQueue || []).filter((i) => i.id !== removeId),
-            agenda: (prev.agenda || []).filter((i) => i.id !== removeId),
+            attentionQueue: (prev.attentionQueue || []).filter(
+              (i) => i.id !== removeId && i.taskId !== task.id
+            ),
+            agenda: (prev.agenda || []).filter(
+              (i) => i.id !== removeId && i.taskId !== task.id
+            ),
           };
         });
 
@@ -619,7 +660,14 @@ export default function DashboardPage() {
   const hasCampaigns = campaignGroups.length > 0;
   const nextSetupStep = setupSteps.find((s) => !s.done) || null;
   const greeting = buildGreetingLine(firstNameFromFullName(userName));
-  const todayLabel = formatDashboardDate();
+  const todayLabel = formatTodayHeroDate();
+  const cycleConfig = getOperationalCycleConfigFromAgency(agency);
+  const operationalCycle = resolveAgencyOperationalCycle(new Date(), cycleConfig);
+  const phaseWork = resolveOperationalPhaseWork(dashboardData?.tasks || [], {
+    agencyId,
+    currentPhase: operationalCycle?.currentPhase || null,
+    maxItems: 5,
+  });
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
@@ -628,9 +676,11 @@ export default function DashboardPage() {
           <h1 className="text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
             {greeting}
           </h1>
-          <p className="text-sm text-[#555]">
-            {todayLabel} · Sua agenda e tarefas prioritárias
-          </p>
+          <p className="text-sm text-[#555]">{todayLabel}</p>
+          <AgencyOperationalPhaseIndicator
+            cycle={operationalCycle}
+            phaseWork={phaseWork}
+          />
         </div>
         <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
           <Link to={nextSetupStep?.href || createPageUrl('clients')}>

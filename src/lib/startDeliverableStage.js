@@ -3,6 +3,8 @@
  * Separado do timer — lifecycle ≠ rastreamento de horas.
  */
 
+import { normalizeActivityKind } from '@/constants/activityKinds';
+
 const TERMINAL_STATUSES = new Set(['completed', 'approved', 'cancelled']);
 
 /**
@@ -47,7 +49,7 @@ export function markDeliverableStarted(deliverables, deliverableId, nowIso = new
  * @param {object} taskTemplate
  * @param {object} deliverable
  * @param {object} service
- * @param {{ agencyId: string, startDate?: string, cyclePlanId?: string }} ctx
+ * @param {{ agencyId: string, startDate?: string, cyclePlanId?: string, briefId?: string, briefingId?: string, cycleId?: string }} ctx
  */
 export function buildTaskPayloadFromTemplate(taskTemplate, deliverable, service, ctx) {
   const startDate = ctx.startDate || new Date().toISOString().slice(0, 10);
@@ -64,6 +66,9 @@ export function buildTaskPayloadFromTemplate(taskTemplate, deliverable, service,
         ).toISOString()
       : null,
   }));
+
+  // activityKind: only from explicit template field (no inference from title/type/phase).
+  const activityKind = normalizeActivityKind(taskTemplate?.activityKind);
 
   return {
     agencyId: ctx.agencyId,
@@ -83,6 +88,7 @@ export function buildTaskPayloadFromTemplate(taskTemplate, deliverable, service,
     checklist,
     template_id: taskTemplate.id || null,
     created_from_template: true,
+    activityKind,
     template_metadata: {
       deliverable_name: deliverable.name,
       template_id: taskTemplate.id || null,

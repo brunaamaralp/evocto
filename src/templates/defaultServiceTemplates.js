@@ -105,6 +105,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Coletar Materiais de Marca',
           description: 'Logo, manual, tom de voz, peças recentes e guidelines existentes',
           type: 'coleta_dados',
+          activityKind: 'research',
           priority: 'high',
           estimated_hours: 2,
           checklist: [
@@ -119,6 +120,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Mapear Canais e Presença',
           description: 'Inventário de canais ativos, frequência e responsabilidades',
           type: 'pesquisa',
+          activityKind: 'research',
           priority: 'high',
           estimated_hours: 2,
           checklist: [
@@ -133,6 +135,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Entrevistar Stakeholders',
           description: 'Alinhar percepção interna de marca, objetivos e dores de comunicação',
           type: 'reuniao',
+          activityKind: 'meeting',
           priority: 'high',
           estimated_hours: 2,
           checklist: [
@@ -156,6 +159,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Auditoria de Mensagem e Tom',
           description: 'Consistência de posicionamento, proposta de valor e tom de voz',
           type: 'analise',
+          activityKind: 'analysis',
           priority: 'high',
           estimated_hours: 4,
           checklist: [
@@ -169,6 +173,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Análise de Concorrência e Referências',
           description: 'Benchmark de comunicação de 3–5 players e referências de categoria',
           type: 'pesquisa',
+          activityKind: 'research',
           priority: 'high',
           estimated_hours: 4,
           checklist: [
@@ -182,6 +187,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Avaliar Jornada e Pontos de Contato',
           description: 'Do primeiro contato à conversão — fricções e oportunidades',
           type: 'analise',
+          activityKind: 'analysis',
           priority: 'medium',
           estimated_hours: 4,
           checklist: [
@@ -205,6 +211,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Elaborar Relatório de Diagnóstico',
           description: 'Parecer claro da situação, riscos e recomendações priorizadas',
           type: 'entregavel',
+          activityKind: 'delivery',
           priority: 'high',
           estimated_hours: 4,
           checklist: [
@@ -219,6 +226,7 @@ export const DIAGNOSTICO_COMUNICACAO_TEMPLATE = {
           title: 'Apresentar Diagnóstico ao Cliente',
           description: 'Sessão de alinhamento e validação das recomendações',
           type: 'reuniao',
+          activityKind: 'meeting',
           priority: 'high',
           estimated_hours: 2,
           checklist: [
@@ -320,6 +328,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Workshop de Posicionamento',
           description: 'Sessão facilitada para alinhar promessa, prova e personalidade',
           type: 'reuniao',
+          activityKind: 'meeting',
           priority: 'high',
           estimated_hours: 3,
           checklist: [
@@ -333,6 +342,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Mapear Personas e Jobs',
           description: 'Personas prioritárias, dores, objeções e gatilhos de conteúdo',
           type: 'pesquisa',
+          activityKind: 'research',
           priority: 'high',
           estimated_hours: 3,
           checklist: [
@@ -346,6 +356,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Auditar Conteúdo Existente',
           description: 'O que performa, o que inconsistente e o que merece aposentadoria',
           type: 'analise',
+          activityKind: 'analysis',
           priority: 'medium',
           estimated_hours: 2,
           checklist: [
@@ -368,6 +379,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Definir Pilares de Conteúdo',
           description: '3–5 pilares alinhados a objetivos de negócio e SEO/demanda',
           type: 'estrategia',
+          activityKind: 'strategy',
           priority: 'high',
           estimated_hours: 4,
           checklist: [
@@ -381,6 +393,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Guia de Tom de Voz e Mensagens',
           description: 'Do / don’t, exemplos e mensagens-chave por persona',
           type: 'entregavel',
+          activityKind: 'delivery',
           priority: 'high',
           estimated_hours: 5,
           checklist: [
@@ -394,6 +407,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Montar Calendário Editorial',
           description: 'Primeiro ciclo (4–6 semanas) com temas, formatos e CTAs',
           type: 'planejamento',
+          activityKind: 'calendar',
           priority: 'high',
           estimated_hours: 5,
           checklist: [
@@ -417,6 +431,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Entregar Playbook de Produção',
           description: 'Fluxo briefing → produção → revisão → publicação → aprendizado',
           type: 'entregavel',
+          activityKind: 'delivery',
           priority: 'high',
           estimated_hours: 6,
           checklist: [
@@ -430,6 +445,7 @@ export const ESTRATEGIA_CONTEUDO_TEMPLATE = {
           title: 'Sessão de Alinhamento com o Time',
           description: 'Treinar o time no playbook e no calendário',
           type: 'reuniao',
+          activityKind: 'meeting',
           priority: 'medium',
           estimated_hours: 4,
           checklist: [
@@ -531,6 +547,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Definir Objetivos do Ciclo',
           description: 'Metas de negócio e de marketing mensuráveis para o mês',
           type: 'planejamento',
+          activityKind: 'planning',
           priority: 'high',
           estimated_hours: 3,
           checklist: [
@@ -544,6 +561,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Montar Backlog de Campanhas e Peças',
           description: 'Priorizar iniciativas de conteúdo, mídia e comunicação',
           type: 'planejamento',
+          activityKind: 'planning',
           priority: 'high',
           estimated_hours: 5,
           checklist: [
@@ -557,6 +575,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Briefings das Peças-Chave',
           description: 'Briefs de criação para as entregas do ciclo',
           type: 'briefing',
+          activityKind: 'briefing',
           priority: 'medium',
           estimated_hours: 4,
           checklist: [
@@ -592,6 +611,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Gestão de Mídia e Distribuição',
           description: 'Setup, otimização e monitoring de campanhas pagas e orgânicas',
           type: 'midia',
+          activityKind: 'publishing',
           priority: 'high',
           estimated_hours: 16,
           checklist: [
@@ -605,6 +625,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Fluxo de Aprovações com o Cliente',
           description: 'Garantir reviews sem atrito e registro de decisões',
           type: 'aprovacao',
+          activityKind: 'approval',
           priority: 'medium',
           estimated_hours: 8,
           checklist: [
@@ -628,6 +649,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Relatório de Performance do Ciclo',
           description: 'Resultados vs metas, o que funcionou e o que ajustar',
           type: 'relatorio',
+          activityKind: 'reporting',
           priority: 'high',
           estimated_hours: 10,
           checklist: [
@@ -641,6 +663,7 @@ export const MARKETING_360_TEMPLATE = {
           title: 'Review Mensal com o Cliente',
           description: 'Apresentação e alinhamento do próximo ciclo',
           type: 'reuniao',
+          activityKind: 'meeting',
           priority: 'high',
           estimated_hours: 4,
           checklist: [

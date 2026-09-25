@@ -28,6 +28,7 @@ function normalizeSteps(steps = []) {
         text: title,
         description: '',
         type: 'producao',
+        activityKind: null,
         priority: 'medium',
         estimated_hours: 1,
         duracao_dias: 1,
@@ -42,6 +43,7 @@ function normalizeSteps(steps = []) {
       text: step.text || title,
       description: step.description || '',
       type: step.type || 'producao',
+      activityKind: step.activityKind ?? null,
       priority: step.priority || 'medium',
       estimated_hours: step.estimated_hours ?? 1,
       duracao_dias: step.duracao_dias ?? 1,
@@ -95,6 +97,7 @@ export function buildItemCycleServiceTemplate(preset) {
       preset.defaultTaskDescription ||
       `${itemLabel} do ciclo — etapas iniciais do template ${preset.name}`,
     type: preset.defaultTaskType || 'creative',
+    activityKind: null,
     priority: 'medium',
     estimated_hours: preset.estimatedHours || Math.max(4, steps.length),
     responsavel: null,
@@ -103,8 +106,11 @@ export function buildItemCycleServiceTemplate(preset) {
     notificacao: null,
     subtarefas: steps.map((s) => ({ ...s })),
     checklist: steps.map((s) => ({
+      id: s.id,
+      templateStepId: s.id,
       text: s.text || s.title,
       required: s.required !== false,
+      activityKind: s.activityKind ?? null,
     })),
   };
 

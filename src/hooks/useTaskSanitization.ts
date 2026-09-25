@@ -5,6 +5,7 @@
  */
 
 import { useCallback } from 'react';
+import { normalizeActivityKind } from '@/constants/activityKinds';
 
 export interface TaskSanitizationOptions {
   removeHtml?: boolean;
@@ -104,7 +105,7 @@ export function useTaskSanitization(options: TaskSanitizationOptions = {}) {
     return 'todo';
   }, []);
 
-  // Sanitizar checklist
+  // Sanitizar checklist — preserva metadata V2.3 (activityKind, templateStepId)
   const sanitizeChecklist = useCallback((checklist: any[]): any[] => {
     if (!Array.isArray(checklist)) return [];
 
@@ -115,7 +116,12 @@ export function useTaskSanitization(options: TaskSanitizationOptions = {}) {
         text: sanitizeString(item.text || '', maxLength.checklistItem),
         required: Boolean(item.required),
         order: sanitizeNumber(item.order, 0, 1000),
-        completed: Boolean(item.completed)
+        completed: Boolean(item.completed),
+        activityKind: normalizeActivityKind(item.activityKind),
+        templateStepId:
+          item.templateStepId == null || item.templateStepId === ''
+            ? null
+            : String(item.templateStepId),
       }))
       .filter(item => item.text.length > 0); // Remover itens vazios
   }, [sanitizeString, sanitizeNumber, maxLength.checklistItem]);

@@ -26,6 +26,7 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
     text: 'Roteiro',
     description: 'Definir roteiro, copy e estrutura do conteúdo',
     type: 'producao',
+    activityKind: 'script',
     priority: 'high',
     estimated_hours: 1,
     duracao_dias: 1,
@@ -36,8 +37,10 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
     id: 'producao',
     title: 'Produção',
     text: 'Produção',
+    // Captação / gravação / criação — natureza mista; kind fica null (não forçar capture).
     description: 'Captação / gravação / criação dos assets',
     type: 'producao',
+    activityKind: null,
     priority: 'high',
     estimated_hours: 2,
     duracao_dias: 2,
@@ -50,6 +53,7 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
     text: 'Edição',
     description: 'Edição e finalização da peça',
     type: 'producao',
+    activityKind: 'editing',
     priority: 'high',
     estimated_hours: 2,
     duracao_dias: 1,
@@ -62,6 +66,7 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
     text: 'Aprovação',
     description: 'Revisão interna e/ou do cliente',
     type: 'revisao',
+    activityKind: 'approval',
     priority: 'high',
     estimated_hours: 1,
     duracao_dias: 1,
@@ -74,6 +79,7 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
     text: 'Agendamento',
     description: 'Agendar ou publicar nos canais',
     type: 'midia',
+    activityKind: 'scheduling',
     priority: 'medium',
     estimated_hours: 0.5,
     duracao_dias: 1,
@@ -84,11 +90,12 @@ export const DEFAULT_CONTENT_SUBTAREFAS = [
 
 /**
  * Converte as etapas padrão no formato de checklist usado por Task / TaskDrawer.
+ * Preserva templateStepId + activityKind (contrato V2.3).
  */
 export function buildDefaultContentChecklist(prefix = 'pc') {
-  const stamp = Date.now();
   return DEFAULT_CONTENT_SUBTAREFAS.map((step, index) => ({
-    id: `${prefix}_${step.id}_${stamp}_${index}`,
+    id: step.id || `${prefix}_step_${index}`,
+    templateStepId: step.id || null,
     text: step.text || step.title,
     completed: false,
     required: step.required !== false,
@@ -97,6 +104,7 @@ export function buildDefaultContentChecklist(prefix = 'pc') {
     dueDate: null,
     evidenceRequired: false,
     evidenceUrls: [],
+    activityKind: step.activityKind ?? null,
   }));
 }
 
@@ -109,6 +117,8 @@ export const CONTENT_ITEM_TASK_TEMPLATE = {
   title: 'Novo conteúdo',
   description: 'Peça de conteúdo do ciclo (ex.: Reel, Carrossel, Story, Foto)',
   type: 'creative',
+  // Unit heterogênea — natureza no checklist, não na Task.
+  activityKind: null,
   priority: 'medium',
   estimated_hours: 6,
   responsavel: null,
@@ -117,8 +127,11 @@ export const CONTENT_ITEM_TASK_TEMPLATE = {
   notificacao: null,
   subtarefas: DEFAULT_CONTENT_SUBTAREFAS.map((s) => ({ ...s })),
   checklist: DEFAULT_CONTENT_SUBTAREFAS.map((s) => ({
+    id: s.id,
+    templateStepId: s.id,
     text: s.text || s.title,
     required: s.required !== false,
+    activityKind: s.activityKind ?? null,
   })),
 };
 

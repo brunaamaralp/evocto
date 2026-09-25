@@ -75,13 +75,51 @@ describe('createServiceUnitTask', () => {
         title: 'Reel X',
         serviceId: 'svc-1',
         cyclePlanId: 'cycle-1',
+        activityKind: null,
         checklist: expect.arrayContaining([
-          expect.objectContaining({ text: 'Roteiro' }),
+          expect.objectContaining({
+            text: 'Roteiro',
+            // content_item_template do mock só tem text — sem kind estruturado
+          }),
         ]),
       })
     );
     expect(result.task.id).toBe('task-1');
     expect(result.cycleCreated).toBe(false);
+  });
+
+  it('propaga activityKind explícito da unit template (sem checklist kind)', async () => {
+    CyclePlan.filter.mockResolvedValue([
+      {
+        id: 'cycle-1',
+        serviceId: 'svc-1',
+        status: 'in_execution',
+        startDate: '2026-09-01',
+      },
+    ]);
+    Task.create.mockResolvedValue({ id: 'task-kind', title: 'Reel Y' });
+
+    await createServiceUnitTask({
+      agencyId: 'ag-1',
+      clientId: 'cli-1',
+      service: {
+        ...contentService,
+        content_item_template: {
+          ...contentService.content_item_template,
+          activityKind: 'editing',
+        },
+      },
+      title: 'Reel Y',
+      startDate: '2026-09-10',
+    });
+
+    expect(Task.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Reel Y',
+        activityKind: 'editing',
+        type: 'creative',
+      })
+    );
   });
 
   it('cria conteúdo pronto para aprovação com status in_review', async () => {

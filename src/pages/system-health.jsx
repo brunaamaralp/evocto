@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import SystemHealthChecker from '@/components/debug/SystemHealthChecker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,6 +98,16 @@ export default function SystemHealthPage() {
                 <div>
                   <p className="font-medium text-red-600">❌ Se houver erros:</p>
                   <p className="text-gray-600">Contatar suporte técnico</p>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="font-medium text-gray-800">Qualidade do dado</p>
+                  <p className="text-gray-600">
+                    <Link to="/activity-kind-coverage" className="underline text-blue-700">
+                      Diagnóstico activityKind
+                    </Link>
+                    {' — '}
+                    cobertura do contrato (admin)
+                  </p>
                 </div>
               </div>
             </CardContent>

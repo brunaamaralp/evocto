@@ -183,6 +183,8 @@ import clientfinanceiro from "./client-financeiro";
 
 import systemhealth from "./system-health";
 
+import activityKindCoverage from "./activity-kind-coverage";
+
 import clientcontext from "./client-context";
 
 import auditreport from "./audit-report";
@@ -432,6 +434,8 @@ const PAGES = {
     "client-financeiro": clientfinanceiro,
     
     "system-health": systemhealth,
+
+    "activity-kind-coverage": activityKindCoverage,
     
     "client-context": clientcontext,
     
@@ -715,6 +719,8 @@ function PagesContent() {
                 <Route path="/client-financeiro" element={createElement(clientfinanceiro)} />
                 
                 <Route path="/system-health" element={createElement(systemhealth)} />
+
+                <Route path="/activity-kind-coverage" element={createElement(activityKindCoverage)} />
                 
                 <Route path="/client-context" element={createElement(clientcontext)} />
                 
