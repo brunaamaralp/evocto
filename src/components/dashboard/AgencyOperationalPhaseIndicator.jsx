@@ -1,10 +1,13 @@
-import { Check } from 'lucide-react';
+import { useState } from 'react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   formatOperationalDaysRemaining,
   formatOperationalWeekContext,
   formatOperationalWeekPeriod,
 } from '@/lib/agencyOperationalCycle';
 import { getActivityKindLabel } from '@/constants/activityKinds';
+
+const BRAND = '#6C47D8';
 
 /**
  * @param {{ state: 'completed' | 'current' | 'upcoming' }} props
@@ -23,7 +26,8 @@ function PhaseMarker({ state }) {
   if (state === 'current') {
     return (
       <span
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#007bff]"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full"
+        style={{ backgroundColor: BRAND }}
         aria-hidden="true"
       >
         <span className="h-1.5 w-1.5 rounded-full bg-white" />
@@ -42,8 +46,6 @@ function PhaseMarker({ state }) {
 
 /**
  * Timeline temporal do ciclo (passado / atual / futuro).
- * Não representa conclusão de tarefas.
- *
  * @param {{ phases: import('@/lib/agencyOperationalCycle').OperationalCyclePhaseItem[] }} props
  */
 function OperationalCycleTimeline({ phases }) {
@@ -64,7 +66,7 @@ function OperationalCycleTimeline({ phases }) {
               <span
                 className={
                   isCurrent
-                    ? 'text-sm font-semibold text-[#111]'
+                    ? 'text-sm font-semibold text-[#18162A]'
                     : item.state === 'completed'
                       ? 'text-sm text-[#888]'
                       : 'text-sm text-[#aaa]'
@@ -102,7 +104,7 @@ function OperationalCycleTimeline({ phases }) {
               <span
                 className={
                   isCurrent
-                    ? 'mt-2 max-w-[7.5rem] text-[11px] font-semibold leading-snug text-[#111]'
+                    ? 'mt-2 max-w-[7.5rem] text-[11px] font-semibold leading-snug text-[#18162A]'
                     : item.state === 'completed'
                       ? 'mt-2 max-w-[7.5rem] text-[11px] leading-snug text-[#888]'
                       : 'mt-2 max-w-[7.5rem] text-[11px] leading-snug text-[#aaa]'
@@ -122,78 +124,70 @@ function OperationalCycleTimeline({ phases }) {
 }
 
 /**
- * Andamento do foco da fase (V2.6).
- * Só unidades classificadas cujo activityKind ∈ currentPhase.activityKinds.
+ * Resumo amigável do foco da fase (sem jargão técnico).
  */
-function PhaseFocusProgress({ phaseWork }) {
+function PhaseFocusSummary({ phaseWork }) {
   if (!phaseWork?.enabled) return null;
 
   const focusLabels = (phaseWork.focusKinds || [])
     .map((k) => getActivityKindLabel(k) || k)
     .filter(Boolean);
 
-  let summary;
   if (phaseWork.emptyReason === 'no_focus_kinds') {
-    summary = 'Esta fase não tem naturezas de trabalho no foco.';
-  } else if (phaseWork.emptyReason === 'no_classified_work') {
-    summary =
-      'Nenhuma atividade classificada no foco desta fase (só entram Tasks/checklist com activityKind).';
-  } else if (phaseWork.total > 0) {
-    const parts = [];
-    if (phaseWork.open > 0) {
-      parts.push(`${phaseWork.open} aberta${phaseWork.open === 1 ? '' : 's'}`);
-    }
-    if (phaseWork.done > 0) {
-      parts.push(
-        `${phaseWork.done} concluída${phaseWork.done === 1 ? '' : 's'}`
-      );
-    }
-    summary = `No foco: ${parts.join(' · ') || `${phaseWork.total} atividade${phaseWork.total === 1 ? '' : 's'}`}`;
-  } else {
-    return null;
+    return (
+      <p className="text-sm text-[#7A7595]">Sem foco definido nesta fase do mês.</p>
+    );
   }
 
-  const openItems = (phaseWork.items || []).filter((i) => !i.done).slice(0, 5);
+  if (phaseWork.emptyReason === 'no_classified_work') {
+    return (
+      <p className="text-sm text-[#7A7595]">
+        Ainda não há atividades no foco desta fase.
+      </p>
+    );
+  }
+
+  if (!(phaseWork.total > 0)) return null;
+
+  const parts = [];
+  if (phaseWork.open > 0) {
+    parts.push(`${phaseWork.open} aberta${phaseWork.open === 1 ? '' : 's'}`);
+  }
+  if (phaseWork.done > 0) {
+    parts.push(`${phaseWork.done} concluída${phaseWork.done === 1 ? '' : 's'}`);
+  }
+  const summary =
+    parts.join(' · ') ||
+    `${phaseWork.total} atividade${phaseWork.total === 1 ? '' : 's'}`;
 
   return (
-    <div className="space-y-1.5 pt-2" data-testid="agency-operational-phase-work">
+    <div className="space-y-1" data-testid="agency-operational-phase-work">
       {focusLabels.length > 0 ? (
-        <p className="text-[11px] text-[#888]">Foco: {focusLabels.join(' · ')}</p>
+        <p className="text-xs text-[#7A7595]">Foco: {focusLabels.join(' · ')}</p>
       ) : null}
-      <p className="text-sm text-[#555]">{summary}</p>
-      {openItems.length > 0 ? (
-        <ul className="space-y-0.5 pt-0.5">
-          {openItems.map((item) => (
-            <li
-              key={item.id}
-              className="truncate text-sm text-[#333]"
-              title={item.title}
-            >
-              <span className="text-[#888]">{item.activityKindLabel}</span>
-              <span className="text-[#ccc]"> · </span>
-              {item.title}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <p className="text-sm text-[#7A7595]">{summary}</p>
     </div>
   );
 }
 
 /**
  * Indicador do ciclo operacional da agência no hero da Home.
+ * Compacto por padrão: uma linha + detalhes sob demanda.
  *
  * @param {{
  *   cycle?: import('@/lib/agencyOperationalCycle').ResolvedOperationalCycle | null,
  *   phase?: import('@/lib/agencyOperationalCycle').ResolvedOperationalPhase | null,
  *   phaseWork?: object | null,
+ *   compact?: boolean,
  * }} props
  */
 export default function AgencyOperationalPhaseIndicator({
   cycle = null,
   phase = null,
   phaseWork = null,
+  compact = true,
 }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const current = cycle?.currentPhase || phase;
   if (!current) return null;
 
@@ -206,6 +200,61 @@ export default function AgencyOperationalPhaseIndicator({
     typeof current.daysRemaining === 'number'
       ? formatOperationalDaysRemaining(current.daysRemaining)
       : '';
+
+  const compactBits = [contextLine, current.label, daysLabel].filter(Boolean);
+  const showTimeline = Boolean(cycle?.phases?.length);
+  const canExpand = showTimeline || Boolean(phaseWork?.enabled);
+
+  if (compact) {
+    return (
+      <div className="space-y-2 pt-1" data-testid="agency-operational-phase">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-sm text-[#7A7595]">
+            {compactBits.map((bit, i) => (
+              <span key={`${bit}-${i}`}>
+                {i > 0 ? <span className="text-[#ccc]"> · </span> : null}
+                <span className={i === 1 ? 'font-semibold text-[#18162A]' : undefined}>
+                  {bit}
+                </span>
+              </span>
+            ))}
+          </p>
+          {canExpand ? (
+            <button
+              type="button"
+              onClick={() => setDetailsOpen((v) => !v)}
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-[#6C47D8] hover:underline"
+              aria-expanded={detailsOpen}
+            >
+              {detailsOpen ? 'Ocultar ciclo' : 'Ver ciclo'}
+              {detailsOpen ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : null}
+        </div>
+        {detailsOpen ? (
+          <div className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/60 px-3 py-3 space-y-2">
+            {periodLabel ? (
+              <p className="text-xs text-[#7A7595]" data-testid="agency-operational-period">
+                {periodLabel}
+              </p>
+            ) : null}
+            {current.description ? (
+              <p className="text-sm leading-relaxed text-[#555]">{current.description}</p>
+            ) : null}
+            <PhaseFocusSummary phaseWork={phaseWork} />
+            {showTimeline ? (
+              <OperationalCycleTimeline phases={cycle.phases} />
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   const metaLine = [periodLabel, daysLabel].filter(Boolean).join(' · ');
 
   return (
@@ -215,7 +264,7 @@ export default function AgencyOperationalPhaseIndicator({
           {contextLine}
         </p>
       ) : null}
-      <p className="text-base font-semibold tracking-tight text-[#111] sm:text-lg">
+      <p className="text-base font-semibold tracking-tight text-[#18162A] sm:text-lg">
         {current.label}
       </p>
       {current.description ? (
@@ -228,10 +277,8 @@ export default function AgencyOperationalPhaseIndicator({
           {metaLine}
         </p>
       ) : null}
-      <PhaseFocusProgress phaseWork={phaseWork} />
-      {cycle?.phases?.length ? (
-        <OperationalCycleTimeline phases={cycle.phases} />
-      ) : null}
+      <PhaseFocusSummary phaseWork={phaseWork} />
+      {showTimeline ? <OperationalCycleTimeline phases={cycle.phases} /> : null}
     </div>
   );
 }

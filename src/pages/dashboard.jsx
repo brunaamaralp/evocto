@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import {
   AlertCircle,
   ArrowRight,
+  CalendarDays,
   Check,
   Loader2,
   Plus,
@@ -342,11 +343,11 @@ function kindBadge(kind) {
     case 'overdue':
       return { label: 'Atrasada', className: 'text-[#c0392b]' };
     case 'phase_focus':
-      return { label: 'Fase', className: 'text-[#007bff]' };
+      return { label: 'Fase', className: 'text-[#6C47D8]' };
     case 'blocked':
       return { label: 'Bloqueada', className: 'text-[#b45309]' };
     case 'waiting_client':
-      return { label: 'Aguardando cliente', className: 'text-[#555]' };
+      return { label: 'Aguardando cliente', className: 'text-[#7A7595]' };
     case 'approval':
       return { label: 'Aprovar', className: 'text-[#b45309]' };
     default:
@@ -354,17 +355,18 @@ function kindBadge(kind) {
   }
 }
 
-function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
+function ItemRow({ item, showKindBadge = false, onComplete, completingId, variant = 'default' }) {
   const badge = showKindBadge ? kindBadge(item.kind) : null;
   const isTask = Boolean(item.taskId);
   const isCompleting = completingId === item.taskId;
   const canComplete = isTask && onComplete && item.completable !== false;
+  const isOverdue = item.kind === 'overdue';
 
   const meta = (
     <>
       <div className="min-w-0 flex-1 text-left">
-        <p className="truncate text-sm font-medium text-[#111]">{item.title}</p>
-        <p className="text-xs text-[#555]">
+        <p className="truncate text-sm font-medium text-[#18162A]">{item.title}</p>
+        <p className="text-xs text-[#7A7595]">
           {[
             item.clientName,
             item.dueLabel,
@@ -385,8 +387,14 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
     </>
   );
 
-  const rowClassName =
-    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]';
+  const rowClassName = [
+    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2.5 py-2.5 transition-colors hover:bg-[#F5F2FC]/80',
+    variant === 'attention' && isOverdue ? 'border-l-2 border-l-[#c0392b] pl-2' : '',
+    variant === 'attention' && !isOverdue ? 'border-l-2 border-l-[#6C47D8]/40 pl-2' : '',
+    variant === 'agenda' ? 'border-l-2 border-l-[#E8E5F5] pl-2' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <li className="flex items-center gap-0.5">
@@ -404,7 +412,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 text-[#555] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
+          className="h-8 w-8 shrink-0 text-[#7A7595] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
           disabled={isCompleting}
           title="Marcar como concluída"
           aria-label={`Marcar "${item.title}" como concluída`}
@@ -631,8 +639,8 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
-          <p className="text-sm text-[#555]">Carregando…</p>
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#6C47D8]" aria-hidden />
+          <p className="text-sm text-[#7A7595]">Carregando…</p>
         </div>
       </div>
     );
@@ -643,12 +651,12 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="max-w-md text-center">
           <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#111]">Organização não encontrada</h2>
-          <p className="mb-5 text-sm text-[#555]">
+          <h2 className="mb-2 text-xl font-semibold text-[#18162A]">Organização não encontrada</h2>
+          <p className="mb-5 text-sm text-[#7A7595]">
             Sua conta não está vinculada a uma agência. Crie uma conta de agência ou peça um convite ao administrador.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+            <Button asChild className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
               <Link to="/create-account">Criar agência</Link>
             </Button>
             <Button asChild variant="outline">
@@ -665,9 +673,9 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="max-w-md text-center">
           <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#111]">Erro ao carregar</h2>
-          <p className="mb-5 text-sm text-[#555]">{error}</p>
-          <Button onClick={loadDashboardData} className="bg-[#007bff] hover:bg-[#0056b3]">
+          <h2 className="mb-2 text-xl font-semibold text-[#18162A]">Erro ao carregar</h2>
+          <p className="mb-5 text-sm text-[#7A7595]">{error}</p>
+          <Button onClick={loadDashboardData} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
             <RefreshCw className="mr-2 h-4 w-4" />
             Tentar novamente
           </Button>
@@ -697,19 +705,21 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10 px-1 pb-8 sm:px-0">
-      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#111] sm:text-[1.5rem]">
+    <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#F5F2FC]/80 via-[#F8F7FB] to-transparent px-4 pb-8 pt-1 sm:-mx-6 sm:px-6">
+    <div className="mx-auto max-w-4xl space-y-10 px-1 sm:px-0">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-1.5">
+          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#18162A] sm:text-[1.5rem]">
             {greeting}
           </h1>
-          <p className="text-sm text-[#555]">{todayLabel}</p>
+          <p className="text-sm text-[#7A7595]">{todayLabel}</p>
           <AgencyOperationalPhaseIndicator
             cycle={operationalCycle}
             phaseWork={phaseWork}
+            compact
           />
         </div>
-        <Button asChild className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto">
+        <Button asChild className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto">
           <Link to={nextSetupStep?.href || createPageUrl('clients')}>
             <Plus className="mr-1.5 h-4 w-4" />
             {hasCampaigns ? 'Abrir clientes' : nextSetupStep?.cta || 'Começar'}
@@ -719,83 +729,98 @@ export default function DashboardPage() {
 
       {attentionQueue.length > 0 ? (
         <section aria-labelledby="attention-heading">
-          <div className="mb-4 flex items-baseline justify-between gap-3">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2
               id="attention-heading"
-              className="text-sm font-semibold uppercase tracking-wide text-[#555]"
+              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
             >
+              <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
               Precisa de atenção
             </h2>
             <Link
               to={createPageUrl('tasks-manager')}
-              className="text-sm font-medium text-[#007bff] hover:underline"
+              className="text-sm font-medium text-[#6C47D8] hover:underline"
             >
               Ver tarefas
             </Link>
           </div>
-          <ul className="space-y-1 rounded-xl border border-[#eee] bg-white px-1 py-1">
+          <ul className="space-y-0.5 rounded-xl border border-[#FAD9DB]/80 bg-[#FFF8F8] px-1 py-1">
             {attentionQueue.map((item) => (
               <ItemRow
                 key={item.id}
                 item={item}
                 showKindBadge
+                variant="attention"
                 onComplete={handleCompleteTask}
                 completingId={completingId}
               />
             ))}
           </ul>
         </section>
+      ) : hasCampaigns ? (
+        <section aria-labelledby="attention-empty-heading" className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/50 px-4 py-3">
+          <h2 id="attention-empty-heading" className="sr-only">
+            Atenção
+          </h2>
+          <p className="text-sm text-[#7A7595]">
+            {agenda[0]?.dueLabel
+              ? `Nada urgente no momento — próximo prazo: ${agenda[0].dueLabel}${agenda[0].title ? ` · ${agenda[0].title}` : ''}.`
+              : 'Nada urgente no momento. Quando houver atrasos ou bloqueios, eles aparecem aqui.'}
+          </p>
+        </section>
       ) : null}
 
       {(agenda.length > 0 || hasCampaigns) && (
         <section aria-labelledby="agenda-heading">
-          <div className="mb-4 flex items-baseline justify-between gap-3">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2
               id="agenda-heading"
-              className="text-sm font-semibold uppercase tracking-wide text-[#555]"
+              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
             >
+              <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
               Agenda · 48h
             </h2>
             <Link
               to={createPageUrl('tasks-manager')}
-              className="text-sm font-medium text-[#007bff] hover:underline"
+              className="text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver todas
+              Ver agenda
             </Link>
           </div>
           {agenda.length > 0 ? (
-            <ul className="space-y-1">
+            <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1 py-1">
               {agenda.map((item) => (
                 <ItemRow
                   key={item.id}
                   item={item}
+                  variant="agenda"
                   onComplete={handleCompleteTask}
                   completingId={completingId}
                 />
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[#555]">
+            <p className="text-sm text-[#7A7595]">
               Nada com prazo para hoje ou amanhã. Quando houver entregas, elas aparecem aqui.
             </p>
           )}
         </section>
       )}
 
-      <section aria-labelledby="campaigns-heading" className="border-t border-[#eee] pt-8">
+      <section aria-labelledby="campaigns-heading" className="border-t border-[#E8E5F5] pt-8">
         <div className="mb-5">
-          <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
-            Clientes
+          <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
+            {hasCampaigns ? 'Em andamento' : 'Clientes'}
           </h2>
         </div>
 
         {!hasCampaigns ? (
           <div className="space-y-8">
             <div className="mx-auto max-w-lg text-center sm:text-left">
-              <h3 className="mb-2 text-lg font-semibold text-[#111]">
+              <h3 className="mb-2 text-lg font-semibold text-[#18162A]">
                 Comece pelo seu primeiro cliente
               </h3>
-              <p className="text-sm leading-relaxed text-[#555]">
+              <p className="text-sm leading-relaxed text-[#7A7595]">
                 Siga os passos abaixo. Em poucos minutos você já tem cliente, entrega e tarefas na home.
               </p>
             </div>
@@ -804,13 +829,13 @@ export default function DashboardPage() {
               {setupSteps.map((step, index) => (
                 <li
                   key={step.id}
-                  className="flex gap-4 rounded-xl border border-[#eee] bg-white p-4"
+                  className="flex gap-4 rounded-xl border border-[#E8E5F5] bg-white p-4"
                 >
                   <div
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       step.done
                         ? 'bg-[#e8f5e9] text-[#2e7d32]'
-                        : 'bg-[#f0f0f0] text-[#555]'
+                        : 'bg-[#F5F2FC] text-[#7A7595]'
                     }`}
                     aria-hidden
                   >
@@ -819,18 +844,18 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-sm font-semibold ${
-                        step.done ? 'text-[#555] line-through' : 'text-[#111]'
+                        step.done ? 'text-[#7A7595] line-through' : 'text-[#18162A]'
                       }`}
                     >
                       {step.title}
                     </p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-[#555]">
+                    <p className="mt-0.5 text-xs leading-relaxed text-[#7A7595]">
                       {step.description}
                     </p>
                     {!step.done ? (
                       <Link
                         to={step.href}
-                        className="mt-2 inline-flex items-center text-sm font-medium text-[#007bff] hover:underline"
+                        className="mt-2 inline-flex items-center text-sm font-medium text-[#6C47D8] hover:underline"
                       >
                         {step.cta}
                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -843,7 +868,7 @@ export default function DashboardPage() {
 
             {clientsWithoutService.length > 0 ? (
               <div>
-                <p className="mb-3 text-sm font-medium text-[#111]">
+                <p className="mb-3 text-sm font-medium text-[#18162A]">
                   Clientes sem entrega definida
                 </p>
                 <ul className="space-y-1">
@@ -851,12 +876,12 @@ export default function DashboardPage() {
                     <li key={client.id}>
                       <Link
                         to={client.href}
-                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#F5F2FC]/80"
                       >
-                        <span className="truncate text-sm font-medium text-[#111]">
+                        <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#007bff]">
+                        <span className="shrink-0 text-sm font-medium text-[#6C47D8]">
                           Definir entrega
                         </span>
                       </Link>
@@ -866,7 +891,7 @@ export default function DashboardPage() {
               </div>
             ) : clientsWithoutCampaigns.length > 0 ? (
               <div>
-                <p className="mb-3 text-sm font-medium text-[#111]">
+                <p className="mb-3 text-sm font-medium text-[#18162A]">
                   Clientes prontos para campanha
                 </p>
                 <ul className="space-y-1">
@@ -874,12 +899,12 @@ export default function DashboardPage() {
                     <li key={client.id}>
                       <Link
                         to={client.href}
-                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#f9f9f9]"
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#F5F2FC]/80"
                       >
-                        <span className="truncate text-sm font-medium text-[#111]">
+                        <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#007bff]">
+                        <span className="shrink-0 text-sm font-medium text-[#6C47D8]">
                           Criar campanha
                         </span>
                       </Link>
@@ -893,10 +918,10 @@ export default function DashboardPage() {
           <div className="space-y-10">
             {campaignGroups.map((group) => (
               <section key={group.clientId} className="space-y-4">
-                <div className="border-b border-[#eee] pb-2">
+                <div className="border-b border-[#E8E5F5] pb-2">
                   <Link
                     to={group.href}
-                    className="text-[15px] font-semibold text-[#111] hover:text-[#007bff]"
+                    className="text-[15px] font-semibold text-[#18162A] hover:text-[#6C47D8]"
                   >
                     {group.clientName}
                   </Link>
@@ -906,12 +931,12 @@ export default function DashboardPage() {
                   {group.campaigns.map((campaign) => (
                     <li
                       key={campaign.id}
-                      className="rounded-xl border border-[#eee] bg-white p-5 transition-colors hover:border-[#ddd]"
+                      className="rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#d8d2ef]"
                     >
                       <div className="min-w-0">
                         <Link
                           to={campaign.href}
-                          className="block truncate text-base font-semibold text-[#111] hover:text-[#007bff]"
+                          className="block truncate text-base font-semibold text-[#18162A] hover:text-[#6C47D8]"
                         >
                           {campaign.name}
                         </Link>
@@ -925,13 +950,13 @@ export default function DashboardPage() {
                             .filter(Boolean)
                             .join(' · ');
                           return subtitle ? (
-                            <p className="mt-1 text-sm text-[#555]">{subtitle}</p>
+                            <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
                           ) : null;
                         })()}
                       </div>
 
                       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <Button asChild size="sm" className="bg-[#007bff] hover:bg-[#0056b3]">
+                        <Button asChild size="sm" className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
                           <Link to={campaign.href}>
                             Abrir
                             <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -939,36 +964,20 @@ export default function DashboardPage() {
                         </Button>
                         <Link
                           to={campaign.tasksHref}
-                          className="text-sm font-medium text-[#555] hover:text-[#111]"
+                          className="text-sm font-medium text-[#7A7595] hover:text-[#6C47D8]"
                         >
                           Tarefas
-                        </Link>
-                        <Link
-                          to={group.href}
-                          className="text-sm font-medium text-[#555] hover:text-[#111]"
-                        >
-                          Cliente
                         </Link>
                       </div>
                     </li>
                   ))}
                 </ul>
-
-                <div>
-                  <Link
-                    to={createPageUrl(
-                      `client-detail?clientId=${group.clientId}#operacao`
-                    )}
-                    className="text-sm font-medium text-[#007bff] hover:underline"
-                  >
-                    Abrir hub do cliente
-                  </Link>
-                </div>
               </section>
             ))}
           </div>
         )}
       </section>
+    </div>
     </div>
   );
 }
