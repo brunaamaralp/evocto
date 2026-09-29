@@ -3,7 +3,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { safeGet } from '@/components/utils/safeGuards';
 import { Users, Briefcase, Settings, LogOut, ChevronDown, ChevronRight, BookOpen,
-    Home, Clock, ClipboardList, CheckSquare, User, Bell, Palette, Tag, Shield, Zap
+    Home, ClipboardList, CheckSquare, User, Bell, Palette, Tag, Shield, Zap
 } from 'lucide-react';
 import { useT } from '@/components/i18n/I18nProvider';
 
@@ -40,7 +40,6 @@ export default function Sidebar() {
 
   const navigationItems = [
     { name: t('sidebar.dashboard', 'Dashboard'), href: '/dashboard', icon: Home },
-    { name: t('sidebar.today', 'Today'), href: '/today', icon: Clock },
     { name: t('sidebar.clients', 'Clients'), href: '/clients', icon: Users },
     { name: t('sidebar.services', 'Services'), href: '/services', icon: Briefcase },
     { name: t('sidebar.service_templates', 'Templates'), href: '/service-templates', icon: ClipboardList },

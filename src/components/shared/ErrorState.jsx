@@ -14,7 +14,7 @@ export default function ErrorState({
     if (onGoHome) {
       onGoHome();
     } else {
-      window.location.href = '/today';
+      window.location.href = '/dashboard';
     }
   };
 

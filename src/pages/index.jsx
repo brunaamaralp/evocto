@@ -776,6 +776,9 @@ function PagesContent() {
                 <Route path="/service-templates-viewer" element={createElement(serviceTemplatesViewer)} />
                 
                 <Route path="/settings-agency-categories" element={createElement(settingsAgencyCategories)} />
+
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/NotFound" replace />} />
                 
             </Routes>
         </Layout>

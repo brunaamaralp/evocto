@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { User, AuditLog } from '@/api/entities';
-import { SendEmail } from '@/api/integrations';
+import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { getAccount } from '@/api/appwriteClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,45 +8,45 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { hashPassword, validatePasswordStrength, generateSecureToken, getClientIP } from '@/utils/security';
+import { validatePasswordStrength } from '@/utils/security';
+import { useSession } from '@/components/auth/SessionManager';
+
+function recoveryRedirectUrl() {
+  if (typeof window === 'undefined') return '/password-reset';
+  return `${window.location.origin}/password-reset`;
+}
 
 export default function PasswordReset() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useSession();
+
+  const params = new URLSearchParams(location.search);
+  const userId = params.get('userId') || '';
+  const secret = params.get('secret') || '';
+  const hasRecoveryParams = Boolean(userId && secret);
+
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState('request'); // 'request' | 'reset' | 'success'
+  const [step, setStep] = useState(hasRecoveryParams ? 'reset' : 'request');
   const [error, setError] = useState('');
 
-  const resetToken = new URLSearchParams(location.search).get('token');
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    // Check if user is already logged in
-    checkAuthStatus();
-    
-    if (resetToken) {
-      setStep('reset');
-    }
-  }, [resetToken]);
+    setStep(hasRecoveryParams ? 'reset' : 'request');
+  }, [hasRecoveryParams]);
 
-  const checkAuthStatus = async () => {
-    try {
-      const user = await User.me();
-      if (user) {
-        // User is logged in, redirect to account page
-        navigate('/dashboard'); // Use built-in navigation
-      }
-    } catch (_error) {
-      // User not authenticated, continue with reset flow
-    }
-  };
-
-  const sendResetEmail = async () => {
-    if (!email) {
+  const sendResetEmail = useCallback(async () => {
+    if (!email.trim()) {
       setError('Digite seu email.');
       return;
     }
@@ -56,86 +55,46 @@ export default function PasswordReset() {
     setError('');
 
     try {
-      // Check if user exists
-      const users = await User.filter({ email: email.toLowerCase() });
-      
-      if (users.length === 0) {
-        setError('Email não encontrado.');
-        return;
-      }
-
-      const user = users[0];
-
-      // Generate secure reset token
-      const resetToken = generateSecureToken();
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-      // Update user with reset token
-      await User.update(user.id, {
-        reset_token: resetToken,
-        reset_token_expires_at: expiresAt.toISOString()
+      const account = getAccount();
+      await account.createRecovery({
+        email: email.trim().toLowerCase(),
+        url: recoveryRedirectUrl(),
       });
-
-      // Send reset email
-      const resetUrl = `${window.location.origin}${window.location.pathname}?token=${resetToken}`;
-      
-      await SendEmail({
-        to: email,
-        subject: 'Redefinir senha - Evocto',
-        body: `
-          Olá ${user.full_name || 'usuário'},
-          
-          Você solicitou a redefinição da sua senha. Clique no link abaixo para criar uma nova senha:
-          
-          ${resetUrl}
-          
-          Este link expira em 1 hora.
-          
-          Se você não solicitou esta redefinição, pode ignorar este email.
-          
-          Equipe Evocto
-        `
-      });
-
-      // Log password reset request
-      await AuditLog.create({
-        entity_type: 'User',
-        entity_id: user.id,
-        action: 'AUTH_PASSWORD_RESET_REQUESTED',
-        actor_id: user.email,
-        meta_json: {
-          expires_at: expiresAt.toISOString(),
-          ip: 'client_ip',
-          user_agent: navigator.userAgent,
-          timestamp: new Date().toISOString()
-        }
-      });
-
-      toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
       setStep('success');
-
-    } catch (_error) {
-      setError('Erro ao enviar email. Tente novamente.');
+      toast.success('Se o email existir, enviamos o link de redefinição.');
+    } catch (err) {
+      // Não revelar se o email existe; Appwrite pode falhar por rate limit / config.
+      const message = String(err?.message || '');
+      if (message.toLowerCase().includes('rate')) {
+        setError('Muitas tentativas. Aguarde um momento e tente de novo.');
+      } else {
+        // Mesmo em falha genérica, UX neutra (evita enumeração de emails)
+        setStep('success');
+        toast.success('Se o email existir, enviamos o link de redefinição.');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [email]);
 
-  const resetPassword = async () => {
+  const resetPassword = useCallback(async () => {
     if (!newPassword || !confirmPassword) {
       setError('Digite e confirme sua nova senha.');
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setError('Senhas não coincidem.');
       return;
     }
 
-    // Validar força da senha
     const passwordValidation = validatePasswordStrength(newPassword);
     if (!passwordValidation.isValid) {
       setError(passwordValidation.message);
+      return;
+    }
+
+    if (!userId || !secret) {
+      setError('Link inválido ou incompleto. Solicite um novo.');
       return;
     }
 
@@ -143,65 +102,25 @@ export default function PasswordReset() {
     setError('');
 
     try {
-      // Find user by reset token
-      const users = await User.filter({ reset_token: resetToken });
-      
-      if (users.length === 0) {
-        setError('Token inválido ou expirado.');
-        return;
-      }
-
-      const user = users[0];
-
-      // Check token expiration
-      if (user.reset_token_expires_at && new Date() > new Date(user.reset_token_expires_at)) {
-        setError('Token expirado. Solicite um novo link.');
-        return;
-      }
-
-      // Hash seguro da senha
-      const hashedPassword = await hashPassword(newPassword);
-
-      // Update password and clear reset token
-      await User.update(user.id, {
-        password_hash: hashedPassword, // ✅ Hash seguro implementado
-        reset_token: null,
-        reset_token_expires_at: null,
-        password_changed_at: new Date().toISOString(),
-        failed_login_attempts: 0 // Reset tentativas de login
+      const account = getAccount();
+      await account.updateRecovery({
+        userId,
+        secret,
+        password: newPassword,
       });
-
-      // Log password change com dados seguros
-      const clientIP = await getClientIP();
-      await AuditLog.create({
-        entity_type: 'User',
-        entity_id: user.id,
-        action: 'AUTH_PASSWORD_CHANGED',
-        actor_id: user.email,
-        meta_json: {
-          change_method: 'password_reset',
-          timestamp: new Date().toISOString(),
-          ip: clientIP,
-          user_agent: navigator.userAgent,
-          password_strength: passwordValidation.score
-        }
-      });
-
       toast.success('Senha alterada com sucesso! Você pode fazer login agora.');
-      
-      // Redirect to built-in login
-      navigate('/login');
-
-    } catch (_error) {
-      setError('Erro interno. Tente novamente ou entre em contato com o suporte.');
+      navigate('/login', { replace: true });
+    } catch (err) {
+      const message = String(err?.message || '');
+      if (message.toLowerCase().includes('invalid') || message.toLowerCase().includes('expired')) {
+        setError('Link inválido ou expirado. Solicite um novo.');
+      } else {
+        setError(message || 'Erro ao alterar senha. Tente novamente.');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleBackToLogin = () => {
-    navigate('/login');
-  };
+  }, [newPassword, confirmPassword, userId, secret, navigate]);
 
   if (step === 'success') {
     return (
@@ -211,22 +130,20 @@ export default function PasswordReset() {
             <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-4">
               <Mail className="w-6 h-6 text-green-600" />
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-900">Email Enviado!</CardTitle>
+            <CardTitle className="text-2xl font-bold text-slate-900">Email enviado</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center text-slate-600">
-              Enviamos instruções para redefinir sua senha para <strong>{email}</strong>. 
-              Verifique sua caixa de entrada e siga as instruções.
+              Se <strong>{email}</strong> estiver cadastrado no Evocto, você receberá um link
+              para criar uma nova senha.
             </p>
-            <p className="text-center text-sm text-slate-500">
-              O link expira em 1 hora.
-            </p>
+            <p className="text-center text-sm text-slate-500">O link expira em 1 hora.</p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep('request')} className="flex-1">
-                Tentar Novamente
+                Tentar novamente
               </Button>
-              <Button onClick={handleBackToLogin} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                Voltar ao Login
+              <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Link to="/login">Voltar ao Login</Link>
               </Button>
             </div>
           </CardContent>
@@ -240,8 +157,10 @@ export default function PasswordReset() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center gap-3 mb-4">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBackToLogin}>
-              <ArrowLeft className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+              <Link to="/login">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
             </Button>
             <div className="flex items-center gap-2">
               {step === 'request' ? (
@@ -281,7 +200,7 @@ export default function PasswordReset() {
               <Button
                 onClick={sendResetEmail}
                 disabled={isLoading || !email}
-                className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -303,7 +222,7 @@ export default function PasswordReset() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Nova senha (mín. 8 caracteres)"
                     disabled={isLoading}
-                    className="focus:ring-2 focus:ring-blue-500 pr-10"
+                    className="pr-10"
                     autoFocus
                   />
                   <Button
@@ -328,7 +247,7 @@ export default function PasswordReset() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirme sua nova senha"
                     disabled={isLoading}
-                    className="focus:ring-2 focus:ring-blue-500 pr-10"
+                    className="pr-10"
                   />
                   <Button
                     type="button"
@@ -345,7 +264,7 @@ export default function PasswordReset() {
               <Button
                 onClick={resetPassword}
                 disabled={isLoading || !newPassword || !confirmPassword}
-                className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

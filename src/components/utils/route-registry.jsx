@@ -3,7 +3,7 @@ export class RouteRegistry {
   static routes = {
     // Main App Routes
     home: '/',
-    today: '/today',
+    today: '/dashboard',
     dashboard: '/dashboard',
     
     // Client Routes
@@ -55,7 +55,7 @@ export class RouteRegistry {
   // Route builders with parameter validation
   static builders = {
     home: () => '/',
-    today: () => '/today',
+    today: () => '/dashboard',
     dashboard: () => '/dashboard',
     
     clients: () => '/clients',

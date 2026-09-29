@@ -5,13 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Building, Mail, User, Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createAgency } from '@/api/functions';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { trialMarketing } from '@/lib/trialCopy';
+import { useSession } from '@/components/auth/SessionManager';
 
 export default function CreateAccountPage() {
+  const navigate = useNavigate();
+  const { bootstrapAuth } = useSession();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -27,7 +30,7 @@ export default function CreateAccountPage() {
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (error) setError(''); // Limpar erro quando usuário digita
+    if (error) setError('');
   };
 
   const validateForm = () => {
@@ -43,7 +46,7 @@ export default function CreateAccountPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -62,12 +65,11 @@ export default function CreateAccountPage() {
         password: formData.password
       });
 
-      window.location.href = '/dashboard';
-      
+      await bootstrapAuth({ force: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('Erro ao criar conta:', err);
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
-    } finally {
       setLoading(false);
     }
   };

@@ -81,7 +81,7 @@ export default function AgentAlert({ risk, onDismiss, onAction }) {
   const handlePrimaryAction = () => {
     if (risk.entity && risk.entity.type && risk.entity.id) {
       // Gerar URL baseada no tipo de entidade
-      let url = '/today'; // fallback
+      let url = '/dashboard'; // fallback
       
       switch (risk.entity.type) {
         case 'CyclePlan':

@@ -198,6 +198,22 @@ export function SessionManager({ children, isPublicPage = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- montagem única; inFlight deduplica
   }, []);
 
+  // Em rota protegida com erro de sessão, redireciona ao login após breve pausa.
+  useEffect(() => {
+    if (isPublicPage) return;
+    if (sessionStatus !== SESSION_STATUS.ERROR && !(error && !loading)) return;
+
+    const timer = setTimeout(() => {
+      if (!mountedRef.current) return;
+      clearAuthState();
+      if (typeof window !== 'undefined') {
+        window.location.replace(buildLoginRedirectUrl());
+      }
+    }, 1600);
+
+    return () => clearTimeout(timer);
+  }, [isPublicPage, sessionStatus, error, loading, clearAuthState]);
+
   // Ao entrar em rota protegida, garante loading até a sessão aquecida estar pronta.
   useEffect(() => {
     if (isPublicPage) return;
