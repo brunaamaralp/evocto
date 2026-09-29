@@ -43,15 +43,26 @@ describe('opsKanbanColumnForTask', () => {
     );
   });
 
-  it('compresses review/blocked for inbox 4-column board', () => {
+  it('keeps review/blocked on full inbox board columns', () => {
     expect(
       opsKanbanColumnForTask(
         { status: 'in_review', kanbanColumn: 'revisao' },
         { columns: CLIENT_INBOX_KANBAN_IDS }
       )
-    ).toBe('in_progress');
+    ).toBe('in_review');
     expect(
       opsKanbanColumnForTask({ status: 'blocked' }, { columns: CLIENT_INBOX_KANBAN_IDS })
-    ).toBe('backlog');
+    ).toBe('blocked');
+  });
+
+  it('compresses review/blocked when board has only 4 columns', () => {
+    const four = ['backlog', 'todo', 'in_progress', 'completed'];
+    expect(
+      opsKanbanColumnForTask(
+        { status: 'in_review', kanbanColumn: 'revisao' },
+        { columns: four }
+      )
+    ).toBe('in_progress');
+    expect(opsKanbanColumnForTask({ status: 'blocked' }, { columns: four })).toBe('backlog');
   });
 });

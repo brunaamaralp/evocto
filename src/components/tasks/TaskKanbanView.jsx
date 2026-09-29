@@ -16,14 +16,16 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
-import { shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
 import { CLIENT_INBOX_KANBAN_IDS, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
 
 const KANBAN_COLUMNS = [
   { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
   { id: 'todo', title: 'A fazer', status: 'todo', color: 'bg-blue-100', textColor: 'text-blue-700' },
   { id: 'in_progress', title: 'Em andamento', status: 'in_progress', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
-  { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100', textColor: 'text-green-700' }
+  { id: 'in_review', title: 'Em revisão', status: 'in_review', color: 'bg-purple-100', textColor: 'text-purple-700' },
+  { id: 'blocked', title: 'Bloqueado', status: 'blocked', color: 'bg-red-100', textColor: 'text-red-700' },
+  { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100', textColor: 'text-green-700' },
 ];
 
 const PRIORITY_COLORS = {
@@ -128,7 +130,7 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
                       <div className="flex items-center gap-1 mb-2">
                         <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.priority]}`}></div>
                         <span className="text-xs text-gray-600 capitalize">
-                          {getPriorityLabel(task.priority)}
+                          {priorityLabelPt(task.priority)}
                         </span>
                       </div>
                     )}
@@ -301,23 +303,12 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
   );
 }
 
-// Funções auxiliares
-function getPriorityLabel(priority) {
-  const labels = {
-    'low': 'Baixa',
-    'medium': 'Média',
-    'high': 'Alta',
-    'urgent': 'Urgente'
-  };
-  return labels[priority] || priority;
-}
-
 // Skeleton de Loading
 function KanbanLoadingSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <div key={i} className="flex-1 min-w-[280px]">
             <Card className="h-full">
               <CardHeader className="bg-gray-100 pb-3">

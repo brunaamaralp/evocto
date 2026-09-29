@@ -7,7 +7,7 @@ import { useSession } from '@/components/auth/SessionManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
@@ -31,7 +31,7 @@ import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
 import { completeTask } from '@/lib/completeTask';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
-import { shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
 
 // Soft pastel kanban columns
 const KANBAN_COLUMNS = [
@@ -117,7 +117,7 @@ function TaskCard({ task, users, clients }) {
             {shouldShowPriorityBadge(task.priority) && (
               <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
                 <Flag className="w-3 h-3 mr-1" />
-                {task.priority}
+                {priorityLabelPt(task.priority)}
               </Badge>
             )}
             
@@ -207,7 +207,8 @@ function TaskColumn({ column, tasks, users, clients, droppableId }) {
                 
                 {tasks.length === 0 && (
                   <div className="text-center py-8 text-[#7A7595]">
-                    <p className="text-sm">Nenhuma tarefa</p>
+                    <p className="text-sm">Nenhuma tarefa aqui</p>
+                    <p className="text-xs mt-1">Arraste um card ou crie uma nova</p>
                   </div>
                 )}
               </div>
@@ -473,7 +474,7 @@ export default function TasksManagerPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center max-w-md">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Não foi possível carregar as tarefas</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <Button onClick={() => loadData()} className="gap-2">
               <RefreshCcw className="w-4 h-4" />
@@ -493,9 +494,9 @@ export default function TasksManagerPage() {
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Gerenciador de Tarefas</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Tarefas</h1>
           <p className="text-[#7A7595] mt-1">
-            Visualize e gerencie todas as tarefas da organização
+            Quadro da agência — arraste cards ou abra uma tarefa para editar
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -530,20 +531,17 @@ export default function TasksManagerPage() {
       </div>
 
       {/* Barra de Filtros */}
-      <Card className="bg-[#F5F2FC]/70 border-[#E8E5F5]">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Filter className="w-5 h-5 text-[#6C47D8]" />
-            Filtros
-            {totalTasks > 0 && (
-              <Badge variant="secondary" className="ml-auto rounded-full">
-                {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC]/70 px-4 py-3 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[#18162A]">
+          <Filter className="w-4 h-4 text-[#6C47D8]" />
+          <span>Filtros</span>
+          {totalTasks > 0 && (
+            <Badge variant="secondary" className="ml-auto rounded-full">
+              {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
+            </Badge>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             {/* Busca textual */}
             <div className="lg:col-span-2">
               <div className="relative">
@@ -552,14 +550,14 @@ export default function TasksManagerPage() {
                   placeholder="Buscar por título ou descrição..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white"
                 />
               </div>
             </div>
 
             {/* Filtro por cliente */}
             <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os clientes" />
               </SelectTrigger>
               <SelectContent>
@@ -577,7 +575,7 @@ export default function TasksManagerPage() {
 
             {/* Filtro por responsável */}
             <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os responsáveis" />
               </SelectTrigger>
               <SelectContent>
@@ -597,7 +595,7 @@ export default function TasksManagerPage() {
 
             {/* Filtro por status */}
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
@@ -611,16 +609,14 @@ export default function TasksManagerPage() {
             </Select>
           </div>
 
-          {/* Ações dos filtros */}
           {hasFilters && (
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={clearFilters} size="sm">
+            <div className="flex justify-end">
+              <Button variant="ghost" onClick={clearFilters} size="sm">
                 Limpar filtros
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Quadro Kanban ou Calendário semanal */}
       {viewMode === 'week' ? (

@@ -14,13 +14,8 @@ export const OPS_KANBAN_COLUMN_IDS = Object.freeze([
   'blocked',
 ]);
 
-/** Colunas do kanban embutido no inbox do cliente (4 cols). */
-export const CLIENT_INBOX_KANBAN_IDS = Object.freeze([
-  'backlog',
-  'todo',
-  'in_progress',
-  'completed',
-]);
+/** Colunas do kanban embutido no inbox do cliente (alinhado ao board da agência). */
+export const CLIENT_INBOX_KANBAN_IDS = OPS_KANBAN_COLUMN_IDS;
 
 const DONE_STATUSES = new Set([
   'done',

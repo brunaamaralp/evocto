@@ -339,7 +339,7 @@ export default function ClientTasksPage() {
       <div className="max-w-6xl mx-auto">
         <EmptyState
           icon="alert-circle"
-          title="Erro ao carregar tarefas"
+          title="Não foi possível carregar as tarefas"
           description={error}
           primaryAction={{
             label: 'Voltar',
