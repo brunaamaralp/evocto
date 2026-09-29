@@ -11,6 +11,13 @@ export const SESSION_STATUS = {
 
 const SessionContext = createContext(null);
 
+function buildLoginRedirectUrl() {
+  if (typeof window === 'undefined') return '/login';
+  const path = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (!path || path === '/' || path.startsWith('/login')) return '/login';
+  return `/login?redirect=${encodeURIComponent(path)}`;
+}
+
 export function SessionManager({ children, isPublicPage = false }) {
   const [user, setUser] = useState(null);
   const [agency, setAgency] = useState(null);
@@ -74,7 +81,7 @@ export function SessionManager({ children, isPublicPage = false }) {
       clearAuthState();
       setTimeout(() => {
         if (mountedRef.current && typeof window !== 'undefined') {
-          window.location.replace('/login');
+          window.location.replace(buildLoginRedirectUrl());
         }
       }, 200);
       return;
@@ -256,13 +263,17 @@ export function SessionManager({ children, isPublicPage = false }) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <div className="max-w-md w-full mx-auto p-6 bg-white rounded-2xl shadow-lg text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Redirecionando...</h2>
-          <p className="text-gray-600 mb-4">Sua sessão expirou. Redirecionando para o login...</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Sessão indisponível</h2>
+          <p className="text-gray-600 mb-4">
+            Não foi possível carregar sua sessão. Entre novamente para continuar.
+          </p>
           <button
             type="button"
             onClick={() => {
               clearAuthState();
-              if (typeof window !== 'undefined') window.location.replace('/login');
+              if (typeof window !== 'undefined') {
+                window.location.replace(buildLoginRedirectUrl());
+              }
             }}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
           >

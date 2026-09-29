@@ -271,20 +271,20 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
     {
       id: 'client',
       done: hasClients,
-      title: 'Cadastrar um cliente',
-      description: 'Base para serviços, campanhas e tarefas.',
+      title: 'Adicionar seu primeiro cliente',
+      description: 'Cadastre a empresa ou marca com quem você trabalha.',
       href: createPageUrl('clients'),
-      cta: 'Ir para clientes',
+      cta: 'Adicionar cliente',
     },
     {
       id: 'service',
       done: hasService,
-      title: 'Definir serviço contratado',
+      title: 'Registrar o que você entrega',
       description: hasClients
         ? clientsWithoutService.length > 0
-          ? `${clientsWithoutService.length} cliente${clientsWithoutService.length === 1 ? '' : 's'} sem serviço.`
-          : 'Contrato operacional definido.'
-        : 'Primeiro cadastre um cliente.',
+          ? `${clientsWithoutService.length} cliente${clientsWithoutService.length === 1 ? '' : 's'} ainda sem entrega definida.`
+          : 'Entregas já registradas.'
+        : 'Primeiro adicione um cliente.',
       href: clientsWithoutService[0]?.id
         ? createPageUrl(
             `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
@@ -292,17 +292,17 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
         : clients[0]?.id
           ? createPageUrl(`client-detail?clientId=${clients[0].id}&setup=service`)
           : createPageUrl('clients'),
-      cta: hasClients ? 'Definir serviço' : 'Começar pelos clientes',
+      cta: hasClients ? 'Definir entrega' : 'Começar pelos clientes',
     },
     {
       id: 'campaign',
       done: hasCampaigns,
-      title: 'Iniciar operação no cliente',
+      title: 'Abrir o trabalho do cliente',
       description: hasService
         ? clientsWithoutCampaigns.length > 0
-          ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} sem operação ativa.`
-          : 'Abra um cliente e continue pelo serviço contratado.'
-        : 'Defina o serviço contratado antes.',
+          ? `${clientsWithoutCampaigns.length} cliente${clientsWithoutCampaigns.length === 1 ? '' : 's'} ainda sem trabalho ativo.`
+          : 'Abra o cliente e continue pelo que foi contratado.'
+        : 'Defina a entrega antes.',
       href: hasService
         ? clientsWithoutCampaigns[0]?.id
           ? createPageUrl(
@@ -314,12 +314,12 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
               `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
             )
           : createPageUrl('clients'),
-      cta: hasService ? 'Abrir hub do cliente' : 'Definir serviço',
+      cta: hasService ? 'Abrir cliente' : 'Definir entrega',
     },
     {
       id: 'tasks',
       done: hasOpenTasks,
-      title: 'Definir primeiras tarefas',
+      title: 'Criar as primeiras tarefas',
       description: 'Prazos e entregas alimentam a agenda da home.',
       href: hasCampaigns
         ? createPageUrl('tasks-manager')
@@ -332,7 +332,7 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
                 `client-detail?clientId=${clientsWithoutService[0].id}&setup=service`
               )
             : createPageUrl('clients'),
-      cta: hasCampaigns ? 'Ver tarefas' : hasService ? 'Depois da operação' : 'Depois do serviço',
+      cta: hasCampaigns ? 'Ver tarefas' : hasService ? 'Depois do trabalho' : 'Depois da entrega',
     },
   ];
 }
@@ -538,9 +538,14 @@ export default function DashboardPage() {
   }, [agencyId, agency]);
 
   useEffect(() => {
-    if (!sessionLoading && agencyId) {
-      loadDashboardData();
+    if (sessionLoading) return;
+    if (!agencyId) {
+      setLoading(false);
+      setError(null);
+      setDashboardData(null);
+      return;
     }
+    loadDashboardData();
   }, [sessionLoading, agencyId, loadDashboardData]);
 
   useEffect(() => {
@@ -627,7 +632,29 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
           <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
-          <p className="text-sm text-[#555]">Carregando operação…</p>
+          <p className="text-sm text-[#555]">Carregando…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!agencyId) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
+          <h2 className="mb-2 text-xl font-semibold text-[#111]">Organização não encontrada</h2>
+          <p className="mb-5 text-sm text-[#555]">
+            Sua conta não está vinculada a uma agência. Crie uma conta de agência ou peça um convite ao administrador.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button asChild className="bg-[#007bff] hover:bg-[#0056b3]">
+              <Link to="/create-account">Criar agência</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/">Voltar ao início</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -758,7 +785,7 @@ export default function DashboardPage() {
       <section aria-labelledby="campaigns-heading" className="border-t border-[#eee] pt-8">
         <div className="mb-5">
           <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#555]">
-            Operação por cliente
+            Clientes
           </h2>
         </div>
 
@@ -766,10 +793,10 @@ export default function DashboardPage() {
           <div className="space-y-8">
             <div className="mx-auto max-w-lg text-center sm:text-left">
               <h3 className="mb-2 text-lg font-semibold text-[#111]">
-                Nenhuma operação ativa
+                Comece pelo seu primeiro cliente
               </h3>
               <p className="text-sm leading-relaxed text-[#555]">
-                Monte o fluxo abaixo. No hub do cliente, a operação aparece pelo serviço contratado.
+                Siga os passos abaixo. Em poucos minutos você já tem cliente, entrega e tarefas na home.
               </p>
             </div>
 
@@ -817,7 +844,7 @@ export default function DashboardPage() {
             {clientsWithoutService.length > 0 ? (
               <div>
                 <p className="mb-3 text-sm font-medium text-[#111]">
-                  Clientes sem serviço contratado
+                  Clientes sem entrega definida
                 </p>
                 <ul className="space-y-1">
                   {clientsWithoutService.map((client) => (
@@ -830,7 +857,7 @@ export default function DashboardPage() {
                           {client.name}
                         </span>
                         <span className="shrink-0 text-sm font-medium text-[#007bff]">
-                          Definir serviço
+                          Definir entrega
                         </span>
                       </Link>
                     </li>

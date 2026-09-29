@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertTriangle, RefreshCw, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CheckCircle2, AlertTriangle, RefreshCw, Mail, LogIn } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { acceptInvite } from '@/api/functions';
-import { User } from '@/api/entities';
+import { useSession } from '@/components/auth/SessionManager';
+
+function currentInvitePath() {
+  if (typeof window === 'undefined') return '/invite-accept';
+  return `${window.location.pathname}${window.location.search}`;
+}
 
 export default function InviteAcceptPage() {
+  const { isAuthenticated, loading: sessionLoading } = useSession();
   const [status, setStatus] = useState('idle'); // idle | processing | success | error
   const [message, setMessage] = useState('');
   const [agencyName, setAgencyName] = useState('');
@@ -28,6 +35,12 @@ export default function InviteAcceptPage() {
     if (!inviteToken && !(membershipId && secret && teamId)) {
       setStatus('error');
       setMessage('Link de convite inválido.');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setStatus('error');
+      setMessage('Faça login com o mesmo e-mail do convite antes de aceitar.');
       return;
     }
 
@@ -56,18 +69,11 @@ export default function InviteAcceptPage() {
     }
   };
 
-  const goToApp = async () => {
-    try {
-      const me = await User.me();
-      if (me?.role === 'client') {
-        window.location.href = '/client-portal';
-      } else {
-        window.location.href = '/today';
-      }
-    } catch {
-      window.location.href = '/';
-    }
+  const goToApp = () => {
+    window.location.href = '/dashboard';
   };
+
+  const loginHref = `/login?redirect=${encodeURIComponent(currentInvitePath())}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
@@ -78,10 +84,36 @@ export default function InviteAcceptPage() {
             <p className="text-slate-600 mt-1">Confirme sua participação na agência</p>
           </div>
 
-          {status === 'idle' && (
+          {sessionLoading && (
+            <div className="text-center py-6">
+              <RefreshCw className="w-6 h-6 text-blue-600 animate-spin mx-auto mb-3" />
+              <p className="text-slate-700">Verificando sessão...</p>
+            </div>
+          )}
+
+          {!sessionLoading && status === 'idle' && !isAuthenticated && (
             <div className="space-y-4">
               <p className="text-slate-700 text-sm">
-                Clique no botão abaixo para aceitar o convite. Você deverá estar logado com o mesmo e-mail do convite.
+                Para aceitar o convite, entre com o mesmo e-mail que recebeu o convite.
+                Depois você volta automaticamente para esta página.
+              </p>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700" asChild>
+                <Link to={loginHref}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar para aceitar
+                </Link>
+              </Button>
+              <p className="text-xs text-slate-500">
+                Ainda não tem conta? Peça ao administrador para confirmar o e-mail do convite.
+              </p>
+            </div>
+          )}
+
+          {!sessionLoading && status === 'idle' && isAuthenticated && (
+            <div className="space-y-4">
+              <p className="text-slate-700 text-sm">
+                Clique no botão abaixo para aceitar o convite. Use a conta com o mesmo e-mail
+                do convite.
               </p>
               <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleAccept}>
                 Aceitar Convite
@@ -104,6 +136,7 @@ export default function InviteAcceptPage() {
               <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
               <p className="text-slate-800 font-medium mb-1">Convite aceito!</p>
               {agencyName && <p className="text-slate-600 text-sm">Agência: {agencyName}</p>}
+              {message && <p className="text-slate-600 text-sm mt-1">{message}</p>}
               <Button className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700" onClick={goToApp}>
                 Entrar no App
               </Button>
@@ -117,9 +150,18 @@ export default function InviteAcceptPage() {
                 <p className="text-slate-800 font-medium">{message || 'Não foi possível aceitar o convite.'}</p>
               </div>
               <div className="space-y-2">
-                <Button variant="outline" className="w-full" onClick={handleAccept}>
-                  Tentar novamente
-                </Button>
+                {!isAuthenticated ? (
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700" asChild>
+                    <Link to={loginHref}>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Entrar para aceitar
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full" onClick={handleAccept}>
+                    Tentar novamente
+                  </Button>
+                )}
                 <a
                   href="mailto:suporte@evocto.com?subject=Reenvio%20de%20convite&body=Meu%20convite%20expirou.%20Poderiam%20reenviar%3F"
                   className="w-full inline-flex items-center justify-center gap-2 text-blue-700 hover:text-blue-800"

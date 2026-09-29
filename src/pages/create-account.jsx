@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { createAgency } from '@/api/functions';
 import NaviBrandLockup from '@/components/NaviBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
+import { trialMarketing } from '@/lib/trialCopy';
 
 export default function CreateAccountPage() {
   const [formData, setFormData] = useState({
@@ -97,6 +98,9 @@ export default function CreateAccountPage() {
               <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
               <p className="text-gray-600 mt-2">
                 Configure sua agência de marketing em minutos
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {trialMarketing.heroHint}
               </p>
             </CardHeader>
             
@@ -261,7 +265,7 @@ export default function CreateAccountPage() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Já tem uma conta?{' '}
-                  <Link to="/dashboard" className="text-blue-600 hover:text-blue-800 font-medium">
+                  <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
                     Fazer login
                   </Link>
                 </p>

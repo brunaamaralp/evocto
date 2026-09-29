@@ -97,6 +97,7 @@ import aprendizados from "./aprendizados";
 import publicbriefing from "./public-briefing";
 
 import createaccount from "./create-account";
+import createagency from "./create-agency";
 
 import clientplanning from "./client-planning";
 
@@ -622,6 +623,8 @@ function PagesContent() {
                 <Route path="/public-briefing" element={createElement(publicbriefing)} />
                 
                 <Route path="/create-account" element={createElement(createaccount)} />
+
+                <Route path="/create-agency" element={createElement(createagency)} />
                 
                 <Route path="/client-planning" element={createElement(clientplanning)} />
                 

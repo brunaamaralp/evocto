@@ -1,13 +1,26 @@
+import { useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { RibbonProvider } from '@/components/context/RibbonProvider';
 import ContextualLayout from './ContextualLayout';
 import { ClientLayout } from './ClientLayout';
+
+function buildLoginRedirectUrl() {
+  if (typeof window === 'undefined') return '/login';
+  const path = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (!path || path === '/' || path.startsWith('/login')) return '/login';
+  return `/login?redirect=${encodeURIComponent(path)}`;
+}
 
 /**
  * Layout principal: staff → ContextualLayout; cliente → ClientLayout.
  */
 export function AuthenticatedLayout({ children }) {
   const { user, isAuthenticated, loading } = useSession();
+
+  useEffect(() => {
+    if (loading || isAuthenticated) return;
+    window.location.replace(buildLoginRedirectUrl());
+  }, [loading, isAuthenticated]);
 
   if (loading) {
     return (
@@ -24,7 +37,7 @@ export function AuthenticatedLayout({ children }) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Redirecionando...</p>
+          <p className="text-gray-600">Redirecionando para o login...</p>
         </div>
       </div>
     );

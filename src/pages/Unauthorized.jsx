@@ -20,10 +20,10 @@ export default function Unauthorized() {
   };
 
   const handleRequestAccess = () => {
-    const subject = 'Solicitação de Acesso - InsightFlow';
+    const subject = 'Solicitação de Acesso - Evocto';
     const body = `Olá,\n\nGostaria de solicitar acesso ao sistema.\n\nURL tentando acessar: ${window.location.href}\n\nObrigado!`;
     
-    window.location.href = `mailto:contato@insightflow.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:contato@evocto.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (

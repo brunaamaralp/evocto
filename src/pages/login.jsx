@@ -15,6 +15,15 @@ function homeForUser(user) {
   return user?.role === 'client' ? '/client-portal' : '/dashboard';
 }
 
+/** Só aceita paths relativos internos (evita open redirect). */
+function safeRedirectPath(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const path = raw.trim();
+  if (!path.startsWith('/') || path.startsWith('//')) return null;
+  if (path.startsWith('/login') || path.startsWith('/create-account')) return null;
+  return path;
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +39,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const redirect = new URLSearchParams(location.search).get('redirect');
+      const redirect = safeRedirectPath(new URLSearchParams(location.search).get('redirect'));
       navigate(redirect || homeForUser(user), { replace: true });
     }
   }, [isAuthenticated, user, navigate, location.search]);
@@ -53,7 +62,7 @@ export default function LoginPage() {
     try {
       const loggedUser = await User.login({ email: email.trim(), password });
       await bootstrapAuth({ force: true });
-      const redirect = new URLSearchParams(location.search).get('redirect');
+      const redirect = safeRedirectPath(new URLSearchParams(location.search).get('redirect'));
       if (redirect) {
         navigate(redirect, { replace: true });
         return;

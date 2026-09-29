@@ -81,7 +81,7 @@ export default function PasswordReset() {
       
       await SendEmail({
         to: email,
-        subject: 'Redefinir senha - InsightFlow',
+        subject: 'Redefinir senha - Evocto',
         body: `
           Olá ${user.full_name || 'usuário'},
           
@@ -93,7 +93,7 @@ export default function PasswordReset() {
           
           Se você não solicitou esta redefinição, pode ignorar este email.
           
-          Equipe InsightFlow
+          Equipe Evocto
         `
       });
 

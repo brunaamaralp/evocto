@@ -1,34 +1,31 @@
 import { useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { useNavigate } from 'react-router-dom';
-import AgencyOnboarding from '@/components/onboarding/AgencyOnboarding';
 import LoadingState from '@/components/shared/LoadingState';
 
+/**
+ * First-run vive no dashboard (checklist).
+ * Esta rota só redireciona — evita o wizard órfão e o dead-end /create-agency.
+ */
 export default function OnboardingPage() {
   const { user, agencyId, loading } = useSession();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Se não estiver logado, redirecionar para home
-    if (!loading && !user) {
-      navigate('/');
+    if (loading) return;
+
+    if (!user) {
+      navigate('/', { replace: true });
       return;
     }
 
-    // Se não tiver agência, redirecionar para criar agência
-    if (!loading && user && !agencyId) {
-      navigate('/create-agency');
+    if (!agencyId) {
+      navigate('/create-account', { replace: true });
       return;
     }
+
+    navigate('/dashboard', { replace: true });
   }, [user, agencyId, loading, navigate]);
 
-  if (loading) {
-    return <LoadingState />;
-  }
-
-  if (!user || !agencyId) {
-    return null;
-  }
-
-  return <AgencyOnboarding />;
+  return <LoadingState />;
 }

@@ -1,15 +1,10 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { User } from '@/api/entities';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff, Loader2, 
-  CheckCircle, AlertCircle, Key 
-} from 'lucide-react';
+import { Shield, Loader2, CheckCircle, AlertCircle, Key } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ClientActivation() {
@@ -17,10 +12,6 @@ export default function ClientActivation() {
   const navigate = useNavigate();
   
   const [step, setStep] = useState('validating'); // 'validating' | 'activate' | 'success' | 'error'
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [tokenData, setTokenData] = useState(null);
@@ -110,18 +101,8 @@ export default function ClientActivation() {
   }, [token, validateToken]);
 
   const handleActivation = async () => {
-    if (!password || !confirmPassword) {
-      setError('Por favor, preencha todos os campos.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres.');
+    if (!tokenData?.userId) {
+      setError('Dados de ativação incompletos.');
       return;
     }
 
@@ -129,38 +110,41 @@ export default function ClientActivation() {
     setError('');
 
     try {
-      // Atualizar usuário com senha e limpar token
+      // Limpa o token. A senha de Auth é a temporária criada pela agência
+      // (ou redefinição em /password-reset) — o client SDK não altera senha de terceiros.
       await User.update(tokenData.userId, {
-        password_hash: password, // Isso será hasheado pelo backend
         magic_token: null,
         magic_token_expires_at: null,
-        tutorial_completed: false // Cliente precisará ver tutorial
+        tutorial_completed: false,
       });
 
-      // Log da ativação
-      const { AuditLog } = await import('@/api/entities');
-      await AuditLog.create({
-        agencyId: tokenData.agencyId,
-        entity_type: 'User',
-        entity_id: tokenData.userId,
-        action: 'CLIENT_ACCOUNT_ACTIVATED',
-        actor_id: tokenData.email,
-        meta_json: {
-          clientId: tokenData.clientId,
-          activatedAt: new Date().toISOString()
-        }
-      });
+      try {
+        const { AuditLog } = await import('@/api/entities');
+        await AuditLog.create({
+          agencyId: tokenData.agencyId,
+          entity_type: 'User',
+          entity_id: tokenData.userId,
+          action: 'CLIENT_ACCOUNT_ACTIVATED',
+          actor_id: tokenData.email,
+          meta_json: {
+            clientId: tokenData.clientId,
+            activatedAt: new Date().toISOString(),
+          },
+        });
+      } catch (auditError) {
+        console.warn('Audit log de ativação falhou:', auditError);
+      }
 
       setStep('success');
-      
-      // Auto-login após 2 segundos
+
       setTimeout(() => {
         navigate('/client-login');
       }, 2000);
-
     } catch (error) {
       console.error('Erro na ativação:', error);
-      setError('Erro ao ativar conta. Tente novamente.');
+      setError(
+        'Não foi possível ativar a conta por aqui. Use a senha enviada pela agência em Entrar, ou peça uma nova senha.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -229,11 +213,11 @@ export default function ClientActivation() {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-green-700 mb-4">
-                Sua conta foi ativada com sucesso. Você será redirecionado automaticamente.
+                Convite confirmado. Entre com o e-mail e a senha enviados pela sua agência.
               </p>
               <div className="flex items-center justify-center space-x-2 text-green-600">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Fazendo login...</span>
+                <span className="text-sm">Abrindo o login...</span>
               </div>
             </CardContent>
           </Card>
@@ -285,8 +269,12 @@ export default function ClientActivation() {
                   <Shield className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Ativar Conta</CardTitle>
-                  <p className="text-sm text-gray-600">Defina sua senha para acessar o portal</p>
+                  <CardTitle className="text-xl">Confirmar acesso</CardTitle>
+                  <p className="text-sm text-gray-600">
+                    {tokenData?.email
+                      ? `Convite para ${tokenData.email}`
+                      : 'Confirme o convite para liberar o portal'}
+                  </p>
                 </div>
               </div>
             </CardHeader>
@@ -298,75 +286,32 @@ export default function ClientActivation() {
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Nova Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mínimo 8 caracteres"
-                    disabled={isLoading}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Digite a senha novamente"
-                    disabled={isLoading}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
+              <p className="text-sm text-gray-600">
+                Depois de confirmar, entre com o e-mail e a senha temporária enviados pela sua agência.
+                Se não tiver a senha, peça um novo acesso ou use “Esqueci minha senha”.
+              </p>
 
               <Button
                 onClick={handleActivation}
-                disabled={isLoading || !password || !confirmPassword}
+                disabled={isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Ativando...
+                    Confirmando...
                   </>
                 ) : (
                   <>
                     <Key className="w-4 h-4 mr-2" />
-                    Ativar Conta
+                    Confirmar convite
                   </>
                 )}
               </Button>
 
               <div className="text-center">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={handleGoToLogin}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
