@@ -58,7 +58,7 @@ export async function scanTaskDeadlineNotifications({
             ? 'Reunião/relatório atrasado — gere o relatório'
             : 'Tarefa atrasada',
           context: task.title,
-          href: isMeeting ? `/cycle-report` : `/tasks-manager?task=${task.id}`,
+          href: isMeeting ? `/cycle-report` : `/tasks-manager?taskId=${task.id}`,
           severity: 'critical',
           dedupKey,
           metadata: { taskId: task.id, dueDate: task.dueDate },
@@ -91,7 +91,7 @@ export async function scanTaskDeadlineNotifications({
               ? 'Tarefa vence hoje'
               : 'Tarefa vence em breve',
           context: task.title,
-          href: isMeeting ? `/cycle-report` : `/tasks-manager?task=${task.id}`,
+          href: isMeeting ? `/cycle-report` : `/tasks-manager?taskId=${task.id}`,
           severity: hours <= 8 || isMeeting ? 'warn' : 'info',
           dedupKey,
           metadata: { taskId: task.id, dueDate: task.dueDate },

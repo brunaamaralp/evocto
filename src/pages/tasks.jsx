@@ -1,11 +1,15 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function TasksRedirect() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
-    navigate(createPageUrl("tasks-manager"), { replace: true });
-  }, [navigate]);
+    const base = createPageUrl("tasks-manager");
+    navigate(`${base}${location.search || ""}${location.hash || ""}`, { replace: true });
+  }, [navigate, location.search, location.hash]);
+
   return null;
 }

@@ -4,6 +4,99 @@ import { appendStatusHistoryEntry } from '@/lib/taskActivityHistory';
 const TERMINAL = new Set(['completed', 'cancelled']);
 const ACTIVE_STATUSES = new Set(['in_progress', 'in_review', 'completed']);
 
+/** Colunas do board operacional da agência. */
+export const OPS_KANBAN_COLUMN_IDS = Object.freeze([
+  'backlog',
+  'todo',
+  'in_progress',
+  'in_review',
+  'completed',
+  'blocked',
+]);
+
+/** Colunas do kanban embutido no inbox do cliente (4 cols). */
+export const CLIENT_INBOX_KANBAN_IDS = Object.freeze([
+  'backlog',
+  'todo',
+  'in_progress',
+  'completed',
+]);
+
+const DONE_STATUSES = new Set([
+  'done',
+  'concluido',
+  'concluida',
+  'concluída',
+  'completed',
+  'approved',
+  'published',
+]);
+
+const CAMPAIGN_STAGE_TO_OPS = {
+  planejamento: 'todo',
+  roteiros: 'todo',
+  producao: 'in_progress',
+  revisao: 'in_review',
+  publicacao: 'completed',
+};
+
+const STATUS_TO_OPS = {
+  not_started: 'backlog',
+  planned: 'todo',
+  planejamento: 'todo',
+  roteiro: 'todo',
+  roteiros: 'todo',
+  script: 'todo',
+  drafting: 'todo',
+  producao: 'in_progress',
+  production: 'in_progress',
+  doing: 'in_progress',
+  ready_for_review: 'in_review',
+  pending_approval: 'in_review',
+  revisao: 'in_review',
+  review: 'in_review',
+  waiting_client: 'in_review',
+  cancelled: 'completed',
+};
+
+/**
+ * Mapeia status/kanbanColumn de campanha (ou aliases) para coluna do board operacional.
+ * Assim tarefas de campanha não "somem" no /tasks-manager nem no inbox.
+ */
+export function opsKanbanColumnForTask(task, { columns = OPS_KANBAN_COLUMN_IDS } = {}) {
+  const allowed = new Set(columns);
+  const fallback = allowed.has('todo')
+    ? 'todo'
+    : allowed.has('backlog')
+      ? 'backlog'
+      : columns[0] || 'todo';
+
+  const rawStatus = String(task?.status || '').toLowerCase().trim();
+  const stage = String(task?.kanbanColumn || task?.stage || task?.pipeline_stage || '')
+    .toLowerCase()
+    .trim();
+
+  if (DONE_STATUSES.has(rawStatus) || stage === 'publicacao') {
+    return allowed.has('completed') ? 'completed' : fallback;
+  }
+
+  let col = null;
+  if (allowed.has(rawStatus)) col = rawStatus;
+  else if (STATUS_TO_OPS[rawStatus]) col = STATUS_TO_OPS[rawStatus];
+  else if (CAMPAIGN_STAGE_TO_OPS[stage]) col = CAMPAIGN_STAGE_TO_OPS[stage];
+  else if (allowed.has(stage)) col = stage;
+  else if (STATUS_TO_OPS[stage]) col = STATUS_TO_OPS[stage];
+  else col = rawStatus || fallback;
+
+  if (allowed.has(col)) return col;
+
+  // Inbox 4 cols: comprimir in_review / blocked
+  if (col === 'in_review') return allowed.has('in_progress') ? 'in_progress' : fallback;
+  if (col === 'blocked') return allowed.has('backlog') ? 'backlog' : fallback;
+  if (col === 'backlog') return allowed.has('todo') ? 'todo' : fallback;
+  return fallback;
+}
+
 /** Coluna kanban ao concluir: campanha → Publicação; board global → Concluído. */
 export function completedKanbanColumnForTask(task) {
   const stage = String(task?.kanbanColumn || '').toLowerCase();

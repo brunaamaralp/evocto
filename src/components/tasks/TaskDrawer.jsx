@@ -1,9 +1,15 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Client } from "@/api/entities";
 import { Notification } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";
+import {
+  applyTaskIdToSearch,
+  buildTaskDeepLink,
+  readTaskIdFromSearch,
+} from "@/lib/openTaskDrawer";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -106,6 +112,8 @@ function notifyLists(taskId, extra = {}) {
 
 export default function TaskDrawer() {
   const { user, agencyId } = useSession();
+  const location = useLocation();
+  const navigate = useNavigate();
   const currentUserId = user?.id || user?.data?.id;
 
   const [open, setOpen] = React.useState(false);
@@ -137,20 +145,20 @@ export default function TaskDrawer() {
   const titleInputRef = React.useRef(null);
   const fileInputRef = React.useRef(null);
   const descRef = React.useRef(null);
+  const openTaskIdRef = React.useRef(null);
+  const skipNextUrlOpenRef = React.useRef(false);
 
-  React.useEffect(() => {
-    const handler = (e) => {
-      const id = e?.detail?.taskId;
-      if (!id) return;
-      setTaskId(id);
-      setOpen(true);
-      fetchAll(id);
-    };
-    window.addEventListener("task:open", handler);
-    return () => window.removeEventListener("task:open", handler);
-  }, []);
+  const syncTaskQuery = React.useCallback(
+    (id) => {
+      const nextSearch = applyTaskIdToSearch(location.search, id || null);
+      if (nextSearch === (location.search || '')) return;
+      skipNextUrlOpenRef.current = true;
+      navigate(`${location.pathname}${nextSearch}${location.hash || ''}`, { replace: true });
+    },
+    [location.hash, location.pathname, location.search, navigate]
+  );
 
-  const fetchAll = async (id) => {
+  const fetchAll = React.useCallback(async (id) => {
     setLoading(true);
     setError("");
     setEditingTitle(false);
@@ -188,9 +196,54 @@ export default function TaskDrawer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [agencyId]);
+
+  const openById = React.useCallback(
+    (id, { syncUrl = true } = {}) => {
+      if (!id) return;
+      const normalized = String(id);
+      openTaskIdRef.current = normalized;
+      setTaskId(normalized);
+      setOpen(true);
+      fetchAll(normalized);
+      if (syncUrl) syncTaskQuery(normalized);
+    },
+    [fetchAll, syncTaskQuery]
+  );
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      const id = e?.detail?.taskId;
+      if (!id) return;
+      openById(id, { syncUrl: true });
+    };
+    window.addEventListener("task:open", handler);
+    return () => window.removeEventListener("task:open", handler);
+  }, [openById]);
+
+  // Deep link: ?taskId= / ?task=
+  React.useEffect(() => {
+    if (skipNextUrlOpenRef.current) {
+      skipNextUrlOpenRef.current = false;
+      return;
+    }
+    const id = readTaskIdFromSearch(location.search);
+    if (!id) {
+      if (open && openTaskIdRef.current) {
+        // URL limpa (ex.: back) — fecha drawer
+        openTaskIdRef.current = null;
+        setOpen(false);
+        setTaskId(null);
+        setTask(null);
+      }
+      return;
+    }
+    if (String(openTaskIdRef.current) === String(id) && open) return;
+    openById(id, { syncUrl: false });
+  }, [location.search, open, openById]);
 
   const closeDrawer = () => {
+    openTaskIdRef.current = null;
     setOpen(false);
     setTaskId(null);
     setTask(null);
@@ -206,6 +259,7 @@ export default function TaskDrawer() {
     setNewChecklistItem("");
     setChecklistItemAssignee(UNASSIGNED);
     setChecklistItemDueDate("");
+    syncTaskQuery(null);
   };
 
   const teamUsers = React.useMemo(
@@ -679,7 +733,7 @@ export default function TaskDrawer() {
             commentText.length > 180
               ? `${commentText.slice(0, 180)}...`
               : commentText,
-          href: `/tasks-manager?taskId=${task.id}`,
+          href: buildTaskDeepLink(task.id),
           severity: "info",
         }).catch(() => {});
       }

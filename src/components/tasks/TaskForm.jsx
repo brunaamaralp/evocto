@@ -527,6 +527,13 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
         } else if (taskData.clientVisible == null) {
           taskData.clientVisible = false;
         }
+        // Campanha: nasce em Planejamento; board ops usa status como coluna.
+        if (taskData.briefingId || taskData.briefId) {
+          taskData.kanbanColumn = taskData.kanbanColumn || 'planejamento';
+          taskData.status = taskData.status || 'todo';
+        } else if (!taskData.kanbanColumn) {
+          taskData.kanbanColumn = taskData.status || 'todo';
+        }
         savedTask = await Task.create(taskData);
 
         if (

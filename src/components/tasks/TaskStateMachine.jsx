@@ -580,7 +580,7 @@ export class TaskStateMachine {
           },
           title: `🚫 Tarefa Bloqueada${blockInfo.critical ? ' (Crítico)' : ''}`,
           context: `"${this.task.title}" foi bloqueada: ${blockInfo.reason}`,
-          href: `/tasks-manager?task=${this.task.id}`,
+          href: `/tasks-manager?taskId=${this.task.id}`,
           severity: blockInfo.critical ? 'critical' : 'warn',
           metadata: {
             task_id: this.task.id,
@@ -609,7 +609,7 @@ export class TaskStateMachine {
           },
           title: '🔄 Tarefa Reaberta',
           context: `"${this.task.title}" foi reaberta: ${reason}`,
-          href: `/tasks-manager?task=${this.task.id}`,
+          href: `/tasks-manager?taskId=${this.task.id}`,
           severity: 'info',
           metadata: {
             task_id: this.task.id,
@@ -640,7 +640,7 @@ export class TaskStateMachine {
             },
             title: '👀 Tarefa Pronta para Revisão',
             context: `"${this.task.title}" foi concluída e está aguardando sua revisão`,
-            href: `/tasks-manager?task=${this.task.id}`,
+            href: `/tasks-manager?taskId=${this.task.id}`,
             severity: 'info',
             metadata: {
               task_id: this.task.id,

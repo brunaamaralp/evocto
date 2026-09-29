@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Building,
-  FileText,
   BarChart3,
   CheckSquare,
   Settings,
@@ -140,36 +139,18 @@ export default function ClientContextSidebar({
       active: true,
     });
   } else if (inUnit && briefingId) {
-    menuItems.push(
-      {
-        type: 'link',
-        label: 'Unidade atual',
-        icon: Megaphone,
-        href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })),
-        nested: true,
-        active: location.pathname.includes('client-campaign'),
-      },
-      {
-        type: 'link',
-        label: 'Tarefas da unidade',
-        icon: CheckSquare,
-        href: createPageUrl(
-          buildClientTasksHref({ clientId, briefingId, serviceId })
-        ),
-        nested: true,
-        active: location.pathname.includes('client-tasks') && Boolean(briefingId),
-      },
-      {
-        type: 'link',
-        label: 'Ficha',
-        icon: FileText,
-        href:
-          createPageUrl(buildClientCampaignHref({ clientId, briefingId })) +
-          '#ficha',
-        nested: true,
-        active: location.pathname.includes('client-campaign'),
-      }
-    );
+    // S1: campanha opera no Workspace — sem Ficha / Tarefas da unidade no sidebar.
+    // Link único de retorno à campanha atual (quando o contexto ainda for legado).
+    menuItems.push({
+      type: 'link',
+      label: 'Campanha atual',
+      icon: Megaphone,
+      href: createPageUrl(buildClientCampaignHref({ clientId, briefingId })),
+      nested: true,
+      active:
+        location.pathname.includes('client-campaign') ||
+        location.pathname.includes('delivery-workspace'),
+    });
   }
 
   menuItems.push(

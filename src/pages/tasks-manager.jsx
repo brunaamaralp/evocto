@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import TaskCalendarView from '@/components/tasks/TaskCalendarView';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
-import { transitionTaskStatus, completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
+import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
 import { completeTask } from '@/lib/completeTask';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
@@ -356,24 +356,14 @@ export default function TasksManagerPage() {
     });
   }, [tasks, selectedClient, selectedUser, selectedStatus, searchTerm]);
 
-  // Organizar tarefas por coluna (status canônico + aliases done)
+  // Organizar tarefas por coluna (status canônico + aliases de campanha)
   const tasksByStatus = React.useMemo(() => {
     const organized = {};
-    const columnOf = (task) => {
-      const raw = String(task?.status || '').toLowerCase();
-      if (raw === 'done' || raw === 'concluido' || raw === 'concluída' || raw === 'concluida') {
-        return 'completed';
-      }
-      if (KANBAN_COLUMNS.some((c) => c.id === raw)) return raw;
-      const stage = String(task?.kanbanColumn || '').toLowerCase();
-      if (stage === 'completed' || stage === 'publicacao') return 'completed';
-      return raw || 'todo';
-    };
-
     KANBAN_COLUMNS.forEach((column) => {
-      organized[column.id] = filteredTasks.filter((task) => columnOf(task) === column.id);
+      organized[column.id] = filteredTasks.filter(
+        (task) => opsKanbanColumnForTask(task) === column.id
+      );
     });
-
     return organized;
   }, [filteredTasks]);
 

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronRight, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, Loader2, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Task } from '@/api/entities';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
+import TaskForm from '@/components/tasks/TaskForm';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
 import { completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
 import { statusLabelPt } from '@/lib/statusLabelsPt';
@@ -164,9 +165,16 @@ export default function CampaignWorkspaceTasks({
   scopeLabel = null,
   sharedCycleFallback = false,
   onTasksNeedReload = null,
+  clientId = null,
+  serviceId = null,
+  briefingId = null,
+  cycleId = null,
 }) {
   const [busyId, setBusyId] = useState(null);
   const [localOverrides, setLocalOverrides] = useState({});
+  const [showCreate, setShowCreate] = useState(false);
+
+  const canCreate = Boolean(clientId && serviceId);
 
   const effectiveTasks = useMemo(() => {
     return (Array.isArray(tasks) ? tasks : []).map((t) =>
@@ -253,29 +261,54 @@ export default function CampaignWorkspaceTasks({
     }
   };
 
+  const handleTaskSaved = async () => {
+    setShowCreate(false);
+    if (typeof onTasksNeedReload === 'function') {
+      await onTasksNeedReload();
+    }
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Tarefas</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Kanban da campanha
+            Fluxo da campanha
             {scopeLabel ? ` · ${scopeLabel}` : ''}. Use{' '}
             <span className="font-medium text-slate-700">Concluir</span> ou{' '}
             <span className="font-medium text-slate-700">Avançar</span>.
           </p>
         </div>
-        {sharedCycleFallback ? (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
-            Exibindo tarefas do ciclo (ainda sem vínculo direto à campanha).
-          </p>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {sharedCycleFallback ? (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+              Inclui tarefas do ciclo ainda sem vínculo direto à campanha.
+            </p>
+          ) : null}
+          {canCreate ? (
+            <Button size="sm" onClick={() => setShowCreate(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Nova tarefa
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {effectiveTasks.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          Nenhuma tarefa nesta campanha ainda.
-        </p>
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-8 text-center">
+          <p className="text-sm text-slate-600">Nenhuma tarefa nesta campanha ainda.</p>
+          {canCreate ? (
+            <Button className="mt-4" size="sm" onClick={() => setShowCreate(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Criar primeira tarefa
+            </Button>
+          ) : (
+            <p className="mt-2 text-xs text-slate-500">
+              Abra o workspace com cliente e serviço para criar tarefas.
+            </p>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 overflow-x-auto">
           {CAMPAIGN_KANBAN_COLUMNS.map((col) => (
@@ -306,6 +339,21 @@ export default function CampaignWorkspaceTasks({
           ))}
         </div>
       )}
+
+      {showCreate && canCreate ? (
+        <TaskForm
+          task={null}
+          isOpen={showCreate}
+          onClose={() => setShowCreate(false)}
+          onSave={handleTaskSaved}
+          clientId={clientId}
+          serviceId={serviceId}
+          cycleId={cycleId}
+          briefingId={briefingId}
+          defaultStatus="todo"
+          compact
+        />
+      ) : null}
     </section>
   );
 }

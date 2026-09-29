@@ -195,7 +195,7 @@ export const TasksWidget = ({ clientId = null, cycleId = null }) => {
 
   const handleTaskClick = (task) => {
     // Navegar para a tarefa ou abrir modal
-    window.open(`/tasks-manager?task=${task.id}`, '_blank');
+    window.open(`/tasks-manager?taskId=${task.id}`, '_blank');
   };
 
   const priorityTasks = tasks

@@ -17,6 +17,7 @@ import { ptBR } from 'date-fns/locale';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { CLIENT_INBOX_KANBAN_IDS, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
 
 const KANBAN_COLUMNS = [
   { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
@@ -38,12 +39,9 @@ const PRIORITY_COLORS = {
 export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loading }) {
   const [_draggedTask, setDraggedTask] = useState(null);
 
-  // Agrupar tarefas por status
+  // Agrupar tarefas por status (inclui aliases de campanha)
   const tasksByStatus = tasks.reduce((acc, task) => {
-    let status = String(task.status || 'backlog').toLowerCase();
-    if (status === 'done' || status === 'concluido' || status === 'concluida' || status === 'concluída') {
-      status = 'completed';
-    }
+    const status = opsKanbanColumnForTask(task, { columns: CLIENT_INBOX_KANBAN_IDS });
     if (!acc[status]) acc[status] = [];
     acc[status].push(task);
     return acc;

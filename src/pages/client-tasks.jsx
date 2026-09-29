@@ -64,7 +64,7 @@ export default function ClientTasksPage() {
   const [clientId, setClientId] = useState(initialUrl.clientId);
   const [urlServiceId] = useState(initialUrl.serviceId);
   const [cycleId] = useState(initialUrl.cycleId);
-  const [briefingId] = useState(initialUrl.briefingId);
+  const [briefingId, setBriefingId] = useState(initialUrl.briefingId);
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
@@ -76,6 +76,7 @@ export default function ClientTasksPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [campaignRedirectError, setCampaignRedirectError] = useState(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [listRefreshKey, setListRefreshKey] = useState(0);
@@ -90,6 +91,7 @@ export default function ClientTasksPage() {
   useEffect(() => {
     if (!briefingId || !agencyId) return;
     let cancelled = false;
+    setCampaignRedirectError(null);
     (async () => {
       try {
         const brief = await Brief.get(briefingId).catch(() => null);
@@ -112,9 +114,20 @@ export default function ClientTasksPage() {
             }),
             { replace: true }
           );
+          return;
         }
+        setCampaignRedirectError(
+          'Não foi possível abrir o workspace desta campanha. O serviço vinculado não foi encontrado.'
+        );
+        setLoading(false);
       } catch (err) {
         console.error('[ClientTasks] campaign redirect', err);
+        if (!cancelled) {
+          setCampaignRedirectError(
+            err?.message || 'Erro ao abrir o workspace da campanha.'
+          );
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -278,8 +291,43 @@ export default function ClientTasksPage() {
     : overviewHref;
 
   // Fase 5 — escopo de campanha redireciona; esta página fica só como inbox T2
-  if (briefingId) {
+  if (briefingId && !campaignRedirectError) {
     return <LoadingState message="Abrindo workspace da campanha…" />;
+  }
+
+  if (briefingId && campaignRedirectError) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <EmptyState
+          icon="alert-circle"
+          title="Não foi possível abrir a campanha"
+          description={campaignRedirectError}
+          primaryAction={{
+            label: 'Voltar ao hub do cliente',
+            onClick: () => {
+              window.location.href = overviewHref;
+            },
+          }}
+          secondaryAction={
+            clientId
+              ? {
+                  label: 'Ver inbox de tarefas',
+                  onClick: () => {
+                    setCampaignRedirectError(null);
+                    setBriefingId(null);
+                    navigate(
+                      createPageUrl(
+                        buildClientTasksHref({ clientId, serviceId: urlServiceId })
+                      ),
+                      { replace: true }
+                    );
+                  },
+                }
+              : undefined
+          }
+        />
+      </div>
+    );
   }
 
   if (loading) {
@@ -364,23 +412,23 @@ export default function ClientTasksPage() {
               </Link>
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateTasks}
-              className="flex-1 sm:flex-none"
-            >
-              <Target className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Gerar Tarefas</span>
-              <span className="sm:hidden">Gerar</span>
-            </Button>
-            <Button
               size="sm"
               onClick={handleCreateTask}
               className="flex-1 sm:flex-none"
             >
               <Plus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Nova Tarefa</span>
+              <span className="hidden sm:inline">Nova tarefa</span>
               <span className="sm:hidden">Nova</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleGenerateTasks}
+              className="hidden sm:flex text-[#7A7595]"
+              title="Gerar tarefas a partir do serviço"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Gerar do serviço
             </Button>
           </div>
         </div>

@@ -308,13 +308,17 @@ export default function DeliveryWorkspacePage() {
             tasks={scopedTasks.tasks}
             scopeLabel={
               scopedTasks.scope === 'campaign'
-                ? 'escopo campanha'
+                ? 'desta campanha'
                 : scopedTasks.scope === 'cycle'
-                  ? 'escopo ciclo'
+                  ? 'deste ciclo'
                   : null
             }
             sharedCycleFallback={scopedTasks.sharedCycleFallback}
             onTasksNeedReload={refreshTasks}
+            clientId={client?.id || service.clientId || campaignUnit?.clientId}
+            serviceId={service.id}
+            briefingId={campaignUnit?.id || campaignId}
+            cycleId={campaignUnit?.cycleId || null}
           />
         );
         break;

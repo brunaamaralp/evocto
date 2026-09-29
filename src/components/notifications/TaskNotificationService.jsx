@@ -1,15 +1,15 @@
-ï»¿import { Notification } from '@/api/entities';
+import { Notification } from '@/api/entities';
 import { User } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { format, differenceInHours, differenceInDays } from 'date-fns';
 
 /**
- * ServiÃ§o para criar notificaÃ§Ãµes automÃ¡ticas relacionadas a tarefas
+ * Serviço para criar notificações automáticas relacionadas a tarefas
  */
 export class TaskNotificationService {
   
   /**
-   * Criar notificaÃ§Ã£o quando tarefa Ã© atribuÃ­da
+   * Criar notificação quando tarefa é atribuída
    */
   static async createTaskAssignedNotification(task, assignedByUser) {
     const assigneeId = task.assignedTo || task.assigneeId;
@@ -23,9 +23,9 @@ export class TaskNotificationService {
         userId: task.assignedTo || task.assigneeId,
         type: 'task_assigned',
         subject: `task:${task.id}`,
-        title: 'Nova tarefa atribuÃ­da',
+        title: 'Nova tarefa atribuída',
         context: `${task.title} - ${client?.name || 'Cliente'}`,
-        href: `/tasks-manager?task=${task.id}`,
+        href: `/tasks-manager?taskId=${task.id}`,
         severity: task.priority === 'urgent' ? 'critical' : task.priority === 'high' ? 'warn' : 'info',
         dedupKey: `task_assigned_${task.id}_${task.assignedTo || task.assigneeId}`,
         metadata: {
@@ -38,14 +38,14 @@ export class TaskNotificationService {
         }
       });
 
-      console.log(`âœ… NotificaÃ§Ã£o de tarefa atribuÃ­da criada para ${task.assignedTo}`);
+      console.log(`? Notificação de tarefa atribuída criada para ${task.assignedTo}`);
     } catch (error) {
-      console.error('Erro ao criar notificaÃ§Ã£o de tarefa atribuÃ­da:', error);
+      console.error('Erro ao criar notificação de tarefa atribuída:', error);
     }
   }
 
   /**
-   * Criar notificaÃ§Ã£o quando tarefa estÃ¡ prÃ³xima do prazo
+   * Criar notificação quando tarefa está próxima do prazo
    */
   static async createTaskDueSoonNotification(task) {
     if (!task.dueDate || task.status === 'completed') return;
@@ -54,7 +54,7 @@ export class TaskNotificationService {
     const now = new Date();
     const hoursUntilDue = differenceInHours(dueDate, now);
     
-    // SÃ³ notificar se estiver dentro das prÃ³ximas 24h
+    // Só notificar se estiver dentro das próximas 24h
     if (hoursUntilDue > 24 || hoursUntilDue < 0) return;
 
     try {
@@ -65,13 +65,13 @@ export class TaskNotificationService {
 
       let title, severity;
       if (hoursUntilDue <= 2) {
-        title = 'ðŸš¨ Tarefa vence em breve!';
+        title = '?? Tarefa vence em breve!';
         severity = 'critical';
       } else if (hoursUntilDue <= 8) {
-        title = 'âš ï¸ Tarefa vence hoje';
+        title = '?? Tarefa vence hoje';
         severity = 'warn';
       } else {
-        title = 'ðŸ“… Tarefa vence amanhÃ£';
+        title = '?? Tarefa vence amanhã';
         severity = 'info';
       }
 
@@ -90,7 +90,7 @@ export class TaskNotificationService {
           },
           title,
           context: `${task.title} - ${client?.name || 'Cliente'}`,
-          href: `/tasks-manager?task=${task.id}`,
+          href: `/tasks-manager?taskId=${task.id}`,
           severity,
           dedupKey: `task_due_soon_${task.id}_${userId}_${format(dueDate, 'yyyy-MM-dd')}`,
           metadata: {
@@ -104,14 +104,14 @@ export class TaskNotificationService {
         });
       }
 
-      console.log(`âœ… NotificaÃ§Ãµes de prazo prÃ³ximo criadas para tarefa ${task.id}`);
+      console.log(`? Notificações de prazo próximo criadas para tarefa ${task.id}`);
     } catch (error) {
-      console.error('Erro ao criar notificaÃ§Ã£o de prazo prÃ³ximo:', error);
+      console.error('Erro ao criar notificação de prazo próximo:', error);
     }
   }
 
   /**
-   * Criar notificaÃ§Ã£o quando tarefa estÃ¡ atrasada
+   * Criar notificação quando tarefa está atrasada
    */
   static async createTaskOverdueNotification(task) {
     if (!task.dueDate || task.status === 'completed') return;
@@ -128,7 +128,7 @@ export class TaskNotificationService {
         task.assignedTo ? User.get(task.assignedTo) : null
       ]);
 
-      const title = `ðŸ”´ Tarefa atrasada hÃ¡ ${daysOverdue} dia(s)`;
+      const title = `?? Tarefa atrasada há ${daysOverdue} dia(s)`;
       
       const recipients = [];
       if (task.assignedTo) recipients.push(task.assignedTo);
@@ -145,7 +145,7 @@ export class TaskNotificationService {
           },
           title,
           context: `${task.title} - ${client?.name || 'Cliente'}`,
-          href: `/tasks-manager?task=${task.id}`,
+          href: `/tasks-manager?taskId=${task.id}`,
           severity: 'critical',
           dedupKey: `task_overdue_${task.id}_${userId}_${format(now, 'yyyy-MM-dd')}`,
           metadata: {
@@ -159,14 +159,14 @@ export class TaskNotificationService {
         });
       }
 
-      console.log(`âœ… NotificaÃ§Ãµes de atraso criadas para tarefa ${task.id}`);
+      console.log(`? Notificações de atraso criadas para tarefa ${task.id}`);
     } catch (error) {
-      console.error('Erro ao criar notificaÃ§Ã£o de atraso:', error);
+      console.error('Erro ao criar notificação de atraso:', error);
     }
   }
 
   /**
-   * Criar notificaÃ§Ã£o quando tarefa Ã© concluÃ­da
+   * Criar notificação quando tarefa é concluída
    */
   static async createTaskCompletedNotification(task, completedByUser) {
     if (task.status !== 'completed') return;
@@ -197,9 +197,9 @@ export class TaskNotificationService {
             type: 'task',
             id: task.id
           },
-          title: 'âœ… Tarefa concluÃ­da',
+          title: '? Tarefa concluída',
           context: `${task.title} - ${client?.name || 'Cliente'}`,
-          href: `/tasks-manager?task=${task.id}`,
+          href: `/tasks-manager?taskId=${task.id}`,
           severity: 'info',
           dedupKey: `task_completed_${task.id}_${userId}`,
           metadata: {
@@ -212,14 +212,14 @@ export class TaskNotificationService {
         });
       }
 
-      console.log(`âœ… NotificaÃ§Ãµes de conclusÃ£o criadas para tarefa ${task.id}`);
+      console.log(`? Notificações de conclusão criadas para tarefa ${task.id}`);
     } catch (error) {
-      console.error('Erro ao criar notificaÃ§Ã£o de conclusÃ£o:', error);
+      console.error('Erro ao criar notificação de conclusão:', error);
     }
   }
 
   /**
-   * Criar notificaÃ§Ã£o quando tarefa muda de status
+   * Criar notificação quando tarefa muda de status
    */
   static async createTaskStatusChangedNotification(task, previousStatus, changedByUser) {
     if (!previousStatus || task.status === previousStatus) return;
@@ -231,8 +231,8 @@ export class TaskNotificationService {
         backlog: 'Fila',
         todo: 'A fazer',
         in_progress: 'Em andamento',
-        in_review: 'Em RevisÃ£o',
-        completed: 'ConcluÃ­da',
+        in_review: 'Em Revisão',
+        completed: 'Concluída',
         cancelled: 'Cancelada',
         blocked: 'Bloqueada'
       };
@@ -245,7 +245,7 @@ export class TaskNotificationService {
         recipients.push(task.assignedBy);
       }
 
-      const title = `ðŸ“Š Status alterado: ${statusLabels[task.status]}`;
+      const title = `?? Status alterado: ${statusLabels[task.status]}`;
       const severity = task.status === 'blocked' ? 'warn' : 'info';
 
       for (const userId of recipients) {
@@ -259,7 +259,7 @@ export class TaskNotificationService {
           },
           title,
           context: `${task.title} - ${client?.name || 'Cliente'}`,
-          href: `/tasks-manager?task=${task.id}`,
+          href: `/tasks-manager?taskId=${task.id}`,
           severity,
           dedupKey: `task_status_${task.id}_${userId}_${task.status}`,
           metadata: {
@@ -273,20 +273,20 @@ export class TaskNotificationService {
         });
       }
 
-      console.log(`âœ… NotificaÃ§Ãµes de mudanÃ§a de status criadas para tarefa ${task.id}`);
+      console.log(`? Notificações de mudança de status criadas para tarefa ${task.id}`);
     } catch (error) {
-      console.error('Erro ao criar notificaÃ§Ã£o de mudanÃ§a de status:', error);
+      console.error('Erro ao criar notificação de mudança de status:', error);
     }
   }
 
   /**
-   * Verificar e criar notificaÃ§Ãµes para tarefas prÃ³ximas do prazo (executar periodicamente)
+   * Verificar e criar notificações para tarefas próximas do prazo (executar periodicamente)
    */
   static async checkUpcomingDeadlines(agencyId) {
     try {
       const { Task } = await import('@/api/entities');
       
-      // Buscar tarefas que vencem nas prÃ³ximas 24h
+      // Buscar tarefas que vencem nas próximas 24h
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       
@@ -300,14 +300,14 @@ export class TaskNotificationService {
         await this.createTaskDueSoonNotification(task);
       }
 
-      console.log(`âœ… VerificaÃ§Ã£o de prazos concluÃ­da: ${upcomingTasks.length} tarefas analisadas`);
+      console.log(`? Verificação de prazos concluída: ${upcomingTasks.length} tarefas analisadas`);
     } catch (error) {
       console.error('Erro ao verificar prazos:', error);
     }
   }
 
   /**
-   * Verificar e criar notificaÃ§Ãµes para tarefas atrasadas (executar periodicamente)
+   * Verificar e criar notificações para tarefas atrasadas (executar periodicamente)
    */
   static async checkOverdueTasks(agencyId) {
     try {
@@ -324,7 +324,7 @@ export class TaskNotificationService {
         await this.createTaskOverdueNotification(task);
       }
 
-      console.log(`âœ… VerificaÃ§Ã£o de atrasos concluÃ­da: ${overdueTasks.length} tarefas em atraso`);
+      console.log(`? Verificação de atrasos concluída: ${overdueTasks.length} tarefas em atraso`);
     } catch (error) {
       console.error('Erro ao verificar tarefas atrasadas:', error);
     }
