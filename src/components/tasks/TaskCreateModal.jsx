@@ -13,6 +13,9 @@ import { User } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";
 import { Loader2, X, Calendar, User as UserIcon, Flag } from "lucide-react";
 
+/** Valor sentinela no Select — tarefa/reunião interna sem cliente */
+const INTERNAL_CLIENT_VALUE = "__internal__";
+
 export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
   const { user, agencyId } = useSession();
   const [loading, setLoading] = React.useState(false);
@@ -25,7 +28,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
     status: "todo",
     priority: "medium",
     type: "analise_documentos",
-    clientId: "",
+    clientId: INTERNAL_CLIENT_VALUE,
     serviceId: "",
     assignedTo: "",
     dueDate: "",
@@ -67,7 +70,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
       status: "todo",
       priority: "medium",
       type: "analise_documentos",
-      clientId: "",
+      clientId: INTERNAL_CLIENT_VALUE,
       serviceId: "",
       assignedTo: "",
       dueDate: "",
@@ -85,7 +88,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
   }, [open, loadFormData, resetForm]);
 
   const loadServices = async (clientId) => {
-    if (!clientId) {
+    if (!clientId || clientId === INTERNAL_CLIENT_VALUE) {
       setServices([]);
       return;
     }
@@ -111,6 +114,8 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
     loadServices(clientId);
   };
 
+  const isInternalTask = !taskData.clientId || taskData.clientId === INTERNAL_CLIENT_VALUE;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -118,21 +123,20 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
       setError("Título é obrigatório");
       return;
     }
-    
-    if (!taskData.clientId) {
-      setError("Cliente é obrigatório");
-      return;
-    }
 
     setLoading(true);
     setError("");
 
     try {
+      const resolvedClientId = isInternalTask ? null : taskData.clientId;
+      const baseTags = ["avulsa", "manual"];
+      if (isInternalTask) baseTags.push("interno");
+
       // Prepare task payload with correct format
       const taskPayload = {
         agencyId: agencyId,
-        clientId: taskData.clientId,
-        serviceId: taskData.serviceId || null,
+        clientId: resolvedClientId,
+        serviceId: isInternalTask ? null : (taskData.serviceId || null),
         deliverableId: null, // Tarefa avulsa não tem deliverable
         parentTaskId: null, // Tarefa avulsa não tem parent
         title: taskData.title.trim(),
@@ -150,6 +154,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
         progress: 0,
         kanbanColumn: "todo",
         kanbanPosition: 0,
+        clientVisible: false,
         
         // CRITICAL: Empty arrays for complex fields to avoid validation errors
         dependencies: [], // Tarefa avulsa sem dependências
@@ -160,7 +165,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
         timeEntries: [],
         statusHistory: [],
         
-        tags: ["avulsa", "manual"],
+        tags: baseTags,
         
         // Automation settings
         automation: {
@@ -257,17 +262,20 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
               />
             </div>
 
-            {/* Cliente */}
+            {/* Cliente — opcional para tarefas/reuniões internas */}
             <div>
-              <Label>Cliente *</Label>
+              <Label>Cliente</Label>
               <Select 
-                value={taskData.clientId} 
+                value={taskData.clientId || INTERNAL_CLIENT_VALUE} 
                 onValueChange={handleClientChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
+                  <SelectValue placeholder="Interno ou cliente" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={INTERNAL_CLIENT_VALUE}>
+                    Interno (sem cliente)
+                  </SelectItem>
                   {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
@@ -275,20 +283,24 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Use &quot;Interno&quot; para reuniões e tarefas da equipe, sem vincular a um cliente.
+              </p>
             </div>
 
-            {/* Serviço (opcional) */}
+            {/* Serviço (opcional) — só com cliente */}
             <div>
               <Label>Serviço (opcional)</Label>
               <Select 
-                value={taskData.serviceId} 
-                onValueChange={(value) => setTaskData(prev => ({ ...prev, serviceId: value }))}
+                value={taskData.serviceId || undefined} 
+                onValueChange={(value) => setTaskData(prev => ({ ...prev, serviceId: value === "__none__" ? "" : value }))}
+                disabled={isInternalTask}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o serviço (opcional)" />
+                  <SelectValue placeholder={isInternalTask ? "Disponível com cliente" : "Selecione o serviço (opcional)"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>Nenhum serviço</SelectItem>
+                  <SelectItem value="__none__">Nenhum serviço</SelectItem>
                   {services.map(service => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}
@@ -315,6 +327,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
                     <SelectItem value="analise_dados">Análise Dados</SelectItem>
                     <SelectItem value="analise_financeira">Análise Financeira</SelectItem>
                     <SelectItem value="relatorio_financeiro">Relatório Financeiro</SelectItem>
+                    <SelectItem value="reuniao">Reunião</SelectItem>
                     <SelectItem value="reuniao_alinhamento">Reunião Alinhamento</SelectItem>
                     <SelectItem value="planejamento_estrategico">Planejamento Estratégico</SelectItem>
                     <SelectItem value="implementacao">Implementação</SelectItem>
@@ -430,7 +443,7 @@ export default function TaskCreateModal({ open, onOpenChange, onSuccess }) {
               <Button
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={loading || !taskData.title.trim() || !taskData.clientId}
+                disabled={loading || !taskData.title.trim()}
               >
                 {loading ? (
                   <>

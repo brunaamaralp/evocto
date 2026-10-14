@@ -137,12 +137,12 @@ function TaskCard({ task, users, clients }) {
               </div>
             )}
             
-            {client && (
-              <div className="flex items-center gap-1 text-gray-500">
-                <Building2 className="w-3 h-3" />
-                <span className="truncate max-w-20">{client.name}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1 text-gray-500">
+              <Building2 className="w-3 h-3" />
+              <span className="truncate max-w-20">
+                {client?.name || 'Interno'}
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -324,8 +324,10 @@ export default function TasksManagerPage() {
   // Aplicar filtros
   const filteredTasks = React.useMemo(() => {
     return tasks.filter(task => {
-      // Filtro por cliente
-      if (selectedClient !== 'all' && task.clientId !== selectedClient) {
+      // Filtro por cliente (inclui tarefas internas sem cliente)
+      if (selectedClient === 'internal') {
+        if (task.clientId) return false;
+      } else if (selectedClient !== 'all' && task.clientId !== selectedClient) {
         return false;
       }
 
@@ -562,6 +564,12 @@ export default function TasksManagerPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os clientes</SelectItem>
+                <SelectItem value="internal">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Internas (sem cliente)
+                  </div>
+                </SelectItem>
                 {clients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">

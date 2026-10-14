@@ -813,10 +813,14 @@ export default function TaskDrawer() {
                   </SheetTitle>
                 )}
                 <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  {client?.name && <span className="truncate max-w-[160px]">{client.name}</span>}
+                  {(client?.name || (task && !task.clientId ? 'Interno' : null)) && (
+                    <span className="truncate max-w-[160px]">
+                      {client?.name || 'Interno'}
+                    </span>
+                  )}
                   {task?.deliverableName && (
                     <>
-                      {client?.name ? <span>·</span> : null}
+                      {(client?.name || !task?.clientId) ? <span>·</span> : null}
                       <span className="truncate max-w-[180px]">{task.deliverableName}</span>
                     </>
                   )}

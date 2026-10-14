@@ -201,7 +201,8 @@ export default function AgencyOperationalPhaseIndicator({
       ? formatOperationalDaysRemaining(current.daysRemaining)
       : '';
 
-  const compactBits = [contextLine, current.label, daysLabel].filter(Boolean);
+  const phaseBit = current.label ? `Fase · ${current.label}` : null;
+  const compactBits = [contextLine, phaseBit, daysLabel].filter(Boolean);
   const showTimeline = Boolean(cycle?.phases?.length);
   const canExpand = showTimeline || Boolean(phaseWork?.enabled);
 
@@ -209,7 +210,7 @@ export default function AgencyOperationalPhaseIndicator({
     return (
       <div className="space-y-2 pt-1" data-testid="agency-operational-phase">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-sm text-[#7A7595]">
+          <p className="text-xs leading-relaxed text-[#7A7595] sm:text-sm">
             {compactBits.map((bit, i) => (
               <span key={`${bit}-${i}`}>
                 {i > 0 ? <span className="text-[#ccc]"> · </span> : null}
@@ -226,7 +227,7 @@ export default function AgencyOperationalPhaseIndicator({
               className="inline-flex items-center gap-0.5 text-xs font-medium text-[#6C47D8] hover:underline"
               aria-expanded={detailsOpen}
             >
-              {detailsOpen ? 'Ocultar ciclo' : 'Ver ciclo'}
+              {detailsOpen ? 'Ocultar' : 'O que é isso?'}
               {detailsOpen ? (
                 <ChevronUp className="h-3.5 w-3.5" />
               ) : (

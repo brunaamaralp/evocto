@@ -28,12 +28,16 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+/** Valor sentinela no Select — tarefa/reunião interna sem cliente */
+const INTERNAL_CLIENT_VALUE = '__internal__';
+
 const TASK_TYPES = [
   { value: 'analise_documentos', label: 'Análise de Documentos' },
   { value: 'coleta_dados', label: 'Coleta de Dados' },
   { value: 'analise_dados', label: 'Análise de Dados' },
   { value: 'analise_financeira', label: 'Análise Financeira' },
   { value: 'relatorio_financeiro', label: 'Relatório Financeiro' },
+  { value: 'reuniao', label: 'Reunião' },
   { value: 'reuniao_alinhamento', label: 'Reunião de Alinhamento' },
   { value: 'planejamento_estrategico', label: 'Planejamento Estratégico' },
   { value: 'implementacao', label: 'Implementação' },
@@ -79,7 +83,7 @@ export default function TaskModal({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    clientId: preSelectedClientId || '',
+    clientId: preSelectedClientId || INTERNAL_CLIENT_VALUE,
     serviceId: '',
     type: 'analise_dados',
     priority: 'medium',
@@ -122,7 +126,7 @@ export default function TaskModal({
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        clientId: task.clientId || preSelectedClientId || '',
+        clientId: task.clientId || preSelectedClientId || INTERNAL_CLIENT_VALUE,
         serviceId: task.serviceId || '',
         type: task.type || 'analise_dados',
         priority: task.priority || 'medium',
@@ -140,7 +144,7 @@ export default function TaskModal({
       setFormData({
         title: '',
         description: '',
-        clientId: preSelectedClientId || '',
+        clientId: preSelectedClientId || INTERNAL_CLIENT_VALUE,
         serviceId: '',
         type: 'analise_dados',
         priority: 'medium',
@@ -155,10 +159,13 @@ export default function TaskModal({
     }
   }, [task, isOpen, preSelectedClientId]);
 
+  const isInternalTask =
+    !formData.clientId || formData.clientId === INTERNAL_CLIENT_VALUE;
+
   // Filtrar serviços pelo cliente selecionado
-  const filteredServices = formData.clientId 
+  const filteredServices = !isInternalTask
     ? services.filter(s => s.clientId === formData.clientId)
-    : services;
+    : [];
 
   const updateFormData = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -201,10 +208,6 @@ export default function TaskModal({
       errors.push('Título da tarefa é obrigatório');
     }
     
-    if (!formData.clientId) {
-      errors.push('Cliente deve ser selecionado');
-    }
-    
     if (!formData.type) {
       errors.push('Tipo da tarefa é obrigatório');
     }
@@ -231,9 +234,19 @@ export default function TaskModal({
     setLoading(true);
     
     try {
+      const resolvedClientId = isInternalTask ? null : formData.clientId;
+      const tags = Array.isArray(formData.tags) ? [...formData.tags] : [];
+      if (isInternalTask && !tags.includes('interno')) {
+        tags.push('interno');
+      }
+
       const taskData = {
         ...formData,
         agencyId,
+        clientId: resolvedClientId,
+        serviceId: isInternalTask ? null : (formData.serviceId || null),
+        clientVisible: false,
+        tags,
         assignedBy: user?.id,
         checklist: checklist.filter(item => item.text.trim()),
         // Converter datas para formato ISO se fornecidas
@@ -286,11 +299,15 @@ export default function TaskModal({
               <DialogTitle className="text-xl">
                 {task ? 'Editar Tarefa' : 'Nova Tarefa'}
               </DialogTitle>
-              {formData.clientId && (
+              {isInternalTask ? (
+                <p className="text-sm text-gray-600 mt-1">
+                  <strong>Interno</strong> — sem cliente vinculado
+                </p>
+              ) : formData.clientId ? (
                 <p className="text-sm text-gray-600 mt-1">
                   Cliente: <strong>{getClientName(formData.clientId)}</strong>
                 </p>
-              )}
+              ) : null}
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
@@ -325,21 +342,24 @@ export default function TaskModal({
             </div>
           </div>
 
-          {/* Seleção de cliente e serviço */}
+          {/* Seleção de cliente e serviço — cliente opcional (interno) */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client">Cliente *</Label>
+              <Label htmlFor="client">Cliente</Label>
               <Select
-                value={formData.clientId}
+                value={formData.clientId || INTERNAL_CLIENT_VALUE}
                 onValueChange={(value) => {
                   updateFormData('clientId', value);
                   updateFormData('serviceId', ''); // Reset service quando cliente muda
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
+                  <SelectValue placeholder="Interno ou cliente" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={INTERNAL_CLIENT_VALUE}>
+                    Interno (sem cliente)
+                  </SelectItem>
                   {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
@@ -347,19 +367,23 @@ export default function TaskModal({
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Use &quot;Interno&quot; para reuniões e tarefas da equipe.
+              </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="service">Serviço (Opcional)</Label>
               <Select
-                value={formData.serviceId}
-                onValueChange={(value) => updateFormData('serviceId', value)}
-                disabled={!formData.clientId}
+                value={formData.serviceId || undefined}
+                onValueChange={(value) => updateFormData('serviceId', value === '__none__' ? '' : value)}
+                disabled={isInternalTask}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o serviço" />
+                  <SelectValue placeholder={isInternalTask ? 'Disponível com cliente' : 'Selecione o serviço'} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__none__">Nenhum serviço</SelectItem>
                   {filteredServices.map(service => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}

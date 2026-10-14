@@ -2,10 +2,16 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Task } from '@/api/entities';
 import {
   analyzeActivityKindCoverage,
   coverageKindLabel,
 } from '@/lib/analyzeActivityKindCoverage';
+import {
+  applyActivityKindBackfill,
+  buildActivityKindBackfillPlan,
+  summarizeActivityKindBackfillPlan,
+} from '@/lib/backfillActivityKindFromTemplates';
 
 const STATUS_FILTERS = [
   { id: 'all', label: 'Todos os issues' },
@@ -38,8 +44,8 @@ function statusBadgeVariant(status) {
 }
 
 /**
- * Painel compacto de qualidade do dado activityKind (admin/dev).
- * Não edita Tasks — só observa.
+ * Painel de qualidade do dado activityKind (admin/dev).
+ * Observa cobertura e permite backfill seletivo (só aberto + id inequívoco).
  */
 export default function ActivityKindCoveragePanel({
   tasks = [],
@@ -51,6 +57,9 @@ export default function ActivityKindCoveragePanel({
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [originFilter, setOriginFilter] = useState('all');
+  const [applying, setApplying] = useState(false);
+  const [applyResult, setApplyResult] = useState(null);
+  const [applyError, setApplyError] = useState(null);
 
   const analysis = useMemo(
     () =>
@@ -63,7 +72,49 @@ export default function ActivityKindCoveragePanel({
     [tasks, agencyId, universeLabel]
   );
 
+  const backfill = useMemo(() => {
+    const { plan, skipped, lookupMeta } = buildActivityKindBackfillPlan(tasks, {
+      agencyId,
+      openOnly: true,
+    });
+    return {
+      plan,
+      skipped,
+      lookupMeta,
+      summary: summarizeActivityKindBackfillPlan(plan, skipped),
+    };
+  }, [tasks, agencyId]);
+
   const { summary, byKind, bySource, byOrigin, byTemplate, universe } = analysis;
+
+  async function handleApplyBackfill() {
+    if (!backfill.plan.length || applying) return;
+    const ok = window.confirm(
+      `Aplicar activityKind em ${backfill.summary.eligible} unidade(s) ` +
+        `(${backfill.summary.taskUpdates} Task(s))? ` +
+        'Só IDs inequívocos; known_gap e concluídas ficam de fora.'
+    );
+    if (!ok) return;
+
+    setApplying(true);
+    setApplyError(null);
+    setApplyResult(null);
+    try {
+      const result = await applyActivityKindBackfill(backfill.plan, tasks, {
+        dryRun: false,
+        Task,
+      });
+      setApplyResult(result);
+      if (typeof onRefresh === 'function') {
+        await onRefresh();
+      }
+    } catch (err) {
+      console.error('[activity-kind-backfill]', err);
+      setApplyError(err?.message || 'Falha ao aplicar backfill');
+    } finally {
+      setApplying(false);
+    }
+  }
 
   const issueRows = useMemo(() => {
     let rows =
@@ -139,6 +190,87 @@ export default function ActivityKindCoveragePanel({
           <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-1.5">
             Legado: {universe.legacyNote}
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Backfill seletivo (aberto)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Propaga <span className="font-mono text-xs">activityKind</span> só onde o{' '}
+            <span className="font-mono text-xs">template_id</span> /{' '}
+            <span className="font-mono text-xs">templateStepId</span> é inequívoco no inventário.
+            Não usa título. Não preenche known_gap (<span className="font-mono text-xs">producao</span>
+            , <span className="font-mono text-xs">gravar_conteudo</span>, …). Não grava{' '}
+            <span className="font-mono text-xs">operationalPhase</span>.
+          </p>
+          <div className="flex flex-wrap gap-6 text-sm text-gray-800">
+            <div>
+              <div className="text-2xl font-bold tabular-nums">{backfill.summary.eligible}</div>
+              <div className="text-xs text-gray-500">elegíveis (dry-run)</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold tabular-nums">{backfill.summary.taskUpdates}</div>
+              <div className="text-xs text-gray-500">Tasks a atualizar</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold tabular-nums">
+                {backfill.summary.bySource.task}/{backfill.summary.bySource.checklist}
+              </div>
+              <div className="text-xs text-gray-500">task / checklist</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold tabular-nums">
+                {backfill.summary.skippedTotal}
+              </div>
+              <div className="text-xs text-gray-500">pulados</div>
+            </div>
+          </div>
+          {Object.keys(backfill.summary.byKind).length > 0 ? (
+            <ul className="text-xs text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
+              {Object.entries(backfill.summary.byKind)
+                .sort((a, b) => b[1] - a[1])
+                .map(([kind, count]) => (
+                  <li key={kind}>
+                    <span className="font-mono">{kind}</span> · {count}
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Nada elegível neste universo (já classificado, known_gap ou sem id inequívoco).
+            </p>
+          )}
+          {(backfill.lookupMeta.ambiguousStepIds.length > 0 ||
+            backfill.lookupMeta.ambiguousTemplateIds.length > 0) ? (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-1.5">
+              IDs ambíguos (packs divergem — não backfillam):{' '}
+              {[
+                ...backfill.lookupMeta.ambiguousStepIds,
+                ...backfill.lookupMeta.ambiguousTemplateIds,
+              ].join(', ') || '—'}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={loading || applying || backfill.plan.length === 0}
+              onClick={handleApplyBackfill}
+            >
+              {applying ? 'Aplicando…' : 'Aplicar backfill'}
+            </Button>
+            {applyResult ? (
+              <span className="text-xs text-gray-600">
+                Atualizadas: {applyResult.updated} · falhas: {applyResult.failed}
+              </span>
+            ) : null}
+            {applyError ? (
+              <span className="text-xs text-red-600">{applyError}</span>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 

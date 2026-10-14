@@ -29,6 +29,7 @@ import {
   mergePhaseFocusIntoAttentionQueue,
 } from '@/lib/prioritizeDashboardPhaseFocus';
 import AgencyOperationalPhaseIndicator from '@/components/dashboard/AgencyOperationalPhaseIndicator';
+import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
 
 function firstNameFromFullName(fullName) {
@@ -103,9 +104,9 @@ function formatDueLabel(due, todayStart) {
 }
 
 function resolveClientName(clients, clientId) {
-  if (!clientId) return null;
+  if (!clientId) return 'Interno';
   const client = clients.find((c) => String(c.id) === String(clientId));
-  return client?.name || null;
+  return client?.name || 'Interno';
 }
 
 function openTaskDrawer(taskId) {
@@ -361,22 +362,38 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
   const isCompleting = completingId === item.taskId;
   const canComplete = isTask && onComplete && item.completable !== false;
   const isOverdue = item.kind === 'overdue';
+  const isAgenda = variant === 'agenda';
+
+  const secondaryLine = [
+    item.clientName,
+    isAgenda ? null : item.dueLabel,
+    item.kind === 'phase_focus' ? item.activityKindLabel : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const meta = (
     <>
       <div className="min-w-0 flex-1 text-left">
         <p className="truncate text-sm font-medium text-[#18162A]">{item.title}</p>
-        <p className="text-xs text-[#7A7595]">
-          {[
-            item.clientName,
-            item.dueLabel,
-            item.kind === 'phase_focus' ? item.activityKindLabel : null,
-          ]
-            .filter(Boolean)
-            .join(' · ')}
-        </p>
+        {secondaryLine ? (
+          <p className="text-xs text-[#7A7595]">{secondaryLine}</p>
+        ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {isAgenda && item.dueLabel ? (
+          <span
+            className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
+              item.dueLabel === 'Hoje'
+                ? 'bg-[#F5F2FC] text-[#6C47D8]'
+                : item.dueLabel === 'Amanhã'
+                  ? 'bg-[#F8F7FB] text-[#7A7595]'
+                  : 'bg-[#F8F7FB] text-[#7A7595]'
+            }`}
+          >
+            {item.dueLabel}
+          </span>
+        ) : null}
         {item.priority === 'high' && item.kind !== 'overdue' ? (
           <span className="text-xs font-semibold text-[#c0392b]">Alta</span>
         ) : null}
@@ -388,10 +405,11 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
   );
 
   const rowClassName = [
-    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2.5 py-2.5 transition-colors hover:bg-[#F5F2FC]/80',
-    variant === 'attention' && isOverdue ? 'border-l-2 border-l-[#c0392b] pl-2' : '',
-    variant === 'attention' && !isOverdue ? 'border-l-2 border-l-[#6C47D8]/40 pl-2' : '',
-    variant === 'agenda' ? 'border-l-2 border-l-[#E8E5F5] pl-2' : '',
+    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2.5 py-2.5 transition-colors',
+    isAgenda ? 'hover:bg-[#F8F7FB]' : 'hover:bg-white/70',
+    variant === 'attention' && isOverdue ? 'border-l-[3px] border-l-[#c0392b] pl-2' : '',
+    variant === 'attention' && !isOverdue ? 'border-l-[3px] border-l-[#6C47D8] pl-2' : '',
+    isAgenda ? 'border-l-[3px] border-l-[#C9C0E8] pl-2' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -429,6 +447,34 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
   );
 }
 
+function CampaignProgressBar({ completed, total }) {
+  if (!(total > 0)) return null;
+  const pct = Math.min(100, Math.round((completed / total) * 100));
+  return (
+    <div className="mt-3 space-y-1.5">
+      <div className="flex items-center justify-between gap-2 text-xs text-[#7A7595]">
+        <span>
+          {completed}/{total} tarefas
+        </span>
+        <span className="tabular-nums font-medium text-[#18162A]">{pct}%</span>
+      </div>
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-[#EDEAF7]"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Progresso da campanha: ${pct}%`}
+      >
+        <div
+          className="h-full rounded-full bg-[#6C47D8] transition-[width] duration-300"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 /**
  * Home operacional — campanhas + agenda + fila de atenção.
  */
@@ -438,6 +484,7 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [completingId, setCompletingId] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const loadDashboardData = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -719,32 +766,48 @@ export default function DashboardPage() {
             compact
           />
         </div>
-        <Button asChild className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto">
-          <Link to={nextSetupStep?.href || createPageUrl('clients')}>
+        {hasCampaigns ? (
+          <Button
+            type="button"
+            className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto"
+            onClick={() => setCreateOpen(true)}
+          >
             <Plus className="mr-1.5 h-4 w-4" />
-            {hasCampaigns ? 'Abrir clientes' : nextSetupStep?.cta || 'Começar'}
-          </Link>
-        </Button>
+            Nova tarefa
+          </Button>
+        ) : (
+          <Button asChild className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto">
+            <Link to={nextSetupStep?.href || createPageUrl('clients')}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              {nextSetupStep?.cta || 'Começar'}
+            </Link>
+          </Button>
+        )}
       </header>
 
       {attentionQueue.length > 0 ? (
         <section aria-labelledby="attention-heading">
           <div className="mb-3 flex items-baseline justify-between gap-3">
-            <h2
-              id="attention-heading"
-              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-            >
-              <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
-              Precisa de atenção
-            </h2>
+            <div className="min-w-0">
+              <h2
+                id="attention-heading"
+                className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
+              >
+                <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
+                Precisa de atenção
+              </h2>
+              <p className="mt-0.5 text-xs text-[#7A7595]">
+                Atrasos, bloqueios e o que não pode esperar.
+              </p>
+            </div>
             <Link
               to={createPageUrl('tasks-manager')}
-              className="text-sm font-medium text-[#6C47D8] hover:underline"
+              className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
               Ver tarefas
             </Link>
           </div>
-          <ul className="space-y-0.5 rounded-xl border border-[#FAD9DB]/80 bg-[#FFF8F8] px-1 py-1">
+          <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
             {attentionQueue.map((item) => (
               <ItemRow
                 key={item.id}
@@ -758,7 +821,10 @@ export default function DashboardPage() {
           </ul>
         </section>
       ) : hasCampaigns ? (
-        <section aria-labelledby="attention-empty-heading" className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/50 px-4 py-3">
+        <section
+          aria-labelledby="attention-empty-heading"
+          className="rounded-xl border border-dashed border-[#D9D4EC] bg-[#F5F2FC]/40 px-4 py-3"
+        >
           <h2 id="attention-empty-heading" className="sr-only">
             Atenção
           </h2>
@@ -773,22 +839,27 @@ export default function DashboardPage() {
       {(agenda.length > 0 || hasCampaigns) && (
         <section aria-labelledby="agenda-heading">
           <div className="mb-3 flex items-baseline justify-between gap-3">
-            <h2
-              id="agenda-heading"
-              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-            >
-              <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-              Agenda · 48h
-            </h2>
+            <div className="min-w-0">
+              <h2
+                id="agenda-heading"
+                className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
+              >
+                <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+                Próximas 48h
+              </h2>
+              <p className="mt-0.5 text-xs text-[#7A7595]">
+                Prazos de hoje e amanhã — inclusive internos.
+              </p>
+            </div>
             <Link
               to={createPageUrl('tasks-manager')}
-              className="text-sm font-medium text-[#6C47D8] hover:underline"
+              className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver agenda
+              Ver tarefas
             </Link>
           </div>
           {agenda.length > 0 ? (
-            <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1 py-1">
+            <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
               {agenda.map((item) => (
                 <ItemRow
                   key={item.id}
@@ -800,7 +871,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[#7A7595]">
+            <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
               Nada com prazo para hoje ou amanhã. Quando houver entregas, elas aparecem aqui.
             </p>
           )}
@@ -808,10 +879,18 @@ export default function DashboardPage() {
       )}
 
       <section aria-labelledby="campaigns-heading" className="border-t border-[#E8E5F5] pt-8">
-        <div className="mb-5">
+        <div className="mb-5 flex items-baseline justify-between gap-3">
           <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
             {hasCampaigns ? 'Em andamento' : 'Clientes'}
           </h2>
+          {hasCampaigns ? (
+            <Link
+              to={createPageUrl('clients')}
+              className="text-sm font-medium text-[#6C47D8] hover:underline"
+            >
+              Todos os clientes
+            </Link>
+          ) : null}
         </div>
 
         {!hasCampaigns ? (
@@ -928,55 +1007,52 @@ export default function DashboardPage() {
                 </div>
 
                 <ul className="space-y-3">
-                  {group.campaigns.map((campaign) => (
-                    <li
-                      key={campaign.id}
-                      className="rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#d8d2ef]"
-                    >
-                      <div className="min-w-0">
+                  {group.campaigns.map((campaign) => {
+                    const period = campaign.cyclePeriod || campaign.cycleTitle || null;
+                    const progress = campaign.progress || { completed: 0, total: 0 };
+                    return (
+                      <li key={campaign.id}>
                         <Link
                           to={campaign.href}
-                          className="block truncate text-base font-semibold text-[#18162A] hover:text-[#6C47D8]"
+                          className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
                         >
-                          {campaign.name}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-base font-semibold text-[#18162A]">
+                                {campaign.name}
+                              </p>
+                              {period ? (
+                                <p className="mt-1 text-sm text-[#7A7595]">{period}</p>
+                              ) : null}
+                            </div>
+                            <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
+                              Abrir
+                              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                            </span>
+                          </div>
+                          <CampaignProgressBar
+                            completed={progress.completed || 0}
+                            total={progress.total || 0}
+                          />
                         </Link>
-                        {(() => {
-                          const subtitle = [
-                            campaign.cyclePeriod || campaign.cycleTitle,
-                            campaign.progress.total > 0
-                              ? `${campaign.progress.completed}/${campaign.progress.total} tarefas`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(' · ');
-                          return subtitle ? (
-                            <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
-                          ) : null;
-                        })()}
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <Button asChild size="sm" className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
-                          <Link to={campaign.href}>
-                            Abrir
-                            <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                          </Link>
-                        </Button>
-                        <Link
-                          to={campaign.tasksHref}
-                          className="text-sm font-medium text-[#7A7595] hover:text-[#6C47D8]"
-                        >
-                          Tarefas
-                        </Link>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))}
           </div>
         )}
       </section>
+
+      <TaskCreateModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={() => {
+          setCreateOpen(false);
+          loadDashboardData({ silent: true });
+        }}
+      />
     </div>
     </div>
   );

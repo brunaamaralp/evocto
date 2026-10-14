@@ -63,7 +63,8 @@ export default function ActivityKindCoveragePage() {
             Diagnóstico activityKind
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Observabilidade V2.4 — qualidade do dado antes do uso na Home operacional.
+            Observabilidade V2.4 + backfill seletivo — qualidade do dado e correção do legado
+            aberto com id inequívoco.
           </p>
           <p className="text-xs text-gray-500 mt-2">
             Relacionados:{' '}

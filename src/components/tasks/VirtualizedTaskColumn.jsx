@@ -49,12 +49,12 @@ const MemoizedTaskCard = React.memo(function MemoizedTaskCard({
       {...dragHandleProps}
     >
       <CardContent className="p-3">
-        {/* Cliente info */}
-        {showClientInfo && client && (
+        {/* Cliente info — "Interno" quando sem cliente */}
+        {showClientInfo && (
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div className={`w-2 h-2 rounded-full ${client ? 'bg-blue-500' : 'bg-slate-400'}`} />
             <span className="text-xs text-gray-600 font-medium truncate">
-              {client.name}
+              {client?.name || 'Interno'}
             </span>
           </div>
         )}
