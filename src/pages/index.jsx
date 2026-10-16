@@ -16,6 +16,8 @@ import scopeGenerator from "./scope-generator";
 
 import myAgency from "./my-agency";
 
+import minhaEmpresa from "./minha-empresa";
+
 import briefingEditor from "./briefing-editor";
 
 import insightsEditor from "./insights-editor";
@@ -136,6 +138,8 @@ import automationdashboard from "./automation-dashboard";
 import financialkpis from "./financial-kpis";
 
 import financeiro from "./agency-finance";
+
+import comercial from "./comercial";
 
 import supportlibrary from "./support-library";
 
@@ -260,6 +264,8 @@ const PAGES = {
     "scope-generator": scopeGenerator,
     
     "my-agency": myAgency,
+
+    "minha-empresa": minhaEmpresa,
     
     "briefing-editor": briefingEditor,
     
@@ -386,6 +392,8 @@ const PAGES = {
     "performance-kpis": financialkpis,
 
     financeiro: financeiro,
+
+    comercial: comercial,
     
     "support-library": supportlibrary,
     
@@ -538,7 +546,9 @@ function PagesContent() {
                 
                 <Route path="/scope-generator" element={createElement(scopeGenerator)} />
                 
-                <Route path="/my-agency" element={createElement(myAgency)} />
+                <Route path="/minha-empresa" element={createElement(minhaEmpresa)} />
+
+                <Route path="/my-agency" element={<Navigate to="/minha-empresa?tab=equipe" replace />} />
                 
                 <Route path="/briefing-editor" element={createElement(briefingEditor)} />
                 
@@ -638,7 +648,7 @@ function PagesContent() {
                 
                 <Route path="/client-login" element={createElement(clientlogin)} />
                 
-                <Route path="/team-management" element={createElement(teammanagement)} />
+                <Route path="/team-management" element={<Navigate to="/minha-empresa?tab=equipe" replace />} />
                 
                 <Route path="/invites" element={createElement(invites)} />
                 
@@ -667,6 +677,7 @@ function PagesContent() {
                 <Route path="/performance-kpis" element={createElement(financialkpis)} />
 
                 <Route path="/financeiro" element={createElement(financeiro)} />
+                <Route path="/comercial" element={createElement(comercial)} />
                 <Route path="/caixa" element={<Navigate to="/financeiro" replace />} />
                 <Route path="/mensalidades" element={<Navigate to="/financeiro" replace />} />
                 
@@ -715,7 +726,7 @@ function PagesContent() {
                 
                 <Route path="/client-learnings" element={createElement(clientlearnings)} />
                 
-                <Route path="/agency-management" element={createElement(agencymanagement)} />
+                <Route path="/agency-management" element={<Navigate to="/minha-empresa" replace />} />
                 
                 <Route path="/client-documents" element={createElement(clientdocuments)} />
 

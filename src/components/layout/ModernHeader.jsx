@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Menu, Megaphone, Users, ChevronDown, X } from 'lucide-react';
+import { User, LogOut, Menu, Megaphone, Users, ChevronDown, X, Building2 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -159,12 +159,21 @@ export default function ModernHeader({
                 </DropdownMenuItem>
                 {canManageTeam && (
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl('team-management')} className="flex items-center cursor-pointer">
+                    <Link
+                      to={createPageUrl('minha-empresa?tab=equipe')}
+                      className="flex items-center cursor-pointer"
+                    >
                       <Users className="h-4 w-4 mr-2" />
                       Equipe
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl('minha-empresa')} className="flex items-center cursor-pointer">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Minha empresa
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2" />

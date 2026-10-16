@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, Suspense, lazy } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Agency } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { useLeadStore } from '@/store/useLeadStore';
 import { getModulePastel } from '@/lib/modulePastels';
 import PWAInstaller from '@/components/pwa/PWAInstaller';
+import { createPageUrl } from '@/utils';
 
 const FinanceiroConfigTab = lazy(() => import('@/components/finance/FinanceiroConfigTab.jsx'));
 const GoogleDriveConnectionCard = lazy(() =>
@@ -272,8 +273,18 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* Aba Agência */}
+        {/* Aba Agência — preferir hub Minha empresa (P0.2) */}
         <TabsContent value="agency">
+          <div className="mb-4 rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/50 px-4 py-3 text-sm text-[#7A7595]">
+            Identidade, equipe e marca ficam em{' '}
+            <Link
+              to={createPageUrl('minha-empresa')}
+              className="font-medium text-[#6C47D8] hover:underline"
+            >
+              Minha empresa
+            </Link>
+            . Esta aba permanece para edição rápida.
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

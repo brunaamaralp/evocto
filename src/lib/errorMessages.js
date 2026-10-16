@@ -24,8 +24,8 @@ const ERROR_MAP = {
 
   // Sessão / academia
   session_required: 'Sessão expirada. Faça login novamente.',
-  academy_required: 'Academia não selecionada. Recarregue a página.',
-  academy_missing: 'Academia não selecionada. Recarregue a página.',
+  academy_required: 'Agência não selecionada. Recarregue a página.',
+  academy_missing: 'Agência não selecionada. Recarregue a página.',
   jwt_missing: 'Sessão expirada. Faça login novamente.',
   'JWT inválido': 'Sessão expirada. Faça login novamente.',
   'JWT ausente': 'Sessão expirada. Faça login novamente.',
@@ -78,7 +78,7 @@ const ERROR_MAP = {
   'ANTHROPIC_API_KEY não configurado': 'Serviço de IA temporariamente indisponível. Fale com o suporte.',
 
   // Contratos / permissões
-  owner_required: 'Apenas o titular da academia pode fazer esta alteração.',
+  owner_required: 'Apenas o titular da agência pode fazer esta alteração.',
   autentique_not_configured: 'Integração com assinatura digital não configurada. Fale com o suporte.',
   autentique_not_configured_for_academy:
     'Conecte a conta Autentique da academia em Integrações para usar contratos digitais.',
@@ -212,7 +212,7 @@ const SALE_ERROR_CODES = {
   no_stock: 'Produto sem estoque disponível.',
   stock_stale: 'Estoque atualizado. Verifique as quantidades.',
   session_required: 'Sessão expirada. Faça login novamente.',
-  academy_required: 'Academia não selecionada. Recarregue a página.',
+  academy_required: 'Agência não selecionada. Recarregue a página.',
   invalid_items: 'Um ou mais itens estão inválidos.',
   item_not_found: 'Produto não encontrado. Atualize o catálogo e tente de novo.',
   parent_not_variant: 'Selecione o tamanho do produto antes de concluir a venda.',

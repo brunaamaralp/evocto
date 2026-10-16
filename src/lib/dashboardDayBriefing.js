@@ -41,7 +41,7 @@ export function buildHeroDateLine(date = new Date()) {
   return formatTodayHeroDate(date);
 }
 
-/** Nome da academia como linha secundária no hero. */
+/** Nome da agência/organização como linha secundária no hero. */
 export function buildHeroAcademyLine(academyName) {
   return String(academyName || '').trim();
 }

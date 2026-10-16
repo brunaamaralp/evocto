@@ -157,7 +157,7 @@ export function applyFeeReceiverDraftToFinanceConfig(financeConfig, editId, draf
   const next = nextList.map(normalizeFeeReceiver).filter(Boolean);
   const defaultId =
     String(prev.defaultFeeReceiverId || '').trim() ||
-    next.find((r) => r.name === 'Padrão academia')?.id ||
+    next.find((r) => r.name === 'Padrão agência' || r.name === 'Padrão academia')?.id ||
     next[0]?.id ||
     '';
 

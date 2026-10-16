@@ -276,7 +276,7 @@ export default function FinanceiroConfigTab({ academyId, isOwner }) {
       <ConfirmDialog
         open={typeof state.pendingRemovePlan === 'number'}
         title="Remover plano"
-        description="Este plano será removido. Alunos vinculados não são afetados, mas novos cadastros não poderão selecioná-lo."
+          description="Este plano será removido. Clientes já vinculados não são afetados, mas novos cadastros não poderão selecioná-lo."
         confirmLabel="Remover"
         confirmVariant="danger"
         onClose={() => state.setPendingRemovePlan(null)}

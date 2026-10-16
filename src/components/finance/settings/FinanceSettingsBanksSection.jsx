@@ -317,7 +317,7 @@ export default function FinanceSettingsBanksSection({
             </div>
           <p className="text-small text-muted finance-bank-modal-form__hint">
             Se vazio, o saldo inicial vale para todo o histórico no Caixa. Ao salvar, a conta e o saldo
-            ficam gravados na academia.
+            ficam gravados na agência.
           </p>
           </div>
 

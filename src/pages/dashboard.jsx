@@ -31,6 +31,9 @@ import {
 import AgencyOperationalPhaseIndicator from '@/components/dashboard/AgencyOperationalPhaseIndicator';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
+import { buildAgencyPortfolioRows } from '@/lib/buildAgencyPortfolioRows';
+import { listCharges } from '@/lib/agencyFinance/api';
+import { ymNow } from '@/lib/agencyFinance/constants';
 
 function firstNameFromFullName(fullName) {
   const first = String(fullName || '')
@@ -475,6 +478,92 @@ function CampaignProgressBar({ completed, total }) {
   );
 }
 
+function financeToneClass(tone) {
+  if (tone === 'danger') return 'text-[#c0392b]';
+  if (tone === 'warning') return 'text-[#b45309]';
+  if (tone === 'ok') return 'text-[#2e7d32]';
+  return 'text-[#7A7595]';
+}
+
+function PortfolioSection({ portfolio }) {
+  const rows = portfolio?.rows || [];
+  if (rows.length === 0) return null;
+
+  return (
+    <section aria-labelledby="portfolio-heading" className="border-t border-[#E8E5F5] pt-8">
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <h2
+            id="portfolio-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
+          >
+            Carteira
+          </h2>
+          <p className="mt-0.5 text-xs text-[#7A7595]">
+            Saúde operacional e financeira por cliente
+            {portfolio.totalClients
+              ? ` · ${portfolio.totalClients} cliente${portfolio.totalClients === 1 ? '' : 's'}`
+              : ''}
+          </p>
+        </div>
+        <Link
+          to={createPageUrl('clients')}
+          className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+        >
+          {portfolio.truncated ? 'Ver todos' : 'Clientes'}
+        </Link>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-[#E8E5F5] bg-white">
+        <table className="w-full min-w-[36rem] text-left text-sm">
+          <thead>
+            <tr className="border-b border-[#E8E5F5] text-xs uppercase tracking-wide text-[#7A7595]">
+              <th className="px-3 py-2.5 font-semibold">Cliente</th>
+              <th className="px-3 py-2.5 font-semibold">Campanhas</th>
+              <th className="px-3 py-2.5 font-semibold">Tarefas</th>
+              <th className="px-3 py-2.5 font-semibold">Financeiro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id} className="border-b border-[#F0EEF7] last:border-0">
+                <td className="px-3 py-2.5">
+                  <Link
+                    to={row.href}
+                    className="font-medium text-[#18162A] hover:text-[#6C47D8]"
+                  >
+                    {row.name}
+                  </Link>
+                </td>
+                <td className="px-3 py-2.5 tabular-nums text-[#7A7595]">
+                  {row.campaignsActive > 0 ? row.campaignsActive : '—'}
+                </td>
+                <td className="px-3 py-2.5 text-[#7A7595]">
+                  {row.openTasks > 0 ? (
+                    <span className="tabular-nums">
+                      {row.openTasks} aberta{row.openTasks === 1 ? '' : 's'}
+                      {row.overdueTasks > 0 ? (
+                        <span className="ml-1 font-semibold text-[#c0392b]">
+                          · {row.overdueTasks} atrasada{row.overdueTasks === 1 ? '' : 's'}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td className={`px-3 py-2.5 tabular-nums ${financeToneClass(row.financeTone)}`}>
+                  {row.financeLabel}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 /**
  * Home operacional — campanhas + agenda + fila de atenção.
  */
@@ -499,14 +588,19 @@ export default function DashboardPage() {
         return;
       }
 
-      const [clients, services, tasks, briefs, cycles] = await Promise.all([
+      const [clients, services, tasks, briefs, cycles, chargesResult] = await Promise.all([
         safeFilter(Client, { agencyId }),
         safeFilter(Service, { agencyId, is_template: false }),
         safeFilter(Task, { agencyId }),
         safeFilter(Brief, { agencyId }),
         safeFilter(CyclePlan, { agencyId }),
+        listCharges({ agencyId, month: ymNow(), limit: 500 }).catch((err) => {
+          console.warn('[dashboard] charges failed:', err?.message || err);
+          return [];
+        }),
       ]);
 
+      const charges = Array.isArray(chargesResult) ? chargesResult : [];
       const activeClients = clients.filter((c) => c.status === 'ativo');
       const clientsForCampaigns = activeClients.length > 0 ? activeClients : clients;
       const todayStart = startOfLocalDay();
@@ -518,6 +612,17 @@ export default function DashboardPage() {
         tasks,
         services
       );
+
+      const portfolio = buildAgencyPortfolioRows({
+        clients: clientsForCampaigns,
+        campaignGroups,
+        tasks,
+        charges,
+        todayStart,
+        maxRows: 12,
+        createClientHref: (clientId) =>
+          createPageUrl(`client-detail?clientId=${clientId}`),
+      });
 
       const cycleConfig = getOperationalCycleConfigFromAgency(agency);
       const operationalCycle = resolveAgencyOperationalCycle(new Date(), cycleConfig);
@@ -580,6 +685,7 @@ export default function DashboardPage() {
         setupSteps,
         clientsWithoutCampaigns,
         clientsWithoutService,
+        portfolio,
         tasks,
       });
     } catch (err) {
@@ -738,8 +844,10 @@ export default function DashboardPage() {
     setupSteps,
     clientsWithoutCampaigns,
     clientsWithoutService = [],
+    portfolio = { rows: [], totalClients: 0, truncated: false },
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
+  const portfolioRows = portfolio.rows || [];
   const nextSetupStep = setupSteps.find((s) => !s.done) || null;
   const greeting = buildGreetingLine(firstNameFromFullName(userName));
   const todayLabel = formatTodayHeroDate();
@@ -1044,6 +1152,10 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
+
+      {hasCampaigns || portfolioRows.length > 0 ? (
+        <PortfolioSection portfolio={portfolio} />
+      ) : null}
 
       <TaskCreateModal
         open={createOpen}

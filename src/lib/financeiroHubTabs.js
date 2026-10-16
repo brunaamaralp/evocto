@@ -21,18 +21,18 @@ export const FINANCEIRO_SECTIONS = {
   CONFIG: 'configuracao',
 };
 
-/** Destino das configurações financeiras (Minha academia). */
+/** Destino das configurações financeiras (Configurações → Financeiro). */
 export const EMPRESA_FINANCE_TAB = 'financeiro';
 /** No Evocto a config financeira fica em Configurações (bridge). */
 export const EMPRESA_FINANCE_CONFIG_PATH = `/settings?tab=${EMPRESA_FINANCE_TAB}`;
 
-/** Contas de recebimento (Minha academia → Financeiro → Recebimento). */
+/** Contas de recebimento (Configurações → Financeiro → Recebimento). */
 export const EMPRESA_FINANCE_ACCOUNTS_PATH = `${EMPRESA_FINANCE_CONFIG_PATH}&section=recebimento#contas`;
 
-/** Fornecedores (Minha academia → Financeiro → Fornecedores). */
+/** Fornecedores (Configurações → Financeiro → Fornecedores). */
 export const EMPRESA_FINANCE_VENDORS_PATH = `${EMPRESA_FINANCE_CONFIG_PATH}&section=fornecedores`;
 
-/** Razão contábil (Minha academia → Financeiro → Avançado). */
+/** Razão contábil (Configurações → Financeiro → Avançado). */
 export function buildEmpresaFinanceRazaoPath({ from, txId } = {}) {
   const params = new URLSearchParams();
   params.set('tab', EMPRESA_FINANCE_TAB);
@@ -62,7 +62,7 @@ export const FINANCEIRO_MEMBER_RESTRICTED_TABS = new Set([
   FINANCEIRO_EXTRATO_TAB,
 ]);
 
-/** Slugs legados redirecionados para Minha academia → Financeiro. */
+/** Slugs legados redirecionados para Configurações → Financeiro. */
 const REDIRECT_TO_EMPRESA_CONFIG = new Set([
   FINANCEIRO_SECTIONS.CONFIG,
   'plano',
@@ -110,7 +110,7 @@ const HUB_TAB_SHORT_LABELS = {
   [FINANCEIRO_EXTRATO_TAB]: 'Extrato',
 };
 
-/** Slug legado — redireciona para razão em Minha academia. */
+/** Slug legado — redireciona para razão em Configurações → Financeiro. */
 export function isFinanceiroExtratoLegacyTab(tab) {
   const t = String(tab || '').trim().toLowerCase();
   return t === FINANCEIRO_EXTRATO_TAB || t === 'razao';
@@ -131,7 +131,7 @@ export function financeiroLegacyTabToSlug(raw) {
   return t;
 }
 
-/** Slugs de ?tab= que pertencem às configurações (Minha academia). */
+/** Slugs de ?tab= que pertencem às configurações financeiras. */
 export function isFinanceiroConfigTabSlug(tab) {
   const t = String(tab || '').trim().toLowerCase();
   return REDIRECT_TO_EMPRESA_CONFIG.has(t);
@@ -142,7 +142,7 @@ export function isFinanceiroDreLegacyTab(_tab) {
   return false;
 }
 
-/** Mapeia /finance legado — redirecionado para Minha academia → Financeiro. */
+/** Mapeia /finance legado — redirecionado para Configurações → Financeiro. */
 export function financeLegacyTabToFinanceiro() {
   return EMPRESA_FINANCE_TAB;
 }

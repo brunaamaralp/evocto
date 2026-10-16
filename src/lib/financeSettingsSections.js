@@ -52,7 +52,7 @@ export function getFinanceDefaultSection(isOwner) {
   return isOwner ? FINANCE_SETTINGS_SECTIONS.PLANOS : FINANCE_SETTINGS_SECTIONS.RECEBIMENTO;
 }
 
-/** Itens da sidebar (Minha Academia → Financeiro), filtrados por titular. */
+/** Itens da sidebar (Configurações → Financeiro), filtrados por titular. */
 export function buildFinanceSettingsNavItems(isOwner) {
   return FINANCE_SETTINGS_GROUPS.flatMap((group) =>
     group.items.filter((item) => !(item.ownerOnly && !isOwner))

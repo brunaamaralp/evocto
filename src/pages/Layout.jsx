@@ -38,6 +38,8 @@ const KNOWN_APP_SEGMENTS = new Set([
   '404',
   'activity-kind-coverage',
   'agency-management',
+  'minha-empresa',
+  'comercial',
   'agents-dashboard',
   'ai-central',
   'ai-configuration',

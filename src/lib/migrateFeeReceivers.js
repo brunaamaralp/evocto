@@ -51,7 +51,7 @@ export function migrateFinanceConfigToFeeReceivers(financeConfig) {
   const globalFees = normalizeAcquirerFees(cfg.acquirerFees || defaultAcquirerFees());
   const defaultReceiver = normalizeFeeReceiver({
     id: newFeeReceiverId(),
-    name: 'Padrão academia',
+    name: 'Padrão agência',
     provider: 'manual',
     bankAccountLabel: '',
     active: true,
@@ -123,7 +123,7 @@ function normalizeMigratedConfig(cfg) {
   const receivers = readFeeReceivers(cfg);
   const defaultId =
     String(cfg.defaultFeeReceiverId || '').trim() ||
-    receivers.find((r) => r.name === 'Padrão academia')?.id ||
+    receivers.find((r) => r.name === 'Padrão agência' || r.name === 'Padrão academia')?.id ||
     receivers[0]?.id ||
     '';
   return {

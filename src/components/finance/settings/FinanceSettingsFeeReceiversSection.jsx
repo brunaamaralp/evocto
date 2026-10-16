@@ -28,7 +28,7 @@ function patchReceivers(setFinanceConfig, updater) {
     const next = updater(list).map(normalizeFeeReceiver).filter(Boolean);
     const defaultId =
       String(prev.defaultFeeReceiverId || '').trim() ||
-      next.find((r) => r.name === 'Padrão academia')?.id ||
+      next.find((r) => r.name === 'Padrão agência' || r.name === 'Padrão academia')?.id ||
       next[0]?.id ||
       '';
     return {
@@ -193,7 +193,7 @@ export default function FinanceSettingsFeeReceiversSection({
             <div>
               <p className="ctx-label finance-fee-receivers__default-label">Recebedor padrão</p>
               <p className="finance-fee-receivers__default-name">
-                {defaultReceiver.name || 'Padrão academia'}
+                {defaultReceiver.name || 'Padrão agência'}
               </p>
               <p className="text-small text-muted">{feeReceiverSummary(defaultReceiver)}</p>
             </div>

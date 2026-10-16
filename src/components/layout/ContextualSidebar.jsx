@@ -25,6 +25,9 @@ import {
   Megaphone,
   Sparkles,
   CalendarDays,
+  Clock,
+  Building2,
+  Handshake,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -263,6 +266,13 @@ export default function ContextualSidebar({
       },
       {
         type: 'link',
+        label: 'Ocupação',
+        icon: Clock,
+        href: createPageUrl('hours-hub'),
+        isActive: currentPage === 'hours-hub',
+      },
+      {
+        type: 'link',
         label: 'Biblioteca',
         icon: BookOpen,
         href: createPageUrl('library'),
@@ -281,6 +291,24 @@ export default function ContextualSidebar({
         icon: Wallet,
         href: createPageUrl('financeiro'),
         isActive: currentPage === 'financeiro',
+      },
+      {
+        type: 'link',
+        label: 'Comercial',
+        icon: Handshake,
+        href: createPageUrl('comercial'),
+        isActive: currentPage === 'comercial',
+      },
+      {
+        type: 'link',
+        label: 'Minha empresa',
+        icon: Building2,
+        href: createPageUrl('minha-empresa'),
+        isActive:
+          currentPage === 'minha-empresa' ||
+          currentPage === 'my-agency' ||
+          currentPage === 'agency-management' ||
+          currentPage === 'team-management',
       },
       {
         type: 'link',

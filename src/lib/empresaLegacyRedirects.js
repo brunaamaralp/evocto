@@ -10,7 +10,7 @@ export const EMPRESA_LEGACY_TAB_REDIRECTS = {
   contratos: '/empresa?tab=financeiro&section=contratos',
 };
 
-/** Seções removidas de Minha Academia → Financeiro. */
+/** Seções removidas de Configurações → Financeiro. */
 export const EMPRESA_LEGACY_FINANCE_SECTION_REDIRECTS = {
   pagbank: '/integracoes?tab=pagbank',
 };

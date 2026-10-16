@@ -62,7 +62,7 @@ function PlanSelectInner({
         <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.45 }}>
           Nenhum plano cadastrado. Configure em{' '}
           <Link to={EMPRESA_FINANCE_CONFIG_PATH} className="edit-link">
-            Minha academia → Financeiro
+            Configurações → Financeiro
           </Link>
           .
         </p>

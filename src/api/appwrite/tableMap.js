@@ -26,6 +26,8 @@ export const TABLE_MAP = {
   MaterialDelivery: 'material_deliveries',
   MaterialDeliveryVersion: 'material_delivery_versions',
   AgencyDriveConnection: 'agency_drive_connections',
+  /** CRM leve da agência (P2.1) */
+  AgencyLead: 'agency_leads',
 };
 
 export const PHASE1_TABLES = Object.values(TABLE_MAP);
@@ -174,6 +176,15 @@ export const TABLE_COLUMNS = {
     'name',
     'status',
     'is_current',
+  ],
+  /** Colunas tipadas mínimas; companyName, notes, estimatedValue vão no payload. */
+  agency_leads: [
+    'agencyId',
+    'name',
+    'email',
+    'phone',
+    'status',
+    'convertedClientId',
   ],
 };
 
