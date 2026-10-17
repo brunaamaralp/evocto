@@ -24,6 +24,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   AlertCircle,
   ArrowRight,
   Loader2,
@@ -78,6 +88,7 @@ export default function ComercialPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [convertTarget, setConvertTarget] = useState(null);
 
   const loadLeads = useCallback(async () => {
     if (!agencyId) {
@@ -197,16 +208,17 @@ export default function ComercialPage() {
   };
 
   const handleConvert = async (lead) => {
-    if (!canConvertLead(lead) || convertingId) return;
+    if (!lead || !canConvertLead(lead) || convertingId) return;
     setConvertingId(lead.id);
+    setConvertTarget(null);
     try {
-      // Garante estágio fechado antes de converter
-      if (normalizeLeadStage(lead.status) !== 'fechado') {
-        await AgencyLead.update(lead.id, { status: 'fechado' });
-        lead = { ...lead, status: 'fechado' };
+      let working = lead;
+      if (normalizeLeadStage(working.status) !== 'fechado') {
+        await AgencyLead.update(working.id, { status: 'fechado' });
+        working = { ...working, status: 'fechado' };
       }
       const result = await convertLeadToClient({
-        lead,
+        lead: working,
         agencyId,
         userId: user?.id || null,
       });
@@ -221,11 +233,15 @@ export default function ComercialPage() {
       }
     } catch (err) {
       console.error('[comercial] convert failed:', err);
-      toast.error(err?.message || 'Erro ao converter em cliente');
+      toast.error(err?.message || 'Não foi possível criar o cliente. Tente de novo.');
     } finally {
       setConvertingId(null);
     }
   };
+
+  const convertLabel = convertTarget
+    ? String(convertTarget.companyName || convertTarget.name || 'este lead').trim()
+    : '';
 
   if (!agencyId) {
     return (
@@ -279,17 +295,24 @@ export default function ComercialPage() {
       </header>
 
       {missingTable ? (
-        <div className="rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-4 py-4 text-sm text-[#18162A]">
-          <p className="font-semibold">Tabela `agency_leads` ainda não provisionada</p>
-          <p className="mt-1 text-[#7A7595]">
-            Crie a tabela no Appwrite (database do Evocto) com colunas tipadas:{' '}
-            <code className="text-xs">agencyId</code>, <code className="text-xs">name</code>,{' '}
-            <code className="text-xs">email</code>, <code className="text-xs">phone</code>,{' '}
-            <code className="text-xs">status</code>,{' '}
-            <code className="text-xs">convertedClientId</code> e{' '}
-            <code className="text-xs">payload</code> (string JSON). Detalhes em{' '}
-            <code className="text-xs">docs/SPEC_CONTROLE_AGENCIA.md</code>.
+        <div className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/60 px-4 py-5 text-sm">
+          <p className="font-semibold text-[#18162A]">Comercial ainda em configuração</p>
+          <p className="mt-1.5 leading-relaxed text-[#7A7595]">
+            O pipeline de leads precisa ser ativado no servidor da organização. Peça ao
+            administrador para concluir o setup (ou rode{' '}
+            <span className="font-medium text-[#18162A]">npm run appwrite:setup-agency-leads</span>
+            ) e atualize esta página.
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 border-[#E8E5F5]"
+            onClick={loadLeads}
+          >
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+            Verificar de novo
+          </Button>
         </div>
       ) : null}
 
@@ -395,7 +418,7 @@ export default function ComercialPage() {
                               variant="outline"
                               className="h-8 w-full border-[#E8E5F5] text-xs"
                               disabled={converting}
-                              onClick={() => handleConvert(lead)}
+                              onClick={() => setConvertTarget(lead)}
                             >
                               {converting ? (
                                 <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -415,6 +438,43 @@ export default function ComercialPage() {
           ))}
         </div>
       ) : null}
+
+      <AlertDialog
+        open={Boolean(convertTarget)}
+        onOpenChange={(open) => {
+          if (!open && !convertingId) setConvertTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Criar cliente a partir deste lead?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vamos cadastrar <strong className="text-[#18162A]">{convertLabel}</strong> como
+              cliente ativo e abrir o hub dele. Também criamos uma tarefa de onboarding.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(convertingId)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              disabled={Boolean(convertingId)}
+              onClick={(e) => {
+                e.preventDefault();
+                if (convertTarget) handleConvert(convertTarget);
+              }}
+            >
+              {convertingId ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Criando…
+                </>
+              ) : (
+                'Criar cliente'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">

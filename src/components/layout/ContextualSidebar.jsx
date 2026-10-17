@@ -243,6 +243,7 @@ export default function ContextualSidebar({
     }
 
     return [
+      { type: 'section', label: 'Operação' },
       {
         type: 'link',
         label: 'Dashboard',
@@ -266,10 +267,36 @@ export default function ContextualSidebar({
       },
       {
         type: 'link',
-        label: 'Ocupação',
+        label: 'Horas',
         icon: Clock,
         href: createPageUrl('hours-hub'),
         isActive: currentPage === 'hours-hub',
+      },
+      { type: 'section', label: 'Empresa' },
+      {
+        type: 'link',
+        label: 'Comercial',
+        icon: Handshake,
+        href: createPageUrl('comercial'),
+        isActive: currentPage === 'comercial',
+      },
+      {
+        type: 'link',
+        label: 'Financeiro',
+        icon: Wallet,
+        href: createPageUrl('financeiro'),
+        isActive: currentPage === 'financeiro',
+      },
+      {
+        type: 'link',
+        label: 'Minha empresa',
+        icon: Building2,
+        href: createPageUrl('minha-empresa'),
+        isActive:
+          currentPage === 'minha-empresa' ||
+          currentPage === 'my-agency' ||
+          currentPage === 'agency-management' ||
+          currentPage === 'team-management',
       },
       {
         type: 'link',
@@ -285,31 +312,7 @@ export default function ContextualSidebar({
         href: createPageUrl('custom-reports'),
         isActive: currentPage === 'custom-reports',
       },
-      {
-        type: 'link',
-        label: 'Financeiro',
-        icon: Wallet,
-        href: createPageUrl('financeiro'),
-        isActive: currentPage === 'financeiro',
-      },
-      {
-        type: 'link',
-        label: 'Comercial',
-        icon: Handshake,
-        href: createPageUrl('comercial'),
-        isActive: currentPage === 'comercial',
-      },
-      {
-        type: 'link',
-        label: 'Minha empresa',
-        icon: Building2,
-        href: createPageUrl('minha-empresa'),
-        isActive:
-          currentPage === 'minha-empresa' ||
-          currentPage === 'my-agency' ||
-          currentPage === 'agency-management' ||
-          currentPage === 'team-management',
-      },
+      { type: 'section', label: 'Sistema' },
       {
         type: 'link',
         label: 'Templates',

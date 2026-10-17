@@ -157,7 +157,7 @@ export default function MinhaEmpresaPage() {
           <Button asChild variant="outline" size="sm" className="border-[#E8E5F5]">
             <Link to={createPageUrl('hours-hub')}>
               <Clock className="mr-1.5 h-4 w-4" />
-              Ocupação
+              Horas
             </Link>
           </Button>
           {canInvite && activeTab === 'equipe' ? (

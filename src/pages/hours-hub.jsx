@@ -145,7 +145,7 @@ export default function HoursHubPage() {
     return <div className="text-sm text-[#7A7595]">Faça login para ver o hub de horas.</div>;
   }
 
-  if (loading) return <LoadingState message="Carregando hub de horas..." />;
+  if (loading) return <LoadingState message="Carregando horas…" />;
 
   if (error) {
     return (
@@ -163,7 +163,7 @@ export default function HoursHubPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Hub de horas</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Horas</h1>
             <p className="text-sm text-[#7A7595]">
               {period.label} · {formatYmdBr(period.fromYmd)} → {formatYmdBr(period.toYmd)}
               {filterServiceId ? ` · filtro serviço` : ''}

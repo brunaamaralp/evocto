@@ -500,7 +500,7 @@ function PortfolioSection({ portfolio }) {
             Carteira
           </h2>
           <p className="mt-0.5 text-xs text-[#7A7595]">
-            Saúde operacional e financeira por cliente
+            Visão da carteira — tarefas e financeiro por cliente
             {portfolio.totalClients
               ? ` · ${portfolio.totalClients} cliente${portfolio.totalClients === 1 ? '' : 's'}`
               : ''}
@@ -848,6 +848,25 @@ export default function DashboardPage() {
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
   const portfolioRows = portfolio.rows || [];
+  const FOCUS_CAMPAIGN_LIMIT = 3;
+  const focusCampaigns = (() => {
+    const flat = [];
+    for (const group of campaignGroups) {
+      for (const campaign of group.campaigns || []) {
+        flat.push({
+          ...campaign,
+          clientName: group.clientName,
+          clientHref: group.href,
+          clientId: group.clientId,
+        });
+      }
+    }
+    return {
+      items: flat.slice(0, FOCUS_CAMPAIGN_LIMIT),
+      total: flat.length,
+      truncated: flat.length > FOCUS_CAMPAIGN_LIMIT,
+    };
+  })();
   const nextSetupStep = setupSteps.find((s) => !s.done) || null;
   const greeting = buildGreetingLine(firstNameFromFullName(userName));
   const todayLabel = formatTodayHeroDate();
@@ -986,17 +1005,29 @@ export default function DashboardPage() {
         </section>
       )}
 
+      {portfolioRows.length > 0 ? <PortfolioSection portfolio={portfolio} /> : null}
+
       <section aria-labelledby="campaigns-heading" className="border-t border-[#E8E5F5] pt-8">
         <div className="mb-5 flex items-baseline justify-between gap-3">
-          <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
-            {hasCampaigns ? 'Em andamento' : 'Clientes'}
-          </h2>
+          <div className="min-w-0">
+            <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
+              {hasCampaigns ? 'Em andamento' : 'Clientes'}
+            </h2>
+            {hasCampaigns ? (
+              <p className="mt-0.5 text-xs text-[#7A7595]">
+                Campanhas em foco
+                {focusCampaigns.total > 0
+                  ? ` · ${Math.min(focusCampaigns.total, FOCUS_CAMPAIGN_LIMIT)} de ${focusCampaigns.total}`
+                  : ''}
+              </p>
+            ) : null}
+          </div>
           {hasCampaigns ? (
             <Link
               to={createPageUrl('clients')}
               className="text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Todos os clientes
+              {focusCampaigns.truncated ? 'Ver todas' : 'Clientes'}
             </Link>
           ) : null}
         </div>
@@ -1102,60 +1133,42 @@ export default function DashboardPage() {
             ) : null}
           </div>
         ) : (
-          <div className="space-y-10">
-            {campaignGroups.map((group) => (
-              <section key={group.clientId} className="space-y-4">
-                <div className="border-b border-[#E8E5F5] pb-2">
+          <ul className="space-y-3">
+            {focusCampaigns.items.map((campaign) => {
+              const period = campaign.cyclePeriod || campaign.cycleTitle || null;
+              const progress = campaign.progress || { completed: 0, total: 0 };
+              const subtitle = [campaign.clientName, period].filter(Boolean).join(' · ');
+              return (
+                <li key={`${campaign.clientId}-${campaign.id}`}>
                   <Link
-                    to={group.href}
-                    className="text-[15px] font-semibold text-[#18162A] hover:text-[#6C47D8]"
+                    to={campaign.href}
+                    className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
                   >
-                    {group.clientName}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-[#18162A]">
+                          {campaign.name}
+                        </p>
+                        {subtitle ? (
+                          <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
+                        ) : null}
+                      </div>
+                      <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
+                        Abrir
+                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                    <CampaignProgressBar
+                      completed={progress.completed || 0}
+                      total={progress.total || 0}
+                    />
                   </Link>
-                </div>
-
-                <ul className="space-y-3">
-                  {group.campaigns.map((campaign) => {
-                    const period = campaign.cyclePeriod || campaign.cycleTitle || null;
-                    const progress = campaign.progress || { completed: 0, total: 0 };
-                    return (
-                      <li key={campaign.id}>
-                        <Link
-                          to={campaign.href}
-                          className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-base font-semibold text-[#18162A]">
-                                {campaign.name}
-                              </p>
-                              {period ? (
-                                <p className="mt-1 text-sm text-[#7A7595]">{period}</p>
-                              ) : null}
-                            </div>
-                            <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
-                              Abrir
-                              <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                            </span>
-                          </div>
-                          <CampaignProgressBar
-                            completed={progress.completed || 0}
-                            total={progress.total || 0}
-                          />
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ))}
-          </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
-
-      {hasCampaigns || portfolioRows.length > 0 ? (
-        <PortfolioSection portfolio={portfolio} />
-      ) : null}
 
       <TaskCreateModal
         open={createOpen}

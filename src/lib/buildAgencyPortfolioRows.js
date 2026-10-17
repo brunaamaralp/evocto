@@ -123,6 +123,9 @@ export function buildAgencyPortfolioRows({
     } else if (hasAnyChargeForClient) {
       financeLabel = 'Em dia';
       financeTone = 'ok';
+    } else {
+      financeLabel = 'Sem cobrança';
+      financeTone = 'neutral';
     }
 
     return {

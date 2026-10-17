@@ -66,6 +66,6 @@ describe('buildAgencyPortfolioRows', () => {
     });
     expect(totalClients).toBe(1);
     expect(rows[0].name).toBe('Only');
-    expect(rows[0].financeLabel).toBe('—');
+    expect(rows[0].financeLabel).toBe('Sem cobrança');
   });
 });
