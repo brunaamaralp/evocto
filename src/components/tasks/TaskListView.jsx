@@ -19,6 +19,8 @@ import {
   Target,
   Lightbulb,
   CheckCircle,
+  CheckCircle2,
+  Circle,
   AlertCircle,
   ChevronUp,
   ChevronDown,
@@ -26,6 +28,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { cn } from '@/lib/utils';
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-500',
@@ -44,13 +47,18 @@ const STATUS_COLORS = {
   blocked: 'bg-orange-100 text-orange-700',
 };
 
+function isTaskCompleted(task) {
+  const status = String(task?.status || '').toLowerCase();
+  return status === 'completed' || status === 'done';
+}
+
 /**
  * Visualização Lista com tabela e exportação.
  * layout="client" — inbox do cliente: sem status/prioridade/progresso; com Campanha.
  */
 export default function TaskListView({
   tasks,
-  _onTaskUpdate,
+  onTaskUpdate,
   onEditTask,
   onExport,
   loading,
@@ -59,6 +67,54 @@ export default function TaskListView({
   const isClientLayout = layout === 'client';
   const [sortField, setSortField] = useState('dueDate');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [completingIds, setCompletingIds] = useState(() => new Set());
+
+  const handleToggleComplete = async (e, task) => {
+    e.stopPropagation();
+    if (!onTaskUpdate || !task?.id || completingIds.has(task.id)) return;
+
+    const nextStatus = isTaskCompleted(task) ? 'todo' : 'completed';
+    setCompletingIds((prev) => new Set(prev).add(task.id));
+    try {
+      await onTaskUpdate(task.id, { status: nextStatus });
+    } finally {
+      setCompletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
+    }
+  };
+
+  const renderCompleteButton = (task, { className } = {}) => {
+    if (typeof onTaskUpdate !== 'function') return null;
+    const done = isTaskCompleted(task);
+    const busy = completingIds.has(task.id);
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={busy}
+        title={done ? 'Reabrir tarefa' : 'Concluir tarefa'}
+        aria-label={done ? 'Reabrir tarefa' : 'Concluir tarefa'}
+        onClick={(e) => handleToggleComplete(e, task)}
+        className={cn(
+          'h-8 w-8 p-0 shrink-0 rounded-full',
+          done
+            ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
+            : 'text-gray-400 hover:text-green-600 hover:bg-green-50',
+          className
+        )}
+      >
+        {done ? (
+          <CheckCircle2 className="w-5 h-5" />
+        ) : (
+          <Circle className="w-5 h-5" />
+        )}
+      </Button>
+    );
+  };
 
   const sortedTasks = useMemo(() => {
     return [...tasks].sort((a, b) => {
@@ -103,10 +159,11 @@ export default function TaskListView({
   const colSpan = isClientLayout ? 6 : 8;
 
   const renderTaskRow = (task) => {
+    const done = isTaskCompleted(task);
     const isOverdue =
       task.dueDate &&
       new Date(task.dueDate) < new Date() &&
-      task.status !== 'completed';
+      !done;
     const hasSpecialFlags =
       task.impactsKPI || task.generatesLearning || task.requiresApproval;
     const campaignLabel =
@@ -115,12 +172,15 @@ export default function TaskListView({
     return (
       <TableRow
         key={task.id}
-        className={`hover:bg-gray-50 cursor-pointer ${isOverdue ? 'bg-red-50' : ''}`}
+        className={`hover:bg-gray-50 cursor-pointer ${isOverdue ? 'bg-red-50' : ''} ${done ? 'opacity-70' : ''}`}
         onClick={() => onEditTask(task)}
       >
         <TableCell className="font-medium">
           <div className="flex items-center gap-2">
-            <span className="line-clamp-1">{task.title}</span>
+            {renderCompleteButton(task)}
+            <span className={cn('line-clamp-1', done && 'line-through text-gray-500')}>
+              {task.title}
+            </span>
             {hasSpecialFlags && (
               <div className="flex items-center gap-1">
                 {task.impactsKPI && (
@@ -276,7 +336,10 @@ export default function TaskListView({
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900">Lista de Tarefas</h3>
           <p className="text-sm text-gray-600">
-            {tasks.length} tarefas • Clique em uma tarefa para editar
+            {tasks.length} tarefas
+            {typeof onTaskUpdate === 'function'
+              ? ' • Clique no círculo para concluir'
+              : ' • Clique em uma tarefa para editar'}
           </p>
         </div>
 
@@ -312,22 +375,35 @@ export default function TaskListView({
           </Card>
         ) : (
           sortedTasks.map((task) => {
+            const done = isTaskCompleted(task);
             const isOverdue =
               task.dueDate &&
               new Date(task.dueDate) < new Date() &&
-              task.status !== 'completed';
+              !done;
             const campaignLabel =
               task.campaignName || task.campanhaNome || task.briefingTitle || null;
             return (
               <Card
                 key={task.id}
-                className={`cursor-pointer ${isOverdue ? 'border-red-200 bg-red-50/60' : ''}`}
+                className={cn(
+                  'cursor-pointer',
+                  isOverdue && 'border-red-200 bg-red-50/60',
+                  done && 'opacity-70'
+                )}
                 onClick={() => onEditTask(task)}
               >
                 <CardContent className="p-3 space-y-2">
-                  <h4 className="font-medium text-sm text-gray-900 line-clamp-2 min-w-0">
-                    {task.title}
-                  </h4>
+                  <div className="flex items-start gap-2">
+                    {renderCompleteButton(task, { className: 'mt-0.5' })}
+                    <h4
+                      className={cn(
+                        'font-medium text-sm text-gray-900 line-clamp-2 min-w-0 flex-1',
+                        done && 'line-through text-gray-500'
+                      )}
+                    >
+                      {task.title}
+                    </h4>
+                  </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
                     {isClientLayout ? (
                       <span className="truncate font-medium text-gray-800">

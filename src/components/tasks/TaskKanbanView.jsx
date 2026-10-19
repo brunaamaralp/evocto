@@ -72,14 +72,14 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
     }
   };
 
-  // Renderizar tarefa
-  const renderTask = (task) => {
+  // Renderizar tarefa (um único Draggable por card — index da coluna mapeada)
+  const renderTask = (task, index) => {
     const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
     const hasSpecialFlags = task.impactsKPI || task.generatesLearning || task.requiresApproval;
     const assigneeStyle = assigneeColorStyle(getTaskAssigneeId(task));
 
     return (
-      <Draggable key={task.id} draggableId={task.id} index={tasksByStatus[task.status]?.indexOf(task) || 0}>
+      <Draggable key={task.id} draggableId={String(task.id)} index={index}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
@@ -247,20 +247,7 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
                       <div className="text-xs mt-1 hidden sm:block">Arraste tarefas aqui</div>
                     </div>
                   ) : (
-                    columnTasks.map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`mb-3 ${snapshot.isDragging ? 'opacity-50' : ''}`}
-                          >
-                            {renderTask(task)}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))
+                    columnTasks.map((task, index) => renderTask(task, index))
                   )}
                   {provided.placeholder}
                 </div>

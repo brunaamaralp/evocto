@@ -101,13 +101,16 @@ describe('buildOverviewActionCards', () => {
         pendingApprovals: 3,
         agencyBlocked: 0,
         waitingClient: 0,
-        agencyUpcoming48h: 0,
-        activeCampaigns: 1,
+        agencyUpcoming48h: 5,
+        activeCampaigns: 2,
       },
       { lens: 'agency' }
     );
     expect(cards[0].id).toBe('approvals');
     expect(cards[0].href).toContain('approval-dashboard');
+    expect(cards.some((c) => c.id === 'upcoming' || c.id === 'campaigns')).toBe(
+      false
+    );
   });
 });
 

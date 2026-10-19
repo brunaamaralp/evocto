@@ -207,26 +207,6 @@ export function buildOverviewActionCards(counts, { userId = null, lens = 'agency
         href: buildTasksManagerHref({ preset: 'waiting_client' }),
       });
     }
-    if (counts.agencyUpcoming48h > 0) {
-      cards.push({
-        id: 'upcoming',
-        label: 'Próximas 48h',
-        definition: 'Prazos de hoje e amanhã (agência).',
-        count: counts.agencyUpcoming48h,
-        tone: 'neutral',
-        href: buildTasksManagerHref({}),
-      });
-    }
-    if (counts.activeCampaigns > 0) {
-      cards.push({
-        id: 'campaigns',
-        label: 'Campanhas ativas',
-        definition: 'Campanhas com ciclo approved ou in_execution.',
-        count: counts.activeCampaigns,
-        tone: 'neutral',
-        href: createPageUrl('clients'),
-      });
-    }
   }
 
   return cards.slice(0, 5);
