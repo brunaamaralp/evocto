@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { useSession, SESSION_STATUS } from '@/components/auth/SessionManager';
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center gap-3">
             <EvoctoMascot mark size={56} />
-            <NaviBrandLockup height={36} variant="auth" />
+            <EvoctoBrandLockup height={36} variant="auth" />
           </div>
           <div>
             <CardTitle className="text-2xl text-[#18162A]">Entrar</CardTitle>

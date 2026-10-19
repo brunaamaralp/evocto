@@ -148,6 +148,8 @@
   background: #ffffff;
 }
 
+.login-logo .evocto-brand-lockup,
+.login-logo .evocto-brand-lockup--auth,
 .login-logo .navi-brand-lockup,
 .login-logo .navi-brand-lockup--auth {
   display: block;
@@ -294,6 +296,8 @@
 
 @media (max-width: 480px) {
   .login-card { padding: 36px 22px 28px; border-radius: 16px; }
+  .login-logo .evocto-brand-lockup,
+  .login-logo .evocto-brand-lockup--auth,
   .login-logo .navi-brand-lockup,
   .login-logo .navi-brand-lockup--auth { height: 60px !important; }
 }

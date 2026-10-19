@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Spinner({ size = 22, className = "" }) {
-  return <Loader2 className={`animate-spin text-blue-600 ${className}`} style={{ width: size, height: size }} />;
+  return <Loader2 className={`animate-spin text-primary ${className}`} style={{ width: size, height: size }} />;
 }
 
 export function LoadingOverlay({ show = false, text = "Carregando..." }) {

@@ -8,7 +8,7 @@ import { Users, Briefcase, Settings, LogOut, ChevronDown, ChevronRight, BookOpen
 import { useT } from '@/components/i18n/I18nProvider';
 
 import { BRAND } from '@/lib/brandAssets';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 
 // Component for individual navigation items
 const NavItem = ({ item, _isActive, collapsed }) => {
@@ -84,9 +84,9 @@ export default function Sidebar() {
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center" aria-label={BRAND.name}>
             {collapsed ? (
-              <NaviBrandLockup variant="mark" height={32} />
+              <EvoctoBrandLockup variant="mark" height={32} />
             ) : (
-              <NaviBrandLockup height={28} />
+              <EvoctoBrandLockup height={28} />
             )}
           </Link>
           <button

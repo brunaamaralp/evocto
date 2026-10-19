@@ -1,10 +1,13 @@
 /**
  * Rótulos PT-BR para status de tarefas, entregáveis e ações de histórico.
  * Evita exibir snake_case em inglês na UI (ex.: "in progress", "not started").
+ * Status de tarefa canônicos: ver `@/lib/taskStatusCanonical`.
  */
 
+import { taskStatusLabelPt } from '@/lib/taskStatusCanonical';
+
 export const STATUS_LABELS_PT = Object.freeze({
-  // Tarefas / kanban
+  // Tarefas / kanban (espelho do mapa canônico + aliases de domínio)
   backlog: 'Fila',
   todo: 'A fazer',
   not_started: 'Não iniciado',
@@ -63,8 +66,8 @@ export const STATUS_LABELS_PT = Object.freeze({
   archived: 'Arquivado',
 
   // Status de campanha (planejamento)
+  // `planned` já mapeia para "Planejado" na seção de tarefas acima
   planejada: 'Planejada',
-  planned: 'Planejada',
   em_planejamento: 'Em planejamento',
   concluida: 'Concluída',
   concluído: 'Concluído',
@@ -99,7 +102,11 @@ export function statusLabelPt(status, fallback = '—') {
     .trim()
     .toLowerCase();
   if (!key) return fallback;
-  return STATUS_LABELS_PT[key] || key.replace(/_/g, ' ');
+  if (STATUS_LABELS_PT[key]) return STATUS_LABELS_PT[key];
+  // Aliases de tarefa sem entrada explícita → mapa canônico
+  const fromCanonical = taskStatusLabelPt(key, null);
+  if (fromCanonical) return fromCanonical;
+  return key.replace(/_/g, ' ');
 }
 
 /**

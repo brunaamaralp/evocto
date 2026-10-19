@@ -26,7 +26,7 @@ import {
   Battery,
   Signal
 } from 'lucide-react';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 import { 
   LineChart as RechartsLineChart, 
   Line, 
@@ -244,7 +244,7 @@ export function MobileDashboard() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <NaviBrandLockup height={24} />
+        <EvoctoBrandLockup height={24} />
       </div>
       <div className="flex items-center gap-2">
         <Button

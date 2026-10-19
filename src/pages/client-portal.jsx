@@ -46,6 +46,7 @@ import {
   listClientSharedMonths,
   getClientSharedMonth,
 } from '@/lib/clientPortalApi';
+import TaskStatusBadge from '@/components/tasks/TaskStatusBadge';
 
 function isImageAtt(a) {
   const mime = String(a?.mimeType || '');
@@ -247,7 +248,7 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -392,7 +393,7 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
                 </>
               ) : isMaterial ? (
                 a.reviewUrl ? (
-                  <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                  <Button asChild className="bg-primary hover:bg-[var(--color-primary-dark)]">
                     <a href={a.reviewUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Revisar material
@@ -409,7 +410,7 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="px-0 h-auto text-blue-700"
+                    className="px-0 h-auto text-primary"
                     onClick={() => togglePreview(a)}
                   >
                     {isOpen ? 'Ocultar detalhes' : 'Ver o que está sendo aprovado'}
@@ -484,17 +485,6 @@ function ApprovalsPanel({ approvals, loading, onDecided }) {
   );
 }
 
-function statusLabelPt(status) {
-  const map = {
-    todo: 'A fazer',
-    in_progress: 'Em andamento',
-    in_review: 'Em revisão',
-    completed: 'Concluído',
-    blocked: 'Bloqueado',
-  };
-  return map[String(status || '')] || status || '—';
-}
-
 function SharedMonthPanel({
   months,
   monthDetail,
@@ -507,7 +497,7 @@ function SharedMonthPanel({
   if (loading && !months?.length && !monthDetail) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -549,7 +539,7 @@ function SharedMonthPanel({
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-medium text-gray-900">{item.title}</p>
-                    <Badge variant="outline">{statusLabelPt(item.status)}</Badge>
+                    <TaskStatusBadge status={item.status} size="sm" />
                   </div>
                   {item.attachments?.length ? (
                     <ContentAttachmentsPreview attachments={item.attachments} />
@@ -970,7 +960,7 @@ export default function ClientPortalPage() {
                   <button
                     key={m.id}
                     type="button"
-                    className="w-full text-left flex justify-between gap-3 text-sm border-b last:border-0 py-2 hover:text-[#007bff]"
+                    className="w-full text-left flex justify-between gap-3 text-sm border-b last:border-0 py-2 hover:text-primary"
                     onClick={() => setTab('months', { monthId: m.id })}
                   >
                     <span className="font-medium text-gray-900 truncate">{m.title}</span>
@@ -1031,7 +1021,7 @@ export default function ClientPortalPage() {
         <TabsContent value="plan" className="space-y-4">
           {tabLoading && !plan ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : !plan ? (
             <EmptyState
@@ -1126,7 +1116,7 @@ export default function ClientPortalPage() {
             </div>
           ) : tabLoading && !campaigns ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : !campaigns?.length ? (
             <EmptyState

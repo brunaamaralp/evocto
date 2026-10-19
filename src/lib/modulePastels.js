@@ -74,6 +74,26 @@ export const STAGE_PASTELS = {
     badge: 'bg-[#F1F1F3] text-[#4A4A55] border-[#D0D0D6]',
     dot: 'bg-[#8A8A96]',
   },
+  waiting_client: {
+    bg: 'bg-[#FFF8E6]',
+    column: 'bg-[#F5E9C4]',
+    card: 'bg-white',
+    border: 'border-[#F0DC9A]',
+    bar: 'bg-[#C47A00]',
+    text: 'text-[#7A5A10]',
+    badge: 'bg-[#FFF8E6] text-[#7A5A10] border-[#F0DC9A]',
+    dot: 'bg-[#C47A00]',
+  },
+  not_started: {
+    bg: 'bg-[#F3F0F8]',
+    column: 'bg-[#EDE8F5]',
+    card: 'bg-white',
+    border: 'border-[#DDD6EB]',
+    bar: 'bg-[#9B8EC4]',
+    text: 'text-[#4A4068]',
+    badge: 'bg-[#EDE8F5] text-[#4A4068] border-[#DDD6EB]',
+    dot: 'bg-[#9B8EC4]',
+  },
 };
 
 /** Aliases for alternate status keys used in the app */
@@ -84,15 +104,24 @@ export const STAGE_ALIASES = {
   em_andamento: 'in_progress',
   review: 'in_review',
   em_revisao: 'in_review',
+  ready_for_review: 'in_review',
+  revisao: 'in_review',
   done: 'completed',
   concluido: 'completed',
+  concluída: 'completed',
   completed_with_issues: 'completed',
   planning: 'backlog',
   pending_approval: 'in_review',
-  approved: 'todo',
+  ready_for_approval: 'in_review',
+  awaiting_approval: 'in_review',
+  approved: 'completed',
   active: 'in_progress',
   closing: 'in_review',
   closed: 'completed',
+  canceled: 'cancelled',
+  waiting_client: 'waiting_client',
+  awaiting_client: 'waiting_client',
+  not_started: 'not_started',
 };
 
 export const MODULE_PASTELS = {

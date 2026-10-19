@@ -9,27 +9,18 @@ import { canStartDeliverable } from '@/lib/startDeliverableStage';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
 import { statusLabelPt } from '@/lib/statusLabelsPt';
+import { getTaskStatusConfig } from '@/lib/taskStatusCanonical';
 
-const STATUS_BADGE = {
-  not_started: 'bg-[#EDE8F5] text-[#4A4068]',
-  backlog: 'bg-[#EDE8F5] text-[#4A4068]',
-  todo: 'bg-[#DCEAF8] text-[#2E5A7A]',
-  in_progress: 'bg-[#FFE4D1] text-[#8A4A22]',
-  in_review: 'bg-[#E8D9F7] text-[#5A3A7A]',
-  ready_for_review: 'bg-[#FFF8E6] text-[#7A5A10]',
-  pending_approval: 'bg-[#F3EAFB] text-[#5A3A7A]',
-  approved: 'bg-[#E6F7F0] text-[#085041]',
-  completed: 'bg-[#D0F0E4] text-[#085041]',
-  blocked: 'bg-[#FAD9DB] text-[#8A2A2A]',
-  rejected: 'bg-[#FAD9DB] text-[#8A2A2A]',
-};
+function statusBadgeClass(status) {
+  return getTaskStatusConfig(status).badge;
+}
 
 function TaskRow({ task }) {
   return (
     <li className="flex items-start justify-between gap-2 py-2 border-b border-slate-100 last:border-0">
       <button
         type="button"
-        className="min-w-0 flex-1 text-left rounded-md hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 px-1 -mx-1"
+        className="min-w-0 flex-1 text-left rounded-md hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary px-1 -mx-1"
         onClick={() => {
           if (!task?.id || typeof window === 'undefined') return;
           window.dispatchEvent(
@@ -179,7 +170,7 @@ export default function DeliveryWorkspaceTasks({
                     </span>
                   </button>
                 </div>
-                <Badge className={STATUS_BADGE[status] || STATUS_BADGE.not_started}>
+                <Badge className={statusBadgeClass(status)}>
                   {statusLabelPt(status)}
                 </Badge>
                 {canStart ? (

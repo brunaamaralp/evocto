@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Building, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createAgency } from '@/api/functions';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { trialMarketing } from '@/lib/trialCopy';
 import { useSession } from '@/components/auth/SessionManager';
@@ -95,7 +95,7 @@ export default function CreateAccountPage() {
             <CardHeader className="text-center">
               <div className="flex flex-col items-center gap-3 mb-2">
                 <EvoctoMascot mark size={64} />
-                <NaviBrandLockup height={32} variant="auth" />
+                <EvoctoBrandLockup height={32} variant="auth" />
               </div>
               <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
               <p className="text-gray-600 mt-2">

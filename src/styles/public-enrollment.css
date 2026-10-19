@@ -17,6 +17,7 @@
   overflow: visible;
 }
 
+.public-enrollment-page__header .evocto-brand-lockup,
 .public-enrollment-page__header .navi-brand-lockup {
   display: block;
   width: auto !important;

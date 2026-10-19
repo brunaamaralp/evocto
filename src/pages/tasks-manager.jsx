@@ -1,5 +1,6 @@
 ﻿
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Task } from '@/api/entities';
 import { Client } from '@/api/entities';
 import { User } from '@/api/entities';
@@ -27,51 +28,90 @@ import {
 import { toast } from 'sonner';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import TaskCalendarView from '@/components/tasks/TaskCalendarView';
-import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
+import {
+  EMPTY_TASK_FILTERS,
+  TASK_FILTER_PRESETS,
+  TASKS_MANAGER_QUICK_PRESETS,
+  applyTaskFilters,
+  getTaskAssigneeId,
+  getTaskFilterPreset,
+  resolvePresetFromQuery,
+} from '@/lib/taskFilterPresets';
 import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
 import { completeTask } from '@/lib/completeTask';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
+import { getKanbanBoardColumns } from '@/lib/taskStatusCanonical';
+import { getStagePastel } from '@/lib/modulePastels';
+import { createManualTask } from '@/lib/createManualTask';
+import { openTaskDrawer } from '@/lib/openTaskDrawer';
+import { TASK_SCOPE_LABELS } from '@/lib/taskScopeLabels';
 
-// Soft pastel kanban columns
-const KANBAN_COLUMNS = [
-  { 
-    id: 'backlog', 
-    title: 'Fila', 
-    color: 'bg-[#EDE8F5]',
-    description: 'Tarefas em espera'
-  },
-  { 
-    id: 'todo', 
-    title: 'A fazer', 
-    color: 'bg-[#DCEAF8]',
-    description: 'Prontas para iniciar'
-  },
-  { 
-    id: 'in_progress', 
-    title: 'Em Andamento', 
-    color: 'bg-[#FFE4D1]',
-    description: 'Sendo executadas'
-  },
-  { 
-    id: 'in_review', 
-    title: 'Em Revisão', 
-    color: 'bg-[#E8D9F7]',
-    description: 'Aguardando revisão'
-  },
-  { 
-    id: 'completed', 
-    title: 'Concluído', 
-    color: 'bg-[#D0F0E4]',
-    description: 'Finalizadas'
-  },
-  { 
-    id: 'blocked', 
-    title: 'Bloqueado', 
-    color: 'bg-[#FAD9DB]',
-    description: 'Com impedimentos'
-  }
-];
+// Soft pastel kanban columns (mapa canônico)
+const KANBAN_COLUMNS = getKanbanBoardColumns();
+
+const QUICK_PRESETS = TASKS_MANAGER_QUICK_PRESETS.map((id) =>
+  getTaskFilterPreset(id)
+).filter(Boolean);
+
+function QuickAddTask({ columnId, agencyId, userId, disabled }) {
+  const [title, setTitle] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+
+  const submit = async () => {
+    const trimmed = title.trim();
+    if (!trimmed || saving || !agencyId || disabled) return;
+    setSaving(true);
+    try {
+      const status =
+        columnId && !['completed', 'blocked', 'cancelled'].includes(columnId)
+          ? columnId
+          : 'todo';
+      const created = await createManualTask({
+        title: trimmed,
+        agencyId,
+        userId: userId || null,
+        status,
+        quickAdd: true,
+      });
+      setTitle('');
+      toast.success('Tarefa criada — complete os detalhes');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('task:refresh'));
+      }
+      if (created?.id) openTaskDrawer(created.id);
+    } catch (err) {
+      console.error('Quick-add falhou:', err);
+      toast.error(err?.message || 'Não foi possível criar a tarefa');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-2">
+      <Input
+        value={title}
+        disabled={saving || disabled || !agencyId}
+        placeholder="Adicionar tarefa…"
+        className="h-8 bg-white/90 text-sm"
+        aria-label="Criar tarefa rapidamente"
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submit();
+          }
+        }}
+      />
+      {saving ? (
+        <p className="mt-1 text-[10px] text-[#7A7595]">Salvando…</p>
+      ) : (
+        <p className="mt-1 text-[10px] text-[#7A7595]">Enter para criar</p>
+      )}
+    </div>
+  );
+}
 
 // Componente simples para card de tarefa
 function TaskCard({ task, users, clients }) {
@@ -86,13 +126,13 @@ function TaskCard({ task, users, clients }) {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-[#FAD9DB] text-[#8A2A2A]';
+        return getStagePastel('blocked').badge;
       case 'high':
-        return 'bg-[#FFE4D1] text-[#8A4A22]';
+        return getStagePastel('in_progress').badge;
       case 'medium':
-        return 'bg-[#FFF8E6] text-[#7A5A10]';
+        return getStagePastel('waiting_client').badge;
       default:
-        return 'bg-[#DCEAF8] text-[#2E5A7A]';
+        return getStagePastel('backlog').badge;
     }
   };
 
@@ -151,7 +191,15 @@ function TaskCard({ task, users, clients }) {
 }
 
 // Componente para coluna do Kanban
-function TaskColumn({ column, tasks, users, clients, droppableId }) {
+function TaskColumn({
+  column,
+  tasks,
+  users,
+  clients,
+  droppableId,
+  agencyId,
+  userId,
+}) {
   return (
     <div className="flex-shrink-0 w-80 min-w-80">
       <div className={`h-full rounded-2xl p-4 ${column.color}`}>
@@ -188,10 +236,7 @@ function TaskColumn({ column, tasks, users, clients, droppableId }) {
                         {...provided.dragHandleProps}
                         className={snapshot.isDragging ? 'rotate-2 shadow-lg' : ''}
                         onClick={() => {
-                          // Abrir drawer de tarefa
-                          window.dispatchEvent(new CustomEvent('task:open', {
-                            detail: { taskId: task.id }
-                          }));
+                          openTaskDrawer(task.id);
                         }}
                       >
                         <TaskCard
@@ -206,11 +251,16 @@ function TaskColumn({ column, tasks, users, clients, droppableId }) {
                 {provided.placeholder}
                 
                 {tasks.length === 0 && (
-                  <div className="text-center py-8 text-[#7A7595]">
+                  <div className="text-center py-6 text-[#7A7595]">
                     <p className="text-sm">Nenhuma tarefa aqui</p>
-                    <p className="text-xs mt-1">Arraste um card ou crie uma nova</p>
+                    <p className="text-xs mt-1">Arraste um card ou use o quick-add</p>
                   </div>
                 )}
+                <QuickAddTask
+                  columnId={column.id}
+                  agencyId={agencyId}
+                  userId={userId}
+                />
               </div>
             )}
           </Droppable>
@@ -222,6 +272,7 @@ function TaskColumn({ column, tasks, users, clients, droppableId }) {
 
 export default function TasksManagerPage() {
   const { user, agencyId } = useSession();
+  const currentUserId = user?.id || user?.data?.id || null;
   const [tasks, setTasks] = useState([]);
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
@@ -233,8 +284,82 @@ export default function TasksManagerPage() {
   const [selectedUser, setSelectedUser] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [presetFilters, setPresetFilters] = useState({ ...EMPTY_TASK_FILTERS });
   const [createOpen, setCreateOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'week'
+  const [createKind, setCreateKind] = useState('task');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewFromUrl = searchParams.get('view') === 'week' ? 'week' : 'kanban';
+  const [viewMode, setViewMode] = useState(viewFromUrl); // 'kanban' | 'week'
+  const activePresetId = presetFilters.preset || null;
+
+  useEffect(() => {
+    setViewMode(viewFromUrl);
+  }, [viewFromUrl]);
+
+  // Sync preset da URL (?preset=) — ids inválidos são removidos
+  useEffect(() => {
+    const raw = searchParams.get('preset');
+    if (!raw) return;
+    const fromUrl = resolvePresetFromQuery(raw);
+    if (!fromUrl) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('preset');
+      setSearchParams(next, { replace: true });
+      return;
+    }
+    if (presetFilters.preset === fromUrl.id) return;
+    const nextFilters = fromUrl.apply({ userId: currentUserId });
+    setPresetFilters(nextFilters);
+    if (nextFilters.assignee && nextFilters.assignee !== 'all') {
+      setSelectedUser(String(nextFilters.assignee));
+    } else if (nextFilters.myAction || nextFilters.waitingOn === 'client') {
+      setSelectedUser('all');
+    }
+    if (nextFilters.status && nextFilters.status !== 'all') {
+      setSelectedStatus(String(nextFilters.status));
+    }
+  }, [searchParams, currentUserId, setSearchParams, presetFilters.preset]);
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    const next = new URLSearchParams(searchParams);
+    if (mode === 'week') {
+      next.set('view', 'week');
+    } else {
+      next.delete('view');
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  const applyPreset = useCallback(
+    (presetId) => {
+      const preset = getTaskFilterPreset(presetId);
+      if (!preset) return;
+      const nextFilters = preset.apply({ userId: currentUserId });
+      setPresetFilters(nextFilters);
+      if (nextFilters.assignee && nextFilters.assignee !== 'all') {
+        setSelectedUser(String(nextFilters.assignee));
+      } else {
+        setSelectedUser('all');
+      }
+      if (nextFilters.status && nextFilters.status !== 'all') {
+        setSelectedStatus(String(nextFilters.status));
+      } else {
+        setSelectedStatus('all');
+      }
+      const next = new URLSearchParams(searchParams);
+      next.set('preset', preset.id);
+      setSearchParams(next, { replace: true });
+    },
+    [currentUserId, searchParams, setSearchParams]
+  );
+
+  const clearPresetOnly = useCallback(() => {
+    setPresetFilters({ ...EMPTY_TASK_FILTERS });
+    const next = new URLSearchParams(searchParams);
+    next.delete('preset');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Carregar dados
   const loadData = useCallback(async ({ silent = false } = {}) => {
@@ -321,43 +446,39 @@ export default function TasksManagerPage() {
     };
   }, [loadData]);
 
-  // Aplicar filtros
+  // Aplicar filtros (selects + preset da URL / chips)
   const filteredTasks = React.useMemo(() => {
-    return tasks.filter(task => {
-      // Filtro por cliente (inclui tarefas internas sem cliente)
+    const merged = {
+      ...EMPTY_TASK_FILTERS,
+      ...presetFilters,
+      // Selects locais têm precedência sobre o preset (compatibilidade)
+      assignee:
+        selectedUser !== 'all' ? selectedUser : presetFilters.assignee || 'all',
+      status:
+        selectedStatus !== 'all'
+          ? selectedStatus
+          : presetFilters.status || 'all',
+      search: searchTerm || presetFilters.search || '',
+    };
+
+    return tasks.filter((task) => {
       if (selectedClient === 'internal') {
         if (task.clientId) return false;
       } else if (selectedClient !== 'all' && task.clientId !== selectedClient) {
         return false;
       }
 
-      // Filtro por responsável
-      if (selectedUser !== 'all') {
-        const assigneeId = getTaskAssigneeId(task);
-        if (selectedUser === 'unassigned') {
-          if (assigneeId) return false;
-        } else if (String(assigneeId || '') !== String(selectedUser)) {
-          return false;
-        }
-      }
-
-      // Filtro por status
-      if (selectedStatus !== 'all' && task.status !== selectedStatus) {
-        return false;
-      }
-
-      // Filtro por busca textual
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          task.title?.toLowerCase().includes(searchLower) ||
-          task.description?.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return true;
+      return applyTaskFilters(task, merged, { userId: currentUserId });
     });
-  }, [tasks, selectedClient, selectedUser, selectedStatus, searchTerm]);
+  }, [
+    tasks,
+    selectedClient,
+    selectedUser,
+    selectedStatus,
+    searchTerm,
+    presetFilters,
+    currentUserId,
+  ]);
 
   // Organizar tarefas por coluna (status canônico + aliases de campanha)
   const tasksByStatus = React.useMemo(() => {
@@ -455,7 +576,11 @@ export default function TasksManagerPage() {
     setSelectedUser('all');
     setSelectedStatus('all');
     setSearchTerm('');
-  }, []);
+    setPresetFilters({ ...EMPTY_TASK_FILTERS });
+    const next = new URLSearchParams(searchParams);
+    next.delete('preset');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   if (loading) {
     return (
@@ -489,16 +614,23 @@ export default function TasksManagerPage() {
   }
 
   const totalTasks = filteredTasks.length;
-  const hasFilters = selectedClient !== 'all' || selectedUser !== 'all' || selectedStatus !== 'all' || searchTerm;
+  const hasFilters =
+    selectedClient !== 'all' ||
+    selectedUser !== 'all' ||
+    selectedStatus !== 'all' ||
+    Boolean(searchTerm) ||
+    Boolean(activePresetId);
 
   return (
     <div className="max-w-full space-y-6">
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Tarefas</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">
+            {TASK_SCOPE_LABELS.agency.pageTitle}
+          </h1>
           <p className="text-[#7A7595] mt-1">
-            Quadro da agência — arraste cards ou abra uma tarefa para editar
+            {TASK_SCOPE_LABELS.agency.pageSubtitle}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -507,7 +639,7 @@ export default function TasksManagerPage() {
               variant={viewMode === 'kanban' ? 'default' : 'ghost'}
               size="sm"
               className="gap-2 flex-1 sm:flex-none"
-              onClick={() => setViewMode('kanban')}
+              onClick={() => handleViewModeChange('kanban')}
             >
               <Kanban className="w-4 h-4" />
               Kanban
@@ -516,14 +648,28 @@ export default function TasksManagerPage() {
               variant={viewMode === 'week' ? 'default' : 'ghost'}
               size="sm"
               className="gap-2 flex-1 sm:flex-none"
-              onClick={() => setViewMode('week')}
+              onClick={() => handleViewModeChange('week')}
             >
               <CalendarDays className="w-4 h-4" />
               Semana
             </Button>
           </div>
           <Button
-            onClick={() => setCreateOpen(true)}
+            variant="outline"
+            onClick={() => {
+              setCreateKind('meeting');
+              setCreateOpen(true);
+            }}
+            className="gap-2 w-full sm:w-auto shrink-0"
+          >
+            <CalendarDays className="w-4 h-4" />
+            Agendar reunião
+          </Button>
+          <Button
+            onClick={() => {
+              setCreateKind('task');
+              setCreateOpen(true);
+            }}
             className="gap-2 w-full sm:w-auto shrink-0"
           >
             <Plus className="w-4 h-4" />
@@ -543,6 +689,31 @@ export default function TasksManagerPage() {
             </Badge>
           )}
         </div>
+
+        <div className="flex flex-wrap gap-2">
+          {QUICK_PRESETS.map((preset) => {
+            const needsUser = String(preset.id).startsWith('my_') || preset.id === 'waiting_others';
+            const disabled = needsUser && !currentUserId;
+            const active = activePresetId === preset.id;
+            return (
+              <Button
+                key={preset.id}
+                type="button"
+                size="sm"
+                variant={active ? 'default' : 'outline'}
+                disabled={disabled}
+                className="rounded-full h-8 text-xs"
+                onClick={() => {
+                  if (active) clearPresetOnly();
+                  else applyPreset(preset.id);
+                }}
+              >
+                {preset.label}
+              </Button>
+            );
+          })}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
             {/* Busca textual */}
             <div className="lg:col-span-2">
@@ -582,7 +753,21 @@ export default function TasksManagerPage() {
             </Select>
 
             {/* Filtro por responsável */}
-            <Select value={selectedUser} onValueChange={setSelectedUser}>
+            <Select
+              value={selectedUser}
+              onValueChange={(value) => {
+                setSelectedUser(value);
+                setPresetFilters((prev) => ({
+                  ...prev,
+                  assignee: value,
+                  preset: null,
+                  myAction: false,
+                }));
+                const next = new URLSearchParams(searchParams);
+                next.delete('preset');
+                setSearchParams(next, { replace: true });
+              }}
+            >
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os responsáveis" />
               </SelectTrigger>
@@ -673,6 +858,8 @@ export default function TasksManagerPage() {
                   users={users}
                   clients={clients}
                   droppableId={column.id}
+                  agencyId={agencyId}
+                  userId={currentUserId}
                 />
               ))}
             </div>
@@ -706,6 +893,7 @@ export default function TasksManagerPage() {
       <TaskCreateModal
         open={createOpen}
         onOpenChange={setCreateOpen}
+        defaultKind={createKind}
         onSuccess={() => {
           setCreateOpen(false);
           loadData({ silent: true });

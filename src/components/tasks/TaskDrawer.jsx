@@ -59,6 +59,11 @@ import TaskNotificationService from "@/components/notifications/TaskNotification
 import { syncPipelineAfterTaskComplete } from "@/api/functions/transitionPipelinePhase";
 import { statusLabelPt } from "@/lib/statusLabelsPt";
 import {
+  getTaskStatusConfig,
+  getTaskStatusSelectMap,
+} from "@/lib/taskStatusCanonical";
+import { getStagePastel } from "@/lib/modulePastels";
+import {
   appendFilesToTaskAttachments,
   isImageAttachment,
   reorderAttachments,
@@ -67,35 +72,46 @@ import {
 
 const UNASSIGNED = "unassigned";
 
-const STATUS_CONFIG = {
-  backlog: { label: "Fila", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-500" },
-  todo: { label: "A fazer", color: "bg-blue-100 text-blue-800", kanbanColor: "bg-blue-500" },
-  in_progress: { label: "Em andamento", color: "bg-yellow-100 text-yellow-800", kanbanColor: "bg-yellow-500" },
-  in_review: { label: "Em revisão", color: "bg-purple-100 text-purple-800", kanbanColor: "bg-purple-500" },
-  completed: { label: "Concluído", color: "bg-green-100 text-green-800", kanbanColor: "bg-green-500" },
-  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800", kanbanColor: "bg-red-500" },
-  blocked: { label: "Bloqueado", color: "bg-orange-100 text-orange-800", kanbanColor: "bg-orange-500" },
-  not_started: { label: "Não iniciado", color: "bg-gray-100 text-gray-800", kanbanColor: "bg-gray-400" },
-  waiting_client: { label: "Aguardando cliente", color: "bg-amber-100 text-amber-800", kanbanColor: "bg-amber-500" },
-};
+const STATUS_CONFIG = getTaskStatusSelectMap();
 
 const PRIORITY_CONFIG = {
-  low: { label: "Baixa", color: "bg-blue-100 text-blue-800" },
-  medium: { label: "Média", color: "bg-yellow-100 text-yellow-800" },
-  high: { label: "Alta", color: "bg-orange-100 text-orange-800" },
-  urgent: { label: "Urgente", color: "bg-red-100 text-red-800" },
+  low: { label: "Baixa", color: getStagePastel("backlog").badge },
+  medium: { label: "Média", color: getStagePastel("waiting_client").badge },
+  high: { label: "Alta", color: getStagePastel("in_progress").badge },
+  urgent: { label: "Urgente", color: getStagePastel("blocked").badge },
 };
 
 function formatDueShort(dateStr) {
   if (!dateStr) return "Sem prazo";
   try {
-    return new Date(dateStr).toLocaleDateString("pt-BR", {
+    const d = new Date(dateStr);
+    const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+    return d.toLocaleString("pt-BR", {
       day: "numeric",
       month: "short",
+      ...(hasTime ? { hour: "2-digit", minute: "2-digit" } : {}),
     });
   } catch {
     return "Sem prazo";
   }
+}
+
+/** ISO → valor datetime-local no fuso local */
+function toDatetimeLocalValue(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function isMeetingTask(task) {
+  return (
+    task?.activityKind === "meeting" ||
+    task?.type === "reuniao" ||
+    task?.type === "reuniao_alinhamento" ||
+    (Array.isArray(task?.tags) && task.tags.includes("reuniao"))
+  );
 }
 
 function formatFileSize(bytes) {
@@ -358,14 +374,14 @@ export default function TaskDrawer() {
         }
         updated = result.task;
         setTask(updated);
-        const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);
+        const statusLabel = getTaskStatusConfig(newStatus).label || statusLabelPt(newStatus);
         toast.success(`Status: ${statusLabel}`, { duration: 1600 });
         if (result.warning) {
           toast.warning(result.warning, { duration: 4500 });
         }
       }
 
-      const statusLabel = STATUS_CONFIG[newStatus]?.label || statusLabelPt(newStatus);
+      const statusLabel = getTaskStatusConfig(newStatus).label || statusLabelPt(newStatus);
 
       const systemComment = {
         id: `sys_${Date.now()}`,
@@ -452,12 +468,22 @@ export default function TaskDrawer() {
 
   const handleDueDateChange = async (value) => {
     if (!task) return;
-    const prevYmd = task.dueDate ? String(task.dueDate).slice(0, 10) : "";
-    if (value === prevYmd) return;
-    await patchTask(
-      { dueDate: value ? new Date(`${value}T12:00:00`).toISOString() : null },
-      { field: "dueDate" }
-    );
+    if (!value) {
+      if (!task.dueDate) return;
+      await patchTask({ dueDate: null }, { field: "dueDate" });
+      return;
+    }
+    const dueDate = value.includes("T")
+      ? new Date(value).toISOString()
+      : new Date(`${value}T12:00:00`).toISOString();
+    if (
+      task.dueDate &&
+      !Number.isNaN(new Date(dueDate).getTime()) &&
+      new Date(task.dueDate).getTime() === new Date(dueDate).getTime()
+    ) {
+      return;
+    }
+    await patchTask({ dueDate }, { field: "dueDate" });
   };
 
   const handlePriorityChange = async (value) => {
@@ -755,7 +781,12 @@ export default function TaskDrawer() {
   }, [task]);
 
   const assigneeValue = task?.assigneeId || task?.assignedTo || UNASSIGNED;
-  const dueValue = task?.dueDate ? String(task.dueDate).slice(0, 10) : "";
+  const meetingItem = isMeetingTask(task);
+  const dueValue = task?.dueDate
+    ? meetingItem
+      ? toDatetimeLocalValue(task.dueDate)
+      : String(task.dueDate).slice(0, 10)
+    : "";
   const assignedUser = getAssignedUser(task?.assigneeId || task?.assignedTo);
 
   React.useEffect(() => {
@@ -965,17 +996,19 @@ export default function TaskDrawer() {
                 </div>
 
                 <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground">Prazo</span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {meetingItem ? "Horário" : "Prazo"}
+                  </span>
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="relative flex-1 min-w-0">
                       <Calendar className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                       <Input
-                        type="date"
+                        type={meetingItem ? "datetime-local" : "date"}
                         value={dueValue}
                         onChange={(e) => handleDueDateChange(e.target.value)}
                         className="h-9 pl-8"
                         disabled={savingField === "dueDate"}
-                        aria-label={`Prazo: ${formatDueShort(task.dueDate)}`}
+                        aria-label={`${meetingItem ? "Horário" : "Prazo"}: ${formatDueShort(task.dueDate)}`}
                       />
                     </div>
                     {task.dueDate && (
@@ -985,7 +1018,7 @@ export default function TaskDrawer() {
                         size="icon"
                         className="h-9 w-9 shrink-0"
                         onClick={() => handleDueDateChange("")}
-                        aria-label="Remover prazo"
+                        aria-label={meetingItem ? "Remover horário" : "Remover prazo"}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -1092,7 +1125,7 @@ export default function TaskDrawer() {
                       <Button
                         type="button"
                         size="sm"
-                        className="h-8 text-xs bg-[#007bff] hover:bg-[#0056b3]"
+                        className="h-8 text-xs bg-primary hover:bg-[var(--color-primary-dark)]"
                         onClick={sendForApproval}
                         disabled={savingField === "status" || uploading}
                       >
@@ -1395,7 +1428,7 @@ export default function TaskDrawer() {
                         <div
                           key={c.id}
                           className={`rounded-md border p-3 ${
-                            c.type === "system" ? "bg-blue-50/60 border-blue-100" : ""
+                            c.type === "system" ? "bg-[var(--color-primary-surface)]/60 border-[#D4CBF5]" : ""
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1">

@@ -27,35 +27,35 @@ export const designTokens = {
       900: '#0F172A'
     },
     success: {
-      50: '#F0FDF4',
-      500: '#22C55E',
-      600: '#16A34A'
+      50: '#D0F7EC',
+      500: '#22C98A',
+      600: '#085041'
     },
     warning: {
-      50: '#FFFBEB',
-      500: '#F59E0B',
-      600: '#D97706'
+      50: '#FFF8E6',
+      500: '#C47A00',
+      600: '#7A5A10'
     },
     error: {
-      50: '#FEF2F2',
-      500: '#EF4444',
-      600: '#DC2626'
+      50: '#FDEBEC',
+      500: '#E24B4A',
+      600: '#8A2A2A'
     }
   },
   typography: {
     fonts: {
-      sans: ['Inter', 'system-ui', 'sans-serif'],
+      sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       mono: ['JetBrains Mono', 'Monaco', 'monospace']
     },
     sizes: {
-      xs: '0.75rem',    // 12px
-      sm: '0.875rem',   // 14px
-      base: '1rem',     // 16px
-      lg: '1.125rem',   // 18px
-      xl: '1.25rem',    // 20px
-      '2xl': '1.5rem',  // 24px
-      '3xl': '1.875rem', // 30px
-      '4xl': '2.25rem'   // 36px
+      xs: '0.75rem',    // 12px — alinhado a --font-sm
+      sm: '0.875rem',   // 14px — --font-md
+      base: '0.8125rem', // 13px — --font-base (Soft UI)
+      lg: '0.9375rem',  // 15px — --font-lg
+      xl: '1rem',       // 16px — --font-xl
+      '2xl': '1.125rem', // 18px — --font-2xl
+      '3xl': '1.25rem',  // 20px — --font-3xl
+      '4xl': '1.5rem'    // 24px — --font-4xl
     }
   },
   spacing: {
@@ -145,11 +145,11 @@ export const Typography = ({
 
 export const StatusBadge = ({ status, children, size = 'base' }) => {
   const statusStyles = {
-    success: 'bg-success-50 text-success-600 border-success-200',
-    warning: 'bg-warning-50 text-warning-600 border-warning-200',
-    error: 'bg-error-50 text-error-600 border-error-200',
-    info: 'bg-primary-50 text-primary-600 border-primary-200',
-    neutral: 'bg-secondary-100 text-secondary-600 border-secondary-200'
+    success: 'bg-[var(--color-success-surface)] text-[var(--color-accent-dark)] border-[color-mix(in_srgb,var(--color-accent)_35%,white)]',
+    warning: 'bg-[#FFF8E6] text-[#7A5A10] border-[#F0DC9A]',
+    error: 'bg-[color-mix(in_srgb,var(--color-danger)_12%,white)] text-[#8A2A2A] border-[color-mix(in_srgb,var(--color-danger)_35%,white)]',
+    info: 'bg-[var(--color-primary-surface)] text-[var(--color-primary-dark)] border-[#D4CBF5]',
+    neutral: 'bg-[#F1F1F3] text-[#4A4A55] border-[#D0D0D6]'
   };
   
   const sizes = {

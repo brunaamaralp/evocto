@@ -20,7 +20,7 @@ export default function OperationBreadcrumb({ crumbs = [] }) {
               {crumb.href && !isLast ? (
                 <Link
                   to={crumb.href}
-                  className="truncate font-medium text-[#555] hover:text-[#007bff]"
+                  className="truncate font-medium text-[#555] hover:text-primary"
                 >
                   {crumb.label}
                 </Link>

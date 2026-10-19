@@ -414,7 +414,7 @@ export default function ClientDetailPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-primary" aria-hidden />
           <p className="text-sm text-[#555]">Verificando autenticação…</p>
         </div>
       </div>
@@ -447,7 +447,7 @@ export default function ClientDetailPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#007bff]" aria-hidden />
+          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-primary" aria-hidden />
           <p className="text-sm text-[#555]">Carregando cliente…</p>
         </div>
       </div>
@@ -468,7 +468,7 @@ export default function ClientDetailPage() {
                 Clientes
               </Link>
             </Button>
-            <Button onClick={reload} className="bg-[#007bff] hover:bg-[#0056b3]">
+            <Button onClick={reload} className="bg-primary hover:bg-[var(--color-primary-dark)]">
               Tentar novamente
             </Button>
           </div>
@@ -566,7 +566,7 @@ export default function ClientDetailPage() {
         />
         {!hasService ? (
           <Button
-            className="w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto"
+            className="w-full shrink-0 bg-primary hover:bg-[var(--color-primary-dark)] sm:w-auto"
             onClick={() => setServiceSetupOpen(true)}
           >
             <Briefcase className="mr-1.5 h-4 w-4" />
@@ -615,7 +615,7 @@ export default function ClientDetailPage() {
                 Template operacional não reconhecido.{' '}
                 <Link
                   to={createPageUrl(`client-services?clientId=${clientId}`)}
-                  className="font-medium text-[#007bff] hover:underline"
+                  className="font-medium text-primary hover:underline"
                 >
                   Abrir Backstage
                 </Link>
@@ -639,7 +639,7 @@ export default function ClientDetailPage() {
                     mes: currentMes,
                     ano: currentAno,
                   })}
-                  className="font-medium text-[#007bff] hover:underline"
+                  className="font-medium text-primary hover:underline"
                 >
                   Nova Campanha
                 </Link>
@@ -697,7 +697,7 @@ export default function ClientDetailPage() {
                     className={
                       step.id === 'invite'
                         ? 'w-full shrink-0 sm:w-auto'
-                        : 'w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto'
+                        : 'w-full shrink-0 bg-primary hover:bg-[var(--color-primary-dark)] sm:w-auto'
                     }
                     onClick={step.onClick}
                   >
@@ -716,7 +716,7 @@ export default function ClientDetailPage() {
           <button
             type="button"
             onClick={() => setInviteModalOpen(true)}
-            className="text-sm font-medium text-[#007bff] hover:underline"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Convidar cliente
           </button>
@@ -739,20 +739,20 @@ export default function ClientDetailPage() {
             <button
               type="button"
               onClick={() => setServiceSetupOpen(true)}
-              className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+              className="text-sm text-[#555] hover:text-primary hover:underline"
             >
               Adicionar serviço
             </button>
           ) : null}
           <Link
             to={buildAnnualPlanHref(clientId)}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-primary hover:underline"
           >
             Panorama
           </Link>
           <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-primary hover:underline"
           >
             Brainstorm
           </Link>
@@ -765,19 +765,19 @@ export default function ClientDetailPage() {
                   })
                 : `client-tasks?clientId=${clientId}`
             )}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-primary hover:underline"
           >
             Tarefas
           </Link>
           <Link
             to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-primary hover:underline"
           >
             Financeiro
           </Link>
           <Link
             to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-[#007bff] hover:underline"
+            className="text-sm text-[#555] hover:text-primary hover:underline"
           >
             KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
           </Link>

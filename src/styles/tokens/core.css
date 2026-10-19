@@ -99,6 +99,12 @@
   /* Tipografia / superfícies legadas (forms, finance settings) */
   --ff-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
   --ff-body: var(--ff-ui);
+  --font-sans: var(--ff-ui);
+  /* Aliases de marca (CSS legado Navi → Evocto) */
+  --evocto-brand-img-bg-light: #ffffff;
+  --evocto-brand-img-bg-dark: #13111f;
+  --navi-brand-img-bg-light: var(--evocto-brand-img-bg-light);
+  --navi-brand-img-bg-dark: var(--evocto-brand-img-bg-dark);
   --ink: var(--color-text-heading);
   --text-secondary: var(--color-text-secondary);
   --text-muted: #7a7595;

@@ -1,62 +1,36 @@
 import { Badge } from '@/components/ui/badge';
 import {
-  Circle, Play, Pause, Eye, CheckCircle,
-  AlertTriangle, XCircle, Clock, Target,
-  GitBranch,
+  Pause, Eye, CheckCircle, AlertTriangle, Clock, Target, GitBranch,
 } from 'lucide-react';
 import { getStagePastel } from '@/lib/modulePastels';
+import {
+  TASK_STATUS_CANONICAL,
+  getTaskStatusConfig,
+} from '@/lib/taskStatusCanonical';
+import { resolveTaskStatusIcon } from '@/lib/taskStatusIcons';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
-const TASK_STATUS_CONFIGS = {
-  backlog: {
-    label: 'Fila',
-    icon: Circle,
-    color: getStagePastel('backlog').badge,
-    description: 'Aguardando priorização',
-  },
-  todo: {
-    label: 'A fazer',
-    icon: Circle,
-    color: getStagePastel('todo').badge,
-    description: 'Pronta para início',
-  },
-  in_progress: {
-    label: 'Em andamento',
-    icon: Play,
-    color: getStagePastel('in_progress').badge,
-    description: 'Sendo executada',
-  },
-  in_review: {
-    label: 'Em revisão',
-    icon: Eye,
-    color: getStagePastel('in_review').badge,
-    description: 'Aguardando revisão (tarefa)',
-  },
-  completed: {
-    label: 'Concluída',
-    icon: CheckCircle,
-    color: getStagePastel('completed').badge,
-    description: 'Tarefa finalizada',
-  },
-  blocked: {
-    label: 'Bloqueada',
-    icon: AlertTriangle,
-    color: getStagePastel('blocked').badge,
-    description: 'Com impedimentos',
-  },
-  cancelled: {
-    label: 'Cancelada',
-    icon: XCircle,
-    color: getStagePastel('cancelled').badge,
-    description: 'Não será executada',
-  },
-};
+/** Espelho do mapa canônico (compat com imports existentes). */
+export const TASK_STATUS_CONFIGS = Object.fromEntries(
+  Object.keys(TASK_STATUS_CANONICAL).map((id) => {
+    const config = getTaskStatusConfig(id);
+    return [
+      id,
+      {
+        label: config.label,
+        icon: resolveTaskStatusIcon(config.icon),
+        color: config.badge,
+        description: config.description,
+      },
+    ];
+  })
+);
 
-const DELIVERABLE_STATUS_CONFIGS = {
+export const DELIVERABLE_STATUS_CONFIGS = {
   not_started: {
     label: 'Não iniciado',
     icon: Pause,
-    color: getStagePastel('backlog').badge,
+    color: getStagePastel('not_started').badge,
     description: 'Aguardando início (fase)',
   },
   in_progress: {
@@ -74,7 +48,7 @@ const DELIVERABLE_STATUS_CONFIGS = {
   ready_for_approval: {
     label: 'Aguardando aprovação',
     icon: Clock,
-    color: getStagePastel('in_progress').badge,
+    color: getStagePastel('waiting_client').badge,
     description: 'Enviada para aprovação',
   },
   approved: {
@@ -90,17 +64,35 @@ const DELIVERABLE_STATUS_CONFIGS = {
     description: 'Rejeitado - requer correção',
   },
   completed: {
-    label: 'Concluída',
+    label: 'Concluído',
     icon: CheckCircle,
     color: getStagePastel('completed').badge,
     description: 'Fase finalizada',
   },
+  in_review: {
+    label: 'Em revisão',
+    icon: Eye,
+    color: getStagePastel('in_review').badge,
+    description: 'Em revisão (fase)',
+  },
 };
 
 export function TaskStatusBadge({ status, type = 'task', size = 'default', showIcon = true, className = '' }) {
-  const configs = type === 'deliverable' ? DELIVERABLE_STATUS_CONFIGS : TASK_STATUS_CONFIGS;
-  const config = configs[status] || configs.todo;
-  const Icon = config.icon;
+  let config;
+  let Icon;
+
+  if (type === 'deliverable') {
+    config = DELIVERABLE_STATUS_CONFIGS[status] || DELIVERABLE_STATUS_CONFIGS.not_started;
+    Icon = config.icon;
+  } else {
+    const resolved = getTaskStatusConfig(status);
+    config = {
+      label: resolved.label,
+      color: resolved.badge,
+      description: resolved.description,
+    };
+    Icon = resolveTaskStatusIcon(resolved.icon);
+  }
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',
@@ -201,5 +193,3 @@ export function TaskTypeBadge({ type, size = 'default', className = '' }) {
 }
 
 export default TaskStatusBadge;
-
-export { TASK_STATUS_CONFIGS, DELIVERABLE_STATUS_CONFIGS };

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 import EvoctoMascot from '@/components/brand/EvoctoMascot';
 import { BRAND } from '@/lib/brandAssets';
 import { trialMarketing } from '@/lib/trialCopy';
@@ -79,7 +79,7 @@ export default function WelcomePage() {
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
           <Link to="/" className="flex min-w-0 items-center shrink" aria-label={BRAND.name}>
-            <NaviBrandLockup
+            <EvoctoBrandLockup
               height={28}
               className="max-w-[112px] sm:max-w-[168px]"
             />
@@ -296,7 +296,7 @@ export default function WelcomePage() {
 
       <footer className="border-t border-white/10 bg-[var(--color-sidebar-bg,#13111F)] py-10 text-center text-sm text-[var(--color-sidebar-text,#7A7595)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <NaviBrandLockup variant="dark" height={28} />
+          <EvoctoBrandLockup variant="dark" height={28} />
           <p>Operação de marketing mais clara para times, agências e clientes</p>
           <div className="flex flex-wrap items-center justify-center gap-6">
             <Link to="/terms-of-service" className="hover:text-white transition-colors">
