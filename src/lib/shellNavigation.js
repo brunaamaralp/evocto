@@ -167,8 +167,9 @@ export function getMobileBottomNavItems({
     {
       id: 'my-tasks',
       label: 'Tarefas',
+      // Href continua em Minhas tarefas (atalho diário); ativo em qualquer vista do board.
       href: buildMyTasksHref(),
-      isActive: currentPage === 'tasks-manager' && taskPreset === 'my_tasks',
+      isActive: currentPage === 'tasks-manager',
     },
     {
       id: 'approvals',

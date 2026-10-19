@@ -79,6 +79,12 @@ describe('shellNavigation', () => {
     expect(agency.find((i) => i.id === 'home').isActive).toBe(true);
     expect(agency.find((i) => i.id === 'more').action).toBe('more');
 
+    const onTasksBoard = getMobileBottomNavItems({
+      mode: 'global',
+      currentPage: 'tasks-manager',
+    });
+    expect(onTasksBoard.find((i) => i.id === 'my-tasks').isActive).toBe(true);
+
     const client = getMobileBottomNavItems({
       mode: 'client',
       clientId: 'c1',
