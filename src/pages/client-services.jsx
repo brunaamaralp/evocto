@@ -214,16 +214,15 @@ export default function ClientServicesPage() {
                 <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
                   Serviços
                 </h1>
-                <p className="text-xs text-[#7A7595]">
-                  Backstage · {stats.totalServices || 0} serviço
-                  {(stats.totalServices || 0) === 1 ? '' : 's'}
-                  {stats.activeServices != null
-                    ? ` · ${stats.activeServices} ativo${stats.activeServices === 1 ? '' : 's'}`
-                    : ''}
-                  {stats.averageProgress != null
-                    ? ` · ${stats.averageProgress}%`
-                    : ''}
-                </p>
+                {(stats.totalServices || 0) > 0 ? (
+                  <p className="text-xs text-[#7A7595]">
+                    {stats.totalServices} serviço
+                    {(stats.totalServices || 0) === 1 ? '' : 's'}
+                    {stats.activeServices != null
+                      ? ` · ${stats.activeServices} ativo${stats.activeServices === 1 ? '' : 's'}`
+                      : ''}
+                  </p>
+                ) : null}
               </div>
             </div>
             <Button

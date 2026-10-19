@@ -478,10 +478,10 @@ export default function ClientDetailPage() {
       id: 'briefing',
       title: 'Preencher briefing inicial',
       description: hasBriefing
-        ? 'DNA do cliente preenchido'
+        ? 'Briefing preenchido'
         : briefingStatus.status === 'draft'
           ? 'Há um rascunho — continue o preenchimento'
-          : 'Base estratégica do cliente (público, tom, oferta)',
+          : 'Público, tom e oferta',
       completed: hasBriefing,
       action: hasBriefing ? 'Editar briefing' : 'Preencher briefing',
       onClick: () => navigate(briefingHref),
@@ -554,7 +554,7 @@ export default function ClientDetailPage() {
       {!hasService ? (
         <section className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC] px-4 py-4">
           <p className="text-sm font-medium text-[#111]">
-            Qual serviço {client.name} contratou?
+            Qual serviço foi contratado?
           </p>
           <p className="mt-0.5 text-sm text-[#666]">
             Sem serviço, não há operação para executar.

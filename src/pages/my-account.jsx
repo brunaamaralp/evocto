@@ -81,7 +81,6 @@ export default function MyAccount() {
       <Card>
         <CardHeader>
           <CardTitle>Minha Conta</CardTitle>
-          <CardDescription>Gerencie suas informações pessoais.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-6">

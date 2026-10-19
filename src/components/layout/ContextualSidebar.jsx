@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import {
   LayoutDashboard,
@@ -13,7 +13,6 @@ import {
   Briefcase,
   CheckSquare,
   BookOpen,
-  Settings,
   FolderOpen,
   ArrowLeft,
   ChevronLeft,
@@ -26,10 +25,8 @@ import {
   Sparkles,
   CalendarDays,
   Clock,
-  Building2,
   Handshake,
   ClipboardCheck,
-  ListTodo,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
@@ -43,7 +40,6 @@ import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 import { useSession } from '@/components/auth/SessionManager';
 import { fetchPendingApprovals } from '@/lib/pendingApprovals';
 import {
-  buildMyTasksHref,
   readSidebarCollapsed,
   writeSidebarCollapsed,
 } from '@/lib/shellNavigation';
@@ -74,8 +70,6 @@ export default function ContextualSidebar({
 }) {
   useTranslation();
   const { agencyId } = useSession();
-  const location = useLocation();
-  const taskPreset = new URLSearchParams(location.search).get('preset');
   const [client, setClient] = useState(null);
   const [collapsed, setCollapsed] = useState(() => readSidebarCollapsed());
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(null);
@@ -159,7 +153,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Tarefas do cliente',
+          label: 'Tarefas',
           icon: CheckSquare,
           href: createPageUrl(
             buildClientTasksHref({
@@ -276,7 +270,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: clientId ? 'Tarefas do cliente' : 'Tarefas da campanha',
+          label: 'Tarefas',
           icon: CheckSquare,
           href: clientId
             ? createPageUrl(
@@ -308,17 +302,10 @@ export default function ContextualSidebar({
       },
       {
         type: 'link',
-        label: 'Minhas tarefas',
-        icon: ListTodo,
-        href: buildMyTasksHref(),
-        isActive: currentPage === 'tasks-manager' && taskPreset === 'my_tasks',
-      },
-      {
-        type: 'link',
-        label: 'Tarefas da agência',
+        label: 'Tarefas',
         icon: CheckSquare,
         href: createPageUrl('tasks-manager'),
-        isActive: currentPage === 'tasks-manager' && taskPreset !== 'my_tasks',
+        isActive: currentPage === 'tasks-manager',
       },
       {
         type: 'link',
@@ -355,17 +342,6 @@ export default function ContextualSidebar({
         icon: Wallet,
         href: createPageUrl('financeiro'),
         isActive: currentPage === 'financeiro',
-      },
-      {
-        type: 'link',
-        label: 'Minha empresa',
-        icon: Building2,
-        href: createPageUrl('minha-empresa'),
-        isActive:
-          currentPage === 'minha-empresa' ||
-          currentPage === 'my-agency' ||
-          currentPage === 'agency-management' ||
-          currentPage === 'team-management',
       },
       {
         type: 'link',
@@ -440,7 +416,11 @@ export default function ContextualSidebar({
         </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav
+        className={`evocto-sidebar-scroll flex-1 p-3 space-y-1 overflow-y-auto ${
+          isClientMode ? 'evocto-sidebar-scroll--client' : ''
+        }`}
+      >
         {navigationItems.map((item, index) => {
           if (item.type === 'section') {
             if (collapsed) {
@@ -509,21 +489,6 @@ export default function ContextualSidebar({
       </nav>
 
       <div className={`p-3 border-t ${theme.sidebarBorder} space-y-1`}>
-        <Link
-          to={
-            isClientMode && clientId
-              ? createPageUrl(`client-settings?clientId=${clientId}`)
-              : createPageUrl('settings')
-          }
-          title={collapsed ? 'Configurações' : undefined}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
-            collapsed ? 'justify-center' : ''
-          } ${theme.sidebarMuted} ${theme.sidebarHover}`}
-        >
-          <Settings className="w-[18px] h-[18px] stroke-[1.5]" />
-          {!collapsed && <span className="font-medium">Configurações</span>}
-        </Link>
-
         <button
           type="button"
           onClick={toggleCollapsed}

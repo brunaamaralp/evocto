@@ -163,8 +163,7 @@ export default function ProjectsTab({ _projects, _client }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Serviços & Projetos</h2>
-          <p className="text-slate-600 mt-1">Serviços recorrentes e trabalhos pontuais do cliente</p>
+          <h2 className="text-2xl font-bold text-slate-900">Serviços</h2>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
           <Plus className="w-4 h-4 mr-2"/>

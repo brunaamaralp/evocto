@@ -152,6 +152,7 @@ export default function TaskDrawer() {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [activeTab, setActiveTab] = React.useState("more");
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [pendingRemove, setPendingRemove] = React.useState(null); // { type, id, label }
   const [dragOver, setDragOver] = React.useState(false);
 
   const [newChecklistItem, setNewChecklistItem] = React.useState("");
@@ -163,6 +164,27 @@ export default function TaskDrawer() {
   const descRef = React.useRef(null);
   const openTaskIdRef = React.useRef(null);
   const skipNextUrlOpenRef = React.useRef(false);
+  const taskRef = React.useRef(null);
+  const titleDraftRef = React.useRef("");
+  const descDraftRef = React.useRef("");
+  const editingTitleRef = React.useRef(false);
+  const editingDescRef = React.useRef(false);
+
+  React.useEffect(() => {
+    taskRef.current = task;
+  }, [task]);
+  React.useEffect(() => {
+    titleDraftRef.current = titleDraft;
+  }, [titleDraft]);
+  React.useEffect(() => {
+    descDraftRef.current = descDraft;
+  }, [descDraft]);
+  React.useEffect(() => {
+    editingTitleRef.current = editingTitle;
+  }, [editingTitle]);
+  React.useEffect(() => {
+    editingDescRef.current = editingDesc;
+  }, [editingDesc]);
 
   const syncTaskQuery = React.useCallback(
     (id) => {
@@ -214,17 +236,52 @@ export default function TaskDrawer() {
     }
   }, [agencyId]);
 
+  const flushDrafts = React.useCallback(async () => {
+    const t = taskRef.current;
+    if (!t?.id) return;
+    const patches = {};
+    if (editingTitleRef.current) {
+      const nextTitle = String(titleDraftRef.current || "").trim();
+      if (nextTitle && nextTitle !== (t.title || "")) {
+        patches.title = nextTitle;
+      }
+    }
+    if (
+      editingDescRef.current ||
+      String(descDraftRef.current || "") !== String(t.description || "")
+    ) {
+      const nextDesc = descDraftRef.current;
+      if (nextDesc !== (t.description || "")) {
+        patches.description = nextDesc;
+      }
+    }
+    if (!Object.keys(patches).length) return;
+    try {
+      await Task.update(t.id, patches);
+      notifyLists(t.id, patches);
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível salvar alterações em andamento");
+    }
+  }, []);
+
   const openById = React.useCallback(
-    (id, { syncUrl = true } = {}) => {
+    async (id, { syncUrl = true } = {}) => {
       if (!id) return;
       const normalized = String(id);
+      if (
+        openTaskIdRef.current &&
+        String(openTaskIdRef.current) !== normalized
+      ) {
+        await flushDrafts();
+      }
       openTaskIdRef.current = normalized;
       setTaskId(normalized);
       setOpen(true);
       fetchAll(normalized);
       if (syncUrl) syncTaskQuery(normalized);
     },
-    [fetchAll, syncTaskQuery]
+    [fetchAll, syncTaskQuery, flushDrafts]
   );
 
   React.useEffect(() => {
@@ -258,7 +315,8 @@ export default function TaskDrawer() {
     openById(id, { syncUrl: false });
   }, [location.search, open, openById]);
 
-  const closeDrawer = () => {
+  const closeDrawer = async () => {
+    await flushDrafts();
     openTaskIdRef.current = null;
     setOpen(false);
     setTaskId(null);
@@ -272,6 +330,7 @@ export default function TaskDrawer() {
     setEditingTitle(false);
     setEditingDesc(false);
     setDeleteOpen(false);
+    setPendingRemove(null);
     setNewChecklistItem("");
     setChecklistItemAssignee(UNASSIGNED);
     setChecklistItemDueDate("");
@@ -543,6 +602,15 @@ export default function TaskDrawer() {
     toast.success("Anexo removido");
   };
 
+  const requestRemoveAttachment = (attachment) => {
+    if (!attachment?.id) return;
+    setPendingRemove({
+      type: "attachment",
+      id: attachment.id,
+      label: attachment.name || "este anexo",
+    });
+  };
+
   const moveAttachment = async (fromIndex, delta) => {
     if (!task) return;
     const toIndex = fromIndex + delta;
@@ -709,6 +777,23 @@ export default function TaskDrawer() {
     const checklist = (task.checklist || []).filter((item) => item.id !== itemId);
     await patchTask({ checklist }, { field: "checklist", silent: true });
     toast.success("Item removido");
+  };
+
+  const requestRemoveChecklistItem = (item) => {
+    if (!item?.id) return;
+    setPendingRemove({
+      type: "checklist",
+      id: item.id,
+      label: item.text || "este item",
+    });
+  };
+
+  const confirmPendingRemove = async () => {
+    if (!pendingRemove) return;
+    const { type, id } = pendingRemove;
+    setPendingRemove(null);
+    if (type === "attachment") await removeAttachment(id);
+    if (type === "checklist") await deleteChecklistItem(id);
   };
 
   const submitComment = async () => {
@@ -1292,7 +1377,7 @@ export default function TaskDrawer() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-red-600 hover:text-red-700"
-                          onClick={() => removeAttachment(a.id)}
+                          onClick={() => requestRemoveAttachment(a)}
                           aria-label="Remover"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1405,7 +1490,8 @@ export default function TaskDrawer() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-muted-foreground"
-                            onClick={() => deleteChecklistItem(item.id)}
+                            onClick={() => requestRemoveChecklistItem(item)}
+                            aria-label="Remover item do checklist"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -1491,6 +1577,37 @@ export default function TaskDrawer() {
           )}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog
+        open={Boolean(pendingRemove)}
+        onOpenChange={(v) => {
+          if (!v) setPendingRemove(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingRemove?.type === "attachment"
+                ? "Remover anexo?"
+                : "Remover item do checklist?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRemove?.type === "attachment"
+                ? `O arquivo “${pendingRemove?.label}” será removido desta tarefa.`
+                : `O item “${pendingRemove?.label}” será removido do checklist.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPendingRemove}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>

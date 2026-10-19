@@ -21,7 +21,7 @@ import { Plus, Save, Loader2, CheckCircle } from 'lucide-react';
 import { useClientValidation } from '@/hooks/useClientValidation';
 import { useErrorHandling, useFormErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
-import { useExitConfirmation } from '@/hooks/useExitConfirmation';
+import { useExitConfirmation, ExitConfirmationModal } from '@/hooks/useExitConfirmation';
 import { useFormRateLimit } from '@/hooks/useRateLimit';
 import { useClientUserCreation } from '@/hooks/useClientUserCreation';
 import ClientLoginConfig from './ClientLoginConfig';
@@ -58,19 +58,6 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
   // Hook para criação de usuários
   const { _createClientWithUser, _createClientOnly } = useClientUserCreation();
   
-  // Confirmação de saída
-  const { handleExitAttempt: handleCloseWithConfirmation } = useExitConfirmation(
-    open,
-    formData.name || formData.legal_name || formData.email, // Tem dados preenchidos
-    () => {
-      setOpen(false);
-      setStep('form'); // Reset step
-    },
-    {
-      message: 'Você tem dados preenchidos. Deseja realmente fechar sem salvar?'
-    }
-  );
-  
   // Rate limiting para formulário
   const { _submitWithRateLimit } = useFormRateLimit({
     maxRequests: 3,
@@ -88,6 +75,28 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
     revenue_range: 'ate_1m',
     status: 'ativo'
   });
+
+  const closeQuickCreate = () => {
+    setOpen(false);
+    setStep('form');
+  };
+  const hasUnsavedChanges = Boolean(
+    formData.name?.trim() ||
+      formData.legal_name?.trim() ||
+      formData.email?.trim()
+  );
+  const exitMessage =
+    'Você tem dados preenchidos. Deseja realmente fechar sem salvar?';
+  const { isConfirming, handleExitAttempt, confirmExit, cancelExit } =
+    useExitConfirmation(hasUnsavedChanges, { message: exitMessage });
+
+  const handleDialogOpenChange = (nextOpen) => {
+    if (nextOpen) {
+      setOpen(true);
+      return;
+    }
+    handleExitAttempt(closeQuickCreate);
+  };
 
   const [fieldValidationErrors, setFieldValidationErrors] = useState({});
 
@@ -236,7 +245,8 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleCloseWithConfirmation}>
+    <>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>
         {triggerButton || defaultTrigger}
       </DialogTrigger>
@@ -395,5 +405,12 @@ export default function ClientQuickCreate({ onClientCreated, triggerButton = nul
         )}
       </DialogContent>
     </Dialog>
+    <ExitConfirmationModal
+      isOpen={isConfirming}
+      message={exitMessage}
+      onConfirm={confirmExit}
+      onCancel={cancelExit}
+    />
+    </>
   );
 }

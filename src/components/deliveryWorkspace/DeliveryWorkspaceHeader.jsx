@@ -127,7 +127,7 @@ export default function DeliveryWorkspaceHeader({
               {statusLabel ? (
                 <Badge variant="secondary">{statusLabel}</Badge>
               ) : null}
-              {isCampaign ? (
+              {isCampaign && serviceName ? (
                 <p className="delivery-workspace-header__subtitle">
                   <Link
                     to={serviceWorkspaceHref}
@@ -135,22 +135,8 @@ export default function DeliveryWorkspaceHeader({
                   >
                     {serviceName}
                   </Link>
-                  <span className="mx-1.5 text-slate-300">·</span>
-                  {clientHref ? (
-                    <Link to={clientHref} className="hover:text-slate-900 underline-offset-2 hover:underline">
-                      {clientName}
-                    </Link>
-                  ) : (
-                    <span>{clientName}</span>
-                  )}
                 </p>
-              ) : clientHref ? (
-                <Link to={clientHref} className="text-sm text-slate-600 hover:text-slate-900">
-                  {clientName}
-                </Link>
-              ) : (
-                <span className="text-sm text-slate-600">{clientName}</span>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

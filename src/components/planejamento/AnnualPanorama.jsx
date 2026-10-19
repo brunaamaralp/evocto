@@ -52,7 +52,7 @@ function PanoramaLegendItem({ status, label }) {
  */
 export default function AnnualPanorama({
   clientId,
-  clientName = 'Cliente',
+  clientName: _clientName = 'Cliente',
   ano,
   months = [],
   onPlanMultiple,
@@ -98,15 +98,9 @@ export default function AnnualPanorama({
     <div className="space-y-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Planejamento
-          </p>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            {year} — Panorama Anual de {clientName}
+            Panorama {year}
           </h1>
-          <p className="text-sm text-slate-500">
-            Mapa vivo do ano. Clique num mês para planejar ou abrir a campanha.
-          </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <Button asChild variant="outline" size="icon" className="h-8 w-8">

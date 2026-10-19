@@ -88,6 +88,7 @@ export function buildQuickCreateCampaignHref(clientId, opts = {}) {
   return buildNovaCampanhaHref(clientId, opts);
 }
 
+/** Deep-link do filtro “Minhas tarefas” no quadro único `/tasks-manager`. */
 export function buildMyTasksHref() {
   return buildTasksManagerHref({ preset: 'my_tasks' });
 }
@@ -165,10 +166,9 @@ export function getMobileBottomNavItems({
       isActive: currentPage === 'clients',
     },
     {
-      id: 'my-tasks',
+      id: 'tasks',
       label: 'Tarefas',
-      // Href continua em Minhas tarefas (atalho diário); ativo em qualquer vista do board.
-      href: buildMyTasksHref(),
+      href: createPageUrl('tasks-manager'),
       isActive: currentPage === 'tasks-manager',
     },
     {

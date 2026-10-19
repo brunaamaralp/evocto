@@ -622,8 +622,14 @@ export default function RefactoredServiceCreateModal({
   const canGoBack = currentStep > WIZARD_STEPS.SELECT_TEMPLATE;
   const isLastStep = currentStep === WIZARD_STEPS.BRIEFING_REQUIREMENT;
 
+  const handleDialogOpenChange = (nextOpen) => {
+    if (nextOpen) return;
+    handleExitAttempt(onClose);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleExitAttempt}>
+    <>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -708,14 +714,13 @@ export default function RefactoredServiceCreateModal({
           </div>
         </div>
       </DialogContent>
-      
-      {/* Modal de confirmação de saída */}
-      <ExitConfirmationModal
-        isOpen={isConfirming}
-        message="Você tem alterações não salvas. Deseja realmente sair?"
-        onConfirm={confirmExit}
-        onCancel={cancelExit}
-      />
     </Dialog>
+    <ExitConfirmationModal
+      isOpen={isConfirming}
+      message="Você tem alterações não salvas. Deseja realmente sair?"
+      onConfirm={confirmExit}
+      onCancel={cancelExit}
+    />
+    </>
   );
 }

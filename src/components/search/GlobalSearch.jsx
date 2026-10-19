@@ -206,7 +206,7 @@ export default function GlobalSearch({ preferredClientId = null } = {}) {
             const Icon =
               item.id === 'nav-approvals'
                 ? ClipboardCheck
-                : item.id === 'nav-tasks' || item.id === 'nav-my-tasks'
+                : item.id === 'nav-tasks'
                   ? CheckSquare
                   : item.id === 'nav-clients'
                     ? Users

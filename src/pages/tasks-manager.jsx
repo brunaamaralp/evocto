@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   Search, 
-  Filter, 
   Users, 
   Building2, 
   Plus,
@@ -32,10 +31,8 @@ import ErrorState from '@/components/shared/ErrorState';
 import EmptyState from '@/components/shared/EmptyState';
 import {
   EMPTY_TASK_FILTERS,
-  TASKS_MANAGER_QUICK_PRESETS,
   applyTaskFilters,
   getTaskAssigneeId,
-  getTaskFilterPreset,
   resolvePresetFromQuery,
 } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
@@ -58,10 +55,6 @@ const DENSITY_STORAGE_KEY = 'evocto:tasks-manager-density';
 
 // Soft pastel kanban columns (mapa canônico)
 const KANBAN_COLUMNS = getKanbanBoardColumns();
-
-const QUICK_PRESETS = TASKS_MANAGER_QUICK_PRESETS.map((id) =>
-  getTaskFilterPreset(id)
-).filter(Boolean);
 
 function QuickAddTask({ columnId, agencyId, userId, disabled }) {
   const [title, setTitle] = React.useState('');
@@ -408,50 +401,6 @@ export default function TasksManagerPage() {
     setSearchParams(next, { replace: true });
   };
 
-  const applyPreset = useCallback(
-    (presetId) => {
-      const preset = getTaskFilterPreset(presetId);
-      if (!preset) return;
-      const nextFilters = preset.apply({ userId: currentUserId });
-      setPresetFilters(nextFilters);
-      setSearchTerm('');
-      setSelectedClient('all');
-      if (nextFilters.assignee && nextFilters.assignee !== 'all') {
-        setSelectedUser(String(nextFilters.assignee));
-      } else {
-        setSelectedUser('all');
-      }
-      if (nextFilters.status && nextFilters.status !== 'all') {
-        setSelectedStatus(String(nextFilters.status));
-      } else {
-        setSelectedStatus('all');
-      }
-      const next = new URLSearchParams(searchParams);
-      next.set('preset', preset.id);
-      next.delete('q');
-      next.delete('client');
-      if (nextFilters.assignee && nextFilters.assignee !== 'all') {
-        next.set('assignee', String(nextFilters.assignee));
-      } else {
-        next.delete('assignee');
-      }
-      if (nextFilters.status && nextFilters.status !== 'all') {
-        next.set('status', String(nextFilters.status));
-      } else {
-        next.delete('status');
-      }
-      setSearchParams(next, { replace: true });
-    },
-    [currentUserId, searchParams, setSearchParams]
-  );
-
-  const clearPresetOnly = useCallback(() => {
-    setPresetFilters({ ...EMPTY_TASK_FILTERS });
-    const next = new URLSearchParams(searchParams);
-    next.delete('preset');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams]);
-
   // Carregar dados
   const loadData = useCallback(async ({ silent = false } = {}) => {
     if (!agencyId) return;
@@ -718,9 +667,6 @@ export default function TasksManagerPage() {
           <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">
             {TASK_SCOPE_LABELS.agency.pageTitle}
           </h1>
-          <p className="text-[#7A7595] mt-1">
-            {TASK_SCOPE_LABELS.agency.pageSubtitle}
-          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <div className="flex rounded-xl border border-[#E8E5F5] bg-white p-0.5">
@@ -785,40 +731,13 @@ export default function TasksManagerPage() {
         </div>
       </div>
 
-      {/* Barra de Filtros */}
-      <div className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC]/70 px-4 py-3 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#18162A]">
-          <Filter className="w-4 h-4 text-[#6C47D8]" />
-          <span>Filtros</span>
-          {totalTasks > 0 && (
-            <Badge variant="secondary" className="ml-auto rounded-full">
+      <div className="space-y-3">
+        <div className="flex items-center justify-end">
+          {totalTasks > 0 ? (
+            <span className="text-xs text-[#7A7595] tabular-nums">
               {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {QUICK_PRESETS.map((preset) => {
-            const needsUser = String(preset.id).startsWith('my_') || preset.id === 'waiting_others';
-            const disabled = needsUser && !currentUserId;
-            const active = activePresetId === preset.id;
-            return (
-              <Button
-                key={preset.id}
-                type="button"
-                size="sm"
-                variant={active ? 'default' : 'outline'}
-                disabled={disabled}
-                className="rounded-full h-8 text-xs"
-                onClick={() => {
-                  if (active) clearPresetOnly();
-                  else applyPreset(preset.id);
-                }}
-              >
-                {preset.label}
-              </Button>
-            );
-          })}
+            </span>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -964,7 +883,7 @@ export default function TasksManagerPage() {
           }
           description={
             hasFilters
-              ? 'Ajuste os filtros ou limpe o preset para ver o quadro completo.'
+              ? 'Ajuste ou limpe os filtros para ver o quadro completo.'
               : 'Crie a primeira tarefa ou use o quick-add em qualquer coluna.'
           }
           primaryAction={

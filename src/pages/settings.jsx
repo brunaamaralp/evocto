@@ -179,9 +179,6 @@ export default function SettingsPage() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Configurações</h1>
-        <p className="text-[#7A7595] mt-1">
-          Gerencie suas preferências pessoais e configurações da agência
-        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">

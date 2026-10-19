@@ -183,7 +183,6 @@ export default function MasterBriefTab({ client }) {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-900">Briefing Mestre</h2>
-        <p className="text-slate-600 mt-1">Estado atual e confiável do conhecimento sobre <strong>{client?.name}</strong>. Atualizado automaticamente com base em aprendizados.</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8 items-start">

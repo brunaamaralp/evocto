@@ -121,7 +121,6 @@ export default function BriefingsPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Briefings</h1>
-            <p className="text-slate-600">Gerencie os briefings mestres por projeto.</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={refresh} disabled={reloading}>

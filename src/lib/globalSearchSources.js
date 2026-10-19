@@ -4,69 +4,47 @@
 
 import { Client, Service, Brief, Task, CyclePlan } from '@/api/entities';
 import { createPageUrl } from '@/utils';
-import { buildTasksManagerHref, TASKS_MANAGER_QUICK_PRESETS, getTaskFilterPreset } from '@/lib/taskFilterPresets';
 import { buildCampaignWorkspaceIdeiaPath } from '@/lib/campaignWorkspaceHref';
 import { openTaskDrawer } from '@/lib/openTaskDrawer';
-import { buildMyTasksHref } from '@/lib/shellNavigation';
 
 function agencyFilter(agencyId) {
   return agencyId ? { agencyId } : {};
 }
 
 /**
- * Atalhos de navegação e filtros (não dependem de fetch).
- * @param {{ userId?: string|null }} ctx
+ * Atalhos de navegação (não dependem de fetch).
+ * Presets de filtro ficam nos selects do quadro — sem lista paralela na busca.
+ * @param {{ userId?: string|null }} _ctx
  */
-export function getGlobalSearchShortcuts(ctx = {}) {
-  const userId = ctx.userId || null;
+export function getGlobalSearchShortcuts(_ctx = {}) {
   const nav = [
     {
       id: 'nav-dashboard',
       title: 'Dashboard',
-      subtitle: 'Home da agência',
+      subtitle: '',
       href: createPageUrl('dashboard'),
     },
     {
       id: 'nav-clients',
       title: 'Clientes',
-      subtitle: 'Lista de clientes',
+      subtitle: '',
       href: createPageUrl('clients'),
     },
     {
-      id: 'nav-my-tasks',
-      title: 'Minhas tarefas',
-      subtitle: 'Atribuídas a mim',
-      href: buildMyTasksHref(),
-    },
-    {
       id: 'nav-tasks',
-      title: 'Tarefas da agência',
-      subtitle: 'Quadro operacional',
+      title: 'Tarefas',
+      subtitle: '',
       href: createPageUrl('tasks-manager'),
     },
     {
       id: 'nav-approvals',
       title: 'Aprovações',
-      subtitle: 'Pendências e histórico',
+      subtitle: '',
       href: createPageUrl('approval-dashboard'),
     },
   ];
 
-  const presets = TASKS_MANAGER_QUICK_PRESETS.map((id) => getTaskFilterPreset(id))
-    .filter(Boolean)
-    .filter((p) => {
-      const needsUser =
-        String(p.id).startsWith('my_') || p.id === 'waiting_others';
-      return !needsUser || Boolean(userId);
-    })
-    .map((p) => ({
-      id: `preset-${p.id}`,
-      title: p.label,
-      subtitle: 'Filtro rápido de tarefas',
-      href: buildTasksManagerHref({ preset: p.id }),
-    }));
-
-  return { nav, presets };
+  return { nav, presets: [] };
 }
 
 /**

@@ -1,5 +1,8 @@
 import { Loader2 } from 'lucide-react';
 
+/** Re-export para um único ponto de import opcional. */
+export { LoadingSpinner } from './LoadingStates';
+
 export default function LoadingState({ 
   message = "Carregando...", 
   variant = "spinner",

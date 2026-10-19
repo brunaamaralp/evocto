@@ -72,9 +72,7 @@ export default function ClientBriefingStatusCard({
             <span className="text-xs text-[#7A7595]">· {label}</span>
           </div>
           <p className="text-sm text-[#7A7595]">
-            {isReady
-              ? 'DNA do cliente preenchido. Edite quando o contexto mudar.'
-              : 'Base estratégica do cliente — preencha ou continue pelo editor.'}
+            {isReady ? 'Preenchido. Edite quando mudar.' : 'Preencha ou continue no editor.'}
           </p>
         </div>
         <Button

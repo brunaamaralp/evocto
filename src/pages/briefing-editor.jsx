@@ -346,7 +346,11 @@ function BriefingEditorPage() {
         {/* Header de contexto */}
         <ContextHeader
           title={isEditing ? 'Editar Briefing Mestre' : 'Criar Briefing Mestre'}
-          subtitle={client ? `${client.name || client.legal_name} • ${client.legal_name || 'Empresa'}` : 'Cliente não identificado'}
+          subtitle={
+            client?.legal_name && client.legal_name !== client.name
+              ? client.legal_name
+              : undefined
+          }
           backButton={{
             href: client ? `${createPageUrl('client')}?clientId=${client.id}` : createPageUrl('clients')
           }}

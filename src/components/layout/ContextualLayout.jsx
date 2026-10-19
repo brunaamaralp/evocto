@@ -20,6 +20,18 @@ export default function ContextualLayout({ user, children }) {
   const [contextClient, setContextClient] = useState(null);
   const [contextCampaign, setContextCampaign] = useState(null);
 
+  useEffect(() => {
+    if (!sidebarOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSidebarOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
+
   const urlParams = new URLSearchParams(location.search);
   const clientId = urlParams.get('clientId');
   const serviceId = urlParams.get('serviceId');

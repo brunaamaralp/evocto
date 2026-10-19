@@ -395,7 +395,6 @@ export default function TaskManager({
         filters={filters}
         onFiltersChange={setFilters}
         tasks={tasks}
-        currentUserId={currentUserId}
         compact={embedded}
       />
 

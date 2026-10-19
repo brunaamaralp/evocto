@@ -21,6 +21,7 @@ import {
   CheckSquare,
   Megaphone,
   CalendarDays,
+  Settings,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
@@ -283,6 +284,19 @@ export default function ModernHeader({
                   <Link to={createPageUrl('minha-empresa')} className="flex items-center cursor-pointer">
                     <Building2 className="h-4 w-4 mr-2" />
                     Minha empresa
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={
+                      isClientContext
+                        ? createPageUrl(`client-settings?clientId=${context.clientId}`)
+                        : createPageUrl('settings')
+                    }
+                    className="flex items-center cursor-pointer"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configurações
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

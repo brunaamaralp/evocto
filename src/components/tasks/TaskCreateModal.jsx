@@ -49,6 +49,7 @@ export default function TaskCreateModal({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [kind, setKind] = React.useState(defaultKind === "meeting" ? "meeting" : "task");
+  const [showMoreOptions, setShowMoreOptions] = React.useState(false);
 
   // Form data
   const [taskData, setTaskData] = React.useState({
@@ -109,6 +110,7 @@ export default function TaskCreateModal({
     });
     setError("");
     setServices([]);
+    setShowMoreOptions(false);
   }, [defaultKind]);
 
   React.useEffect(() => {
@@ -369,74 +371,7 @@ export default function TaskCreateModal({
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {isMeeting ? (
-                <div>
-                  <Label>Tipo de reunião</Label>
-                  <Select
-                    value={isMeetingType(taskData.type) ? taskData.type : "reuniao"}
-                    onValueChange={(value) => setTaskData((prev) => ({ ...prev, type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="reuniao">Reunião</SelectItem>
-                      <SelectItem value="reuniao_alinhamento">Reunião de alinhamento</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div>
-                  <Label>Tipo</Label>
-                  <Select
-                    value={taskData.type}
-                    onValueChange={(value) => {
-                      setTaskData((prev) => ({ ...prev, type: value }));
-                      if (isMeetingType(value)) setKind("meeting");
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="analise_documentos">Análise Documentos</SelectItem>
-                      <SelectItem value="coleta_dados">Coleta Dados</SelectItem>
-                      <SelectItem value="analise_dados">Análise Dados</SelectItem>
-                      <SelectItem value="analise_financeira">Análise Financeira</SelectItem>
-                      <SelectItem value="relatorio_financeiro">Relatório Financeiro</SelectItem>
-                      <SelectItem value="planejamento_estrategico">Planejamento Estratégico</SelectItem>
-                      <SelectItem value="implementacao">Implementação</SelectItem>
-                      <SelectItem value="treinamento">Treinamento</SelectItem>
-                      <SelectItem value="administrativo">Administrativo</SelectItem>
-                      <SelectItem value="auditoria">Auditoria</SelectItem>
-                      <SelectItem value="consultoria">Consultoria</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div>
-                <Label className="flex items-center gap-1">
-                  <Flag className="w-4 h-4" />
-                  Prioridade
-                </Label>
-                <Select
-                  value={taskData.priority}
-                  onValueChange={(value) => setTaskData((prev) => ({ ...prev, priority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="flex items-center gap-1">
                   <UserIcon className="w-4 h-4" />
@@ -461,9 +396,7 @@ export default function TaskCreateModal({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -498,22 +431,109 @@ export default function TaskCreateModal({
                   />
                 )}
               </div>
+            </div>
 
-              <div>
-                <Label>{isMeeting ? "Duração (horas)" : "Horas estimadas"}</Label>
-                <Input
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={taskData.estimatedHours}
-                  onChange={(e) =>
-                    setTaskData((prev) => ({
-                      ...prev,
-                      estimatedHours: Number(e.target.value) || (isMeeting ? 1 : 4),
-                    }))
-                  }
-                />
-              </div>
+            <div>
+              <Label className="flex items-center gap-1">
+                <Flag className="w-4 h-4" />
+                Prioridade
+              </Label>
+              <Select
+                value={taskData.priority}
+                onValueChange={(value) => setTaskData((prev) => ({ ...prev, priority: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border rounded-lg p-3 space-y-3">
+              <button
+                type="button"
+                className="text-sm font-medium text-[#6C47D8] hover:underline"
+                onClick={() => setShowMoreOptions((v) => !v)}
+                aria-expanded={showMoreOptions}
+              >
+                {showMoreOptions ? "Ocultar opções extras" : "Mais opções"}
+              </button>
+              {showMoreOptions || isMeeting ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {isMeeting ? (
+                    <div>
+                      <Label>Tipo de reunião</Label>
+                      <Select
+                        value={isMeetingType(taskData.type) ? taskData.type : "reuniao"}
+                        onValueChange={(value) =>
+                          setTaskData((prev) => ({ ...prev, type: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="reuniao">Reunião</SelectItem>
+                          <SelectItem value="reuniao_alinhamento">
+                            Reunião de alinhamento
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div>
+                      <Label>Tipo</Label>
+                      <Select
+                        value={taskData.type}
+                        onValueChange={(value) => {
+                          setTaskData((prev) => ({ ...prev, type: value }));
+                          if (isMeetingType(value)) setKind("meeting");
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="analise_documentos">Análise Documentos</SelectItem>
+                          <SelectItem value="coleta_dados">Coleta Dados</SelectItem>
+                          <SelectItem value="analise_dados">Análise Dados</SelectItem>
+                          <SelectItem value="analise_financeira">Análise Financeira</SelectItem>
+                          <SelectItem value="relatorio_financeiro">Relatório Financeiro</SelectItem>
+                          <SelectItem value="planejamento_estrategico">
+                            Planejamento Estratégico
+                          </SelectItem>
+                          <SelectItem value="implementacao">Implementação</SelectItem>
+                          <SelectItem value="treinamento">Treinamento</SelectItem>
+                          <SelectItem value="administrativo">Administrativo</SelectItem>
+                          <SelectItem value="auditoria">Auditoria</SelectItem>
+                          <SelectItem value="consultoria">Consultoria</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div>
+                    <Label>{isMeeting ? "Duração (horas)" : "Horas estimadas"}</Label>
+                    <Input
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      value={taskData.estimatedHours}
+                      onChange={(e) =>
+                        setTaskData((prev) => ({
+                          ...prev,
+                          estimatedHours:
+                            Number(e.target.value) || (isMeeting ? 1 : 4),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4">

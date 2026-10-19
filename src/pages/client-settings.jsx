@@ -162,7 +162,6 @@ export default function ClientSettingsPage() {
               <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
                 Configurações
               </h1>
-              <p className="text-xs text-[#7A7595]">Dados e preferências do cliente</p>
             </div>
           </div>
           <Button size="sm" onClick={handleSave} disabled={saving} className="w-full sm:w-auto shrink-0">

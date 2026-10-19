@@ -162,7 +162,7 @@ function TaskCard({ task, busyId, onAdvance, onComplete }) {
  */
 export default function CampaignWorkspaceTasks({
   tasks = [],
-  scopeLabel = null,
+  scopeLabel: _scopeLabel = null,
   sharedCycleFallback = false,
   onTasksNeedReload = null,
   clientId = null,
@@ -273,12 +273,6 @@ export default function CampaignWorkspaceTasks({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Tarefas</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Fluxo da campanha
-            {scopeLabel ? ` · ${scopeLabel}` : ''}. Use{' '}
-            <span className="font-medium text-slate-700">Concluir</span> ou{' '}
-            <span className="font-medium text-slate-700">Avançar</span>.
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {sharedCycleFallback ? (

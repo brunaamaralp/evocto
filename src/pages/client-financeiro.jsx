@@ -354,9 +354,6 @@ export default function ClientFinanceiroPage() {
             <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
               Financeiro
             </h1>
-            <p className="text-xs text-[#7A7595] truncate">
-              Recorrentes, cobranças e pagamentos
-            </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -425,7 +422,7 @@ export default function ClientFinanceiroPage() {
         <div className="af-section__head">
           <div>
             <h2>Receitas recorrentes</h2>
-            <p className="af-muted">Fee mensal deste cliente — gera cobranças ao abrir o mês no Financeiro.</p>
+            <p className="af-muted">Gera cobranças ao abrir o mês.</p>
           </div>
           <Button size="sm" onClick={openNewRecurring}>
             <Plus className="h-4 w-4" /> Nova

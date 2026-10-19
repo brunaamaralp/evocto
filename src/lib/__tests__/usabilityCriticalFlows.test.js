@@ -56,7 +56,7 @@ const USER = 'user-qa-1';
 const NOW = new Date('2026-10-19T12:00:00');
 
 describe('Cenário 1 — Localizar tarefas atribuídas ao usuário', () => {
-  it('href Minhas tarefas e preset filtram por assignee', () => {
+  it('filtro Minhas tarefas restringe por assignee (não é página separada)', () => {
     const href = buildMyTasksHref();
     expect(href).toContain('tasks-manager');
     expect(href).toContain('preset=my_tasks');
@@ -78,13 +78,14 @@ describe('Cenário 1 — Localizar tarefas atribuídas ao usuário', () => {
     ).toBe(false);
   });
 
-  it('atalho mobile my-tasks aponta para o mesmo preset', () => {
+  it('nav Tarefas abre o quadro sem preset; Minhas tarefas fica no filtro', () => {
     const nav = getMobileBottomNavItems({
       mode: 'global',
       currentPage: 'dashboard',
     });
-    const myTasks = nav.find((i) => i.id === 'my-tasks');
-    expect(myTasks?.href).toContain('preset=my_tasks');
+    const tasks = nav.find((i) => i.id === 'tasks');
+    expect(tasks?.href).toMatch(/tasks-manager/);
+    expect(tasks?.href).not.toContain('preset=');
   });
 });
 
@@ -416,7 +417,7 @@ describe('Cenário 11 — Falha de rede / persistência', () => {
 });
 
 describe('Cenário 12 — Mobile e teclado (contratos de shell)', () => {
-  it('bottom nav mobile tem Home, Clientes, Minhas tarefas, Aprovações', () => {
+  it('bottom nav mobile tem Home, Clientes, Tarefas, Aprovações', () => {
     const agency = getMobileBottomNavItems({
       mode: 'global',
       currentPage: 'tasks-manager',
@@ -424,11 +425,11 @@ describe('Cenário 12 — Mobile e teclado (contratos de shell)', () => {
     expect(agency.map((i) => i.id)).toEqual([
       'home',
       'clients',
-      'my-tasks',
+      'tasks',
       'approvals',
       'more',
     ]);
-    expect(agency.find((i) => i.id === 'my-tasks').isActive).toBe(true);
+    expect(agency.find((i) => i.id === 'tasks').isActive).toBe(true);
   });
 
   it('nav do cliente inclui tarefas com clientId', () => {

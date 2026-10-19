@@ -9,7 +9,7 @@ import { buildBriefingInicialHref } from '@/lib/briefingInicial';
  */
 export default function CampaignWorkspaceContexto({
   clientId,
-  clientName,
+  clientName: _clientName,
   serviceName,
 }) {
   const panoramaHref = clientId ? buildAnnualPlanHref(clientId) : createPageUrl('clients');
@@ -21,22 +21,14 @@ export default function CampaignWorkspaceContexto({
     <section className="space-y-6 max-w-2xl">
       <div>
         <h2 className="text-lg font-semibold text-slate-900">Contexto</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Briefing inicial e base estratégica do cliente. A edição fica no
-          formulário de briefing — aqui só a referência para operar.
-        </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Cliente</p>
-          <p className="text-sm font-medium text-slate-900">{clientName || '—'}</p>
-        </div>
-        <div>
+      {serviceName ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
           <p className="text-xs uppercase tracking-wide text-slate-500">Serviço</p>
-          <p className="text-sm font-medium text-slate-900">{serviceName || '—'}</p>
+          <p className="text-sm font-medium text-slate-900">{serviceName}</p>
         </div>
-      </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {inicialHref ? (

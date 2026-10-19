@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle } from 'lucide-react';
 import AsyncButton from './AsyncButton.jsx';
+import useDialogFocus from '@/hooks/useDialogFocus';
 
 /**
  * Diálogo de confirmação (Fase 2 — design system Nave).
@@ -18,6 +19,10 @@ export default function ConfirmDialog({
   onConfirm,
   onClose,
 }) {
+  const dialogRef = useDialogFocus(open && !loading, () => {
+    if (!loading) onClose?.();
+  });
+
   useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
     const prev = document.body.style.overflow;
@@ -38,11 +43,13 @@ export default function ConfirmDialog({
       }}
     >
       <div
+        ref={dialogRef}
         className="navi-confirm-modal"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="navi-confirm-title"
         aria-describedby={description ? 'navi-confirm-desc' : undefined}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="navi-confirm-icon-wrap" aria-hidden>

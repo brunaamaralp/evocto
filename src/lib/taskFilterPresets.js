@@ -383,7 +383,10 @@ export function buildPhaseOptions(tasks = []) {
   return [...byId.entries()].map(([id, label]) => ({ id, label }));
 }
 
-/** Presets exibidos como chips rápidos no tasks-manager (ordem de uso diário). */
+/**
+ * Presets aplicados via URL (`?preset=`), não como chips na UI.
+ * Mantidos para deep-links e filtros programáticos.
+ */
 export const TASKS_MANAGER_QUICK_PRESETS = [
   'my_tasks',
   'my_open',

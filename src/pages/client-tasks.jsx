@@ -385,18 +385,19 @@ export default function ClientTasksPage() {
               </Button>
               <div className="min-w-0">
                 <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
-                  Tarefas do cliente
+                  Tarefas
                 </h1>
-                <p className="text-xs text-[#7A7595] truncate">
-                  <Link
-                    to={campaignHref}
-                    className="hover:text-[#6C47D8] hover:underline"
-                  >
-                    {campaignName}
-                  </Link>
-                  {showCycleLabel ? ` · ${cycleLabel}` : ''}
-                  {scopeMeta.sharedCycleFallback ? ' · tarefas do período' : ''}
-                </p>
+                {(campaignName || showCycleLabel) && (
+                  <p className="text-xs text-[#7A7595] truncate">
+                    <Link
+                      to={campaignHref}
+                      className="hover:text-[#6C47D8] hover:underline"
+                    >
+                      {campaignName}
+                    </Link>
+                    {showCycleLabel ? ` · ${cycleLabel}` : ''}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -412,11 +413,8 @@ export default function ClientTasksPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
               <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
-              <span className="truncate">Tarefas do cliente</span>
+              <span className="truncate">Tarefas</span>
             </h1>
-            <p className="text-[#7A7595] mt-1 text-sm sm:text-base truncate">
-              {client?.name || 'Cliente'} · Atividades do cliente
-            </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <Button asChild variant="outline" size="sm" className="hidden sm:flex">

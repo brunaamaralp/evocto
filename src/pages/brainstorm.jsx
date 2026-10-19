@@ -411,16 +411,21 @@ export default function BrainstormPage() {
     <div style={styles.page}>
       <div style={styles.topBar}>
         <div>
-          <h1 style={styles.title}>Brainstorm de Campanhas</h1>
-          <p style={styles.subtitle}>
-            {client?.name || 'Cliente'}
-            {empresa?.nome ? ` · ${empresa.nome}` : ''}
-            {mesParam
-              ? fromPlan
-                ? ` · plano ${mesParam}/${anoParam}`
-                : ` · nova campanha ${mesParam}/${anoParam}`
-              : ' — explorar → refinar → criar campanha'}
-          </p>
+          <h1 style={styles.title}>Brainstorm</h1>
+          {(mesParam || empresa?.nome) && (
+            <p style={styles.subtitle}>
+              {[
+                empresa?.nome || null,
+                mesParam
+                  ? fromPlan
+                    ? `plano ${mesParam}/${anoParam}`
+                    : `${mesParam}/${anoParam}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          )}
         </div>
         <div style={styles.mobileToggles} className="brainstorm-mobile-toggles">
           <button

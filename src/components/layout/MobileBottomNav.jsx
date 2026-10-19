@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  ListTodo,
   ClipboardCheck,
   Menu,
   LayoutGrid,
@@ -16,7 +15,6 @@ import { cn } from '@/lib/utils';
 const ICONS = {
   home: LayoutDashboard,
   clients: Users,
-  'my-tasks': ListTodo,
   approvals: ClipboardCheck,
   more: Menu,
   hub: LayoutGrid,

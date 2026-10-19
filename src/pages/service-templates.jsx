@@ -197,10 +197,9 @@ export default function ServiceTemplatesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Templates de Serviço</h1>
-          <p className="text-[#7A7595] mt-1">
-            Gerencie os modelos reutilizáveis dos seus serviços
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">
+            Templates de Serviço
+          </h1>
         </div>
         
         <div className="flex gap-2 flex-wrap justify-end">

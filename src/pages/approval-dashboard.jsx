@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Download, BarChart3, Clock, 
   CheckCircle, XCircle, AlertCircle,
   FileText, TrendingUp, TrendingDown,
-  Eye, Send, MoreHorizontal, RefreshCw
+  Eye, Send, MoreHorizontal, RefreshCw, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
@@ -36,6 +36,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -162,7 +172,7 @@ const ApprovalFilters = ({ filters, onFiltersChange }) => {
 };
 
 // Tabela de aprovações
-const ApprovalsTable = ({ approvals, onAction }) => {
+const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
   return (
     <div className="bg-white rounded-2xl border border-[#D4CBF5] overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -244,17 +254,30 @@ const ApprovalsTable = ({ approvals, onAction }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onAction('view', approval)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Visualizar
-                        </DropdownMenuItem>
+                        {approval.href ? (
+                          <DropdownMenuItem
+                            disabled={actionBusyId === approval.id}
+                            onClick={() => onAction('view', approval)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Visualizar
+                          </DropdownMenuItem>
+                        ) : null}
                         {approval.status === 'pending' && (
                           <>
-                            <DropdownMenuItem onClick={() => onAction('resend', approval)}>
-                              <Send className="h-4 w-4 mr-2" />
+                            <DropdownMenuItem
+                              disabled={actionBusyId === approval.id}
+                              onClick={() => onAction('resend', approval)}
+                            >
+                              {actionBusyId === approval.id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Send className="h-4 w-4 mr-2" />
+                              )}
                               Reenviar
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
+                              disabled={actionBusyId === approval.id}
                               onClick={() => onAction('revoke', approval)}
                               className="text-red-600"
                             >
@@ -263,7 +286,10 @@ const ApprovalsTable = ({ approvals, onAction }) => {
                             </DropdownMenuItem>
                           </>
                         )}
-                        <DropdownMenuItem onClick={() => onAction('download', approval)}>
+                        <DropdownMenuItem
+                          disabled={actionBusyId === approval.id}
+                          onClick={() => onAction('download', approval)}
+                        >
                           <Download className="h-4 w-4 mr-2" />
                           Baixar PDF
                         </DropdownMenuItem>
@@ -309,6 +335,8 @@ export default function ApprovalDashboard() {
     expired: 0,
     approvalRate: 0
   });
+  const [actionBusyId, setActionBusyId] = useState(null);
+  const [revokeTarget, setRevokeTarget] = useState(null);
 
   const loadApprovals = useCallback(async () => {
     if (!agencyId) {
@@ -390,6 +418,26 @@ export default function ApprovalDashboard() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const confirmRevoke = async () => {
+    const approval = revokeTarget;
+    if (!approval) return;
+    setRevokeTarget(null);
+    setActionBusyId(approval.id);
+    try {
+      await revokePendingApproval(approval);
+      toast.success(
+        approval.source === 'cycle'
+          ? 'Ciclo voltou para rascunho'
+          : 'Aprovação revogada'
+      );
+      await loadApprovals();
+    } catch (error) {
+      toast.error(error?.message || 'Erro ao revogar');
+    } finally {
+      setActionBusyId(null);
+    }
+  };
+
   // Ações da tabela
   const handleAction = async (action, approval) => {
     switch (action) {
@@ -401,6 +449,7 @@ export default function ApprovalDashboard() {
         }
         break;
       case 'resend':
+        setActionBusyId(approval.id);
         try {
           const result = await resendPendingApproval(approval);
           if (result.mode === 'open_cycle' && result.href) {
@@ -411,22 +460,12 @@ export default function ApprovalDashboard() {
           }
         } catch (error) {
           toast.error(error?.message || 'Erro ao reenviar');
+        } finally {
+          setActionBusyId(null);
         }
         break;
       case 'revoke':
-        if (confirm('Tem certeza que deseja revogar esta aprovação?')) {
-          try {
-            await revokePendingApproval(approval);
-            toast.success(
-              approval.source === 'cycle'
-                ? 'Ciclo voltou para rascunho'
-                : 'Aprovação revogada'
-            );
-            await loadApprovals();
-          } catch (error) {
-            toast.error(error?.message || 'Erro ao revogar');
-          }
-        }
+        setRevokeTarget(approval);
         break;
       case 'download': {
         const result = downloadApprovalPdf(approval);
@@ -455,8 +494,9 @@ export default function ApprovalDashboard() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">Dashboard de Aprovações</h1>
-            <p className="text-[#7A7595] text-sm sm:text-base">Gerencie todas as solicitações de aprovação</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">
+              Aprovações
+            </h1>
           </div>
           <Button
             className="w-full sm:w-auto shrink-0"
@@ -506,7 +546,44 @@ export default function ApprovalDashboard() {
         <ApprovalFilters filters={filters} onFiltersChange={setFilters} />
 
         {/* Tabela */}
-        <ApprovalsTable approvals={filteredApprovals} onAction={handleAction} />
+        <ApprovalsTable
+          approvals={filteredApprovals}
+          onAction={handleAction}
+          actionBusyId={actionBusyId}
+        />
+
+        <AlertDialog
+          open={Boolean(revokeTarget)}
+          onOpenChange={(next) => {
+            if (!next) setRevokeTarget(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Revogar esta aprovação?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {revokeTarget?.source === 'cycle'
+                  ? 'O ciclo voltará para rascunho e o link de aprovação deixará de valer.'
+                  : 'A solicitação será marcada como revogada e o aprovador não poderá mais responder.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={Boolean(actionBusyId)}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmRevoke}
+                className="bg-red-600 hover:bg-red-700"
+                disabled={Boolean(actionBusyId)}
+              >
+                {actionBusyId ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
+                ) : null}
+                Revogar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }

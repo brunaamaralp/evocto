@@ -72,18 +72,20 @@ describe('shellNavigation', () => {
     expect(agency.map((i) => i.id)).toEqual([
       'home',
       'clients',
-      'my-tasks',
+      'tasks',
       'approvals',
       'more',
     ]);
     expect(agency.find((i) => i.id === 'home').isActive).toBe(true);
     expect(agency.find((i) => i.id === 'more').action).toBe('more');
+    expect(agency.find((i) => i.id === 'tasks').href).toMatch(/tasks-manager/);
+    expect(agency.find((i) => i.id === 'tasks').href).not.toContain('preset=');
 
     const onTasksBoard = getMobileBottomNavItems({
       mode: 'global',
       currentPage: 'tasks-manager',
     });
-    expect(onTasksBoard.find((i) => i.id === 'my-tasks').isActive).toBe(true);
+    expect(onTasksBoard.find((i) => i.id === 'tasks').isActive).toBe(true);
 
     const client = getMobileBottomNavItems({
       mode: 'client',

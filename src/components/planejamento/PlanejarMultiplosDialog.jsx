@@ -223,6 +223,16 @@ export default function PlanejarMultiplosDialog({
           </p>
         ) : null}
 
+        {step === 1 && eligible.length < MULTIPLOS_MIN ? (
+          <p
+            id="planejar-multiplos-min-hint"
+            className="text-xs text-muted-foreground"
+          >
+            É preciso ter ao menos {MULTIPLOS_MIN} meses vazios no Panorama para
+            continuar ({eligible.length} disponíveis).
+          </p>
+        ) : null}
+
         <DialogFooter className="gap-2 sm:gap-0">
           {step === 2 ? (
             <Button
@@ -247,6 +257,16 @@ export default function PlanejarMultiplosDialog({
               type="button"
               onClick={goCanvas}
               disabled={eligible.length < MULTIPLOS_MIN}
+              title={
+                eligible.length < MULTIPLOS_MIN
+                  ? `Selecione ao menos ${MULTIPLOS_MIN} meses vazios no Panorama`
+                  : 'Ir para o canvas do lote'
+              }
+              aria-describedby={
+                eligible.length < MULTIPLOS_MIN
+                  ? 'planejar-multiplos-min-hint'
+                  : undefined
+              }
             >
               Continuar
             </Button>

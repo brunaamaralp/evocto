@@ -146,6 +146,8 @@ export default function LoginPage() {
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7595]"
                   onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

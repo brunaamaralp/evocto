@@ -310,11 +310,8 @@ export default function ClientDiagnosticPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
-              Diagnóstico de Comunicação e Marca
+              Diagnóstico
             </h1>
-            <p className="text-gray-600 mt-1">
-              {client?.name} • Avaliação completa da presença de marca e comunicação
-            </p>
           </div>
           <Button 
             variant="outline"

@@ -35,15 +35,10 @@ describe('mapPendingApprovalsForDashboard', () => {
 });
 
 describe('getGlobalSearchShortcuts', () => {
-  it('includes approvals nav and personal presets when userId present', () => {
+  it('includes approvals nav without filter-preset chips', () => {
     const { nav, presets } = getGlobalSearchShortcuts({ userId: 'u1' });
     expect(nav.some((n) => n.id === 'nav-approvals')).toBe(true);
-    expect(presets.some((p) => p.id === 'preset-my_overdue')).toBe(true);
-  });
-
-  it('hides my_* presets without userId', () => {
-    const { presets } = getGlobalSearchShortcuts({ userId: null });
-    expect(presets.every((p) => !String(p.id).includes('my_'))).toBe(true);
+    expect(presets).toEqual([]);
   });
 });
 

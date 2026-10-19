@@ -48,16 +48,11 @@ import {
   buildOverviewActionCards,
   buildAgendaBuckets,
   collectCampaignBlockers,
-  defaultWorkLensForRole,
 } from '@/lib/dashboardActionMetrics';
 import { openGlobalSearch } from '@/components/search/GlobalSearch';
 import {
   buildTasksManagerHref,
-  getTaskAssigneeId,
-  isAwaitingMyAction,
-  isTaskOverdue,
   isWaitingOnClient,
-  isWaitingOnOthers,
   isOpenTaskStatus,
 } from '@/lib/taskFilterPresets';
 
@@ -82,12 +77,6 @@ async function safeFilter(entity, filters) {
 function startOfLocalDay(date = new Date()) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function addLocalDays(date, days) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
   return d;
 }
 
@@ -259,89 +248,6 @@ function buildAttentionQueue(tasks, clients, todayStart, approvalItems = []) {
       return a.sortAt - b.sortAt;
     })
     .slice(0, 6);
-}
-
-/**
- * Fila pessoal: atrasadas minhas, ação minha, dependem de terceiros, próximos prazos.
- * Não mistura aprovações de ciclo/cliente com “minha ação”.
- */
-function buildPersonalQueues(tasks, clients, todayStart, userId) {
-  const emptyBucket = { items: [], total: 0 };
-  const empty = {
-    overdue: emptyBucket,
-    myAction: emptyBucket,
-    waitingOthers: emptyBucket,
-    upcoming: emptyBucket,
-  };
-  if (!userId) return empty;
-
-  const overdue = [];
-  const myAction = [];
-  const waitingOthers = [];
-  const upcoming = [];
-  const seen = new Set();
-
-  for (const task of tasks) {
-    if (!isOpenTaskStatus(task)) continue;
-    const assignedToMe =
-      String(getTaskAssigneeId(task) || '') === String(userId);
-    const awaitingMe = isAwaitingMyAction(task, userId);
-
-    if (assignedToMe && isTaskOverdue(task, todayStart)) {
-      const item = buildTaskItem(task, clients, todayStart, 'overdue');
-      if (!seen.has(item.id)) {
-        seen.add(item.id);
-        overdue.push(item);
-      }
-      continue;
-    }
-
-    if (awaitingMe) {
-      const item = buildTaskItem(task, clients, todayStart, 'my_action');
-      if (!seen.has(item.id)) {
-        seen.add(item.id);
-        myAction.push(item);
-      }
-      continue;
-    }
-
-    if (isWaitingOnOthers(task, userId)) {
-      const kind = isWaitingOnClient(task) ? 'waiting_client' : 'waiting_others';
-      const item = buildTaskItem(task, clients, todayStart, kind);
-      if (!seen.has(item.id)) {
-        seen.add(item.id);
-        waitingOthers.push(item);
-      }
-    }
-  }
-
-  const horizonEnd = addLocalDays(todayStart, 2);
-  for (const task of tasks) {
-    if (!isOpenTaskStatus(task)) continue;
-    if (String(getTaskAssigneeId(task) || '') !== String(userId)) continue;
-    if (isTaskOverdue(task, todayStart)) continue;
-    const due = parseDueDate(task.dueDate);
-    if (!due) continue;
-    const dueDay = startOfLocalDay(due);
-    if (dueDay < todayStart || dueDay >= horizonEnd) continue;
-    const item = buildTaskItem(task, clients, todayStart, 'agenda');
-    if (!seen.has(item.id)) {
-      seen.add(item.id);
-      upcoming.push(item);
-    }
-  }
-
-  const byDue = (a, b) => a.sortAt - b.sortAt;
-  const sortSlice = (list) => {
-    const sorted = list.sort(byDue);
-    return { items: sorted.slice(0, 6), total: sorted.length };
-  };
-  return {
-    overdue: sortSlice(overdue),
-    myAction: sortSlice(myAction),
-    waitingOthers: sortSlice(waitingOthers),
-    upcoming: sortSlice(upcoming),
-  };
 }
 
 function overviewToneClass(tone) {
@@ -619,13 +525,10 @@ function PortfolioSection({ portfolio }) {
             className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
           >
             Carteira
-          </h2>
-          <p className="mt-0.5 text-xs text-[#7A7595]">
-            Visão da carteira — tarefas e financeiro por cliente
             {portfolio.totalClients
-              ? ` · ${portfolio.totalClients} cliente${portfolio.totalClients === 1 ? '' : 's'}`
+              ? ` · ${portfolio.totalClients}`
               : ''}
-          </p>
+          </h2>
         </div>
         <Link
           to={createPageUrl('clients')}
@@ -690,24 +593,12 @@ function PortfolioSection({ portfolio }) {
  */
 export default function DashboardPage() {
   const { agencyId, userName, user, agency, loading: sessionLoading } = useSession();
-  const currentUserId = user?.id || user?.data?.id || null;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [completingId, setCompletingId] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createKind, setCreateKind] = useState('task');
-  /** @type {['agency'|'me', function]} */
-  const [workLens, setWorkLens] = useState(() =>
-    defaultWorkLensForRole(user?.role)
-  );
-  const [lensInitialized, setLensInitialized] = useState(false);
-
-  useEffect(() => {
-    if (lensInitialized || !user?.role) return;
-    setWorkLens(defaultWorkLensForRole(user.role));
-    setLensInitialized(true);
-  }, [user?.role, lensInitialized]);
 
   const loadDashboardData = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -757,7 +648,6 @@ export default function DashboardPage() {
 
       const overviewCounts = buildOverviewCounts({
         tasks,
-        userId: currentUserId,
         todayStart,
         pendingApprovalCount: pendingApprovals?.reliable
           ? pendingApprovals.count
@@ -854,7 +744,7 @@ export default function DashboardPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [agencyId, agency, currentUserId]);
+  }, [agencyId, agency]);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -1009,45 +899,12 @@ export default function DashboardPage() {
     currentPhase: operationalCycle?.currentPhase || null,
     maxItems: 5,
   });
-  const personalClientMap = new Map();
-  for (const group of campaignGroups) {
-    personalClientMap.set(String(group.clientId), {
-      id: group.clientId,
-      name: group.clientName,
-    });
-  }
-  for (const row of portfolioRows) {
-    personalClientMap.set(String(row.id), { id: row.id, name: row.name });
-  }
-  const personalQueuesNamed = buildPersonalQueues(
-    dashboardData?.tasks || [],
-    [...personalClientMap.values()],
-    startOfLocalDay(),
-    currentUserId
-  );
-  const isMeLens = workLens === 'me';
-  const personalHasItems =
-    personalQueuesNamed.overdue.total > 0 ||
-    personalQueuesNamed.myAction.total > 0 ||
-    personalQueuesNamed.waitingOthers.total > 0 ||
-    personalQueuesNamed.upcoming.total > 0;
   const overviewCards = buildOverviewActionCards(overviewCounts, {
-    userId: currentUserId,
-    lens: workLens,
+    lens: 'agency',
   });
-  const personalAgenda = buildAgendaBuckets(
-    dashboardData?.tasks || [],
-    [...personalClientMap.values()],
-    startOfLocalDay(),
-    { userId: currentUserId, personalOnly: true, upcomingDays: 2 }
-  );
-  const agendaToday = isMeLens ? personalAgenda.today : agendaBuckets.today || [];
-  const agendaUpcoming = isMeLens
-    ? personalAgenda.upcoming
-    : agendaBuckets.upcoming || [];
-  const agendaTodayTotal = isMeLens
-    ? personalAgenda.todayTotal
-    : agendaBuckets.todayTotal || 0;
+  const agendaToday = agendaBuckets.today || [];
+  const agendaUpcoming = agendaBuckets.upcoming || [];
+  const agendaTodayTotal = agendaBuckets.todayTotal || 0;
 
   return (
     <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#F5F2FC]/80 via-[#F8F7FB] to-transparent px-4 pb-8 pt-1 sm:-mx-6 sm:px-6">
@@ -1063,31 +920,6 @@ export default function DashboardPage() {
             phaseWork={phaseWork}
             compact
           />
-          <div
-            className="mt-2 inline-flex rounded-xl border border-[#E8E5F5] bg-white p-0.5"
-            role="group"
-            aria-label="Visão do trabalho"
-          >
-            <Button
-              type="button"
-              size="sm"
-              variant={workLens === 'agency' ? 'default' : 'ghost'}
-              className="h-8 rounded-lg px-3 text-xs"
-              onClick={() => setWorkLens('agency')}
-            >
-              Agência
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={workLens === 'me' ? 'default' : 'ghost'}
-              className="h-8 rounded-lg px-3 text-xs"
-              onClick={() => setWorkLens('me')}
-              disabled={!currentUserId}
-            >
-              Eu
-            </Button>
-          </div>
         </div>
         {hasCampaigns ? (
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -1127,17 +959,9 @@ export default function DashboardPage() {
 
       {overviewCards.length > 0 ? (
         <section aria-labelledby="overview-heading">
-          <div className="mb-3">
-            <h2
-              id="overview-heading"
-              className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
-            >
-              Visão geral
-            </h2>
-            <p className="mt-0.5 text-xs text-[#7A7595]">
-              Indicadores com ação — clique para abrir a lista correspondente.
-            </p>
-          </div>
+          <h2 id="overview-heading" className="sr-only">
+            Visão geral
+          </h2>
           <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
             {overviewCards.map((card) => (
               <li key={card.id}>
@@ -1157,147 +981,21 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      {isMeLens ? (
-        <>
-          {personalQueuesNamed.overdue.total > 0 ? (
-            <section aria-labelledby="my-overdue-heading">
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <h2
-                    id="my-overdue-heading"
-                    className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-                  >
-                    <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
-                    Minhas atrasadas
-                  </h2>
-                  <p className="mt-0.5 text-xs text-[#7A7595]">
-                    Atribuídas a você e fora do prazo.
-                  </p>
-                </div>
-                <Link
-                  to={buildTasksManagerHref({ preset: 'my_overdue' })}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-                >
-                  Ver no quadro
-                </Link>
-              </div>
-              <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5">
-                {personalQueuesNamed.overdue.items.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    showKindBadge
-                    variant="attention"
-                    onComplete={handleCompleteTask}
-                    completingId={completingId}
-                  />
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          {personalQueuesNamed.myAction.total > 0 ? (
-            <section aria-labelledby="my-action-heading">
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <h2
-                    id="my-action-heading"
-                    className="text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-                  >
-                    Aguardando minha ação
-                  </h2>
-                  <p className="mt-0.5 text-xs text-[#7A7595]">
-                    Trabalho atribuído a você ou revisão pendente sua.
-                  </p>
-                </div>
-                <Link
-                  to={buildTasksManagerHref({ preset: 'my_action' })}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-                >
-                  Ver no quadro
-                </Link>
-              </div>
-              <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                {personalQueuesNamed.myAction.items.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    showKindBadge
-                    variant="attention"
-                    onComplete={handleCompleteTask}
-                    completingId={completingId}
-                  />
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          {personalQueuesNamed.waitingOthers.total > 0 ? (
-            <section aria-labelledby="waiting-others-heading">
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <h2
-                    id="waiting-others-heading"
-                    className="text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-                  >
-                    Dependem de terceiros
-                  </h2>
-                  <p className="mt-0.5 text-xs text-[#7A7595]">
-                    Suas tarefas aguardando cliente, revisão ou desbloqueio.
-                  </p>
-                </div>
-                <Link
-                  to={buildTasksManagerHref({ preset: 'waiting_others' })}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-                >
-                  Ver no quadro
-                </Link>
-              </div>
-              <ul className="space-y-0.5 rounded-xl border border-[#F0DC9A] bg-[#FFF8E6]/50 px-1.5 py-1.5">
-                {personalQueuesNamed.waitingOthers.items.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    showKindBadge
-                    variant="attention"
-                    onComplete={handleCompleteTask}
-                    completingId={completingId}
-                  />
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          {!personalHasItems ? (
-            <section className="rounded-xl border border-dashed border-[#D9D4EC] bg-[#F5F2FC]/40 px-4 py-3">
-              <p className="text-sm text-[#7A7595]">
-                Nada atribuído a você no momento. Alterne para Agência para ver a operação completa, ou crie uma tarefa.
-              </p>
-            </section>
-          ) : null}
-        </>
-      ) : (
-        <>
       {attentionQueue.length > 0 ? (
         <section aria-labelledby="attention-heading">
           <div className="mb-3 flex items-baseline justify-between gap-3">
-            <div className="min-w-0">
-              <h2
-                id="attention-heading"
-                className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-              >
-                <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
-                Precisa de atenção
-              </h2>
-              <p className="mt-0.5 text-xs text-[#7A7595]">
-                Atrasos, bloqueios e o que não pode esperar na agência.
-              </p>
-            </div>
+            <h2
+              id="attention-heading"
+              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
+            >
+              <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
+              Precisa de atenção
+            </h2>
             <Link
               to={buildTasksManagerHref({})}
               className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver tarefas da agência
+              Ver tarefas
             </Link>
           </div>
           <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
@@ -1313,61 +1011,34 @@ export default function DashboardPage() {
             ))}
           </ul>
         </section>
-      ) : hasCampaigns ? (
-        <section
-          aria-labelledby="attention-empty-heading"
-          className="rounded-xl border border-dashed border-[#D9D4EC] bg-[#F5F2FC]/40 px-4 py-3"
-        >
-          <h2 id="attention-empty-heading" className="sr-only">
-            Atenção
-          </h2>
-          <p className="text-sm text-[#7A7595]">
-            {agendaToday[0]?.dueLabel
-              ? `Nada urgente no momento — próximo prazo: ${agendaToday[0].dueLabel}${agendaToday[0].title ? ` · ${agendaToday[0].title}` : ''}.`
-              : agendaUpcoming[0]?.dueLabel
-                ? `Nada urgente no momento — próximo prazo: ${agendaUpcoming[0].dueLabel}${agendaUpcoming[0].title ? ` · ${agendaUpcoming[0].title}` : ''}.`
-                : 'Nada urgente no momento. Quando houver atrasos ou bloqueios, eles aparecem aqui.'}
-          </p>
-        </section>
       ) : null}
-        </>
-      )}
 
-      {(agendaToday.length > 0 || agendaUpcoming.length > 0 || hasCampaigns) && (
-        <section aria-labelledby="work-agenda-heading" className="space-y-6">
-          <div className="mb-1 flex items-baseline justify-between gap-3">
-            <div className="min-w-0">
-              <h2
-                id="work-agenda-heading"
-                className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-              >
-                <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                {isMeLens ? 'Minha agenda de trabalho' : 'Agenda de trabalho'}
-              </h2>
-              <p className="mt-0.5 text-xs text-[#7A7595]">
-                {isMeLens
-                  ? 'Seus prazos de hoje e amanhã — clique para abrir a tarefa.'
-                  : 'Prazos de hoje e amanhã na agência — inclusive internos.'}
-              </p>
-            </div>
+      {(agendaToday.length > 0 || agendaUpcoming.length > 0) && (
+        <section aria-labelledby="work-agenda-heading" className="space-y-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2
+              id="work-agenda-heading"
+              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
+            >
+              <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+              Agenda
+            </h2>
             <Link
-              to={
-                isMeLens
-                  ? buildTasksManagerHref({ preset: 'my_open' })
-                  : buildTasksManagerHref({})
-              }
+              to={buildTasksManagerHref({})}
               className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver no quadro
+              Ver tarefas
             </Link>
           </div>
 
-          <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
-              Para hoje
-              {agendaTodayTotal > 0 ? ` · ${agendaTodayTotal}` : ''}
-            </h3>
-            {agendaToday.length > 0 ? (
+          {agendaToday.length > 0 ? (
+            <div>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
+                Hoje
+                {agendaTodayTotal > agendaToday.length
+                  ? ` · ${agendaTodayTotal}`
+                  : ''}
+              </h3>
               <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
                 {agendaToday.map((item) => (
                   <ItemRow
@@ -1379,37 +1050,27 @@ export default function DashboardPage() {
                   />
                 ))}
               </ul>
-            ) : (
-              <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
-                Nada com prazo para hoje.
-              </p>
-            )}
-          </div>
+            </div>
+          ) : null}
 
-          {(agendaUpcoming.length > 0 || hasCampaigns) && (
+          {agendaUpcoming.length > 0 ? (
             <div>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
-                Próximas atividades
+                Em seguida
               </h3>
-              {agendaUpcoming.length > 0 ? (
-                <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                  {agendaUpcoming.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      variant="agenda"
-                      onComplete={handleCompleteTask}
-                      completingId={completingId}
-                    />
-                  ))}
-                </ul>
-              ) : (
-                <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
-                  Nada com prazo para amanhã.
-                </p>
-              )}
+              <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
+                {agendaUpcoming.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    variant="agenda"
+                    onComplete={handleCompleteTask}
+                    completingId={completingId}
+                  />
+                ))}
+              </ul>
             </div>
-          )}
+          ) : null}
         </section>
       )}
 
@@ -1419,16 +1080,8 @@ export default function DashboardPage() {
         <div className="mb-5 flex items-baseline justify-between gap-3">
           <div className="min-w-0">
             <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
-              {hasCampaigns ? 'Acompanhamento de projetos' : 'Clientes'}
+              {hasCampaigns ? 'Em andamento' : 'Clientes'}
             </h2>
-            {hasCampaigns ? (
-              <p className="mt-0.5 text-xs text-[#7A7595]">
-                Campanhas com ciclo aprovado ou em execução · progresso = tarefas concluídas ÷ total (exclui canceladas)
-                {focusCampaigns.total > 0
-                  ? ` · ${Math.min(focusCampaigns.total, FOCUS_CAMPAIGN_LIMIT)} de ${focusCampaigns.total}`
-                  : ''}
-              </p>
-            ) : null}
           </div>
           {hasCampaigns ? (
             <Link
@@ -1670,17 +1323,9 @@ export default function DashboardPage() {
               variant="outline"
               className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
             >
-              <Link
-                to={
-                  isMeLens
-                    ? buildTasksManagerHref({ preset: 'my_action' })
-                    : createPageUrl('approval-dashboard')
-                }
-              >
+              <Link to={createPageUrl('approval-dashboard')}>
                 <ClipboardList className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                <span className="text-sm font-semibold text-[#18162A]">
-                  {isMeLens ? 'Minhas pendências' : 'Aprovações'}
-                </span>
+                <span className="text-sm font-semibold text-[#18162A]">Aprovações</span>
               </Link>
             </Button>
           </li>

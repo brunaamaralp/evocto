@@ -142,9 +142,6 @@ export default function SettingsPage() {
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          Gerencie suas preferências pessoais e configurações da agência
-        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

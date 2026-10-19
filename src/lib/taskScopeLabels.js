@@ -1,25 +1,25 @@
 /**
- * Rótulos consistentes por contexto de tarefas (agência / cliente / campanha).
- * Não misturar os contextos de negócio — só a linguagem de UI.
+ * Rótulos consistentes por contexto de tarefas.
+ * No shell do cliente o nome já está no breadcrumb — não repetir “do cliente”.
  */
 
 export const TASK_SCOPE_LABELS = Object.freeze({
   agency: Object.freeze({
-    nav: 'Tarefas da agência',
-    pageTitle: 'Tarefas da agência',
-    pageSubtitle: 'Quadro da agência — arraste cards ou abra uma tarefa para editar',
+    nav: 'Tarefas',
+    pageTitle: 'Tarefas',
+    pageSubtitle: '',
     short: 'Agência',
   }),
   client: Object.freeze({
-    nav: 'Tarefas do cliente',
-    pageTitle: 'Tarefas do cliente',
-    pageSubtitle: 'Inbox operacional deste cliente',
+    nav: 'Tarefas',
+    pageTitle: 'Tarefas',
+    pageSubtitle: '',
     short: 'Cliente',
   }),
   campaign: Object.freeze({
-    nav: 'Tarefas da campanha',
-    pageTitle: 'Tarefas da campanha',
-    pageSubtitle: 'Trabalho da campanha no workspace',
+    nav: 'Tarefas',
+    pageTitle: 'Tarefas',
+    pageSubtitle: '',
     short: 'Campanha',
   }),
 });

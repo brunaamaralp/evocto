@@ -29,7 +29,7 @@ import { useServiceTemplateValidation } from '@/hooks/useServiceTemplateValidati
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { useAgencyValidation } from '@/hooks/useAgencyValidation';
 import { toast } from 'sonner';
-import { useExitConfirmation } from '@/hooks/useExitConfirmation';
+import { useExitConfirmation, ExitConfirmationModal } from '@/hooks/useExitConfirmation';
 import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from '@/constants/serviceCategories';
 
 const CATEGORY_OPTIONS = Object.entries(SERVICE_CATEGORIES).map(([value, label]) => ({ value, label }));
@@ -148,15 +148,18 @@ export default function ServiceTemplateEditor({
   const { handleError } = useErrorHandling();
   const { validateAgencyWithFeedback, getValidAgencyId } = useAgencyValidation();
   
-  // Confirmação de saída
-  const { handleExitAttempt: handleCloseWithConfirmation } = useExitConfirmation(
-    isOpen,
-    formData.name || formData.description, // Tem dados preenchidos
-    onClose,
-    {
-      message: 'Você tem alterações não salvas. Deseja realmente fechar sem salvar?'
-    }
+  const hasUnsavedChanges = Boolean(
+    formData.name?.trim() || formData.description?.trim()
   );
+  const exitMessage =
+    'Você tem alterações não salvas. Deseja realmente fechar sem salvar?';
+  const { isConfirming, handleExitAttempt, confirmExit, cancelExit } =
+    useExitConfirmation(hasUnsavedChanges, { message: exitMessage });
+
+  const handleDialogOpenChange = (nextOpen) => {
+    if (nextOpen) return;
+    handleExitAttempt(onClose);
+  };
 
   const handleSave = async () => {
     // Sanitizar dados antes de validar
@@ -233,7 +236,8 @@ export default function ServiceTemplateEditor({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleCloseWithConfirmation}>
+    <>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -459,7 +463,7 @@ export default function ServiceTemplateEditor({
 
         {/* Ações */}
         <div className="flex justify-end gap-3 pt-6 border-t">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => handleExitAttempt(onClose)}>
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={saving}>
@@ -473,5 +477,12 @@ export default function ServiceTemplateEditor({
         </div>
       </DialogContent>
     </Dialog>
+    <ExitConfirmationModal
+      isOpen={isConfirming}
+      message={exitMessage}
+      onConfirm={confirmExit}
+      onCancel={cancelExit}
+    />
+    </>
   );
 }

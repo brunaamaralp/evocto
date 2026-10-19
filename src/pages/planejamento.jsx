@@ -112,7 +112,6 @@ export default function PlanejamentoPage() {
             <ArrowLeft className="h-4 w-4 text-slate-500" />
           </Link>
         </Button>
-        <p className="text-sm text-slate-500 truncate">{client.name}</p>
       </div>
 
       <AnnualPanorama

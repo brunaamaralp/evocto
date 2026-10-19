@@ -134,9 +134,6 @@ export default function ClientsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Clientes</h1>
-          <p className="text-[#7A7595] mt-1">
-            Gerencie sua carteira de clientes e prospectos
-          </p>
         </div>
         <Button onClick={handleCreateClient}>
           <Plus className="w-4 h-4 mr-2" />

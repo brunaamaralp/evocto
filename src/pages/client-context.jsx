@@ -84,7 +84,7 @@ export default function ClientContextPage() {
 function ClientOverview({ client, services, tasks }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow">
@@ -113,7 +113,7 @@ function ClientOverview({ client, services, tasks }) {
 function ClientBriefing({ client }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Briefing - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Briefing</h1>
       <p>Componente de briefing do cliente será implementado aqui</p>
     </div>
   );
@@ -122,7 +122,7 @@ function ClientBriefing({ client }) {
 function ClientServices({ client, services }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Serviços - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Serviços</h1>
       <div className="grid gap-4">
         {services.map(service => (
           <div key={service.id} className="bg-white p-4 rounded-lg shadow">
@@ -143,7 +143,7 @@ function ClientServices({ client, services }) {
 function ClientTasks({ client, tasks }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Tarefas - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Tarefas</h1>
       <div className="space-y-4">
         {tasks.map(task => (
           <div key={task.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
@@ -168,7 +168,7 @@ function ClientTasks({ client, tasks }) {
 function ClientDocuments({ client }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Documentos - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Documentos</h1>
       <p>Sistema de documentos será implementado aqui</p>
     </div>
   );
@@ -177,7 +177,7 @@ function ClientDocuments({ client }) {
 function ClientReports({ client }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Relatórios - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Relatórios</h1>
       <p>Relatórios do cliente serão implementados aqui</p>
     </div>
   );
@@ -186,7 +186,7 @@ function ClientReports({ client }) {
 function ClientSettings({ client }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Configurações - {client.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Configurações</h1>
       <p>Configurações específicas do cliente serão implementadas aqui</p>
     </div>
   );
