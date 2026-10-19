@@ -250,11 +250,18 @@ function buildAttentionQueue(tasks, clients, todayStart, approvalItems = []) {
     .slice(0, 6);
 }
 
-function overviewToneClass(tone) {
-  if (tone === 'danger') return 'border-[#F0B8BC] bg-[#FFF5F5] text-[#c0392b]';
-  if (tone === 'warning') return 'border-[#F0DC9A] bg-[#FFF8E6] text-[#b45309]';
-  if (tone === 'primary') return 'border-[#D9D4EC] bg-[#F5F2FC] text-[#6C47D8]';
-  return 'border-[#E8E5F5] bg-white text-[#18162A]';
+function overviewCountClass(tone) {
+  if (tone === 'danger') return 'text-[#c0392b]';
+  if (tone === 'warning') return 'text-[#b45309]';
+  if (tone === 'primary') return 'text-[#6C47D8]';
+  return 'text-[#18162A]';
+}
+
+function overviewAccentClass(tone) {
+  if (tone === 'danger') return 'bg-[#c0392b]';
+  if (tone === 'warning') return 'bg-[#b45309]';
+  if (tone === 'primary') return 'bg-[#6C47D8]';
+  return 'bg-[#E8E5F5]';
 }
 
 function removeTaskFromDashboardData(prev, taskId) {
@@ -407,45 +414,47 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
       <div className="min-w-0 flex-1 text-left">
         <p className="truncate text-sm font-medium text-[#18162A]">{item.title}</p>
         {secondaryLine ? (
-          <p className="text-xs text-[#7A7595]">{secondaryLine}</p>
+          <p className="mt-0.5 truncate text-xs text-[#7A7595]">{secondaryLine}</p>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {isAgenda && item.dueLabel ? (
           <span
-            className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
-              item.dueLabel === 'Hoje'
-                ? 'bg-[#F5F2FC] text-[#6C47D8]'
-                : item.dueLabel === 'Amanhã'
-                  ? 'bg-[#F8F7FB] text-[#7A7595]'
-                  : 'bg-[#F8F7FB] text-[#7A7595]'
+            className={`text-[11px] font-medium tabular-nums ${
+              item.dueLabel === 'Hoje' ? 'text-[#6C47D8]' : 'text-[#7A7595]'
             }`}
           >
             {item.dueLabel}
           </span>
         ) : null}
         {item.priority === 'high' && item.kind !== 'overdue' ? (
-          <span className="text-xs font-semibold text-[#c0392b]">Alta</span>
+          <span className="text-xs font-medium text-[#c0392b]">Alta</span>
         ) : null}
         {badge ? (
-          <span className={`text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+          <span className={`text-xs font-medium ${badge.className}`}>{badge.label}</span>
         ) : null}
       </div>
     </>
   );
 
+  const accent =
+    variant === 'attention' && isOverdue
+      ? 'border-l-[#c0392b]'
+      : variant === 'attention'
+        ? 'border-l-[#6C47D8]'
+        : isAgenda
+          ? 'border-l-transparent'
+          : 'border-l-transparent';
+
   const rowClassName = [
-    'flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg px-2.5 py-2.5 transition-colors',
-    isAgenda ? 'hover:bg-[#F8F7FB]' : 'hover:bg-white/70',
-    variant === 'attention' && isOverdue ? 'border-l-[3px] border-l-[#c0392b] pl-2' : '',
-    variant === 'attention' && !isOverdue ? 'border-l-[3px] border-l-[#6C47D8] pl-2' : '',
-    isAgenda ? 'border-l-[3px] border-l-[#C9C0E8] pl-2' : '',
+    'flex min-w-0 flex-1 items-center justify-between gap-3 border-l-2 px-3 py-2.5 transition-colors hover:bg-[#FAFAFB]',
+    accent,
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <li className="flex items-center gap-0.5">
+    <li className="flex items-center gap-0.5 border-b border-[#F0EEF7] last:border-b-0">
       {isTask ? (
         <button type="button" onClick={() => openTaskDrawer(item.taskId)} className={rowClassName}>
           {meta}
@@ -460,7 +469,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 text-[#7A7595] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
+          className="mr-1 h-8 w-8 shrink-0 text-[#7A7595] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
           disabled={isCompleting}
           title="Marcar como concluída"
           aria-label={`Marcar "${item.title}" como concluída`}
@@ -481,26 +490,23 @@ function CampaignProgressBar({ completed, total }) {
   if (!(total > 0)) return null;
   const pct = Math.min(100, Math.round((completed / total) * 100));
   return (
-    <div className="mt-3 space-y-1.5">
-      <div className="flex items-center justify-between gap-2 text-xs text-[#7A7595]">
-        <span>
-          {completed}/{total} tarefas
-        </span>
-        <span className="tabular-nums font-medium text-[#18162A]">{pct}%</span>
-      </div>
+    <div className="mt-3 flex items-center gap-3">
       <div
-        className="h-1.5 overflow-hidden rounded-full bg-[#EDEAF7]"
+        className="h-1 flex-1 overflow-hidden rounded-full bg-[#F0EEF7]"
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Progresso da campanha: ${pct}%`}
+        aria-label={`Progresso: ${pct}%`}
       >
         <div
           className="h-full rounded-full bg-[#6C47D8] transition-[width] duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
+      <span className="shrink-0 text-xs tabular-nums text-[#7A7595]">
+        {completed}/{total}
+      </span>
     </div>
   );
 }
@@ -517,19 +523,19 @@ function PortfolioSection({ portfolio }) {
   if (rows.length === 0) return null;
 
   return (
-    <section aria-labelledby="portfolio-heading" className="border-t border-[#E8E5F5] pt-8">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <div className="min-w-0">
-          <h2
-            id="portfolio-heading"
-            className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
-          >
-            Carteira
-            {portfolio.totalClients
-              ? ` · ${portfolio.totalClients}`
-              : ''}
-          </h2>
-        </div>
+    <section aria-labelledby="portfolio-heading">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2
+          id="portfolio-heading"
+          className="text-sm font-semibold tracking-tight text-[#18162A]"
+        >
+          Carteira
+          {portfolio.totalClients ? (
+            <span className="ml-1.5 font-normal text-[#7A7595]">
+              {portfolio.totalClients}
+            </span>
+          ) : null}
+        </h2>
         <Link
           to={createPageUrl('clients')}
           className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
@@ -538,20 +544,23 @@ function PortfolioSection({ portfolio }) {
         </Link>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[#E8E5F5] bg-white">
+      <div className="overflow-x-auto rounded-xl border border-[#E8E5F5]">
         <table className="w-full min-w-[36rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-[#E8E5F5] text-xs uppercase tracking-wide text-[#7A7595]">
-              <th className="px-3 py-2.5 font-semibold">Cliente</th>
-              <th className="px-3 py-2.5 font-semibold">Campanhas</th>
-              <th className="px-3 py-2.5 font-semibold">Tarefas</th>
-              <th className="px-3 py-2.5 font-semibold">Financeiro</th>
+            <tr className="border-b border-[#F0EEF7] bg-[#FAFAFB] text-xs text-[#7A7595]">
+              <th className="px-3.5 py-2.5 font-medium">Cliente</th>
+              <th className="px-3.5 py-2.5 font-medium">Campanhas</th>
+              <th className="px-3.5 py-2.5 font-medium">Tarefas</th>
+              <th className="px-3.5 py-2.5 font-medium">Financeiro</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.id} className="border-b border-[#F0EEF7] last:border-0">
-                <td className="px-3 py-2.5">
+              <tr
+                key={row.id}
+                className="border-b border-[#F0EEF7] last:border-0 hover:bg-[#FAFAFB]"
+              >
+                <td className="px-3.5 py-2.5">
                   <Link
                     to={row.href}
                     className="font-medium text-[#18162A] hover:text-[#6C47D8]"
@@ -559,16 +568,16 @@ function PortfolioSection({ portfolio }) {
                     {row.name}
                   </Link>
                 </td>
-                <td className="px-3 py-2.5 tabular-nums text-[#7A7595]">
+                <td className="px-3.5 py-2.5 tabular-nums text-[#7A7595]">
                   {row.campaignsActive > 0 ? row.campaignsActive : '—'}
                 </td>
-                <td className="px-3 py-2.5 text-[#7A7595]">
+                <td className="px-3.5 py-2.5 text-[#7A7595]">
                   {row.openTasks > 0 ? (
                     <span className="tabular-nums">
-                      {row.openTasks} aberta{row.openTasks === 1 ? '' : 's'}
+                      {row.openTasks}
                       {row.overdueTasks > 0 ? (
-                        <span className="ml-1 font-semibold text-[#c0392b]">
-                          · {row.overdueTasks} atrasada{row.overdueTasks === 1 ? '' : 's'}
+                        <span className="ml-1.5 font-medium text-[#c0392b]">
+                          {row.overdueTasks} atras.
                         </span>
                       ) : null}
                     </span>
@@ -576,7 +585,7 @@ function PortfolioSection({ portfolio }) {
                     '—'
                   )}
                 </td>
-                <td className={`px-3 py-2.5 tabular-nums ${financeToneClass(row.financeTone)}`}>
+                <td className={`px-3.5 py-2.5 tabular-nums ${financeToneClass(row.financeTone)}`}>
                   {row.financeLabel}
                 </td>
               </tr>
@@ -870,7 +879,7 @@ export default function DashboardPage() {
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
   const portfolioRows = portfolio.rows || [];
-  const FOCUS_CAMPAIGN_LIMIT = 3;
+  const FOCUS_CAMPAIGN_LIMIT = 6;
   const focusCampaigns = (() => {
     const flat = [];
     for (const group of campaignGroups) {
@@ -906,27 +915,32 @@ export default function DashboardPage() {
   const agendaUpcoming = agendaBuckets.upcoming || [];
   const agendaTodayTotal = agendaBuckets.todayTotal || 0;
 
+  const hasWorkColumns =
+    attentionQueue.length > 0 || agendaToday.length > 0 || agendaUpcoming.length > 0;
+
   return (
-    <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#F5F2FC]/80 via-[#F8F7FB] to-transparent px-4 pb-8 pt-1 sm:-mx-6 sm:px-6">
-    <div className="mx-auto max-w-4xl space-y-10 px-1 sm:px-0">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 space-y-1.5">
-          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#18162A] sm:text-[1.5rem]">
+    <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-white px-4 pb-10 pt-2 sm:-mx-6 sm:px-6">
+    <div className="mx-auto max-w-5xl space-y-8 sm:space-y-10">
+      <header className="flex flex-col gap-4 border-b border-[#F0EEF7] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#18162A] sm:text-[1.65rem]">
             {greeting}
           </h1>
           <p className="text-sm text-[#7A7595]">{todayLabel}</p>
-          <AgencyOperationalPhaseIndicator
-            cycle={operationalCycle}
-            phaseWork={phaseWork}
-            compact
-          />
+          <div className="pt-1">
+            <AgencyOperationalPhaseIndicator
+              cycle={operationalCycle}
+              phaseWork={phaseWork}
+              compact
+            />
+          </div>
         </div>
         {hasCampaigns ? (
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
               type="button"
               variant="outline"
-              className="w-full shrink-0 sm:w-auto"
+              className="w-full shrink-0 border-[#E8E5F5] sm:w-auto"
               onClick={() => {
                 setCreateKind('meeting');
                 setCreateOpen(true);
@@ -962,16 +976,24 @@ export default function DashboardPage() {
           <h2 id="overview-heading" className="sr-only">
             Visão geral
           </h2>
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {overviewCards.map((card) => (
               <li key={card.id}>
                 <Link
                   to={card.href}
                   title={card.definition}
-                  className={`flex flex-col gap-1 rounded-xl border px-3 py-3 transition-colors hover:border-[#c9c0e8] ${overviewToneClass(card.tone)}`}
+                  className="group flex flex-col gap-2 rounded-xl border border-[#E8E5F5] bg-white px-3.5 py-3.5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/35"
                 >
-                  <span className="text-2xl font-bold tabular-nums leading-none">{card.count}</span>
-                  <span className="text-xs font-semibold leading-snug text-inherit opacity-90">
+                  <span
+                    className={`h-0.5 w-6 rounded-full ${overviewAccentClass(card.tone)}`}
+                    aria-hidden
+                  />
+                  <span
+                    className={`text-2xl font-semibold tabular-nums leading-none tracking-tight ${overviewCountClass(card.tone)}`}
+                  >
+                    {card.count}
+                  </span>
+                  <span className="text-xs font-medium leading-snug text-[#7A7595] group-hover:text-[#18162A]">
                     {card.label}
                   </span>
                 </Link>
@@ -981,108 +1003,111 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      {attentionQueue.length > 0 ? (
-        <section aria-labelledby="attention-heading">
-          <div className="mb-3 flex items-baseline justify-between gap-3">
-            <h2
-              id="attention-heading"
-              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-            >
-              <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
-              Precisa de atenção
-            </h2>
-            <Link
-              to={buildTasksManagerHref({})}
-              className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-            >
-              Ver tarefas
-            </Link>
-          </div>
-          <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-            {attentionQueue.map((item) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                showKindBadge
-                variant="attention"
-                onComplete={handleCompleteTask}
-                completingId={completingId}
-              />
-            ))}
-          </ul>
-        </section>
+      {hasWorkColumns ? (
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-6">
+          {attentionQueue.length > 0 ? (
+            <section aria-labelledby="attention-heading" className="min-w-0">
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+                <h2
+                  id="attention-heading"
+                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+                >
+                  <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
+                  Precisa de atenção
+                </h2>
+                <Link
+                  to={buildTasksManagerHref({})}
+                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+                >
+                  Ver todas
+                </Link>
+              </div>
+              <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                {attentionQueue.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    showKindBadge
+                    variant="attention"
+                    onComplete={handleCompleteTask}
+                    completingId={completingId}
+                  />
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {(agendaToday.length > 0 || agendaUpcoming.length > 0) && (
+            <section aria-labelledby="work-agenda-heading" className="min-w-0 space-y-4">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2
+                  id="work-agenda-heading"
+                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+                >
+                  <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+                  Agenda
+                </h2>
+                <Link
+                  to={buildTasksManagerHref({})}
+                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+                >
+                  Ver todas
+                </Link>
+              </div>
+
+              {agendaToday.length > 0 ? (
+                <div>
+                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">
+                    Hoje
+                    {agendaTodayTotal > agendaToday.length
+                      ? ` · ${agendaTodayTotal}`
+                      : ''}
+                  </h3>
+                  <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                    {agendaToday.map((item) => (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        variant="agenda"
+                        onComplete={handleCompleteTask}
+                        completingId={completingId}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {agendaUpcoming.length > 0 ? (
+                <div>
+                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">Em seguida</h3>
+                  <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                    {agendaUpcoming.map((item) => (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        variant="agenda"
+                        onComplete={handleCompleteTask}
+                        completingId={completingId}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          )}
+        </div>
       ) : null}
-
-      {(agendaToday.length > 0 || agendaUpcoming.length > 0) && (
-        <section aria-labelledby="work-agenda-heading" className="space-y-5">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2
-              id="work-agenda-heading"
-              className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-            >
-              <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-              Agenda
-            </h2>
-            <Link
-              to={buildTasksManagerHref({})}
-              className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-            >
-              Ver tarefas
-            </Link>
-          </div>
-
-          {agendaToday.length > 0 ? (
-            <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
-                Hoje
-                {agendaTodayTotal > agendaToday.length
-                  ? ` · ${agendaTodayTotal}`
-                  : ''}
-              </h3>
-              <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                {agendaToday.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    variant="agenda"
-                    onComplete={handleCompleteTask}
-                    completingId={completingId}
-                  />
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {agendaUpcoming.length > 0 ? (
-            <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
-                Em seguida
-              </h3>
-              <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                {agendaUpcoming.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    variant="agenda"
-                    onComplete={handleCompleteTask}
-                    completingId={completingId}
-                  />
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      )}
 
       {portfolioRows.length > 0 ? <PortfolioSection portfolio={portfolio} /> : null}
 
-      <section aria-labelledby="campaigns-heading" className="border-t border-[#E8E5F5] pt-8">
-        <div className="mb-5 flex items-baseline justify-between gap-3">
-          <div className="min-w-0">
-            <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
-              {hasCampaigns ? 'Em andamento' : 'Clientes'}
-            </h2>
-          </div>
+      <section aria-labelledby="campaigns-heading">
+        <div className="mb-4 flex items-baseline justify-between gap-3">
+          <h2
+            id="campaigns-heading"
+            className="text-sm font-semibold tracking-tight text-[#18162A]"
+          >
+            {hasCampaigns ? 'Em andamento' : 'Clientes'}
+          </h2>
           {hasCampaigns ? (
             <Link
               to={createPageUrl('clients')}
@@ -1108,13 +1133,13 @@ export default function DashboardPage() {
               {setupSteps.map((step, index) => (
                 <li
                   key={step.id}
-                  className="flex gap-4 rounded-xl border border-[#E8E5F5] bg-white p-4"
+                  className="flex gap-4 rounded-xl border border-[#E8E5F5] p-4"
                 >
                   <div
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       step.done
                         ? 'bg-[#e8f5e9] text-[#2e7d32]'
-                        : 'bg-[#F5F2FC] text-[#7A7595]'
+                        : 'bg-[#FAFAFB] text-[#7A7595] ring-1 ring-[#E8E5F5]'
                     }`}
                     aria-hidden
                   >
@@ -1155,7 +1180,7 @@ export default function DashboardPage() {
                     <li key={client.id}>
                       <Link
                         to={client.href}
-                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#F5F2FC]/80"
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                       >
                         <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
@@ -1178,7 +1203,7 @@ export default function DashboardPage() {
                     <li key={client.id}>
                       <Link
                         to={client.href}
-                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#F5F2FC]/80"
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                       >
                         <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
@@ -1197,25 +1222,31 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {campaignBlockers.length > 0 ? (
               <div>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#c0392b]">
+                <h3 className="mb-2 text-xs font-medium text-[#c0392b]">
                   Entregas com atraso
                 </h3>
-                <ul className="space-y-1 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-2 py-2">
+                <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
                   {campaignBlockers.map((item) => (
-                    <li key={item.id}>
+                    <li
+                      key={item.id}
+                      className="border-b border-[#F0EEF7] last:border-b-0"
+                    >
                       <Link
                         to={item.href}
-                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/70"
+                        className="flex items-center justify-between gap-3 border-l-2 border-l-[#c0392b] px-3 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                         title={item.definition}
                       >
                         <span className="min-w-0 truncate text-sm font-medium text-[#18162A]">
                           {item.title}
                           {item.clientName ? (
-                            <span className="font-normal text-[#7A7595]"> · {item.clientName}</span>
+                            <span className="font-normal text-[#7A7595]">
+                              {' '}
+                              · {item.clientName}
+                            </span>
                           ) : null}
                         </span>
-                        <span className="shrink-0 text-xs font-semibold text-[#c0392b]">
-                          {item.overdue} atrasada{item.overdue === 1 ? '' : 's'}
+                        <span className="shrink-0 text-xs font-medium text-[#c0392b]">
+                          {item.overdue} atras.
                         </span>
                       </Link>
                     </li>
@@ -1224,7 +1255,7 @@ export default function DashboardPage() {
               </div>
             ) : null}
 
-            <ul className="space-y-3">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {focusCampaigns.items.map((campaign) => {
                 const period = campaign.cyclePeriod || campaign.cycleTitle || null;
                 const progress = campaign.progress || { completed: 0, total: 0 };
@@ -1234,27 +1265,23 @@ export default function DashboardPage() {
                   <li key={`${campaign.clientId}-${campaign.id}`}>
                     <Link
                       to={campaign.href}
-                      className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
+                      className="block h-full rounded-xl border border-[#E8E5F5] p-4 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/35"
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="truncate text-base font-semibold text-[#18162A]">
+                          <p className="truncate text-sm font-semibold text-[#18162A]">
                             {campaign.name}
                           </p>
                           {subtitle ? (
-                            <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
+                            <p className="mt-0.5 truncate text-xs text-[#7A7595]">{subtitle}</p>
                           ) : null}
                           {overdue > 0 ? (
-                            <p className="mt-1 text-xs font-semibold text-[#c0392b]">
-                              {overdue} tarefa{overdue === 1 ? '' : 's'} atrasada
-                              {overdue === 1 ? '' : 's'}
+                            <p className="mt-1 text-xs font-medium text-[#c0392b]">
+                              {overdue} atrasada{overdue === 1 ? '' : 's'}
                             </p>
                           ) : null}
                         </div>
-                        <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
-                          Abrir
-                          <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                        </span>
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-[#C9C0E8]" aria-hidden />
                       </div>
                       <CampaignProgressBar
                         completed={progress.completed || 0}
@@ -1269,68 +1296,44 @@ export default function DashboardPage() {
         )}
       </section>
 
-      <section
-        aria-labelledby="quick-access-heading"
-        className="border-t border-[#E8E5F5] pt-8"
+      <nav
+        aria-label="Acesso rápido"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#F0EEF7] pt-6 text-sm"
       >
-        <h2
-          id="quick-access-heading"
-          className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          onClick={() => {
+            setCreateKind('task');
+            setCreateOpen(true);
+          }}
         >
-          Acesso rápido
-        </h2>
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <li>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
-              onClick={() => {
-                setCreateKind('task');
-                setCreateOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-              <span className="text-sm font-semibold text-[#18162A]">Criar tarefa</span>
-            </Button>
-          </li>
-          <li>
-            <Button
-              asChild
-              variant="outline"
-              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
-            >
-              <Link to={createPageUrl('clients')}>
-                <FolderOpen className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                <span className="text-sm font-semibold text-[#18162A]">Abrir projeto</span>
-              </Link>
-            </Button>
-          </li>
-          <li>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
-              onClick={() => openGlobalSearch()}
-            >
-              <Search className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-              <span className="text-sm font-semibold text-[#18162A]">Localizar cliente</span>
-            </Button>
-          </li>
-          <li>
-            <Button
-              asChild
-              variant="outline"
-              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
-            >
-              <Link to={createPageUrl('approval-dashboard')}>
-                <ClipboardList className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                <span className="text-sm font-semibold text-[#18162A]">Aprovações</span>
-              </Link>
-            </Button>
-          </li>
-        </ul>
-      </section>
+          <Plus className="h-3.5 w-3.5" aria-hidden />
+          Criar tarefa
+        </button>
+        <Link
+          to={createPageUrl('clients')}
+          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+        >
+          <FolderOpen className="h-3.5 w-3.5" aria-hidden />
+          Clientes
+        </Link>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          onClick={() => openGlobalSearch()}
+        >
+          <Search className="h-3.5 w-3.5" aria-hidden />
+          Buscar
+        </button>
+        <Link
+          to={createPageUrl('approval-dashboard')}
+          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+        >
+          <ClipboardList className="h-3.5 w-3.5" aria-hidden />
+          Aprovações
+        </Link>
+      </nav>
 
       <TaskCreateModal
         open={createOpen}
