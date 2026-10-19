@@ -57,7 +57,7 @@ const auditResults = {
     '✅ Centro de Upload MVP - Upload → IA → Fila Revisão',
     '✅ Wizard de Mapeamento - CSV/XLSX → Entidades',
     '✅ SessionManager 401 Handling - Páginas públicas',
-    '✅ MobileNavigation - Removido @headlessui/react', 
+    '✅ Navegação mobile via ContextualSidebar overlay', 
     '✅ Loading Skeletons - Estados padronizados',
     '✅ Provenance Tooltips - Rastreabilidade de dados',
     '✅ Modo Privacidade - Blur valores sensíveis',

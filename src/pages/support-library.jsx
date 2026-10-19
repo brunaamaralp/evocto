@@ -4,62 +4,62 @@ import { BookOpen, Users, Zap } from 'lucide-react';
 
 export default function SupportLibraryPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[#F8F7FB] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header com estatísticas */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <BookOpen className="w-8 h-8 text-blue-600" />
+            <BookOpen className="w-8 h-8 text-[#6C47D8]" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Biblioteca de Apoio</h1>
-              <p className="text-gray-600">Central de conhecimento, treinamentos e recursos</p>
+              <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Biblioteca de Apoio</h1>
+              <p className="text-[#7A7595]">Central de conhecimento, treinamentos e recursos</p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-6">
-            <Card>
+            <Card className="rounded-2xl border border-[#E8E5F5]">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-blue-600" />
+                <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
+                  <BookOpen className="w-5 h-5 text-[#6C47D8]" />
                   Materiais Disponíveis
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">--</div>
-                <p className="text-sm text-gray-600">Guias, checklists e treinamentos</p>
+                <div className="text-2xl font-bold text-[#18162A]">--</div>
+                <p className="text-sm text-[#7A7595]">Guias, checklists e treinamentos</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-2xl border border-[#E8E5F5]">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="w-5 h-5 text-green-600" />
+                <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
+                  <Users className="w-5 h-5 text-[#6C47D8]" />
                   Acessos Este Mês
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">--</div>
-                <p className="text-sm text-gray-600">Visualizações dos materiais</p>
+                <div className="text-2xl font-bold text-[#18162A]">--</div>
+                <p className="text-sm text-[#7A7595]">Visualizações dos materiais</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-2xl border border-[#E8E5F5]">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-orange-600" />
+                <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
+                  <Zap className="w-5 h-5 text-[#6C47D8]" />
                   Materiais Populares
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">--</div>
-                <p className="text-sm text-gray-600">Mais acessados</p>
+                <div className="text-2xl font-bold text-[#18162A]">--</div>
+                <p className="text-sm text-[#7A7595]">Mais acessados</p>
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* Biblioteca Principal */}
-        <Card>
+        <Card className="rounded-2xl border border-[#E8E5F5]">
           <CardContent className="p-6">
             <SupportLibrary />
           </CardContent>

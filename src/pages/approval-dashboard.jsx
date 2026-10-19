@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { useT } from '@/components/i18n/I18nProvider';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,17 @@ import { Download, BarChart3, Clock,
   Eye, Send, MoreHorizontal, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createPageUrl } from '@/utils';
+import { ApprovalRequest } from '@/api/entities';
+import {
+  fetchPendingApprovals,
+  mapPendingApprovalsForDashboard,
+} from '@/lib/pendingApprovals';
+import {
+  resendPendingApproval,
+  revokePendingApproval,
+  downloadApprovalPdf,
+} from '@/lib/approvalDashboardActions';
 import {
   Select,
   SelectContent,
@@ -56,7 +68,14 @@ const APPROVAL_STATUS = {
     icon: AlertCircle,
     bgColor: 'bg-gray-100',
     textColor: 'text-gray-700'
-  }
+  },
+  revoked: {
+    label: 'Revogado',
+    color: 'gray',
+    icon: XCircle,
+    bgColor: 'bg-gray-100',
+    textColor: 'text-gray-700',
+  },
 };
 
 // Card de estatísticas
@@ -262,7 +281,9 @@ const ApprovalsTable = ({ approvals, onAction }) => {
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-[#18162A] mb-2">Nenhuma aprovação encontrada</h3>
-          <p className="text-[#7A7595]">Crie sua primeira solicitação de aprovação</p>
+          <p className="text-[#7A7595] max-w-md mx-auto">
+            Solicitações nascem no ciclo ou no conteúdo do cliente — abra o cliente para enviar uma aprovação.
+          </p>
         </div>
       )}
     </div>
@@ -272,7 +293,8 @@ const ApprovalsTable = ({ approvals, onAction }) => {
 // Componente principal
 export default function ApprovalDashboard() {
   const _t = useT();
-  const { _user } = useSession();
+  const { agencyId } = useSession();
+  const navigate = useNavigate();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -288,57 +310,72 @@ export default function ApprovalDashboard() {
     approvalRate: 0
   });
 
-  // Carregar dados
-  useEffect(() => {
-    loadApprovals();
-  }, []);
-
-  const loadApprovals = async () => {
+  const loadApprovals = useCallback(async () => {
+    if (!agencyId) {
+      setApprovals([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
-      
-      // Simular dados por enquanto
-      const mockApprovals = [
-        {
-          id: '1',
-          title: 'Briefing - Cliente ABC',
-          contentType: 'briefing',
-          status: 'pending',
-          approverName: 'João Silva',
-          approverEmail: 'joao@clienteabc.com',
-          created_date: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: '2',
-          title: 'Plano Janeiro 2024 - Cliente XYZ',
-          contentType: 'cycle_plan',
-          status: 'approved',
-          approverName: 'Maria Santos',
-          approverEmail: 'maria@clientexyz.com',
-          created_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          approvedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-        }
+
+      const pendingBundle = await fetchPendingApprovals(agencyId);
+      const pendingRows = mapPendingApprovalsForDashboard(pendingBundle);
+
+      let historyRows = [];
+      try {
+        const history = await ApprovalRequest.filter(
+          { agencyId },
+          '-updated_date',
+          40
+        );
+        historyRows = (Array.isArray(history) ? history : [])
+          .filter((r) => r.status && r.status !== 'pending')
+          .map((req) => ({
+            id: req.id,
+            title: req.title || req.contentTitle || 'Solicitação',
+            contentType: req.contentType || 'approval',
+            status: req.status,
+            approverName: req.approverName || req.approver_name || '—',
+            approverEmail: req.approverEmail || req.approver_email || '',
+            created_date: req.created_date || req.$createdAt,
+            expiresAt: req.expiresAt || req.expires_at || null,
+            href: null,
+            source: 'request',
+          }));
+      } catch (err) {
+        console.warn('[approval-dashboard] history filter:', err?.message || err);
+      }
+
+      const seen = new Set(pendingRows.map((r) => r.id));
+      const merged = [
+        ...pendingRows,
+        ...historyRows.filter((r) => !seen.has(r.id)),
       ];
 
-      setApprovals(mockApprovals);
+      setApprovals(merged);
 
-      // Calcular estatísticas
-      const total = mockApprovals.length;
-      const pending = mockApprovals.filter(a => a.status === 'pending').length;
-      const approved = mockApprovals.filter(a => a.status === 'approved').length;
-      const expired = mockApprovals.filter(a => a.status === 'expired').length;
-      const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+      const total = merged.length;
+      const pending = merged.filter((a) => a.status === 'pending').length;
+      const approved = merged.filter((a) => a.status === 'approved').length;
+      const expired = merged.filter((a) => a.status === 'expired').length;
+      const approvalRate =
+        pending + approved > 0
+          ? Math.round((approved / (pending + approved)) * 100)
+          : 0;
 
       setStats({ total, pending, approved, expired, approvalRate });
-
     } catch (error) {
       console.error('Erro ao carregar aprovações:', error);
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  };
+  }, [agencyId]);
+
+  useEffect(() => {
+    loadApprovals();
+  }, [loadApprovals]);
 
   // Filtrar aprovações
   const filteredApprovals = approvals.filter(approval => {
@@ -354,35 +391,50 @@ export default function ApprovalDashboard() {
   });
 
   // Ações da tabela
-  const handleAction = async (action, _approval) => {
+  const handleAction = async (action, approval) => {
     switch (action) {
       case 'view':
-        // Implementar visualização
-        toast.info('Visualização em desenvolvimento');
+        if (approval?.href) {
+          navigate(approval.href);
+        } else {
+          toast.info('Abra o ciclo ou o conteúdo vinculado para revisar');
+        }
         break;
       case 'resend':
         try {
-          // Implementar reenvio
-          toast.success('Convite reenviado!');
-        } catch (_error) {
-          toast.error('Erro ao reenviar');
+          const result = await resendPendingApproval(approval);
+          if (result.mode === 'open_cycle' && result.href) {
+            toast.info('Abra o ciclo para reenviar o link ao aprovador');
+            navigate(result.href);
+          } else {
+            toast.success('Lembrete de aprovação enviado');
+          }
+        } catch (error) {
+          toast.error(error?.message || 'Erro ao reenviar');
         }
         break;
       case 'revoke':
         if (confirm('Tem certeza que deseja revogar esta aprovação?')) {
           try {
-            // Implementar revogação
-            toast.success('Aprovação revogada');
+            await revokePendingApproval(approval);
+            toast.success(
+              approval.source === 'cycle'
+                ? 'Ciclo voltou para rascunho'
+                : 'Aprovação revogada'
+            );
             await loadApprovals();
-          } catch (_error) {
-            toast.error('Erro ao revogar');
+          } catch (error) {
+            toast.error(error?.message || 'Erro ao revogar');
           }
         }
         break;
-      case 'download':
-        // Implementar download do PDF
-        toast.info('Download em desenvolvimento');
+      case 'download': {
+        const result = downloadApprovalPdf(approval);
+        if (result === 'missing') {
+          toast.info('PDF ainda não disponível para este item');
+        }
         break;
+      }
     }
   };
 
@@ -406,9 +458,18 @@ export default function ApprovalDashboard() {
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">Dashboard de Aprovações</h1>
             <p className="text-[#7A7595] text-sm sm:text-base">Gerencie todas as solicitações de aprovação</p>
           </div>
-          <Button className="w-full sm:w-auto shrink-0">
+          <Button
+            className="w-full sm:w-auto shrink-0"
+            variant="outline"
+            onClick={() => {
+              toast.info(
+                'Abra o ciclo ou o conteúdo do cliente para solicitar aprovação'
+              );
+              navigate(createPageUrl('clients'));
+            }}
+          >
             <Send className="w-4 h-4 mr-2" />
-            Nova Aprovação
+            Ir para clientes
           </Button>
         </div>
 
@@ -437,8 +498,6 @@ export default function ApprovalDashboard() {
           <StatsCard
             title="Taxa de Aprovação"
             value={`${stats.approvalRate}%`}
-            change={stats.approvalRate > 75 ? 5 : -2}
-            trend={stats.approvalRate > 75 ? 'up' : 'down'}
             icon={BarChart3}
           />
         </div>

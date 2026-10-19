@@ -2,15 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowLeft,
   CheckCircle,
   Circle,
   AlertCircle,
-  Loader2,
   Briefcase,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
+import LoadingState from '@/components/shared/LoadingState';
+import ErrorState from '@/components/shared/ErrorState';
+import EmptyState from '@/components/shared/EmptyState';
 import useClientHubData from '@/hooks/useClientHubData';
 import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
@@ -411,69 +412,44 @@ export default function ClientDetailPage() {
   );
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
-        <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-primary" aria-hidden />
-          <p className="text-sm text-[#555]">Verificando autenticação…</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Verificando autenticação…" className="min-h-[60vh]" />;
   }
 
   if (!clientId) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="max-w-md text-center">
-          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#111]">
-            ID do cliente não encontrado
-          </h2>
-          <p className="mb-5 text-sm text-[#555]">
-            Abra o perfil a partir da lista de clientes.
-          </p>
-          <Button asChild variant="outline">
-            <Link to={createPageUrl('clients')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar aos Clientes
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <EmptyState
+        variant="default"
+        icon={AlertCircle}
+        title="ID do cliente não encontrado"
+        description="Abra o perfil a partir da lista de clientes."
+        primaryAction={{
+          label: 'Voltar aos clientes',
+          href: createPageUrl('clients'),
+        }}
+      />
     );
   }
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
-        <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-primary" aria-hidden />
-          <p className="text-sm text-[#555]">Carregando cliente…</p>
-        </div>
-      </div>
+      <LoadingState
+        variant="skeleton"
+        size="page"
+        message="Carregando cliente…"
+        className="min-h-[60vh]"
+      />
     );
   }
 
   if (error || !client) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="max-w-md text-center">
-          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#111]">Erro ao carregar cliente</h2>
-          <p className="mb-5 text-sm text-[#c0392b]">{error || 'Cliente não encontrado'}</p>
-          <div className="flex justify-center gap-2">
-            <Button asChild variant="outline">
-              <Link to={createPageUrl('clients')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Clientes
-              </Link>
-            </Button>
-            <Button onClick={reload} className="bg-primary hover:bg-[var(--color-primary-dark)]">
-              Tentar novamente
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ErrorState
+        title="Erro ao carregar cliente"
+        message={error || 'Cliente não encontrado'}
+        onRetry={reload}
+        onGoHome={() => navigate(createPageUrl('clients'))}
+        showHomeButton
+      />
     );
   }
 
@@ -576,7 +552,7 @@ export default function ClientDetailPage() {
       </div>
 
       {!hasService ? (
-        <section className="rounded-lg border border-[#e8eef5] bg-[#f7fafc] px-4 py-4">
+        <section className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC] px-4 py-4">
           <p className="text-sm font-medium text-[#111]">
             Qual serviço {client.name} contratou?
           </p>
@@ -609,7 +585,7 @@ export default function ClientDetailPage() {
           />
 
           {selectedService && !isKnownServiceProfile(selectedProfile) ? (
-            <div className="rounded-lg border border-[#eee] px-3 py-3 text-sm text-[#555]">
+            <div className="rounded-2xl border border-[#E8E5F5] px-3 py-3 text-sm text-[#7A7595]">
               <p className="font-medium text-[#111]">Configuração do serviço incompleta</p>
               <p className="mt-0.5">
                 Template operacional não reconhecido.{' '}
@@ -668,7 +644,7 @@ export default function ClientDetailPage() {
       {needsOnboarding ? (
         <section
           aria-labelledby="setup-heading"
-          className="rounded-lg border border-[#eee] bg-[#fafafa] p-4 sm:p-5"
+          className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC]/50 p-4 sm:p-5"
         >
           <h2 id="setup-heading" className="text-sm font-medium text-[#111]">
             Configuração inicial ({completedSteps}/{setupChecklist.length})
@@ -677,7 +653,7 @@ export default function ClientDetailPage() {
             {setupChecklist.map((step) => (
               <li
                 key={step.id}
-                className="flex flex-col gap-2 rounded-lg border border-[#eee] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-lg border border-[#E8E5F5] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-start gap-2.5">
                   {step.completed ? (
@@ -709,7 +685,7 @@ export default function ClientDetailPage() {
           </ul>
         </section>
       ) : onlyInvitePending ? (
-        <div className="flex flex-col gap-2 border-t border-[#eee] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t border-[#E8E5F5] pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[#666]">
             Portal ainda não convidado
           </p>
@@ -729,7 +705,7 @@ export default function ClientDetailPage() {
 
       <section
         aria-labelledby="more-heading"
-        className="border-t border-[#eee] pt-6"
+        className="border-t border-[#E8E5F5] pt-6"
       >
         <h2 id="more-heading" className="mb-2 text-sm text-[#666]">
           Mais neste cliente
@@ -739,20 +715,20 @@ export default function ClientDetailPage() {
             <button
               type="button"
               onClick={() => setServiceSetupOpen(true)}
-              className="text-sm text-[#555] hover:text-primary hover:underline"
+              className="text-sm text-[#7A7595] hover:text-primary hover:underline"
             >
               Adicionar serviço
             </button>
           ) : null}
           <Link
             to={buildAnnualPlanHref(clientId)}
-            className="text-sm text-[#555] hover:text-primary hover:underline"
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             Panorama
           </Link>
           <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-primary hover:underline"
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             Brainstorm
           </Link>
@@ -765,19 +741,19 @@ export default function ClientDetailPage() {
                   })
                 : `client-tasks?clientId=${clientId}`
             )}
-            className="text-sm text-[#555] hover:text-primary hover:underline"
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             Tarefas
           </Link>
           <Link
             to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-primary hover:underline"
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             Financeiro
           </Link>
           <Link
             to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
-            className="text-sm text-[#555] hover:text-primary hover:underline"
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
           </Link>

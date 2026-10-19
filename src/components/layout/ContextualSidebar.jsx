@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '@/components/i18n/I18nProvider';
 import {
   LayoutDashboard,
@@ -28,16 +28,25 @@ import {
   Clock,
   Building2,
   Handshake,
+  ClipboardCheck,
+  ListTodo,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
-import NaviBrandLockup from '@/components/NaviBrandLockup';
+import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientTasksHref } from '@/lib/taskScope';
 import { buildAnnualPlanHref, buildBrainstormHref } from '@/lib/planoAnualHub';
 import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
+import { useSession } from '@/components/auth/SessionManager';
+import { fetchPendingApprovals } from '@/lib/pendingApprovals';
+import {
+  buildMyTasksHref,
+  readSidebarCollapsed,
+  writeSidebarCollapsed,
+} from '@/lib/shellNavigation';
 
 /** Páginas onde serviceId significa workspace de serviço (não lente do hub). */
 const SERVICE_SHELL_PAGES = new Set([
@@ -64,8 +73,20 @@ export default function ContextualSidebar({
   onClose,
 }) {
   useTranslation();
+  const { agencyId } = useSession();
+  const location = useLocation();
+  const taskPreset = new URLSearchParams(location.search).get('preset');
   const [client, setClient] = useState(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => readSidebarCollapsed());
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(null);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      writeSidebarCollapsed(next);
+      return next;
+    });
+  };
 
   const useServiceShell =
     Boolean(serviceId) &&
@@ -90,6 +111,33 @@ export default function ContextualSidebar({
     };
   }, [clientId]);
 
+  // Badge de aprovações só no shell global — contagem só se a consulta for confiável
+  useEffect(() => {
+    if (clientId || !agencyId) {
+      setPendingApprovalsCount(null);
+      return;
+    }
+    let cancelled = false;
+    const load = () => {
+      fetchPendingApprovals(agencyId)
+        .then((result) => {
+          if (cancelled) return;
+          if (result.reliable) setPendingApprovalsCount(result.count);
+          else setPendingApprovalsCount(null);
+        })
+        .catch(() => {
+          if (!cancelled) setPendingApprovalsCount(null);
+        });
+    };
+    load();
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [agencyId, clientId, currentPage]);
+
   const getNavigationItems = () => {
     if (isClientMode && clientId) {
       const items = [
@@ -111,7 +159,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Tarefas',
+          label: 'Tarefas do cliente',
           icon: CheckSquare,
           href: createPageUrl(
             buildClientTasksHref({
@@ -228,7 +276,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: 'Tarefas',
+          label: clientId ? 'Tarefas do cliente' : 'Tarefas da campanha',
           icon: CheckSquare,
           href: clientId
             ? createPageUrl(
@@ -260,10 +308,31 @@ export default function ContextualSidebar({
       },
       {
         type: 'link',
-        label: 'Tarefas',
+        label: 'Minhas tarefas',
+        icon: ListTodo,
+        href: buildMyTasksHref(),
+        isActive: currentPage === 'tasks-manager' && taskPreset === 'my_tasks',
+      },
+      {
+        type: 'link',
+        label: 'Tarefas da agência',
         icon: CheckSquare,
         href: createPageUrl('tasks-manager'),
-        isActive: currentPage === 'tasks-manager',
+        isActive: currentPage === 'tasks-manager' && taskPreset !== 'my_tasks',
+      },
+      {
+        type: 'link',
+        label: 'Aprovações',
+        icon: ClipboardCheck,
+        href: createPageUrl('approval-dashboard'),
+        isActive:
+          currentPage === 'approval-dashboard' ||
+          currentPage === 'cycle-approval' ||
+          currentPage === 'cycle-approval-manager',
+        badge:
+          typeof pendingApprovalsCount === 'number' && pendingApprovalsCount > 0
+            ? pendingApprovalsCount
+            : null,
       },
       {
         type: 'link',
@@ -361,10 +430,10 @@ export default function ContextualSidebar({
             >
               {collapsed ? (
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-                  <NaviBrandLockup variant="mark" height={22} className="brightness-0 invert" />
+                  <EvoctoBrandLockup variant="mark" height={22} className="brightness-0 invert" />
                 </span>
               ) : (
-                <NaviBrandLockup variant="dark" height={26} className="max-w-[168px]" />
+                <EvoctoBrandLockup variant="dark" height={26} className="max-w-[168px]" />
               )}
             </Link>
           )}
@@ -403,7 +472,7 @@ export default function ContextualSidebar({
               to={item.href}
               onClick={onClose}
               title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 rounded-xl text-sm transition-colors duration-200 ${
+              className={`relative flex items-center gap-3 rounded-xl text-sm transition-colors duration-200 ${
                 nested && !collapsed ? 'pl-8 pr-3 py-2' : 'px-3 py-2.5'
               } ${collapsed ? 'justify-center' : ''} ${
                 item.isActive
@@ -419,10 +488,21 @@ export default function ContextualSidebar({
                 }`}
               />
               {!collapsed && (
-                <span className={isBack || nested ? 'text-xs' : 'font-medium'}>
+                <span className={`min-w-0 flex-1 truncate ${isBack || nested ? 'text-xs' : 'font-medium'}`}>
                   {item.label}
                 </span>
               )}
+              {!collapsed && item.badge != null ? (
+                <span
+                  className="ml-auto shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-[var(--color-primary)] text-white text-[10px] font-semibold inline-flex items-center justify-center"
+                  aria-label={`${item.badge} pendente${item.badge === 1 ? '' : 's'}`}
+                >
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              ) : null}
+              {collapsed && item.badge != null ? (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-primary)]" aria-hidden />
+              ) : null}
             </Link>
           );
         })}
@@ -446,7 +526,7 @@ export default function ContextualSidebar({
 
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleCollapsed}
           className={`hidden lg:flex w-full items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
             collapsed ? 'justify-center' : ''
           } ${theme.sidebarHover} ${theme.sidebarMuted}`}

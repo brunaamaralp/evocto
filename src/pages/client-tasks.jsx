@@ -77,7 +77,21 @@ export default function ClientTasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [campaignRedirectError, setCampaignRedirectError] = useState(null);
-  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('create') === '1';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('create') !== '1') return;
+    setShowTaskForm(true);
+    params.delete('create');
+    const qs = params.toString();
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
+    window.history.replaceState({}, '', next);
+  }, []);
   const [editingTask, setEditingTask] = useState(null);
   const [listRefreshKey, setListRefreshKey] = useState(0);
 
@@ -371,7 +385,7 @@ export default function ClientTasksPage() {
               </Button>
               <div className="min-w-0">
                 <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
-                  Tarefas
+                  Tarefas do cliente
                 </h1>
                 <p className="text-xs text-[#7A7595] truncate">
                   <Link
@@ -398,7 +412,7 @@ export default function ClientTasksPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
               <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
-              <span className="truncate">Tarefas</span>
+              <span className="truncate">Tarefas do cliente</span>
             </h1>
             <p className="text-[#7A7595] mt-1 text-sm sm:text-base truncate">
               {client?.name || 'Cliente'} · Atividades do cliente

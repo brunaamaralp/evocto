@@ -15,6 +15,8 @@ import { Loader2, X, Calendar, User as UserIcon, Flag } from "lucide-react";
 
 /** Valor sentinela no Select — tarefa/reunião interna sem cliente */
 const INTERNAL_CLIENT_VALUE = "__internal__";
+/** Valor sentinela no Select — sem responsável (Radix não aceita value={null}) */
+const UNASSIGNED_VALUE = "unassigned";
 
 const MEETING_TYPES = new Set(["reuniao", "reuniao_alinhamento"]);
 
@@ -57,7 +59,7 @@ export default function TaskCreateModal({
     type: "analise_documentos",
     clientId: INTERNAL_CLIENT_VALUE,
     serviceId: "",
-    assignedTo: "",
+    assignedTo: UNASSIGNED_VALUE,
     dueDate: "",
     estimatedHours: 4,
   });
@@ -101,7 +103,7 @@ export default function TaskCreateModal({
       type: meeting ? "reuniao" : "analise_documentos",
       clientId: INTERNAL_CLIENT_VALUE,
       serviceId: "",
-      assignedTo: "",
+      assignedTo: UNASSIGNED_VALUE,
       dueDate: "",
       estimatedHours: meeting ? 1 : 4,
     });
@@ -195,7 +197,10 @@ export default function TaskCreateModal({
         userId: user?.id || null,
         clientId: isInternalTask ? null : taskData.clientId,
         serviceId: isInternalTask ? null : taskData.serviceId || null,
-        assignedTo: taskData.assignedTo || null,
+        assignedTo:
+          !taskData.assignedTo || taskData.assignedTo === UNASSIGNED_VALUE
+            ? null
+            : taskData.assignedTo,
         status: taskData.status || "todo",
         priority: taskData.priority || "medium",
         type: resolvedType,
@@ -438,14 +443,16 @@ export default function TaskCreateModal({
                   {isMeeting ? "Organizador / responsável" : "Responsável"}
                 </Label>
                 <Select
-                  value={taskData.assignedTo}
-                  onValueChange={(value) => setTaskData((prev) => ({ ...prev, assignedTo: value }))}
+                  value={taskData.assignedTo || UNASSIGNED_VALUE}
+                  onValueChange={(value) =>
+                    setTaskData((prev) => ({ ...prev, assignedTo: value }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Não atribuído</SelectItem>
+                    <SelectItem value={UNASSIGNED_VALUE}>Não atribuído</SelectItem>
                     {users.map((u) => (
                       <SelectItem key={u.id} value={u.id}>
                         {u.full_name || u.email}

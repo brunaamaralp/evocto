@@ -31,7 +31,7 @@ export default function ClientBriefingStatusCard({
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {isReady ? (
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
@@ -56,7 +56,7 @@ export default function ClientBriefingStatusCard({
   return (
     <section
       aria-labelledby="briefing-status-heading"
-      className="rounded-xl border border-[#e8eef5] bg-[#f7fafc] px-4 py-4"
+      className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC] px-4 py-4"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
@@ -64,14 +64,14 @@ export default function ClientBriefingStatusCard({
             {isReady ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden />
             ) : (
-              <FileText className="h-4 w-4 text-[#555]" aria-hidden />
+              <FileText className="h-4 w-4 text-[#7A7595]" aria-hidden />
             )}
-            <h2 id="briefing-status-heading" className="text-sm font-medium text-[#111]">
+            <h2 id="briefing-status-heading" className="text-sm font-medium text-[#18162A]">
               Briefing inicial
             </h2>
-            <span className="text-xs text-[#666]">· {label}</span>
+            <span className="text-xs text-[#7A7595]">· {label}</span>
           </div>
-          <p className="text-sm text-[#666]">
+          <p className="text-sm text-[#7A7595]">
             {isReady
               ? 'DNA do cliente preenchido. Edite quando o contexto mudar.'
               : 'Base estratégica do cliente — preencha ou continue pelo editor.'}
@@ -82,7 +82,7 @@ export default function ClientBriefingStatusCard({
           className={
             isReady
               ? 'w-full shrink-0 sm:w-auto'
-              : 'w-full shrink-0 bg-[#007bff] hover:bg-[#0056b3] sm:w-auto'
+              : 'w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto'
           }
           variant={isReady ? 'outline' : 'default'}
         >

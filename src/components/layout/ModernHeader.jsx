@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,29 +9,79 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Menu, Megaphone, Users, ChevronDown, X, Building2 } from 'lucide-react';
+import {
+  User,
+  LogOut,
+  Menu,
+  Users,
+  ChevronDown,
+  X,
+  Building2,
+  Plus,
+  CheckSquare,
+  Megaphone,
+  CalendarDays,
+} from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import TopbarTimerWidget from '@/components/tasks/TopbarTimerWidget';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import GlobalSearch, { GlobalSearchTrigger } from '@/components/search/GlobalSearch';
+import OperationBreadcrumb from '@/components/client/hub/OperationBreadcrumb';
+import RecentClientsSwitcher from '@/components/navigation/RecentClientsSwitcher';
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
 import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
+import {
+  buildQuickCreateTaskHref,
+  buildQuickCreateClientHref,
+  buildQuickCreateCampaignHref,
+  buildShellClientBreadcrumbs,
+} from '@/lib/shellNavigation';
 
 export default function ModernHeader({
   context,
+  contextClient,
   contextCampaign,
   onMenuClick,
 }) {
+  const location = useLocation();
   const { user, agencyId, logout, isAdmin, isOwner } = useSession();
   const isClientContext = context?.type === 'client' && Boolean(context?.clientId);
   const canManageTeam = Boolean(isAdmin?.() || isOwner?.() || ['owner', 'admin'].includes(user?.role || ''));
-  const showCampaignCrumb =
-    isClientContext &&
-    Boolean(context?.briefingId) &&
-    Boolean(contextCampaign?.name);
+  const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
+
+  const campaignHref =
+    isClientContext && context?.briefingId
+      ? createPageUrl(
+          buildClientCampaignHref({
+            clientId: context.clientId,
+            briefingId: context.briefingId,
+          })
+        )
+      : null;
+
+  const clientCrumbs = isClientContext
+    ? buildShellClientBreadcrumbs({
+        clientId: context.clientId,
+        clientName: contextClient?.name,
+        campaignName: contextCampaign?.name || null,
+        campaignHref,
+        pageKey: currentPage,
+      })
+    : [];
+
+  const quickCreateTaskHref = buildQuickCreateTaskHref({
+    clientId: isClientContext ? context.clientId : null,
+    serviceId: isClientContext ? context.serviceId || null : null,
+  });
+  const quickCreateClientHref = buildQuickCreateClientHref();
+  const quickCreateCampaignHref = isClientContext
+    ? buildQuickCreateCampaignHref(context.clientId, {
+        serviceId: context.serviceId || null,
+      })
+    : null;
 
   useEffect(() => {
     const uid = user?.id || user?.data?.id;
@@ -78,28 +128,91 @@ export default function ModernHeader({
             </Button>
 
             {isClientContext ? (
-              showCampaignCrumb ? (
-                <Link
-                  to={createPageUrl(
-                    buildClientCampaignHref({
-                      clientId: context.clientId,
-                      briefingId: context.briefingId,
-                    })
-                  )}
-                  className="flex items-center gap-1.5 min-w-0 text-sm font-semibold text-[#18162A] truncate hover:underline"
-                >
-                  <Megaphone className="w-3.5 h-3.5 text-[#7A7595] shrink-0" />
-                  <span className="truncate">{contextCampaign.name}</span>
-                </Link>
-              ) : null
+              <div className="min-w-0 flex-1 flex items-center gap-2">
+                <RecentClientsSwitcher
+                  agencyId={agencyId}
+                  currentClientId={context.clientId}
+                  currentClientName={contextClient?.name}
+                  className="shrink-0 hidden sm:inline-flex"
+                />
+                <RecentClientsSwitcher
+                  agencyId={agencyId}
+                  currentClientId={context.clientId}
+                  currentClientName={contextClient?.name}
+                  compact
+                  className="shrink-0 sm:hidden"
+                />
+                <div className="min-w-0 flex-1 hidden md:block">
+                  <OperationBreadcrumb crumbs={clientCrumbs} />
+                </div>
+              </div>
             ) : (
-              <div className="hidden md:flex items-center flex-1 max-w-md min-w-0">
-                <GlobalSearchTrigger />
+              <div className="hidden md:flex items-center flex-1 gap-2 min-w-0 max-w-xl">
+                <div className="flex-1 min-w-0 max-w-md">
+                  <GlobalSearchTrigger />
+                </div>
+                <RecentClientsSwitcher agencyId={agencyId} className="shrink-0" />
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {!isClientContext ? (
+              <div className="md:hidden">
+                <RecentClientsSwitcher agencyId={agencyId} compact />
+              </div>
+            ) : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+                  aria-label="Criar"
+                  title="Criar"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Criar</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to={quickCreateTaskHref} className="flex items-center cursor-pointer">
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Nova tarefa
+                  </Link>
+                </DropdownMenuItem>
+                {!isClientContext ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={quickCreateClientHref} className="flex items-center cursor-pointer">
+                      <Users className="h-4 w-4 mr-2" />
+                      Novo cliente
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {quickCreateCampaignHref ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={quickCreateCampaignHref} className="flex items-center cursor-pointer">
+                      <Megaphone className="h-4 w-4 mr-2" />
+                      Nova campanha
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {isClientContext ? (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to={createPageUrl(`planejamento?clientId=${context.clientId}`)}
+                      className="flex items-center cursor-pointer"
+                    >
+                      <CalendarDays className="h-4 w-4 mr-2" />
+                      Abrir panorama
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {isClientContext ? (
               <Button
                 asChild
@@ -121,11 +234,9 @@ export default function ModernHeader({
 
             <NotificationBell />
 
-            {!isClientContext && (
-              <div className="md:hidden">
-                <GlobalSearchTrigger compact />
-              </div>
-            )}
+            <div className={isClientContext ? '' : 'md:hidden'}>
+              <GlobalSearchTrigger compact />
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -185,7 +296,7 @@ export default function ModernHeader({
         </div>
       </div>
 
-      {!isClientContext && <GlobalSearch />}
+      <GlobalSearch preferredClientId={isClientContext ? context.clientId : null} />
     </header>
   );
 }

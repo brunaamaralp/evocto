@@ -8,7 +8,7 @@
 export const CAMPAIGN_WORKSPACE_TABS = Object.freeze([
   { id: 'contexto', label: 'Contexto' },
   { id: 'ideia', label: 'Ideia' },
-  { id: 'tasks', label: 'Tarefas' },
+  { id: 'tasks', label: 'Tarefas da campanha' },
   { id: 'historico', label: 'Histórico' },
 ]);
 

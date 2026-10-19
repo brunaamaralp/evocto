@@ -18,7 +18,8 @@ import {
   Trash2,
   Download,
   Upload,
-  CalendarPlus
+  CalendarPlus,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Service } from '@/api/entities';
@@ -30,6 +31,8 @@ import { exportServiceTemplates } from '@/api/functions/exportServiceTemplates';
 import { ensureCicloMensalTemplate } from '@/api/functions/ensureCicloMensalTemplate';
 import { ensureItemCycleTemplates } from '@/api/functions/ensureItemCycleTemplates';
 import { SERVICE_CATEGORIES, getCategoryColor, getCategoryLabel } from '@/constants/serviceCategories';
+import LoadingState from '@/components/shared/LoadingState';
+import EmptyState from '@/components/shared/EmptyState';
 
 export default function ServiceTemplatesPage() {
   const { _user, agencyId, loading: sessionLoading } = useSession();
@@ -180,12 +183,12 @@ export default function ServiceTemplatesPage() {
 
   if (loading || sessionLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando templates...</p>
-        </div>
-      </div>
+      <LoadingState
+        variant="skeleton"
+        size="page"
+        message="Carregando templates…"
+        className="min-h-[16rem]"
+      />
     );
   }
 
@@ -194,8 +197,8 @@ export default function ServiceTemplatesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Templates de Serviço</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Templates de Serviço</h1>
+          <p className="text-[#7A7595] mt-1">
             Gerencie os modelos reutilizáveis dos seus serviços
           </p>
         </div>
@@ -225,7 +228,10 @@ export default function ServiceTemplatesPage() {
             <Upload className="w-4 h-4 mr-2" />
             Importar
           </Button>
-          <Button onClick={() => setShowCreateModal(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Novo Template
           </Button>
@@ -264,7 +270,7 @@ export default function ServiceTemplatesPage() {
         {filteredTemplates.map((template) => {
           const colors = getCategoryColor(template.category);
           return (
-          <Card key={template.id} className={`hover:shadow-lg transition-shadow ${colors.card}`}>
+          <Card key={template.id} className={`rounded-2xl border border-[#E8E5F5] hover:shadow-[var(--shadow-elevated)] transition-shadow ${colors.card}`}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -300,11 +306,11 @@ export default function ServiceTemplatesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-sm">
+              <p className="text-[#7A7595] text-sm">
                 {template.description || 'Sem descrição'}
               </p>
               <div className="mt-4 flex justify-between items-center">
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-[#7A7595]">
                   {template.deliverables?.length || 0} entregáveis
                 </div>
                 <Badge variant={template.is_active ? "default" : "secondary"}>
@@ -318,28 +324,32 @@ export default function ServiceTemplatesPage() {
       </div>
 
       {filteredTemplates.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Nenhum template encontrado
-          </h3>
-          <p className="text-gray-600 mb-4">
-            {searchTerm || categoryFilter !== 'all' 
+        <EmptyState
+          variant="default"
+          icon={LayoutTemplate}
+          title="Nenhum template encontrado"
+          description={
+            searchTerm || categoryFilter !== 'all'
               ? 'Tente ajustar os filtros de busca'
-              : 'Os templates padrão (Ciclo Mensal, Produção de Conteúdo e Sessão de Fotos) devem instalar ao abrir. Se continuar vazio, clique em Atualizar ou crie um template.'
-            }
-          </p>
-          {!searchTerm && categoryFilter === 'all' && (
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Button variant="outline" onClick={loadTemplates}>
-                Instalar template padrão
-              </Button>
-              <Button onClick={() => setShowCreateModal(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeiro Template
-              </Button>
-            </div>
-          )}
-        </div>
+              : 'Os templates padrão (Ciclo Mensal, Produção de Conteúdo e Sessão de Fotos) devem instalar ao abrir. Se continuar vazio, clique em atualizar ou crie um template.'
+          }
+          primaryAction={
+            !searchTerm && categoryFilter === 'all'
+              ? { label: 'Instalar template padrão', onClick: loadTemplates }
+              : {
+                  label: 'Novo template',
+                  onClick: () => setShowCreateModal(true),
+                }
+          }
+          secondaryAction={
+            !searchTerm && categoryFilter === 'all'
+              ? {
+                  label: 'Criar template',
+                  onClick: () => setShowCreateModal(true),
+                }
+              : undefined
+          }
+        />
       )}
 
       {/* Modal do formulário de template */}

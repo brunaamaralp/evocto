@@ -58,6 +58,7 @@ export default function TaskFilters({
 
   const hasActiveFilters = Object.entries(filters || {}).some(([key, value]) => {
     if (key === 'preset') return Boolean(value);
+    if (typeof value === 'boolean') return value === true;
     return value !== 'all' && value !== '' && value != null;
   });
 
@@ -71,37 +72,63 @@ export default function TaskFilters({
 
   if (compact) {
     return (
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Buscar tarefas..."
-            value={filters.search || ''}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
-            className="pl-10"
-          />
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-1.5">
+          {TASK_FILTER_PRESETS.slice(0, 4).map((preset) => {
+            const disabled = preset.id.startsWith('my_') && !currentUserId;
+            const active = filters.preset === preset.id;
+            return (
+              <Button
+                key={preset.id}
+                type="button"
+                size="sm"
+                variant={active ? 'default' : 'outline'}
+                disabled={disabled}
+                title={
+                  disabled
+                    ? 'Faça login para usar filtros pessoais'
+                    : preset.label
+                }
+                onClick={() => applyPreset(preset)}
+                className="text-xs h-7 px-2"
+              >
+                {preset.label}
+              </Button>
+            );
+          })}
         </div>
-        <Select
-          value={filters.status || 'all'}
-          onValueChange={(value) => handleFilterChange('status', value)}
-        >
-          <SelectTrigger className="w-full sm:w-[150px] text-sm">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {statuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {getStatusLabel(status)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Buscar tarefas..."
+              value={filters.search || ''}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select
+            value={filters.status || 'all'}
+            onValueChange={(value) => handleFilterChange('status', value)}
+          >
+            <SelectTrigger className="w-full sm:w-[150px] text-sm">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {statuses.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {getStatusLabel(status)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} aria-label="Limpar filtros">
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -120,6 +147,11 @@ export default function TaskFilters({
                 size="sm"
                 variant={active ? 'default' : 'outline'}
                 disabled={disabled}
+                title={
+                  disabled
+                    ? 'Faça login para usar filtros pessoais'
+                    : preset.label
+                }
                 onClick={() => applyPreset(preset)}
                 className="text-xs"
               >
@@ -219,6 +251,8 @@ export default function TaskFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Qualquer data</SelectItem>
+              <SelectItem value="overdue">Atrasadas</SelectItem>
+              <SelectItem value="next_48h">Próximas 48h</SelectItem>
               <SelectItem value="this_week">Esta semana</SelectItem>
             </SelectContent>
           </Select>
@@ -268,10 +302,10 @@ export default function TaskFilters({
                 Prioridade: {getPriorityLabel(filters.priority)}
               </Badge>
             )}
-            {filters.dueRange === 'this_week' && (
+            {filters.dueRange && filters.dueRange !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                Esta semana
+                {getDueRangeLabel(filters.dueRange)}
               </Badge>
             )}
             {filters.search && (
@@ -293,11 +327,21 @@ function getStatusLabel(status) {
     todo: 'A fazer',
     in_progress: 'Em andamento',
     in_review: 'Em Revisão',
+    waiting_client: 'Aguardando cliente',
     completed: 'Concluído',
     cancelled: 'Cancelado',
     blocked: 'Bloqueado',
   };
   return labels[status] || status;
+}
+
+function getDueRangeLabel(dueRange) {
+  const labels = {
+    overdue: 'Atrasadas',
+    next_48h: 'Próximas 48h',
+    this_week: 'Esta semana',
+  };
+  return labels[dueRange] || dueRange;
 }
 
 function getPriorityLabel(priority) {

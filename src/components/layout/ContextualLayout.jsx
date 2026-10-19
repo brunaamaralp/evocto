@@ -3,8 +3,11 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
 import ModernHeader from './ModernHeader';
+import MobileBottomNav from './MobileBottomNav';
 import { Brief, Client } from '@/api/entities';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
+import { useSession } from '@/components/auth/SessionManager';
+import { recordRecentClient } from '@/lib/recentClients';
 
 /**
  * Layout contextual que adapta a navegação baseado na página atual.
@@ -12,6 +15,7 @@ import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
  */
 export default function ContextualLayout({ user, children }) {
   const location = useLocation();
+  const { agencyId } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [contextClient, setContextClient] = useState(null);
   const [contextCampaign, setContextCampaign] = useState(null);
@@ -103,7 +107,15 @@ export default function ContextualLayout({ user, children }) {
     }
     Client.get(context.clientId)
       .then((data) => {
-        if (!cancelled) setContextClient(data);
+        if (cancelled) return;
+        setContextClient(data);
+        if (agencyId && data?.id) {
+          recordRecentClient(agencyId, {
+            id: data.id,
+            name: data.name,
+            sector: data.sector || null,
+          });
+        }
       })
       .catch(() => {
         if (!cancelled) setContextClient(null);
@@ -111,7 +123,7 @@ export default function ContextualLayout({ user, children }) {
     return () => {
       cancelled = true;
     };
-  }, [isClientShell, context.clientId]);
+  }, [isClientShell, context.clientId, agencyId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,7 +162,7 @@ export default function ContextualLayout({ user, children }) {
       />
 
       <motion.div
-        className="evocto-main-panel"
+        className={`evocto-main-panel${isBrainstormPage ? ' evocto-main-panel--no-bottom-nav' : ''}`}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
@@ -167,12 +179,21 @@ export default function ContextualLayout({ user, children }) {
           className={`flex-1 min-h-0 ${
             isBrainstormPage
               ? 'overflow-hidden p-0 pb-0 flex flex-col h-full'
-              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-28'
+              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8'
           } ${isClientShell ? CLIENT_CONTEXT.contentAccent : ''}`}
         >
           {children}
         </main>
       </motion.div>
+
+      <MobileBottomNav
+        mode={isClientShell ? 'client' : 'global'}
+        clientId={context.clientId}
+        serviceId={context.serviceId}
+        currentPage={currentPage}
+        onOpenMenu={() => setSidebarOpen(true)}
+        hidden={isBrainstormPage || sidebarOpen}
+      />
 
       {sidebarOpen && (
         <div

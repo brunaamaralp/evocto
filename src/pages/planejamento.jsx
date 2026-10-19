@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Brief, Client } from '@/api/entities';
@@ -9,6 +9,9 @@ import { createPageUrl, getUrlSearchParam } from '@/utils';
 import AnnualPanorama from '@/components/planejamento/AnnualPanorama';
 import PlanejarMultiplosDialog from '@/components/planejamento/PlanejarMultiplosDialog';
 import { buildPanoramaMonths } from '@/lib/panoramaAnual';
+import LoadingState from '@/components/shared/LoadingState';
+import ErrorState from '@/components/shared/ErrorState';
+import EmptyState from '@/components/shared/EmptyState';
 
 /**
  * HOME de Planejamento — Panorama Anual (PI-0–4).
@@ -58,42 +61,43 @@ export default function PlanejamentoPage() {
   );
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-      </div>
-    );
+    return <LoadingState message="Verificando autenticação…" className="min-h-[40vh]" />;
   }
 
   if (!clientId) {
     return (
-      <div className="mx-auto max-w-lg p-6 text-center space-y-3">
-        <AlertCircle className="mx-auto h-10 w-10 text-red-500" />
-        <p className="text-sm text-slate-700">clientId obrigatório na URL.</p>
-        <Button asChild variant="outline">
-          <Link to={createPageUrl('clients')}>Voltar aos clientes</Link>
-        </Button>
-      </div>
+      <EmptyState
+        variant="default"
+        icon={AlertCircle}
+        title="Cliente não informado"
+        description="Abra o Panorama a partir do hub do cliente."
+        primaryAction={{
+          label: 'Voltar aos clientes',
+          href: createPageUrl('clients'),
+        }}
+      />
     );
   }
 
   if (loading) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-      </div>
+      <LoadingState
+        variant="skeleton"
+        size="page"
+        message="Carregando planejamento…"
+        className="min-h-[40vh]"
+      />
     );
   }
 
   if (error || !client) {
     return (
-      <div className="mx-auto max-w-lg p-6 text-center space-y-3">
-        <AlertCircle className="mx-auto h-10 w-10 text-red-500" />
-        <p className="text-sm text-red-700">{error || 'Cliente não encontrado'}</p>
-        <Button type="button" variant="outline" onClick={load}>
-          Tentar novamente
-        </Button>
-      </div>
+      <ErrorState
+        title="Erro ao carregar planejamento"
+        message={error || 'Cliente não encontrado'}
+        onRetry={load}
+        showHomeButton={false}
+      />
     );
   }
 

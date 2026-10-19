@@ -5,13 +5,17 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  FolderOpen,
   Loader2,
   Plus,
-  RefreshCw,
+  Search,
+  ClipboardList,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import LoadingState from '@/components/shared/LoadingState';
+import ErrorState from '@/components/shared/ErrorState';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Task } from '@/api/entities';
@@ -36,6 +40,18 @@ import { listCharges } from '@/lib/agencyFinance/api';
 import { ymNow } from '@/lib/agencyFinance/constants';
 import { getTaskStatusConfig } from '@/lib/taskStatusCanonical';
 import {
+  fetchPendingApprovals,
+  mapPendingApprovalsForDashboard,
+} from '@/lib/pendingApprovals';
+import {
+  buildOverviewCounts,
+  buildOverviewActionCards,
+  buildAgendaBuckets,
+  collectCampaignBlockers,
+  defaultWorkLensForRole,
+} from '@/lib/dashboardActionMetrics';
+import { openGlobalSearch } from '@/components/search/GlobalSearch';
+import {
   buildTasksManagerHref,
   getTaskAssigneeId,
   isAwaitingMyAction,
@@ -52,14 +68,6 @@ function firstNameFromFullName(fullName) {
   if (!first || first === 'Usuário') return '';
   return first;
 }
-
-const OPEN_TASK_STATUSES = new Set([
-  'todo',
-  'in_progress',
-  'pending',
-  'blocked',
-  'in_review',
-]);
 
 async function safeFilter(entity, filters) {
   try {
@@ -89,12 +97,7 @@ function parseDueDate(value) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function isOpenTask(task) {
-  const status = String(task?.status || '').toLowerCase();
-  return OPEN_TASK_STATUSES.has(status);
-}
-
-// isWaitingOnClient — importado de taskFilterPresets (fonte única)
+// isOpenTaskStatus / isWaitingOnClient — taskFilterPresets (fonte única)
 
 function formatTimeLabel(due) {
   if (!due) return null;
@@ -196,9 +199,10 @@ function buildTaskItem(task, clients, todayStart, kind) {
 
 /**
  * Fila de atenção base: atrasadas, bloqueadas, aguardando cliente, aprovações.
+ * Aprovações: CyclePlan + ApprovalRequest via mapPendingApprovalsForDashboard.
  * O foco da fase é mesclado depois via mergePhaseFocusIntoAttentionQueue.
  */
-function buildAttentionQueue(tasks, clients, cycles, todayStart) {
+function buildAttentionQueue(tasks, clients, todayStart, approvalItems = []) {
   const items = [];
   const seen = new Set();
 
@@ -209,7 +213,7 @@ function buildAttentionQueue(tasks, clients, cycles, todayStart) {
   };
 
   for (const task of tasks) {
-    if (!isOpenTask(task)) continue;
+    if (!isOpenTaskStatus(task)) continue;
     const due = parseDueDate(task.dueDate);
     const status = String(task.status || '').toLowerCase();
     const overdue = due && startOfLocalDay(due) < todayStart;
@@ -227,23 +231,17 @@ function buildAttentionQueue(tasks, clients, cycles, todayStart) {
     }
   }
 
-  for (const cycle of cycles) {
-    if (String(cycle.status || '') !== 'pending_approval') continue;
-    const clientName = resolveClientName(clients, cycle.clientId) || cycle.clientName || null;
-    const title =
-      cycle.cyclePeriod ||
-      cycle.title ||
-      cycle.planData?.title ||
-      'Plano aguardando aprovação';
+  for (const approval of approvalItems) {
     pushUnique({
-      id: `cycle:${cycle.id}`,
+      id: `approval:${approval.source}:${approval.id}`,
       kind: 'approval',
-      title,
-      clientName,
+      title: approval.title,
+      clientName: approval.approverName || null,
       dueLabel: 'Aprovação',
       priority: 'high',
-      href: createPageUrl(`cycle-approval?id=${cycle.id}`),
+      href: approval.href,
       sortAt: 0,
+      completable: false,
     });
   }
 
@@ -268,11 +266,12 @@ function buildAttentionQueue(tasks, clients, cycles, todayStart) {
  * Não mistura aprovações de ciclo/cliente com “minha ação”.
  */
 function buildPersonalQueues(tasks, clients, todayStart, userId) {
+  const emptyBucket = { items: [], total: 0 };
   const empty = {
-    overdue: [],
-    myAction: [],
-    waitingOthers: [],
-    upcoming: [],
+    overdue: emptyBucket,
+    myAction: emptyBucket,
+    waitingOthers: emptyBucket,
+    upcoming: emptyBucket,
   };
   if (!userId) return empty;
 
@@ -333,32 +332,40 @@ function buildPersonalQueues(tasks, clients, todayStart, userId) {
   }
 
   const byDue = (a, b) => a.sortAt - b.sortAt;
+  const sortSlice = (list) => {
+    const sorted = list.sort(byDue);
+    return { items: sorted.slice(0, 6), total: sorted.length };
+  };
   return {
-    overdue: overdue.sort(byDue).slice(0, 6),
-    myAction: myAction.sort(byDue).slice(0, 6),
-    waitingOthers: waitingOthers.sort(byDue).slice(0, 6),
-    upcoming: upcoming.sort(byDue).slice(0, 6),
+    overdue: sortSlice(overdue),
+    myAction: sortSlice(myAction),
+    waitingOthers: sortSlice(waitingOthers),
+    upcoming: sortSlice(upcoming),
   };
 }
 
-/**
- * Agenda das próximas 48h (hoje + amanhã), sem atrasadas.
- */
-function buildAgenda(tasks, clients, todayStart) {
-  const horizonEnd = addLocalDays(todayStart, 2);
+function overviewToneClass(tone) {
+  if (tone === 'danger') return 'border-[#F0B8BC] bg-[#FFF5F5] text-[#c0392b]';
+  if (tone === 'warning') return 'border-[#F0DC9A] bg-[#FFF8E6] text-[#b45309]';
+  if (tone === 'primary') return 'border-[#D9D4EC] bg-[#F5F2FC] text-[#6C47D8]';
+  return 'border-[#E8E5F5] bg-white text-[#18162A]';
+}
 
-  return tasks
-    .filter((task) => {
-      if (!isOpenTask(task)) return false;
-      if (String(task.status || '').toLowerCase() === 'blocked') return false;
-      const due = parseDueDate(task.dueDate);
-      if (!due) return false;
-      const dueDay = startOfLocalDay(due);
-      return dueDay >= todayStart && dueDay < horizonEnd;
-    })
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 8)
-    .map((task) => buildTaskItem(task, clients, todayStart, 'agenda'));
+function removeTaskFromDashboardData(prev, taskId) {
+  if (!prev || !taskId) return prev;
+  const removeId = `task:${taskId}`;
+  const drop = (list) =>
+    (list || []).filter((i) => i.id !== removeId && i.taskId !== taskId);
+  const buckets = prev.agendaBuckets || { today: [], upcoming: [] };
+  return {
+    ...prev,
+    attentionQueue: drop(prev.attentionQueue),
+    agendaBuckets: {
+      ...buckets,
+      today: drop(buckets.today),
+      upcoming: drop(buckets.upcoming),
+    },
+  };
 }
 
 function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
@@ -368,7 +375,7 @@ function buildSetupSteps({ clients, campaignGroups, tasks, services = [] }) {
   );
   const hasService = activeServices.length > 0;
   const hasCampaigns = campaignGroups.length > 0;
-  const hasOpenTasks = tasks.some(isOpenTask);
+  const hasOpenTasks = tasks.some(isOpenTaskStatus);
   const clientsWithoutService = clients.filter(
     (c) => !activeServices.some((s) => String(s.clientId) === String(c.id))
   );
@@ -691,7 +698,16 @@ export default function DashboardPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createKind, setCreateKind] = useState('task');
   /** @type {['agency'|'me', function]} */
-  const [workLens, setWorkLens] = useState('agency');
+  const [workLens, setWorkLens] = useState(() =>
+    defaultWorkLensForRole(user?.role)
+  );
+  const [lensInitialized, setLensInitialized] = useState(false);
+
+  useEffect(() => {
+    if (lensInitialized || !user?.role) return;
+    setWorkLens(defaultWorkLensForRole(user.role));
+    setLensInitialized(true);
+  }, [user?.role, lensInitialized]);
 
   const loadDashboardData = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -706,22 +722,25 @@ export default function DashboardPage() {
         return;
       }
 
-      const [clients, services, tasks, briefs, cycles, chargesResult] = await Promise.all([
-        safeFilter(Client, { agencyId }),
-        safeFilter(Service, { agencyId, is_template: false }),
-        safeFilter(Task, { agencyId }),
-        safeFilter(Brief, { agencyId }),
-        safeFilter(CyclePlan, { agencyId }),
-        listCharges({ agencyId, month: ymNow(), limit: 500 }).catch((err) => {
-          console.warn('[dashboard] charges failed:', err?.message || err);
-          return [];
-        }),
-      ]);
+      const [clients, services, tasks, briefs, cycles, chargesResult, pendingApprovals] =
+        await Promise.all([
+          safeFilter(Client, { agencyId }),
+          safeFilter(Service, { agencyId, is_template: false }),
+          safeFilter(Task, { agencyId }),
+          safeFilter(Brief, { agencyId }),
+          safeFilter(CyclePlan, { agencyId }),
+          listCharges({ agencyId, month: ymNow(), limit: 500 }).catch((err) => {
+            console.warn('[dashboard] charges failed:', err?.message || err);
+            return [];
+          }),
+          fetchPendingApprovals(agencyId),
+        ]);
 
       const charges = Array.isArray(chargesResult) ? chargesResult : [];
       const activeClients = clients.filter((c) => c.status === 'ativo');
       const clientsForCampaigns = activeClients.length > 0 ? activeClients : clients;
       const todayStart = startOfLocalDay();
+      const approvalItems = mapPendingApprovalsForDashboard(pendingApprovals);
 
       const campaignGroups = groupCampaignsByClient(
         clientsForCampaigns,
@@ -730,6 +749,21 @@ export default function DashboardPage() {
         tasks,
         services
       );
+
+      const activeCampaignCount = campaignGroups.reduce(
+        (n, g) => n + (g.campaigns?.length || 0),
+        0
+      );
+
+      const overviewCounts = buildOverviewCounts({
+        tasks,
+        userId: currentUserId,
+        todayStart,
+        pendingApprovalCount: pendingApprovals?.reliable
+          ? pendingApprovals.count
+          : approvalItems.length,
+        activeCampaignCount,
+      });
 
       const portfolio = buildAgencyPortfolioRows({
         clients: clientsForCampaigns,
@@ -758,11 +792,14 @@ export default function DashboardPage() {
         parseDueDate,
       });
       const attentionQueue = mergePhaseFocusIntoAttentionQueue(
-        buildAttentionQueue(tasks, clients, cycles, todayStart),
+        buildAttentionQueue(tasks, clients, todayStart, approvalItems),
         phaseFocusItems,
         { max: 8 }
       );
-      const agenda = buildAgenda(tasks, clients, todayStart);
+      const agendaBuckets = buildAgendaBuckets(tasks, clientsForCampaigns, todayStart, {
+        upcomingDays: 2,
+      });
+      const campaignBlockers = collectCampaignBlockers(campaignGroups, { max: 5 });
       const setupSteps = buildSetupSteps({
         clients: clientsForCampaigns,
         campaignGroups,
@@ -799,12 +836,15 @@ export default function DashboardPage() {
       setDashboardData({
         campaignGroups,
         attentionQueue,
-        agenda,
+        agendaBuckets,
+        campaignBlockers,
+        overviewCounts,
         setupSteps,
         clientsWithoutCampaigns,
         clientsWithoutService,
         portfolio,
         tasks,
+        pendingApprovalsReliable: Boolean(pendingApprovals?.reliable),
       });
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
@@ -814,7 +854,7 @@ export default function DashboardPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [agencyId, agency]);
+  }, [agencyId, agency, currentUserId]);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -836,18 +876,7 @@ export default function DashboardPage() {
       // trazer a tarefa de volta antes da leitura consistente.
       if (taskId && (deleted || status === 'completed' || status === 'done')) {
         const removeId = `task:${taskId}`;
-        setDashboardData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            attentionQueue: (prev.attentionQueue || []).filter(
-              (i) => i.id !== removeId && i.taskId !== taskId
-            ),
-            agenda: (prev.agenda || []).filter(
-              (i) => i.id !== removeId && i.taskId !== taskId
-            ),
-          };
-        });
+        setDashboardData((prev) => removeTaskFromDashboardData(prev, taskId));
         window.setTimeout(() => {
           loadDashboardData({ silent: true });
         }, 800);
@@ -877,19 +906,7 @@ export default function DashboardPage() {
           return;
         }
 
-        const removeId = `task:${task.id}`;
-        setDashboardData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            attentionQueue: (prev.attentionQueue || []).filter(
-              (i) => i.id !== removeId && i.taskId !== task.id
-            ),
-            agenda: (prev.agenda || []).filter(
-              (i) => i.id !== removeId && i.taskId !== task.id
-            ),
-          };
-        });
+        setDashboardData((prev) => removeTaskFromDashboardData(prev, task.id));
 
         toastTaskCompleted(task, {
           alreadyCompleted: result.alreadyCompleted,
@@ -908,12 +925,12 @@ export default function DashboardPage() {
 
   if (sessionLoading || loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
-        <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-7 w-7 animate-spin text-[#6C47D8]" aria-hidden />
-          <p className="text-sm text-[#7A7595]">Carregando…</p>
-        </div>
-      </div>
+      <LoadingState
+        variant="skeleton"
+        size="page"
+        message="Carregando dashboard…"
+        className="min-h-[60vh]"
+      />
     );
   }
 
@@ -941,24 +958,21 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
-        <div className="max-w-md text-center">
-          <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#18162A]">Erro ao carregar</h2>
-          <p className="mb-5 text-sm text-[#7A7595]">{error}</p>
-          <Button onClick={loadDashboardData} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
+      <ErrorState
+        title="Erro ao carregar"
+        message={error}
+        onRetry={loadDashboardData}
+        showHomeButton={false}
+      />
     );
   }
 
   const {
     campaignGroups,
     attentionQueue,
-    agenda,
+    agendaBuckets = { today: [], upcoming: [], todayTotal: 0, upcomingTotal: 0 },
+    campaignBlockers = [],
+    overviewCounts = {},
     setupSteps,
     clientsWithoutCampaigns,
     clientsWithoutService = [],
@@ -1013,10 +1027,27 @@ export default function DashboardPage() {
   );
   const isMeLens = workLens === 'me';
   const personalHasItems =
-    personalQueuesNamed.overdue.length > 0 ||
-    personalQueuesNamed.myAction.length > 0 ||
-    personalQueuesNamed.waitingOthers.length > 0 ||
-    personalQueuesNamed.upcoming.length > 0;
+    personalQueuesNamed.overdue.total > 0 ||
+    personalQueuesNamed.myAction.total > 0 ||
+    personalQueuesNamed.waitingOthers.total > 0 ||
+    personalQueuesNamed.upcoming.total > 0;
+  const overviewCards = buildOverviewActionCards(overviewCounts, {
+    userId: currentUserId,
+    lens: workLens,
+  });
+  const personalAgenda = buildAgendaBuckets(
+    dashboardData?.tasks || [],
+    [...personalClientMap.values()],
+    startOfLocalDay(),
+    { userId: currentUserId, personalOnly: true, upcomingDays: 2 }
+  );
+  const agendaToday = isMeLens ? personalAgenda.today : agendaBuckets.today || [];
+  const agendaUpcoming = isMeLens
+    ? personalAgenda.upcoming
+    : agendaBuckets.upcoming || [];
+  const agendaTodayTotal = isMeLens
+    ? personalAgenda.todayTotal
+    : agendaBuckets.todayTotal || 0;
 
   return (
     <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#F5F2FC]/80 via-[#F8F7FB] to-transparent px-4 pb-8 pt-1 sm:-mx-6 sm:px-6">
@@ -1094,41 +1125,41 @@ export default function DashboardPage() {
         )}
       </header>
 
+      {overviewCards.length > 0 ? (
+        <section aria-labelledby="overview-heading">
+          <div className="mb-3">
+            <h2
+              id="overview-heading"
+              className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
+            >
+              Visão geral
+            </h2>
+            <p className="mt-0.5 text-xs text-[#7A7595]">
+              Indicadores com ação — clique para abrir a lista correspondente.
+            </p>
+          </div>
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {overviewCards.map((card) => (
+              <li key={card.id}>
+                <Link
+                  to={card.href}
+                  title={card.definition}
+                  className={`flex flex-col gap-1 rounded-xl border px-3 py-3 transition-colors hover:border-[#c9c0e8] ${overviewToneClass(card.tone)}`}
+                >
+                  <span className="text-2xl font-bold tabular-nums leading-none">{card.count}</span>
+                  <span className="text-xs font-semibold leading-snug text-inherit opacity-90">
+                    {card.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {isMeLens ? (
         <>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="outline" className="rounded-full h-8 text-xs">
-              <Link to={buildTasksManagerHref({ preset: 'my_overdue' })}>
-                Minhas atrasadas
-                {personalQueuesNamed.overdue.length
-                  ? ` (${personalQueuesNamed.overdue.length})`
-                  : ''}
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="rounded-full h-8 text-xs">
-              <Link to={buildTasksManagerHref({ preset: 'my_action' })}>
-                Aguardando minha ação
-                {personalQueuesNamed.myAction.length
-                  ? ` (${personalQueuesNamed.myAction.length})`
-                  : ''}
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="rounded-full h-8 text-xs">
-              <Link to={buildTasksManagerHref({ preset: 'waiting_others' })}>
-                Dependem de terceiros
-                {personalQueuesNamed.waitingOthers.length
-                  ? ` (${personalQueuesNamed.waitingOthers.length})`
-                  : ''}
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="rounded-full h-8 text-xs">
-              <Link to={buildTasksManagerHref({ preset: 'my_open' })}>
-                Minhas abertas
-              </Link>
-            </Button>
-          </div>
-
-          {personalQueuesNamed.overdue.length > 0 ? (
+          {personalQueuesNamed.overdue.total > 0 ? (
             <section aria-labelledby="my-overdue-heading">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
@@ -1151,7 +1182,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5">
-                {personalQueuesNamed.overdue.map((item) => (
+                {personalQueuesNamed.overdue.items.map((item) => (
                   <ItemRow
                     key={item.id}
                     item={item}
@@ -1165,7 +1196,7 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          {personalQueuesNamed.myAction.length > 0 ? (
+          {personalQueuesNamed.myAction.total > 0 ? (
             <section aria-labelledby="my-action-heading">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
@@ -1187,7 +1218,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                {personalQueuesNamed.myAction.map((item) => (
+                {personalQueuesNamed.myAction.items.map((item) => (
                   <ItemRow
                     key={item.id}
                     item={item}
@@ -1201,7 +1232,7 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          {personalQueuesNamed.waitingOthers.length > 0 ? (
+          {personalQueuesNamed.waitingOthers.total > 0 ? (
             <section aria-labelledby="waiting-others-heading">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
@@ -1223,7 +1254,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <ul className="space-y-0.5 rounded-xl border border-[#F0DC9A] bg-[#FFF8E6]/50 px-1.5 py-1.5">
-                {personalQueuesNamed.waitingOthers.map((item) => (
+                {personalQueuesNamed.waitingOthers.items.map((item) => (
                   <ItemRow
                     key={item.id}
                     item={item}
@@ -1237,49 +1268,10 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          {(personalQueuesNamed.upcoming.length > 0 || hasCampaigns) && (
-            <section aria-labelledby="my-agenda-heading">
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <h2
-                    id="my-agenda-heading"
-                    className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
-                  >
-                    <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                    Minhas próximas 48h
-                  </h2>
-                </div>
-                <Link
-                  to={buildTasksManagerHref({ preset: 'my_open' })}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
-                >
-                  Ver no quadro
-                </Link>
-              </div>
-              {personalQueuesNamed.upcoming.length > 0 ? (
-                <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-                  {personalQueuesNamed.upcoming.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      variant="agenda"
-                      onComplete={handleCompleteTask}
-                      completingId={completingId}
-                    />
-                  ))}
-                </ul>
-              ) : (
-                <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
-                  Nada com prazo seu para hoje ou amanhã.
-                </p>
-              )}
-            </section>
-          )}
-
           {!personalHasItems ? (
             <section className="rounded-xl border border-dashed border-[#D9D4EC] bg-[#F5F2FC]/40 px-4 py-3">
               <p className="text-sm text-[#7A7595]">
-                Nada atribuído a você no momento. Alterne para Agência para ver a operação completa.
+                Nada atribuído a você no momento. Alterne para Agência para ver a operação completa, ou crie uma tarefa.
               </p>
             </section>
           ) : null}
@@ -1298,14 +1290,14 @@ export default function DashboardPage() {
                 Precisa de atenção
               </h2>
               <p className="mt-0.5 text-xs text-[#7A7595]">
-                Atrasos, bloqueios e o que não pode esperar.
+                Atrasos, bloqueios e o que não pode esperar na agência.
               </p>
             </div>
             <Link
-              to={createPageUrl('tasks-manager')}
+              to={buildTasksManagerHref({})}
               className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver tarefas
+              Ver tarefas da agência
             </Link>
           </div>
           <ul className="space-y-0.5 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
@@ -1330,51 +1322,93 @@ export default function DashboardPage() {
             Atenção
           </h2>
           <p className="text-sm text-[#7A7595]">
-            {agenda[0]?.dueLabel
-              ? `Nada urgente no momento — próximo prazo: ${agenda[0].dueLabel}${agenda[0].title ? ` · ${agenda[0].title}` : ''}.`
-              : 'Nada urgente no momento. Quando houver atrasos ou bloqueios, eles aparecem aqui.'}
+            {agendaToday[0]?.dueLabel
+              ? `Nada urgente no momento — próximo prazo: ${agendaToday[0].dueLabel}${agendaToday[0].title ? ` · ${agendaToday[0].title}` : ''}.`
+              : agendaUpcoming[0]?.dueLabel
+                ? `Nada urgente no momento — próximo prazo: ${agendaUpcoming[0].dueLabel}${agendaUpcoming[0].title ? ` · ${agendaUpcoming[0].title}` : ''}.`
+                : 'Nada urgente no momento. Quando houver atrasos ou bloqueios, eles aparecem aqui.'}
           </p>
         </section>
       ) : null}
+        </>
+      )}
 
-      {(agenda.length > 0 || hasCampaigns) && (
-        <section aria-labelledby="agenda-heading">
-          <div className="mb-3 flex items-baseline justify-between gap-3">
+      {(agendaToday.length > 0 || agendaUpcoming.length > 0 || hasCampaigns) && (
+        <section aria-labelledby="work-agenda-heading" className="space-y-6">
+          <div className="mb-1 flex items-baseline justify-between gap-3">
             <div className="min-w-0">
               <h2
-                id="agenda-heading"
+                id="work-agenda-heading"
                 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#18162A]"
               >
                 <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
-                Próximas 48h
+                {isMeLens ? 'Minha agenda de trabalho' : 'Agenda de trabalho'}
               </h2>
               <p className="mt-0.5 text-xs text-[#7A7595]">
-                Prazos de hoje e amanhã — inclusive internos.
+                {isMeLens
+                  ? 'Seus prazos de hoje e amanhã — clique para abrir a tarefa.'
+                  : 'Prazos de hoje e amanhã na agência — inclusive internos.'}
               </p>
             </div>
             <Link
-              to={createPageUrl('tasks-manager')}
+              to={
+                isMeLens
+                  ? buildTasksManagerHref({ preset: 'my_open' })
+                  : buildTasksManagerHref({})
+              }
               className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
             >
-              Ver tarefas
+              Ver no quadro
             </Link>
           </div>
-          {agenda.length > 0 ? (
-            <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
-              {agenda.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  variant="agenda"
-                  onComplete={handleCompleteTask}
-                  completingId={completingId}
-                />
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
-              Nada com prazo para hoje ou amanhã. Quando houver entregas, elas aparecem aqui.
-            </p>
+
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
+              Para hoje
+              {agendaTodayTotal > 0 ? ` · ${agendaTodayTotal}` : ''}
+            </h3>
+            {agendaToday.length > 0 ? (
+              <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
+                {agendaToday.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    variant="agenda"
+                    onComplete={handleCompleteTask}
+                    completingId={completingId}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
+                Nada com prazo para hoje.
+              </p>
+            )}
+          </div>
+
+          {(agendaUpcoming.length > 0 || hasCampaigns) && (
+            <div>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#7A7595]">
+                Próximas atividades
+              </h3>
+              {agendaUpcoming.length > 0 ? (
+                <ul className="space-y-0.5 rounded-xl border border-[#E8E5F5] bg-white px-1.5 py-1.5">
+                  {agendaUpcoming.map((item) => (
+                    <ItemRow
+                      key={item.id}
+                      item={item}
+                      variant="agenda"
+                      onComplete={handleCompleteTask}
+                      completingId={completingId}
+                    />
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-xl border border-dashed border-[#E8E5F5] bg-white/60 px-4 py-3 text-sm text-[#7A7595]">
+                  Nada com prazo para amanhã.
+                </p>
+              )}
+            </div>
           )}
         </section>
       )}
@@ -1385,11 +1419,11 @@ export default function DashboardPage() {
         <div className="mb-5 flex items-baseline justify-between gap-3">
           <div className="min-w-0">
             <h2 id="campaigns-heading" className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]">
-              {hasCampaigns ? 'Em andamento' : 'Clientes'}
+              {hasCampaigns ? 'Acompanhamento de projetos' : 'Clientes'}
             </h2>
             {hasCampaigns ? (
               <p className="mt-0.5 text-xs text-[#7A7595]">
-                Campanhas em foco
+                Campanhas com ciclo aprovado ou em execução · progresso = tarefas concluídas ÷ total (exclui canceladas)
                 {focusCampaigns.total > 0
                   ? ` · ${Math.min(focusCampaigns.total, FOCUS_CAMPAIGN_LIMIT)} de ${focusCampaigns.total}`
                   : ''}
@@ -1507,41 +1541,150 @@ export default function DashboardPage() {
             ) : null}
           </div>
         ) : (
-          <ul className="space-y-3">
-            {focusCampaigns.items.map((campaign) => {
-              const period = campaign.cyclePeriod || campaign.cycleTitle || null;
-              const progress = campaign.progress || { completed: 0, total: 0 };
-              const subtitle = [campaign.clientName, period].filter(Boolean).join(' · ');
-              return (
-                <li key={`${campaign.clientId}-${campaign.id}`}>
-                  <Link
-                    to={campaign.href}
-                    className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-base font-semibold text-[#18162A]">
-                          {campaign.name}
-                        </p>
-                        {subtitle ? (
-                          <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
-                        ) : null}
+          <div className="space-y-6">
+            {campaignBlockers.length > 0 ? (
+              <div>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#c0392b]">
+                  Entregas com atraso
+                </h3>
+                <ul className="space-y-1 rounded-xl border border-[#F0B8BC] bg-[#FFF5F5] px-2 py-2">
+                  {campaignBlockers.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        to={item.href}
+                        className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/70"
+                        title={item.definition}
+                      >
+                        <span className="min-w-0 truncate text-sm font-medium text-[#18162A]">
+                          {item.title}
+                          {item.clientName ? (
+                            <span className="font-normal text-[#7A7595]"> · {item.clientName}</span>
+                          ) : null}
+                        </span>
+                        <span className="shrink-0 text-xs font-semibold text-[#c0392b]">
+                          {item.overdue} atrasada{item.overdue === 1 ? '' : 's'}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <ul className="space-y-3">
+              {focusCampaigns.items.map((campaign) => {
+                const period = campaign.cyclePeriod || campaign.cycleTitle || null;
+                const progress = campaign.progress || { completed: 0, total: 0 };
+                const subtitle = [campaign.clientName, period].filter(Boolean).join(' · ');
+                const overdue = Number(progress.overdue) || 0;
+                return (
+                  <li key={`${campaign.clientId}-${campaign.id}`}>
+                    <Link
+                      to={campaign.href}
+                      className="block rounded-xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FCFBFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-semibold text-[#18162A]">
+                            {campaign.name}
+                          </p>
+                          {subtitle ? (
+                            <p className="mt-1 text-sm text-[#7A7595]">{subtitle}</p>
+                          ) : null}
+                          {overdue > 0 ? (
+                            <p className="mt-1 text-xs font-semibold text-[#c0392b]">
+                              {overdue} tarefa{overdue === 1 ? '' : 's'} atrasada
+                              {overdue === 1 ? '' : 's'}
+                            </p>
+                          ) : null}
+                        </div>
+                        <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
+                          Abrir
+                          <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                        </span>
                       </div>
-                      <span className="inline-flex shrink-0 items-center text-sm font-medium text-[#6C47D8]">
-                        Abrir
-                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                    <CampaignProgressBar
-                      completed={progress.completed || 0}
-                      total={progress.total || 0}
-                    />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                      <CampaignProgressBar
+                        completed={progress.completed || 0}
+                        total={progress.total || 0}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
+      </section>
+
+      <section
+        aria-labelledby="quick-access-heading"
+        className="border-t border-[#E8E5F5] pt-8"
+      >
+        <h2
+          id="quick-access-heading"
+          className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
+        >
+          Acesso rápido
+        </h2>
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <li>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
+              onClick={() => {
+                setCreateKind('task');
+                setCreateOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+              <span className="text-sm font-semibold text-[#18162A]">Criar tarefa</span>
+            </Button>
+          </li>
+          <li>
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
+            >
+              <Link to={createPageUrl('clients')}>
+                <FolderOpen className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+                <span className="text-sm font-semibold text-[#18162A]">Abrir projeto</span>
+              </Link>
+            </Button>
+          </li>
+          <li>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
+              onClick={() => openGlobalSearch()}
+            >
+              <Search className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+              <span className="text-sm font-semibold text-[#18162A]">Localizar cliente</span>
+            </Button>
+          </li>
+          <li>
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto w-full flex-col items-start gap-1 rounded-xl px-3 py-3 text-left"
+            >
+              <Link
+                to={
+                  isMeLens
+                    ? buildTasksManagerHref({ preset: 'my_action' })
+                    : createPageUrl('approval-dashboard')
+                }
+              >
+                <ClipboardList className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+                <span className="text-sm font-semibold text-[#18162A]">
+                  {isMeLens ? 'Minhas pendências' : 'Aprovações'}
+                </span>
+              </Link>
+            </Button>
+          </li>
+        </ul>
       </section>
 
       <TaskCreateModal

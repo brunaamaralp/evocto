@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import ClientEditModal from '@/components/client/ClientEditModal';
@@ -30,6 +30,7 @@ import { getCardPastel } from '@/lib/modulePastels';
 
 export default function ClientsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { agencyId, loading: sessionLoading } = useSession();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,15 @@ export default function ClientsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return;
+    setEditingClient(null);
+    setShowCreateModal(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete('create');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const loadClients = useCallback(async () => {
     try {

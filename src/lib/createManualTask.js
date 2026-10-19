@@ -40,7 +40,14 @@ export function buildManualTaskPayload(input = {}) {
     : status;
   const clientId = input.clientId || null;
   const isInternal = !clientId;
-  const assignedTo = input.assignedTo || null;
+  // Sentinela de UI (Select Radix) nunca deve persistir como id
+  const rawAssignee = input.assignedTo;
+  const assignedTo =
+    !rawAssignee ||
+    rawAssignee === 'unassigned' ||
+    rawAssignee === '__unassigned__'
+      ? null
+      : rawAssignee;
   const isMeeting = Boolean(input.isMeeting);
   const baseTags = ['avulsa', 'manual'];
   if (isInternal) baseTags.push('interno');

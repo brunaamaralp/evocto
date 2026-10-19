@@ -365,7 +365,7 @@ export default function ComercialPage() {
                   const converting = convertingId === lead.id;
                   return (
                     <li key={lead.id}>
-                      <div className="rounded-lg border border-[#E8E5F5] bg-white p-3 shadow-none">
+                      <div className="rounded-2xl border border-[#E8E5F5] bg-white p-3 shadow-none">
                         <button
                           type="button"
                           className="w-full text-left"

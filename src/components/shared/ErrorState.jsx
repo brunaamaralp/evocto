@@ -45,7 +45,7 @@ export default function ErrorState({
                 className="flex items-center gap-2"
               >
                 <Home className="w-4 h-4" />
-                Ir para Início
+                Voltar
               </Button>
             )}
           </div>

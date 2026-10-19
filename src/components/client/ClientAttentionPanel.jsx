@@ -13,8 +13,8 @@ export default function ClientAttentionPanel({ items = [] }) {
   if (!items.length) return null;
 
   return (
-    <section aria-labelledby="attention-heading" className="border-t border-[#eee] pt-6">
-      <h2 id="attention-heading" className="mb-3 text-sm text-[#666]">
+    <section aria-labelledby="attention-heading" className="border-t border-[#E8E5F5] pt-6">
+      <h2 id="attention-heading" className="mb-3 text-sm text-[#7A7595]">
         Merece atenção · {items.length}
       </h2>
 
@@ -28,13 +28,13 @@ export default function ClientAttentionPanel({ items = [] }) {
             <li key={item.id}>
               <Link
                 to={item.href}
-                className="flex items-center justify-between gap-3 rounded-md px-1 py-2 transition-colors hover:bg-[#f7f7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007bff]/40"
+                className="flex items-center justify-between gap-3 rounded-md px-1 py-2 transition-colors hover:bg-[#F5F2FC]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
               >
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-sm font-medium text-[#111]">
+                  <p className="truncate text-sm font-medium text-[#18162A]">
                     {item.title}
                   </p>
-                  <p className="mt-0.5 truncate text-xs text-[#666]">
+                  <p className="mt-0.5 truncate text-xs text-[#7A7595]">
                     <span className={isUrgent ? 'text-[#c0392b]' : undefined}>
                       {badge}
                     </span>

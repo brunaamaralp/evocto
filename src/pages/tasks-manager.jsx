@@ -16,21 +16,22 @@ import {
   Filter, 
   Users, 
   Building2, 
-  Loader2, 
-  AlertCircle,
-  RefreshCcw,
   Plus,
   Clock,
   Flag,
   Kanban,
-  CalendarDays
+  CalendarDays,
+  Rows3,
+  CheckSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import TaskCalendarView from '@/components/tasks/TaskCalendarView';
+import LoadingState from '@/components/shared/LoadingState';
+import ErrorState from '@/components/shared/ErrorState';
+import EmptyState from '@/components/shared/EmptyState';
 import {
   EMPTY_TASK_FILTERS,
-  TASK_FILTER_PRESETS,
   TASKS_MANAGER_QUICK_PRESETS,
   applyTaskFilters,
   getTaskAssigneeId,
@@ -45,7 +46,15 @@ import { getKanbanBoardColumns } from '@/lib/taskStatusCanonical';
 import { getStagePastel } from '@/lib/modulePastels';
 import { createManualTask } from '@/lib/createManualTask';
 import { openTaskDrawer } from '@/lib/openTaskDrawer';
+import {
+  clearTaskManagerFilterParams,
+  readTaskManagerUrlState,
+  taskMatchesClientFilter,
+  writeTaskManagerFilterParams,
+} from '@/lib/taskManagerUrlState';
 import { TASK_SCOPE_LABELS } from '@/lib/taskScopeLabels';
+
+const DENSITY_STORAGE_KEY = 'evocto:tasks-manager-density';
 
 // Soft pastel kanban columns (mapa canônico)
 const KANBAN_COLUMNS = getKanbanBoardColumns();
@@ -58,7 +67,7 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
   const [title, setTitle] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  const submit = async () => {
+  const submit = async ({ openDrawer = false } = {}) => {
     const trimmed = title.trim();
     if (!trimmed || saving || !agencyId || disabled) return;
     setSaving(true);
@@ -75,11 +84,15 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
         quickAdd: true,
       });
       setTitle('');
-      toast.success('Tarefa criada — complete os detalhes');
+      toast.success(
+        openDrawer
+          ? 'Tarefa criada — complete os detalhes'
+          : 'Tarefa criada'
+      );
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('task:refresh'));
       }
-      if (created?.id) openTaskDrawer(created.id);
+      if (openDrawer && created?.id) openTaskDrawer(created.id);
     } catch (err) {
       console.error('Quick-add falhou:', err);
       toast.error(err?.message || 'Não foi possível criar a tarefa');
@@ -100,21 +113,24 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            submit();
+            submit({ openDrawer: e.shiftKey });
           }
         }}
       />
       {saving ? (
         <p className="mt-1 text-[10px] text-[#7A7595]">Salvando…</p>
       ) : (
-        <p className="mt-1 text-[10px] text-[#7A7595]">Enter para criar</p>
+        <p className="mt-1 text-[10px] text-[#7A7595]">
+          Enter cria · Shift+Enter abre detalhes
+        </p>
       )}
     </div>
   );
 }
 
 // Componente simples para card de tarefa
-function TaskCard({ task, users, clients }) {
+function TaskCard({ task, users, clients, density = 'comfortable' }) {
+  const compact = density === 'compact';
   const getAssignedUser = (userId) => {
     return users.find(u => u.id === userId);
   };
@@ -142,48 +158,59 @@ function TaskCard({ task, users, clients }) {
 
   return (
     <Card
-      className="mb-3 cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden rounded-2xl border-transparent"
+      className={`${compact ? 'mb-1.5' : 'mb-3'} cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden rounded-2xl border-transparent`}
       style={colorStyle}
     >
-      <CardContent className="p-3">
-        <div className="space-y-2">
-          <h4 className="font-medium text-sm line-clamp-2">{task.title}</h4>
+      <CardContent className={compact ? 'p-2' : 'p-3'}>
+        <div className={compact ? 'space-y-1' : 'space-y-2'}>
+          <h4 className={`font-medium ${compact ? 'text-xs line-clamp-1' : 'text-sm line-clamp-2'}`}>
+            {task.title}
+          </h4>
           
-          {task.description && (
+          {!compact && task.description ? (
             <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
-          )}
+          ) : null}
           
           <div className="flex flex-wrap gap-1">
             {shouldShowPriorityBadge(task.priority) && (
               <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
-                <Flag className="w-3 h-3 mr-1" />
-                {priorityLabelPt(task.priority)}
+                {!compact ? <Flag className="w-3 h-3 mr-1" /> : null}
+                {compact
+                  ? priorityLabelPt(task.priority).charAt(0)
+                  : priorityLabelPt(task.priority)}
               </Badge>
             )}
             
             {task.dueDate && (
               <Badge variant="outline" className="text-xs">
                 <Clock className="w-3 h-3 mr-1" />
-                {new Date(task.dueDate).toLocaleDateString()}
+                {compact
+                  ? new Date(task.dueDate).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                    })
+                  : new Date(task.dueDate).toLocaleDateString()}
               </Badge>
             )}
           </div>
           
-          <div className="flex items-center justify-between text-xs">
-            {assignedUser && (
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                <span className="truncate max-w-20">{assignedUser.full_name || assignedUser.email}</span>
+          {!compact ? (
+            <div className="flex items-center justify-between text-xs">
+              {assignedUser && (
+                <div className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  <span className="truncate max-w-20">{assignedUser.full_name || assignedUser.email}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-1 text-gray-500">
+                <Building2 className="w-3 h-3" />
+                <span className="truncate max-w-20">
+                  {client?.name || 'Interno'}
+                </span>
               </div>
-            )}
-            
-            <div className="flex items-center gap-1 text-gray-500">
-              <Building2 className="w-3 h-3" />
-              <span className="truncate max-w-20">
-                {client?.name || 'Interno'}
-              </span>
             </div>
-          </div>
+          ) : null}
         </div>
       </CardContent>
     </Card>
@@ -199,18 +226,24 @@ function TaskColumn({
   droppableId,
   agencyId,
   userId,
+  density = 'comfortable',
 }) {
+  const compact = density === 'compact';
   return (
-    <div className="flex-shrink-0 w-80 min-w-80">
-      <div className={`h-full rounded-2xl p-4 ${column.color}`}>
-        <div className="pb-3">
+    <div className={`flex-shrink-0 ${compact ? 'w-64 min-w-64' : 'w-80 min-w-80'}`}>
+      <div className={`h-full rounded-2xl ${compact ? 'p-2.5' : 'p-4'} ${column.color}`}>
+        <div className={compact ? 'pb-2' : 'pb-3'}>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-[#18162A]">{column.title}</span>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold text-[#18162A]`}>
+              {column.title}
+            </span>
             <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
               {tasks.length}
             </Badge>
           </div>
-          <p className="text-xs text-[#7A7595]">{column.description}</p>
+          {!compact ? (
+            <p className="text-xs text-[#7A7595]">{column.description}</p>
+          ) : null}
         </div>
         
         <div className="pt-1">
@@ -219,7 +252,7 @@ function TaskColumn({
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`min-h-[200px] space-y-2 p-2 rounded-xl transition-colors ${
+                className={`min-h-[200px] ${compact ? 'space-y-1' : 'space-y-2'} p-2 rounded-xl transition-colors ${
                   snapshot.isDraggingOver ? 'bg-white/60' : ''
                 }`}
               >
@@ -243,6 +276,7 @@ function TaskColumn({
                           task={task}
                           users={users}
                           clients={clients}
+                          density={density}
                         />
                       </div>
                     )}
@@ -251,9 +285,11 @@ function TaskColumn({
                 {provided.placeholder}
                 
                 {tasks.length === 0 && (
-                  <div className="text-center py-6 text-[#7A7595]">
+                  <div className={`text-center ${compact ? 'py-3' : 'py-6'} text-[#7A7595]`}>
                     <p className="text-sm">Nenhuma tarefa aqui</p>
-                    <p className="text-xs mt-1">Arraste um card ou use o quick-add</p>
+                    {!compact ? (
+                      <p className="text-xs mt-1">Arraste um card ou use o quick-add</p>
+                    ) : null}
                   </div>
                 )}
                 <QuickAddTask
@@ -278,28 +314,69 @@ export default function TasksManagerPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [density, setDensity] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DENSITY_STORAGE_KEY);
+      return saved === 'compact' ? 'compact' : 'comfortable';
+    } catch {
+      return 'comfortable';
+    }
+  });
 
-  // Estados de filtros
-  const [selectedClient, setSelectedClient] = useState('all');
-  const [selectedUser, setSelectedUser] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlStateInit = readTaskManagerUrlState(searchParams);
+  // Estados de filtros (hidratados da URL para sobreviver refresh/navegação)
+  const [selectedClient, setSelectedClient] = useState(
+    () => urlStateInit.client
+  );
+  const [selectedUser, setSelectedUser] = useState(() => urlStateInit.assignee);
+  const [searchTerm, setSearchTerm] = useState(() => urlStateInit.q);
+  const [selectedStatus, setSelectedStatus] = useState(
+    () => urlStateInit.status
+  );
   const [presetFilters, setPresetFilters] = useState({ ...EMPTY_TASK_FILTERS });
   const [createOpen, setCreateOpen] = useState(false);
   const [createKind, setCreateKind] = useState('task');
-  const [searchParams, setSearchParams] = useSearchParams();
-  const viewFromUrl = searchParams.get('view') === 'week' ? 'week' : 'kanban';
+  const viewFromUrl = urlStateInit.view;
   const [viewMode, setViewMode] = useState(viewFromUrl); // 'kanban' | 'week'
   const activePresetId = presetFilters.preset || null;
 
+  const writeFilterParams = useCallback(
+    (patch, { clearPreset = false } = {}) => {
+      const next = writeTaskManagerFilterParams(searchParams, patch, {
+        clearPreset,
+      });
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const viewFromSearch =
+    readTaskManagerUrlState(searchParams).view === 'week' ? 'week' : 'kanban';
+
   useEffect(() => {
-    setViewMode(viewFromUrl);
-  }, [viewFromUrl]);
+    setViewMode(viewFromSearch);
+  }, [viewFromSearch]);
+
+  // Ação rápida do header: ?create=1 abre o modal e limpa o param
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return;
+    setCreateKind('task');
+    setCreateOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete('create');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Sync preset da URL (?preset=) — ids inválidos são removidos
   useEffect(() => {
     const raw = searchParams.get('preset');
-    if (!raw) return;
+    if (!raw) {
+      if (presetFilters.preset) {
+        setPresetFilters({ ...EMPTY_TASK_FILTERS });
+      }
+      return;
+    }
     const fromUrl = resolvePresetFromQuery(raw);
     if (!fromUrl) {
       const next = new URLSearchParams(searchParams);
@@ -337,6 +414,8 @@ export default function TasksManagerPage() {
       if (!preset) return;
       const nextFilters = preset.apply({ userId: currentUserId });
       setPresetFilters(nextFilters);
+      setSearchTerm('');
+      setSelectedClient('all');
       if (nextFilters.assignee && nextFilters.assignee !== 'all') {
         setSelectedUser(String(nextFilters.assignee));
       } else {
@@ -349,6 +428,18 @@ export default function TasksManagerPage() {
       }
       const next = new URLSearchParams(searchParams);
       next.set('preset', preset.id);
+      next.delete('q');
+      next.delete('client');
+      if (nextFilters.assignee && nextFilters.assignee !== 'all') {
+        next.set('assignee', String(nextFilters.assignee));
+      } else {
+        next.delete('assignee');
+      }
+      if (nextFilters.status && nextFilters.status !== 'all') {
+        next.set('status', String(nextFilters.status));
+      } else {
+        next.delete('status');
+      }
       setSearchParams(next, { replace: true });
     },
     [currentUserId, searchParams, setSearchParams]
@@ -462,12 +553,7 @@ export default function TasksManagerPage() {
     };
 
     return tasks.filter((task) => {
-      if (selectedClient === 'internal') {
-        if (task.clientId) return false;
-      } else if (selectedClient !== 'all' && task.clientId !== selectedClient) {
-        return false;
-      }
-
+      if (!taskMatchesClientFilter(task, selectedClient)) return false;
       return applyTaskFilters(task, merged, { userId: currentUserId });
     });
   }, [
@@ -577,39 +663,42 @@ export default function TasksManagerPage() {
     setSelectedStatus('all');
     setSearchTerm('');
     setPresetFilters({ ...EMPTY_TASK_FILTERS });
-    const next = new URLSearchParams(searchParams);
-    next.delete('preset');
-    setSearchParams(next, { replace: true });
+    setSearchParams(clearTaskManagerFilterParams(searchParams), {
+      replace: true,
+    });
   }, [searchParams, setSearchParams]);
+
+  const toggleDensity = () => {
+    setDensity((prev) => {
+      const next = prev === 'compact' ? 'comfortable' : 'compact';
+      try {
+        localStorage.setItem(DENSITY_STORAGE_KEY, next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Carregando tarefas...</p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        variant="skeleton"
+        size="page"
+        message="Carregando tarefas…"
+        className="min-h-[400px]"
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 sm:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center max-w-md">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Não foi possível carregar as tarefas</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => loadData()} className="gap-2">
-              <RefreshCcw className="w-4 h-4" />
-              Tentar novamente
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ErrorState
+        title="Não foi possível carregar as tarefas"
+        message={error}
+        onRetry={() => loadData()}
+        showHomeButton={false}
+      />
     );
   }
 
@@ -654,6 +743,24 @@ export default function TasksManagerPage() {
               Semana
             </Button>
           </div>
+          {viewMode === 'kanban' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2 w-full sm:w-auto"
+              onClick={toggleDensity}
+              aria-pressed={density === 'compact'}
+              title={
+                density === 'compact'
+                  ? 'Densidade confortável'
+                  : 'Densidade compacta'
+              }
+            >
+              <Rows3 className="w-4 h-4" />
+              {density === 'compact' ? 'Compacto' : 'Confortável'}
+            </Button>
+          ) : null}
           <Button
             variant="outline"
             onClick={() => {
@@ -722,14 +829,36 @@ export default function TasksManagerPage() {
                 <Input
                   placeholder="Buscar por título ou descrição..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchTerm(value);
+                    writeFilterParams(
+                      { q: value },
+                      { clearPreset: Boolean(activePresetId) }
+                    );
+                    if (activePresetId) {
+                      setPresetFilters((prev) => ({ ...prev, preset: null }));
+                    }
+                  }}
                   className="pl-10 bg-white"
                 />
               </div>
             </div>
 
             {/* Filtro por cliente */}
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
+            <Select
+              value={selectedClient}
+              onValueChange={(value) => {
+                setSelectedClient(value);
+                writeFilterParams(
+                  { client: value },
+                  { clearPreset: Boolean(activePresetId) }
+                );
+                if (activePresetId) {
+                  setPresetFilters((prev) => ({ ...prev, preset: null }));
+                }
+              }}
+            >
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os clientes" />
               </SelectTrigger>
@@ -763,9 +892,10 @@ export default function TasksManagerPage() {
                   preset: null,
                   myAction: false,
                 }));
-                const next = new URLSearchParams(searchParams);
-                next.delete('preset');
-                setSearchParams(next, { replace: true });
+                writeFilterParams(
+                  { assignee: value },
+                  { clearPreset: true }
+                );
               }}
             >
               <SelectTrigger className="bg-white">
@@ -787,7 +917,19 @@ export default function TasksManagerPage() {
             </Select>
 
             {/* Filtro por status */}
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select
+              value={selectedStatus}
+              onValueChange={(value) => {
+                setSelectedStatus(value);
+                writeFilterParams(
+                  { status: value },
+                  { clearPreset: Boolean(activePresetId) }
+                );
+                if (activePresetId) {
+                  setPresetFilters((prev) => ({ ...prev, preset: null }));
+                }
+              }}
+            >
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
@@ -810,6 +952,45 @@ export default function TasksManagerPage() {
             </div>
           )}
       </div>
+
+      {totalTasks === 0 ? (
+        <EmptyState
+          variant="default"
+          icon={CheckSquare}
+          title={
+            hasFilters
+              ? 'Nenhuma tarefa com estes filtros'
+              : 'Nenhuma tarefa na agência'
+          }
+          description={
+            hasFilters
+              ? 'Ajuste os filtros ou limpe o preset para ver o quadro completo.'
+              : 'Crie a primeira tarefa ou use o quick-add em qualquer coluna.'
+          }
+          primaryAction={
+            hasFilters
+              ? { label: 'Limpar filtros', onClick: clearFilters }
+              : {
+                  label: 'Nova tarefa',
+                  onClick: () => {
+                    setCreateKind('task');
+                    setCreateOpen(true);
+                  },
+                }
+          }
+          secondaryAction={
+            hasFilters
+              ? {
+                  label: 'Nova tarefa',
+                  onClick: () => {
+                    setCreateKind('task');
+                    setCreateOpen(true);
+                  },
+                }
+              : undefined
+          }
+        />
+      ) : null}
 
       {/* Quadro Kanban ou Calendário semanal */}
       {viewMode === 'week' ? (
@@ -846,7 +1027,7 @@ export default function TasksManagerPage() {
             <div 
               className="flex gap-4 pb-4"
               style={{ 
-                width: `${KANBAN_COLUMNS.length * 320 + (KANBAN_COLUMNS.length - 1) * 16}px`,
+                width: `${KANBAN_COLUMNS.length * (density === 'compact' ? 256 : 320) + (KANBAN_COLUMNS.length - 1) * 16}px`,
                 minHeight: '600px'
               }}
             >
@@ -860,6 +1041,7 @@ export default function TasksManagerPage() {
                   droppableId={column.id}
                   agencyId={agencyId}
                   userId={currentUserId}
+                  density={density}
                 />
               ))}
             </div>

@@ -1,5 +1,6 @@
 /**
- * Contrato único para abrir o TaskDrawer (evento + deep link ?taskId=).
+ * Contrato único para abrir o TaskDrawer (Sheet canônico + deep link ?taskId=).
+ * Preferir isto a TaskModal (deprecated).
  */
 
 export function readTaskIdFromSearch(search = '') {

@@ -38,7 +38,7 @@ const DesignSystemAudit = () => {
         },
         {
           category: "Layout",
-          component: "SidebarSwitcher + ModernSidebar", 
+          component: "ContextualSidebar + ModernHeader", 
           status: "excellent",
           details: [
             "Navegação contextual (agência vs cliente)",

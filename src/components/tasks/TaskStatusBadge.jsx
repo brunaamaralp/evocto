@@ -3,30 +3,11 @@ import {
   Pause, Eye, CheckCircle, AlertTriangle, Clock, Target, GitBranch,
 } from 'lucide-react';
 import { getStagePastel } from '@/lib/modulePastels';
-import {
-  TASK_STATUS_CANONICAL,
-  getTaskStatusConfig,
-} from '@/lib/taskStatusCanonical';
+import { getTaskStatusConfig } from '@/lib/taskStatusCanonical';
 import { resolveTaskStatusIcon } from '@/lib/taskStatusIcons';
 import { shouldShowPriorityBadge } from '@/lib/taskPriority';
 
-/** Espelho do mapa canônico (compat com imports existentes). */
-export const TASK_STATUS_CONFIGS = Object.fromEntries(
-  Object.keys(TASK_STATUS_CANONICAL).map((id) => {
-    const config = getTaskStatusConfig(id);
-    return [
-      id,
-      {
-        label: config.label,
-        icon: resolveTaskStatusIcon(config.icon),
-        color: config.badge,
-        description: config.description,
-      },
-    ];
-  })
-);
-
-export const DELIVERABLE_STATUS_CONFIGS = {
+const DELIVERABLE_STATUS_CONFIGS = {
   not_started: {
     label: 'Não iniciado',
     icon: Pause,

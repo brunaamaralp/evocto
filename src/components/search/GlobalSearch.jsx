@@ -7,18 +7,26 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
 } from '@/components/ui/command';
 import {
   Users,
   Wrench,
-  FileText,
-  Lightbulb,
-  Target,
+  Megaphone,
+  CheckSquare,
+  Calendar,
   Search,
+  LayoutDashboard,
+  Filter,
+  ClipboardCheck,
 } from 'lucide-react';
-import { Client, Service, Brief, Insights, Scope } from '@/api/entities';
-import { createPageUrl } from '@/utils';
+import { useSession } from '@/components/auth/SessionManager';
 import { cn } from '@/lib/utils';
+import {
+  fetchGlobalSearchEntities,
+  getGlobalSearchShortcuts,
+  openGlobalSearchResult,
+} from '@/lib/globalSearchSources';
 
 const OPEN_EVENT = 'evocto:open-global-search';
 
@@ -26,40 +34,19 @@ export function openGlobalSearch() {
   window.dispatchEvent(new CustomEvent(OPEN_EVENT));
 }
 
-const entityConfig = {
-  Clientes: {
-    fetcher: () => Client.list('-updated_date', 30),
-    icon: Users,
-    getPageUrl: (item) => createPageUrl(`client-detail?clientId=${item.id}`),
-  },
-  Serviços: {
-    fetcher: () => Service.filter({ is_template: false }, '-updated_date', 30),
-    icon: Wrench,
-    getPageUrl: (item) =>
-      createPageUrl(
-        `service-detail?serviceId=${item.id}${
-          item.clientId || item.customerId
-            ? `&clientId=${item.clientId || item.customerId}`
-            : ''
-        }`
-      ),
-  },
-  Briefings: {
-    fetcher: () => Brief.list('-updated_date', 30),
-    icon: FileText,
-    getPageUrl: (item) => `/briefing-editor?id=${item.id}`,
-  },
-  Insights: {
-    fetcher: () => Insights.list('-updated_date', 30),
-    icon: Lightbulb,
-    getPageUrl: (item) => `/InsightsEditor?id=${item.id}`,
-  },
-  Escopos: {
-    fetcher: () => Scope.list('-updated_date', 30),
-    icon: Target,
-    getPageUrl: (item) => `/scope-editor?id=${item.id}`,
-  },
+const GROUP_ICONS = {
+  Clientes: Users,
+  Serviços: Wrench,
+  Campanhas: Megaphone,
+  Tarefas: CheckSquare,
+  Ciclos: Calendar,
 };
+
+function searchShortcutLabel() {
+  if (typeof navigator === 'undefined') return 'Ctrl+K';
+  const platform = navigator.platform || navigator.userAgent || '';
+  return /Mac|iPhone|iPad|iPod/i.test(platform) ? '⌘K' : 'Ctrl+K';
+}
 
 export function GlobalSearchTrigger({ compact = false, className = '' }) {
   if (compact) {
@@ -89,19 +76,45 @@ export function GlobalSearchTrigger({ compact = false, className = '' }) {
       aria-label="Abrir busca global"
     >
       <Search className="h-4 w-4 shrink-0" />
-      <span className="flex-1 truncate">Buscar cliente, serviço, briefing…</span>
+      <span className="flex-1 truncate">Buscar cliente, tarefa, campanha…</span>
       <kbd className="hidden sm:inline-flex h-6 items-center rounded-md border border-[#E8E5F5] bg-white px-1.5 text-[10px] font-medium text-[#7A7595]">
-        ⌘K
+        {searchShortcutLabel()}
       </kbd>
     </button>
   );
 }
 
-export default function GlobalSearch() {
+export default function GlobalSearch({ preferredClientId = null } = {}) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pages, setPages] = useState({});
+  const [partialFailure, setPartialFailure] = useState(false);
+  const [entities, setEntities] = useState({
+    clients: [],
+    services: [],
+    campaigns: [],
+    tasks: [],
+    cycles: [],
+  });
+  const { agencyId, user } = useSession();
   const navigate = useNavigate();
+  const userId = user?.id || user?.data?.id || null;
+  const shortcuts = getGlobalSearchShortcuts({ userId });
+
+  const preferClient = (items) => {
+    if (!preferredClientId || !Array.isArray(items)) return items || [];
+    const id = String(preferredClientId);
+    const matched = [];
+    const rest = [];
+    for (const item of items) {
+      const clientMatch =
+        String(item.clientId || '') === id ||
+        String(item.id || '') === id ||
+        (item.href && String(item.href).includes(`clientId=${id}`));
+      if (clientMatch) matched.push(item);
+      else rest.push(item);
+    }
+    return [...matched, ...rest];
+  };
 
   useEffect(() => {
     const onKey = (e) => {
@@ -120,87 +133,149 @@ export default function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!open) return;
-      setLoading(true);
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    setPartialFailure(false);
+    setEntities({
+      clients: [],
+      services: [],
+      campaigns: [],
+      tasks: [],
+      cycles: [],
+    });
 
-      const promises = Object.entries(entityConfig).map(async ([groupName, config]) => {
-        try {
-          const items = await config.fetcher();
-          return {
-            groupName,
-            items: items.map((item) => ({
-              ...item,
-              title: item.title || item.name || `Item ${String(item.id).slice(0, 4)}`,
-              subtitle: item.company || item.customerName || item.sector || '',
-            })),
-            icon: config.icon,
-            getPageUrl: config.getPageUrl,
-          };
-        } catch {
-          return { groupName, items: [], icon: config.icon, getPageUrl: config.getPageUrl };
-        }
+    fetchGlobalSearchEntities(agencyId)
+      .then((data) => {
+        if (cancelled) return;
+        setEntities(data);
+        setPartialFailure(Boolean(data?.partialFailure));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
 
-      const results = await Promise.all(promises);
-      const pageData = results.reduce((acc, result) => {
-        if (result.items.length > 0) {
-          acc[result.groupName] = {
-            items: result.items,
-            icon: result.icon,
-            getPageUrl: result.getPageUrl,
-          };
-        }
-        return acc;
-      }, {});
-
-      setPages(pageData);
-      setLoading(false);
+    return () => {
+      cancelled = true;
     };
+  }, [open, agencyId]);
 
-    if (open) {
-      setPages({});
-      fetchData();
-    }
-  }, [open]);
+  const runCommand = useCallback(
+    (item) => {
+      setOpen(false);
+      openGlobalSearchResult(item, navigate);
+    },
+    [navigate]
+  );
 
-  const runCommand = useCallback((command) => {
-    setOpen(false);
-    command();
-  }, []);
+  const entityGroups = [
+    { key: 'clients', label: 'Clientes', items: preferClient(entities.clients) },
+    { key: 'tasks', label: 'Tarefas', items: preferClient(entities.tasks) },
+    { key: 'campaigns', label: 'Campanhas', items: preferClient(entities.campaigns) },
+    { key: 'services', label: 'Serviços', items: preferClient(entities.services) },
+    { key: 'cycles', label: 'Ciclos', items: preferClient(entities.cycles) },
+  ].filter((g) => g.items.length > 0);
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Digite para buscar cliente, serviço, briefing..."
+        placeholder="Buscar cliente, tarefa, campanha ou filtro…"
         data-search="command-input"
         aria-label="Campo de busca global"
       />
       <CommandList data-search="results">
-        <CommandEmpty>{loading ? 'Carregando...' : 'Nenhum resultado encontrado.'}</CommandEmpty>
-        {!loading &&
-          Object.entries(pages).map(([group, { items, icon: Icon, getPageUrl }]) => (
-            <CommandGroup key={group} heading={group}>
-              {items.map((item) => (
+        <CommandEmpty>
+          {loading
+            ? 'Carregando...'
+            : partialFailure
+              ? 'Alguns resultados indisponíveis. Tente de novo.'
+              : 'Nenhum resultado encontrado.'}
+        </CommandEmpty>
+
+        {!loading && partialFailure ? (
+          <div
+            className="px-3 py-2 text-xs text-amber-700 bg-amber-50 border-b border-amber-100"
+            role="status"
+          >
+            Alguns resultados indisponíveis — a busca pode estar incompleta.
+          </div>
+        ) : null}
+
+        <CommandGroup heading="Navegação">
+          {shortcuts.nav.map((item) => {
+            const Icon =
+              item.id === 'nav-approvals'
+                ? ClipboardCheck
+                : item.id === 'nav-tasks' || item.id === 'nav-my-tasks'
+                  ? CheckSquare
+                  : item.id === 'nav-clients'
+                    ? Users
+                    : LayoutDashboard;
+            return (
+              <CommandItem
+                key={item.id}
+                value={`${item.title} ${item.subtitle}`}
+                onSelect={() => runCommand(item)}
+                className="cursor-pointer"
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                <div className="flex flex-col">
+                  <span>{item.title}</span>
+                  <span className="text-xs text-slate-500">{item.subtitle}</span>
+                </div>
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+
+        {shortcuts.presets.length > 0 ? (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Filtros de tarefas">
+              {shortcuts.presets.map((item) => (
                 <CommandItem
                   key={item.id}
-                  value={`${item.title} ${item.subtitle}`}
-                  onSelect={() => runCommand(() => navigate(getPageUrl(item)))}
+                  value={`${item.title} ${item.subtitle} filtro preset`}
+                  onSelect={() => runCommand(item)}
                   className="cursor-pointer"
-                  data-search-item={group.toLowerCase()}
-                  aria-label={`Abrir ${item.title}`}
                 >
-                  <Icon className="mr-2 h-4 w-4" />
+                  <Filter className="mr-2 h-4 w-4" />
                   <div className="flex flex-col">
                     <span>{item.title}</span>
-                    {item.subtitle ? (
-                      <span className="text-xs text-slate-500">{item.subtitle}</span>
-                    ) : null}
+                    <span className="text-xs text-slate-500">{item.subtitle}</span>
                   </div>
                 </CommandItem>
               ))}
             </CommandGroup>
-          ))}
+          </>
+        ) : null}
+
+        {!loading &&
+          entityGroups.map(({ label, items }) => {
+            const Icon = GROUP_ICONS[label] || Search;
+            return (
+              <CommandGroup key={label} heading={label}>
+                {items.slice(0, 8).map((item) => (
+                  <CommandItem
+                    key={`${label}-${item.id}`}
+                    value={`${item.title} ${item.subtitle} ${label}`}
+                    onSelect={() => runCommand(item)}
+                    className="cursor-pointer"
+                    data-search-item={label.toLowerCase()}
+                    aria-label={`Abrir ${item.title}`}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span>{item.title}</span>
+                      {item.subtitle ? (
+                        <span className="text-xs text-slate-500">{item.subtitle}</span>
+                      ) : null}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            );
+          })}
       </CommandList>
     </CommandDialog>
   );

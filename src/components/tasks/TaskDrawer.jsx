@@ -637,8 +637,7 @@ export default function TaskDrawer() {
       });
       toast.success("Tarefa duplicada");
       notifyLists(created.id);
-      setTaskId(created.id);
-      await fetchAll(created.id);
+      openById(created.id, { syncUrl: true });
     } catch (e) {
       console.error(e);
       toast.error("Não foi possível duplicar");
@@ -808,6 +807,16 @@ export default function TaskDrawer() {
         <SheetContent
           side="right"
           className="w-full sm:max-w-xl md:max-w-2xl flex flex-col p-0 gap-0"
+          onEscapeKeyDown={(e) => {
+            if (editingTitle || editingDesc) {
+              e.preventDefault();
+              if (editingTitle) cancelTitleEdit();
+              if (editingDesc) {
+                setDescDraft(task?.description || "");
+                setEditingDesc(false);
+              }
+            }
+          }}
         >
           <SheetHeader className="border-b px-4 sm:px-5 pt-4 pb-3 space-y-0 text-left">
             <div className="flex items-start gap-2 pr-8">
@@ -825,6 +834,7 @@ export default function TaskDrawer() {
                       }
                       if (e.key === "Escape") {
                         e.preventDefault();
+                        e.stopPropagation();
                         cancelTitleEdit();
                       }
                     }}
@@ -1082,6 +1092,14 @@ export default function TaskDrawer() {
                     }}
                     onBlur={saveDescription}
                     onFocus={() => setEditingDesc(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDescDraft(task?.description || "");
+                        setEditingDesc(false);
+                      }
+                    }}
                     placeholder="Adicionar descrição…"
                     rows={4}
                     className="resize-y min-h-[96px]"

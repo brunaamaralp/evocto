@@ -223,8 +223,8 @@ export default function SupportLibrary({ agencyId, targetAudience = ['client'] }
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <TypeIcon className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-[#F5F2FC] rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <TypeIcon className="w-6 h-6 text-[#6C47D8]" />
                     </div>
                     
                     <div className="flex-1 min-w-0">

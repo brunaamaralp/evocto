@@ -18,8 +18,36 @@ export function LoadingState({
 
   return (
     <div className={`flex items-center justify-center py-10 ${className}`} role="status" aria-live="polite" aria-busy="true">
-      <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mr-3" />
+      <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin mr-3" />
       <span className="text-slate-600">{message}</span>
+    </div>
+  );
+}
+
+/** Alias usado por AuthGuard e superfícies legadas. */
+export function LoadingSpinner({
+  size = "default",
+  text = "Carregando...",
+  className = "",
+}) {
+  const sizeClass =
+    size === "large" || size === "lg"
+      ? "w-10 h-10 border-4"
+      : size === "sm"
+        ? "w-4 h-4 border-2"
+        : "w-6 h-6 border-4";
+
+  return (
+    <div
+      className={`flex flex-col items-center justify-center py-10 ${className}`}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div
+        className={`${sizeClass} border-primary border-t-transparent rounded-full animate-spin mb-3`}
+      />
+      {text ? <span className="text-slate-600 text-sm">{text}</span> : null}
     </div>
   );
 }

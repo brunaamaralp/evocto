@@ -1,3 +1,7 @@
+/**
+ * @deprecated Preferir TaskDrawer + openTaskDrawer (Sheet canônico no Layout).
+ * Mantido por compatibilidade; sem consumidores ativos na app.
+ */
 import { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
