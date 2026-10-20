@@ -68,7 +68,7 @@ export default function ContractedServiceSetup({
               .toLowerCase()
               .includes('narrativa')
           ) || templatesList[0];
-        setTemplateId(preferred.id);
+        setTemplateId(String(preferred.id));
         setServiceName(`${clientName} — ${preferred.name}`);
       }
     } catch (err) {
@@ -189,13 +189,16 @@ export default function ContractedServiceSetup({
             <>
               <div className="space-y-2">
                 <Label htmlFor="contracted-template">Template do serviço *</Label>
-                <Select value={templateId} onValueChange={setTemplateId}>
+                <Select
+                  value={templateId ? String(templateId) : undefined}
+                  onValueChange={(id) => setTemplateId(String(id))}
+                >
                   <SelectTrigger id="contracted-template">
                     <SelectValue placeholder="Selecione um template" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[80]">
                     {templates.map((tpl) => (
-                      <SelectItem key={tpl.id} value={tpl.id}>
+                      <SelectItem key={tpl.id} value={String(tpl.id)}>
                         {tpl.name}
                         {tpl.category ? ` · ${tpl.category}` : ''}
                       </SelectItem>
