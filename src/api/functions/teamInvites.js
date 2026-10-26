@@ -160,19 +160,19 @@ async function createTeamMembership({ agencyId, email, role, token, userId }) {
   });
 }
 
-async function createMemberWithPasswordViaApi({ email, role, name, password }) {
+async function teamMembersApi(route, body) {
   const jwt = await createSessionJwt();
   if (!jwt) return null;
 
   let res;
   try {
-    res = await fetch('/api/team-members?route=create-with-password', {
+    res = await fetch(`/api/team-members?route=${encodeURIComponent(route)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${jwt}`,
       },
-      body: JSON.stringify({ email, role, name, password }),
+      body: JSON.stringify(body || {}),
     });
   } catch (err) {
     console.warn('[teamInvites] API team-members indisponível:', err?.message || err);
@@ -189,12 +189,20 @@ async function createMemberWithPasswordViaApi({ email, role, name, password }) {
   if (!res.ok || json.success === false) {
     return fail(
       json.error || 'api_error',
-      json.message || 'Não foi possível criar o membro.',
+      json.message || 'Não foi possível concluir a operação.',
       json.suggestion ? { suggestion: json.suggestion } : {}
     );
   }
 
-  const payload = json.data || json;
+  return { ok: true, json };
+}
+
+async function createMemberWithPasswordViaApi({ email, role, name, password }) {
+  const result = await teamMembersApi('create-with-password', { email, role, name, password });
+  if (!result) return null;
+  if (!result.ok) return result;
+
+  const payload = result.json.data || result.json;
   return ok({
     method: 'password',
     message: payload.message || 'Membro criado. Compartilhe e-mail e senha com a pessoa.',
@@ -202,6 +210,28 @@ async function createMemberWithPasswordViaApi({ email, role, name, password }) {
     email: payload.email || email,
     name: payload.name || name,
     userId: payload.userId,
+    loginUrl: payload.loginUrl || loginUrl(),
+  });
+}
+
+async function updateMemberCredentialsViaApi({ userId, email, password, name }) {
+  const result = await teamMembersApi('update-credentials', { userId, email, password, name });
+  if (!result) {
+    return fail(
+      'api_unavailable',
+      'API de membros indisponível. Em desenvolvimento local, confirme que o Vite sobe /api/team-members.'
+    );
+  }
+  if (!result.ok) return result;
+
+  const payload = result.json.data || result.json;
+  return ok({
+    method: 'update',
+    message: payload.message || 'Credenciais atualizadas.',
+    temporaryPassword: payload.temporaryPassword,
+    email: payload.email || email,
+    name: payload.name || name,
+    userId: payload.userId || userId,
     loginUrl: payload.loginUrl || loginUrl(),
   });
 }
@@ -364,6 +394,38 @@ export async function sendInvite(params = {}) {
     return createMemberWithPassword(params);
   }
   return createMemberInviteEmail(params);
+}
+
+/**
+ * Atualiza e-mail / senha / nome de um membro (owner/admin).
+ * @param {{ userId: string, email?: string, password?: string, name?: string }}
+ */
+export async function updateMemberCredentials(params = {}) {
+  const userId = String(params.userId || params.id || '').trim();
+  if (!userId) {
+    return fail('missing_user_id', 'Informe o membro a atualizar.');
+  }
+
+  const actor = await getActor();
+  assertCanManageInvites(actor);
+
+  const email = params.email !== undefined ? normalizeEmail(params.email) : undefined;
+  const password = params.password !== undefined ? String(params.password || '').trim() : undefined;
+  const name = params.name !== undefined ? String(params.name || '').trim() : undefined;
+
+  if (email !== undefined && email && !isValidEmail(email)) {
+    return fail('invalid_email', 'Formato de e-mail inválido');
+  }
+  if (password !== undefined && password && password.length < 8) {
+    return fail('weak_password', 'A senha deve ter pelo menos 8 caracteres');
+  }
+
+  return updateMemberCredentialsViaApi({
+    userId,
+    email: email || undefined,
+    password: password || undefined,
+    name: name || undefined,
+  });
 }
 
 async function listInvites() {

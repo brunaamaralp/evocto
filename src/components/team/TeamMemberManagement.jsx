@@ -8,15 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, Plus, UserCheck, Clock, UserX, 
   Send, Ban, Crown, Shield, 
-  User as UserIcon, Eye, Mail
+  User as UserIcon, Pencil, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { User } from '@/api/entities';
-import { sendInvite } from '@/api/functions';
-import { manageInvites } from '@/api/functions';
+import { sendInvite, manageInvites, updateMemberCredentials } from '@/api/functions';
 import InviteMemberModal from './InviteMemberModal';
+import EditMemberModal from './EditMemberModal';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -31,6 +31,7 @@ export default function TeamMemberManagement({
   const [inviteStats, setInviteStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [activeTab, setActiveTab] = useState('members');
 
   const openInvite = () => {
@@ -157,6 +158,37 @@ export default function TeamMemberManagement({
     }
   };
 
+  const handleUpdateMember = async (payload) => {
+    try {
+      const result = await updateMemberCredentials(payload);
+      const data = result?.data || result;
+      if (data?.success) {
+        if (!data.temporaryPassword) {
+          toast.success(data.message || 'Membro atualizado.');
+        }
+        await loadMembers();
+        return data;
+      }
+
+      const errorMessages = {
+        already_member: 'Este e-mail já é membro da equipe',
+        invalid_email: 'Formato de e-mail inválido',
+        weak_password: 'A senha deve ter pelo menos 8 caracteres',
+        password_update_failed: 'Não foi possível atualizar a senha',
+        email_update_failed: 'Não foi possível atualizar o e-mail',
+        cannot_edit_owner: 'Não é possível editar o proprietário por aqui',
+        cannot_edit_self: 'Para alterar sua senha, use Minha conta',
+        api_unavailable: 'API de membros indisponível no momento',
+      };
+      toast.error(errorMessages[data?.error] || data?.message || 'Erro ao atualizar membro');
+      return data || { success: false };
+    } catch (error) {
+      console.error('Error updating member:', error);
+      toast.error('Erro ao atualizar membro. Tente novamente.');
+      return { success: false, message: error?.message };
+    }
+  };
+
   // Função para cores de função consolidadas com paleta Evocto
   const getRoleColor = (role) => {
     const roleColors = {
@@ -231,9 +263,17 @@ export default function TeamMemberManagement({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {member.id !== currentUser.id && (currentUser.role === 'owner' || currentUser.role === 'admin') && (
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
-              <Eye className="w-4 h-4" />
+          {member.id !== currentUser.id
+            && member.role !== 'owner'
+            && (currentUser.role === 'owner' || currentUser.role === 'admin') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 hover:text-gray-800"
+              onClick={() => setEditingMember(member)}
+              aria-label={`Editar ${member.full_name || member.email || 'membro'}`}
+            >
+              <Pencil className="w-4 h-4" />
             </Button>
           )}
         </div>
@@ -429,6 +469,13 @@ export default function TeamMemberManagement({
           onInvite={handleSendInvite}
         />
       )}
+
+      <EditMemberModal
+        isOpen={Boolean(editingMember)}
+        member={editingMember}
+        onClose={() => setEditingMember(null)}
+        onSave={handleUpdateMember}
+      />
     </div>
   );
 }

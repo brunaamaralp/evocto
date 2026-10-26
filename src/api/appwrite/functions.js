@@ -185,6 +185,7 @@ export {
   sendInvite,
   acceptInvite,
   manageInvites,
+  updateMemberCredentials,
 } from '../functions/teamInvites.js';
 export const analyzeSentiment = notMigrated('analyzeSentiment');
 export const generateSmartRecommendations = notMigrated('generateSmartRecommendations');

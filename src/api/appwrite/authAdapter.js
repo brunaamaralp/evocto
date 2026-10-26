@@ -112,6 +112,8 @@ export const authAdapter = {
 
     // Client SDK só pode atribuir Role.user(self). Role.user(outroId) → 401.
     // Perfis de terceiros (ex.: invite client) precisam da API admin.
+    // Sempre tenta conceder leitura/update ao dono do perfil; se a API admin
+    // criou o user, o fallback client ainda precisa do Role.team para o staff.
     let actorId = null;
     try {
       actorId = (await account.get()).$id;
@@ -127,7 +129,10 @@ export const authAdapter = {
         Permission.delete(Role.team(userData.agencyId)),
       );
     }
-    if (selfAccess) {
+    // Preferir permissão do próprio userId quando quem cria é o próprio usuário.
+    // Para terceiros via client SDK, Appwrite rejeita Role.user(outroId) —
+    // nesse caso o create falha e o fluxo deve usar /api/team-members.
+    if (selfAccess || !actorId) {
       profilePerms.push(
         Permission.read(Role.user(userId)),
         Permission.update(Role.user(userId)),
@@ -136,6 +141,11 @@ export const authAdapter = {
       profilePerms.push(
         Permission.read(Role.user(actorId)),
         Permission.update(Role.user(actorId)),
+      );
+      // Sem Role.user(novoId) o membro não lê o próprio perfil após login.
+      // A API server (team-members) é o caminho correto; avisar no console.
+      console.warn(
+        '[Appwrite] Perfil de terceiro criado via client SDK sem permissão do dono. Preferir /api/team-members.'
       );
     }
 
