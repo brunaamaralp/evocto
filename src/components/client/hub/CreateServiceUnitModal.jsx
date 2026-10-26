@@ -115,7 +115,7 @@ export default function CreateServiceUnitModal({
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white shadow-lg sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-[#E8E5F5] px-5 py-4">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#6C47D8]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#C02807]">
               {getServiceDisplayName(service)}
             </p>
             <h2
@@ -144,7 +144,7 @@ export default function CreateServiceUnitModal({
 
         <form onSubmit={(e) => handleSubmit(e)} className="space-y-4 px-5 py-5">
           {isContentService ? (
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#F5F2FC] p-1">
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#EEF4FA] p-1">
               <button
                 type="button"
                 className={`rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -217,7 +217,7 @@ export default function CreateServiceUnitModal({
                 onDragLeave={() => setDragOver(false)}
                 className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
                   dragOver
-                    ? 'border-[#6C47D8] bg-[#6C47D8]/5'
+                    ? 'border-[#C02807] bg-[#C02807]/5'
                     : 'border-[#E8E5F5] hover:border-[#bbb]'
                 }`}
               >
@@ -226,7 +226,7 @@ export default function CreateServiceUnitModal({
                   Arraste arquivos ou{' '}
                   <button
                     type="button"
-                    className="font-medium text-[#6C47D8] underline-offset-2 hover:underline"
+                    className="font-medium text-[#C02807] underline-offset-2 hover:underline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={saving}
                   >
@@ -258,7 +258,7 @@ export default function CreateServiceUnitModal({
                     return (
                       <li
                         key={fileKey(file, index)}
-                        className="flex items-center gap-2 rounded-lg border border-[#E8E5F5] bg-[#F5F2FC]/50 px-2 py-1.5"
+                        className="flex items-center gap-2 rounded-lg border border-[#E8E5F5] bg-[#EEF4FA]/50 px-2 py-1.5"
                       >
                         <Icon className="h-4 w-4 shrink-0 text-[#7A7595]" aria-hidden />
                         <span className="min-w-0 flex-1 truncate text-sm text-[#222]">
@@ -345,7 +345,7 @@ export default function CreateServiceUnitModal({
             ) : null}
             <Button
               type="submit"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
               disabled={!canSubmit}
             >
               {saving ? (

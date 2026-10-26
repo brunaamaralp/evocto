@@ -80,7 +80,7 @@ export default function SettingsPage() {
     contactEmail: agency?.contactEmail || '',
     contactPhone: agency?.contactPhone || '',
     logoUrl: agency?.logoUrl || '',
-    primaryColor: agency?.primaryColor || '#6C47D8',
+    primaryColor: agency?.primaryColor || '#C02807',
     secondaryColor: agency?.secondaryColor || '#F1F5F9'
   });
   
@@ -115,7 +115,7 @@ export default function SettingsPage() {
         contactEmail: agency.contactEmail || '',
         contactPhone: agency.contactPhone || '',
         logoUrl: agency.logoUrl || '',
-        primaryColor: agency.primaryColor || '#6C47D8',
+        primaryColor: agency.primaryColor || '#C02807',
         secondaryColor: agency.secondaryColor || '#F1F5F9'
       });
       
@@ -272,11 +272,11 @@ export default function SettingsPage() {
 
         {/* Aba Agência — preferir hub Minha empresa (P0.2) */}
         <TabsContent value="agency">
-          <div className="mb-4 rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/50 px-4 py-3 text-sm text-[#7A7595]">
+          <div className="mb-4 rounded-xl border border-[#E8E5F5] bg-[#EEF4FA]/50 px-4 py-3 text-sm text-[#7A7595]">
             Identidade, equipe e marca ficam em{' '}
             <Link
               to={createPageUrl('minha-empresa')}
-              className="font-medium text-[#6C47D8] hover:underline"
+              className="font-medium text-[#C02807] hover:underline"
             >
               Minha empresa
             </Link>

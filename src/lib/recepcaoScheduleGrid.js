@@ -60,12 +60,12 @@ export function resolveScheduleCardStyle(classDoc) {
   if (HEX_COLOR_RE.test(raw)) {
     return {
       borderColor: raw,
-      surfaceColor: `color-mix(in srgb, ${raw} 12%, var(--color-primary-surface, #ede9fb))`,
+      surfaceColor: `color-mix(in srgb, ${raw} 12%, var(--color-primary-surface, #FCE8E3))`,
     };
   }
   return {
     borderColor: 'var(--color-primary)',
-    surfaceColor: 'var(--color-primary-surface, #ede9fb)',
+    surfaceColor: 'var(--color-primary-surface, #FCE8E3)',
   };
 }
 

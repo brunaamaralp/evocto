@@ -245,8 +245,8 @@ export default function HoursHubPage() {
                           : d.load > 0.75
                             ? 'bg-[#E8955A]'
                             : d.load > 0
-                              ? 'bg-[#6C47D8]'
-                              : 'bg-[#EDE9FB]';
+                              ? 'bg-[#C02807]'
+                              : 'bg-[#FCE8E3]';
                       return (
                         <div
                           key={d.ymd}

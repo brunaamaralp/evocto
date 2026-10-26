@@ -54,10 +54,10 @@ function UnitCard({ unit }) {
     <li>
       <Link
         to={unit.href}
-        className="group block rounded-2xl border border-[#E8E5F5] bg-white px-4 py-3.5 transition-colors hover:border-[#E8E5F5] hover:bg-[#F5F2FC]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/40"
+        className="group block rounded-2xl border border-[#E8E5F5] bg-white px-4 py-3.5 transition-colors hover:border-[#E8E5F5] hover:bg-[#EEF4FA]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/40"
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="min-w-0 truncate text-[15px] font-medium text-[#18162A] group-hover:text-[#6C47D8]">
+          <p className="min-w-0 truncate text-[15px] font-medium text-[#18162A] group-hover:text-[#C02807]">
             {unit.title}
           </p>
           {percent != null ? (
@@ -86,7 +86,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
         </p>
         {onStart ? (
           <Button
-            className="mt-5 bg-[#6C47D8] hover:bg-[#5A3BC0]"
+            className="mt-5 bg-[#C02807] hover:bg-[#8A1C05]"
             onClick={onStart}
             disabled={starting}
           >
@@ -119,7 +119,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
         {singleProject.href ? (
           <Link
             to={singleProject.href}
-            className="text-sm font-medium text-[#6C47D8] hover:underline"
+            className="text-sm font-medium text-[#C02807] hover:underline"
           >
             Abrir etapas
           </Link>
@@ -147,7 +147,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
               >
                 {step.title}
                 {isCurrent ? (
-                  <span className="ml-2 text-xs font-normal text-[#6C47D8]">
+                  <span className="ml-2 text-xs font-normal text-[#C02807]">
                     Em andamento
                   </span>
                 ) : null}
@@ -157,7 +157,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
                   step.completed
                     ? 'text-[#27ae60]'
                     : isCurrent
-                      ? 'text-[#6C47D8]'
+                      ? 'text-[#C02807]'
                       : 'text-[#ccc]'
                 }`}
                 aria-hidden
@@ -192,7 +192,7 @@ function EmptyUnits({ profile, onCreate }) {
           : 'Crie o primeiro para começar a operar.'}
       </p>
       {showCta && onCreate ? (
-        <Button className="mt-5 bg-[#6C47D8] hover:bg-[#5A3BC0]" onClick={onCreate}>
+        <Button className="mt-5 bg-[#C02807] hover:bg-[#8A1C05]" onClick={onCreate}>
           <Plus className="mr-1.5 h-4 w-4" />
           {ctaText || capitalizeLabel(item)}
         </Button>
@@ -249,7 +249,7 @@ function MonthGroupHeader({
               <Button
                 type="button"
                 size="sm"
-                className="h-8 text-xs bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                className="h-8 text-xs bg-[#C02807] hover:bg-[#8A1C05]"
                 disabled={busy}
                 onClick={async () => {
                   await onShareMonth?.(group.cycleId);
@@ -268,7 +268,7 @@ function MonthGroupHeader({
               size="sm"
               variant={shared ? 'outline' : 'default'}
               className={`h-8 text-xs ${
-                shared ? '' : 'bg-[#6C47D8] hover:bg-[#5A3BC0]'
+                shared ? '' : 'bg-[#C02807] hover:bg-[#8A1C05]'
               }`}
               disabled={busy}
               onClick={() => {

@@ -359,7 +359,7 @@
   min-height: 0;
   overflow-y: auto;
   padding: 12px;
-  background: var(--inbox-thread-bg, rgba(108, 71, 216, 0.04));
+  background: var(--inbox-thread-bg, rgba(192, 40, 7, 0.04));
 }
 
 .navi-chat-widget__composer {

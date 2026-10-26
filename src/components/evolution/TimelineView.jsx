@@ -65,11 +65,11 @@ export default function TimelineView({ events, learnings }) {
         return (
           <div key={item.id || index} className="relative flex items-start gap-4">
             {index < items.length - 1 && (
-              <div className="absolute left-6 top-12 w-px h-16 bg-gradient-to-b from-[#D4CBF5] to-slate-200" />
+              <div className="absolute left-6 top-12 w-px h-16 bg-gradient-to-b from-[#FFD4C8] to-slate-200" />
             )}
             
-            <div className="w-12 h-12 rounded-full bg-white border-4 border-[#D4CBF5] flex items-center justify-center flex-shrink-0 z-10">
-              <Icon className="w-5 h-5 text-[#6C47D8]" />
+            <div className="w-12 h-12 rounded-full bg-white border-4 border-[#FFD4C8] flex items-center justify-center flex-shrink-0 z-10">
+              <Icon className="w-5 h-5 text-[#C02807]" />
             </div>
             
             <Card className="flex-1 shadow-sm border-0 rounded-2xl">

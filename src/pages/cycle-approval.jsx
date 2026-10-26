@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { CyclePlan, Client, Service } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, AlertCircle, Clock, FileText, Building2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/components/auth/SessionManager';
+import {
+  canStaffMutateLegacyCycleApproval,
+  resolveCycleApprovalEntryMode,
+} from '@/lib/cycleApprovalLegacy';
+import { createPageUrl } from '@/utils';
 
 const LoadingState = () => (
-  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center">
+  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center">
     <div className="text-center">
-      <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#6C47D8] mb-4" />
+      <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#C02807] mb-4" />
       <h2 className="text-xl font-semibold text-[#18162A] mb-2">Carregando aprovação...</h2>
       <p className="text-[#7A7595]">Verificando dados do planejamento</p>
     </div>
@@ -18,7 +25,7 @@ const LoadingState = () => (
 );
 
 const ErrorState = ({ error, token }) => (
-  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
     <Card className="max-w-md w-full rounded-2xl border-transparent shadow-sm">
       <CardHeader className="text-center">
         <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
@@ -56,7 +63,7 @@ const ErrorState = ({ error, token }) => (
 );
 
 const ExpiredState = ({ token }) => (
-  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <Clock className="w-12 h-12 mx-auto text-orange-500 mb-4" />
@@ -87,7 +94,7 @@ const ExpiredState = ({ token }) => (
 );
 
 const InvalidTokenState = ({ token }) => (
-  <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <XCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
@@ -124,6 +131,13 @@ const InvalidTokenState = ({ token }) => (
 );
 
 export default function CycleApprovalPage() {
+  const { user, agencyId: sessionAgencyId, loading: sessionLoading } = useSession();
+  const profile = user
+    ? {
+        role: user.role,
+        agencyId: user.agencyId || user.data?.agencyId || sessionAgencyId,
+      }
+    : null;
   const [cyclePlan, setCyclePlan] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [service, setService] = useState(null);
@@ -132,13 +146,26 @@ export default function CycleApprovalPage() {
   const [approving, setApproving] = useState(false);
   const [approved, setApproved] = useState(false);
 
-  // Ler token da URL via query param
-  const token = new URLSearchParams(window.location.search).get("token") || 
-               window.location.pathname.split('/').pop();
+  const entry = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const tokenFromQuery = params.get('token');
+    const pathTail = window.location.pathname.split('/').filter(Boolean).pop();
+    const tokenFromPath =
+      pathTail && pathTail !== 'cycle-approval' ? pathTail : null;
+    return resolveCycleApprovalEntryMode({
+      id,
+      token: tokenFromQuery || tokenFromPath,
+    });
+  }, []);
+
+  const canMutate = canStaffMutateLegacyCycleApproval(profile, cyclePlan);
 
   const loadApprovalData = useCallback(async () => {
-    if (!token) {
-      setError('Token de aprovação não fornecido na URL');
+    if (sessionLoading) return;
+
+    if (entry.mode === 'invalid') {
+      setError('Informe ?id= do ciclo (equipe) ou um token legado.');
       setLoading(false);
       return;
     }
@@ -147,25 +174,34 @@ export default function CycleApprovalPage() {
       setLoading(true);
       setError(null);
 
-      // Buscar cycle plan pelo token público
-      const cycles = await CyclePlan.filter({ 
-        'approvalData.public_share_token': token 
-      });
+      let cycle = null;
+      if (entry.mode === 'staff_id') {
+        cycle = await CyclePlan.get(entry.cycleId);
+      } else {
+        const cycles = await CyclePlan.filter({
+          'approvalData.public_share_token': entry.token,
+        });
+        cycle = cycles?.[0] || null;
+      }
 
-      if (!cycles || cycles.length === 0) {
+      if (!cycle) {
         setError('Link de aprovação não encontrado. Verifique se o link está correto.');
         setLoading(false);
         return;
       }
 
-      const cycle = cycles[0];
+      if (!canStaffMutateLegacyCycleApproval(profile, cycle)) {
+        setError(
+          'Fluxo legado restrito à equipe da agência. Clientes devem usar o portal ou o link moderno (/public-approval ou /review).'
+        );
+        setLoading(false);
+        return;
+      }
 
-      // Verificar se já foi aprovado
       if (cycle.status === 'approved' && cycle.approvalData?.approved_at) {
         setApproved(true);
       }
 
-      // Verificar se o token expirou
       if (cycle.approvalData?.token_expires_at) {
         const expiryDate = new Date(cycle.approvalData.token_expires_at);
         if (expiryDate < new Date()) {
@@ -177,48 +213,51 @@ export default function CycleApprovalPage() {
 
       setCyclePlan(cycle);
 
-      // Carregar dados relacionados
       const [customerData, serviceData] = await Promise.all([
         Client.get(cycle.clientId).catch(() => null),
-        Service.get(cycle.serviceId).catch(() => null)
+        Service.get(cycle.serviceId).catch(() => null),
       ]);
 
       setCustomer(customerData);
       setService(serviceData);
-
     } catch (err) {
-      console.error('Erro ao carregar dados de aprovação:', err);
+      console.error('Erro ao carregar dados de aprovação:', err?.message || err);
       setError('Falha ao carregar dados da aprovação. Tente novamente.');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [entry, profile, sessionLoading]);
 
   useEffect(() => {
     loadApprovalData();
   }, [loadApprovalData]);
 
-  const handleApproval = async (approved, comment = '') => {
+  const handleApproval = async (approvedDecision, comment = '') => {
+    if (!canMutate) {
+      toast.error('Sem permissão para decidir neste fluxo legado.');
+      return;
+    }
     setApproving(true);
     try {
       const updates = {
-        status: approved ? 'approved' : 'rejected',
+        status: approvedDecision ? 'approved' : 'rejected',
         approvalData: {
           ...cyclePlan.approvalData,
-          approved_at: approved ? new Date().toISOString() : null,
+          approved_at: approvedDecision ? new Date().toISOString() : null,
           approver_comment: comment,
-          approver_ip: 'unknown', // Em produção usar IP real
-          approver_user_agent: navigator.userAgent
-        }
+          approver_user_agent: navigator.userAgent,
+          decided_via: 'legacy_cycle_approval_staff',
+        },
       };
 
       await CyclePlan.update(cyclePlan.id, updates);
-      
-      setApproved(approved);
-      toast.success(approved ? 'Planejamento aprovado com sucesso!' : 'Planejamento rejeitado');
-      
-    } catch (error) {
-      console.error('Erro na aprovação:', error);
+
+      setApproved(approvedDecision);
+      toast.success(
+        approvedDecision ? 'Planejamento aprovado com sucesso!' : 'Planejamento rejeitado'
+      );
+    } catch (err) {
+      console.error('Erro na aprovação:', err?.message || err);
       toast.error('Erro ao processar aprovação. Tente novamente.');
     } finally {
       setApproving(false);
@@ -229,18 +268,18 @@ export default function CycleApprovalPage() {
   if (loading) return <LoadingState />;
 
   if (error) {
-    if (error === 'expired') return <ExpiredState token={token} />;
-    if (error.includes('não encontrado')) return <InvalidTokenState token={token} />;
-    return <ErrorState error={error} token={token} />;
+    if (error === 'expired') return <ExpiredState token={entry.token} />;
+    if (error.includes('não encontrado')) return <InvalidTokenState token={entry.token} />;
+    return <ErrorState error={error} token={entry.token} />;
   }
 
   if (!cyclePlan) {
-    return <InvalidTokenState token={token} />;
+    return <InvalidTokenState token={entry.token} />;
   }
 
   if (approved || cyclePlan.status === 'approved') {
     return (
-      <div className="min-h-screen bg-[#F5F2FC] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4" />
@@ -274,8 +313,21 @@ export default function CycleApprovalPage() {
 
   // Renderizar tela de aprovação normal...
   return (
-    <div className="min-h-screen bg-[#F5F2FC] p-6">
+    <div className="min-h-screen bg-[#EEF4FA] p-6">
       <div className="max-w-4xl mx-auto">
+        <Alert className="mb-4 border-amber-200 bg-amber-50">
+          <AlertDescription className="text-amber-900 text-sm">
+            Fluxo legado (somente equipe). Para clientes, use{' '}
+            <Link className="underline font-medium" to={createPageUrl('public-approval')}>
+              /public-approval
+            </Link>{' '}
+            ou o review de material{' '}
+            <Link className="underline font-medium" to="/review">
+              /review
+            </Link>
+            . Tokens legados não são invalidados automaticamente.
+          </AlertDescription>
+        </Alert>
         {/* Header da aprovação */}
         <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
           <CardHeader>
@@ -288,7 +340,7 @@ export default function CycleApprovalPage() {
                   Revise e aprove o planejamento estratégico para {cyclePlan.cyclePeriod}
                 </p>
               </div>
-              <Badge className="bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]">
+              <Badge className="bg-[#FCE8E3] text-[#8A1C05] border border-[#FFD4C8]">
                 Aguardando Aprovação
               </Badge>
             </div>
@@ -324,7 +376,7 @@ export default function CycleApprovalPage() {
               {cyclePlan.planData.mudancaChave && (
                 <div>
                   <h3 className="font-semibold text-[#18162A] mb-2">Mudança-Chave</h3>
-                  <p className="text-[#5A3A7A] bg-[#EDE9FB] border border-[#D4CBF5] p-3 rounded-2xl">
+                  <p className="text-[#5A3A7A] bg-[#FCE8E3] border border-[#FFD4C8] p-3 rounded-2xl">
                     {cyclePlan.planData.mudancaChave}
                   </p>
                 </div>
@@ -335,7 +387,7 @@ export default function CycleApprovalPage() {
                   <h3 className="font-semibold text-[#18162A] mb-3">Prioridades do Ciclo</h3>
                   <div className="space-y-2">
                     {cyclePlan.planData.prioridades.map((prioridade, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-[#F5F2FC] rounded-2xl">
+                      <div key={index} className="flex items-start gap-3 p-3 bg-[#EEF4FA] rounded-2xl">
                         <Badge variant="outline" className="mt-1 text-xs">
                           {index + 1}
                         </Badge>

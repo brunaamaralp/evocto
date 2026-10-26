@@ -336,7 +336,7 @@
 .pipeline-container .stage-input:focus,
 .pipeline-container .stage-sla:focus {
   border-color: var(--color-text-heading);
-  box-shadow: 0 0 0 3px rgba(108, 71, 216, 0.28);
+  box-shadow: 0 0 0 3px rgba(192, 40, 7, 0.28);
   outline: none;
 }
 
@@ -691,7 +691,7 @@
 }
 
 .kanban-col--drag-over {
-  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(108, 71, 216, 0.04)) 65%, var(--color-white));
+  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(192, 40, 7, 0.04)) 65%, var(--color-white));
   border-color: color-mix(in srgb, var(--kanban-col-accent, var(--color-primary)) 45%, var(--pipeline-border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--kanban-col-accent, var(--color-primary)) 18%, transparent);
 }
@@ -707,7 +707,7 @@
   inset: 6px;
   border: 2px dashed color-mix(in srgb, var(--kanban-col-accent, var(--color-primary)) 55%, var(--pipeline-border));
   border-radius: 10px;
-  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(108, 71, 216, 0.08)) 70%, transparent);
+  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(192, 40, 7, 0.08)) 70%, transparent);
   pointer-events: none;
   z-index: 3;
   display: flex;
@@ -734,7 +734,7 @@
   margin: 4px 0;
   border-radius: 10px;
   border: 2px dashed color-mix(in srgb, var(--kanban-col-accent, var(--color-primary)) 50%, var(--pipeline-border));
-  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(108, 71, 216, 0.08)) 80%, transparent);
+  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(192, 40, 7, 0.08)) 80%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kanban-col-accent, var(--color-primary)) 10%, transparent);
 }
 
@@ -1260,7 +1260,7 @@
 
 .navi-modal-shell .pipeline-link-student-search .form-input:focus {
   border-color: var(--color-text-heading);
-  box-shadow: 0 0 0 3px rgba(108, 71, 216, 0.28);
+  box-shadow: 0 0 0 3px rgba(192, 40, 7, 0.28);
   outline: none;
 }
 
@@ -1358,8 +1358,8 @@
 }
 
 .pipeline-stage-drag-handle:hover:not(:disabled) {
-  background: rgba(108, 71, 216, 0.08);
-  color: var(--color-primary, #6c47d8);
+  background: rgba(192, 40, 7, 0.08);
+  color: var(--color-primary, #C02807);
 }
 
 .pipeline-stage-drag-handle:active:not(:disabled) {
@@ -1961,8 +1961,8 @@
   margin-bottom: 16px;
   padding: 16px 18px;
   border-radius: 12px;
-  border: 1px solid rgba(108, 71, 216, 0.28);
-  background: linear-gradient(180deg, rgba(108, 71, 216, 0.06) 0%, var(--surface) 100%);
+  border: 1px solid rgba(192, 40, 7, 0.28);
+  background: linear-gradient(180deg, rgba(192, 40, 7, 0.06) 0%, var(--surface) 100%);
 }
 
 .automacoes-setup-wizard--below-tabs {
@@ -2138,7 +2138,7 @@
 .automacoes-setup-wizard__progress-bar {
   height: 4px;
   border-radius: 999px;
-  background: var(--color-primary-surface, rgba(108, 71, 216, 0.12));
+  background: var(--color-primary-surface, rgba(192, 40, 7, 0.12));
   margin-bottom: 14px;
   overflow: hidden;
 }
@@ -2181,8 +2181,8 @@
 }
 
 .automacoes-setup-wizard__step-btn.automacoes-setup-wizard__step--current {
-  background: var(--color-primary-surface, rgba(108, 71, 216, 0.1));
-  border-color: rgba(108, 71, 216, 0.22);
+  background: var(--color-primary-surface, rgba(192, 40, 7, 0.1));
+  border-color: rgba(192, 40, 7, 0.22);
   color: var(--text);
   font-weight: 600;
 }
@@ -2677,7 +2677,7 @@
 }
 
 .pipeline-stages-editor__row:hover {
-  background: rgba(108, 71, 216, 0.03);
+  background: rgba(192, 40, 7, 0.03);
 }
 
 .pipeline-stages-editor__sla {

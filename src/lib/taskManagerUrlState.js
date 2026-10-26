@@ -22,11 +22,17 @@ export function readTaskManagerUrlState(search = '') {
             : String(search || '')
         );
 
+  const dueRangeRaw = params.get('dueRange') || 'all';
+  const dueRange = ['overdue', 'this_week', 'next_48h'].includes(dueRangeRaw)
+    ? dueRangeRaw
+    : 'all';
+
   return {
     q: params.get('q') || EMPTY,
     client: params.get('client') || 'all',
     assignee: params.get('assignee') || 'all',
     status: params.get('status') || 'all',
+    dueRange,
     preset: params.get('preset') || null,
     view: params.get('view') === 'week' ? 'week' : 'kanban',
     create: params.get('create') === '1',
@@ -62,6 +68,7 @@ export function writeTaskManagerFilterParams(search, patch = {}, opts = {}) {
   if ('client' in patch) apply('client', patch.client);
   if ('assignee' in patch) apply('assignee', patch.assignee);
   if ('status' in patch) apply('status', patch.status);
+  if ('dueRange' in patch) apply('dueRange', patch.dueRange);
   if ('view' in patch) {
     if (patch.view === 'week') next.set('view', 'week');
     else next.delete('view');
@@ -93,6 +100,7 @@ export function clearTaskManagerFilterParams(search) {
   next.delete('client');
   next.delete('assignee');
   next.delete('status');
+  next.delete('dueRange');
   next.delete('preset');
   return next;
 }
@@ -115,6 +123,7 @@ export function taskMatchesClientFilter(task, clientFilter) {
  *   client?: string,
  *   assignee?: string,
  *   status?: string,
+ *   dueRange?: string,
  * }} opts
  */
 export function buildTasksManagerFilterHref(opts = {}) {
@@ -123,6 +132,7 @@ export function buildTasksManagerFilterHref(opts = {}) {
     client: opts.client,
     assignee: opts.assignee,
     status: opts.status,
+    dueRange: opts.dueRange,
     view: opts.view,
     preset: opts.preset,
   });

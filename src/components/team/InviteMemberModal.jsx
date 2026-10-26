@@ -193,7 +193,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                   <Copy className="w-4 h-4 mr-2" />
                   Copiar tudo
                 </Button>
-                <Button type="button" className="flex-1 bg-[#6C47D8] hover:bg-[#5A3BC0]" onClick={handleClose}>
+                <Button type="button" className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]" onClick={handleClose}>
                   Concluir
                 </Button>
               </div>
@@ -203,7 +203,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
           <>
             <DialogHeader className="px-5 pt-5 pb-3 space-y-1">
               <DialogTitle className="text-lg flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#6C47D8]" />
+                <UserPlus className="w-5 h-5 text-[#C02807]" />
                 Adicionar membro
               </DialogTitle>
               <DialogDescription>
@@ -212,7 +212,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
-              <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#F5F2FC] p-1">
+              <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#EEF4FA] p-1">
                 <button
                   type="button"
                   onClick={() => setField('method', 'password')}
@@ -339,7 +339,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                  className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]"
                 >
                   {loading ? (
                     'Salvando...'

@@ -33,9 +33,9 @@ const CyclePlanSkeleton = () => (
 
     {/* Form Skeleton */}
     <div className="space-y-4">
-      <div className="h-32 bg-[#EDE9FB] rounded-2xl animate-pulse"></div>
-      <div className="h-24 bg-[#F5F2FC] rounded-2xl animate-pulse"></div>
-      <div className="h-48 bg-[#EDE9FB] rounded-2xl animate-pulse"></div>
+      <div className="h-32 bg-[#FCE8E3] rounded-2xl animate-pulse"></div>
+      <div className="h-24 bg-[#EEF4FA] rounded-2xl animate-pulse"></div>
+      <div className="h-48 bg-[#FCE8E3] rounded-2xl animate-pulse"></div>
     </div>
   </div>
 );
@@ -273,7 +273,7 @@ export default function CyclePlanPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
+            <Card className="rounded-2xl border-transparent shadow-sm bg-[#EEF4FA]">
                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                         <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`services/${service.id}`))}>
@@ -394,8 +394,8 @@ export default function CyclePlanPage() {
                                         </div>
                                     ))}
                                     
-                                    <div className="mt-6 p-4 bg-[#EDE9FB] border border-[#D4CBF5] rounded-2xl">
-                                        <h4 className="font-medium text-[#4A2FA3] mb-2">📋 Integração com o Plano</h4>
+                                    <div className="mt-6 p-4 bg-[#FCE8E3] border border-[#FFD4C8] rounded-2xl">
+                                        <h4 className="font-medium text-[#8A1C05] mb-2">📋 Integração com o Plano</h4>
                                         <p className="text-sm text-[#5A3A7A]">
                                             Estes entregáveis servem como referência para o planejamento do ciclo. 
                                             A IA já considera esta lista ao sugerir prioridades e ajustes estratégicos.
@@ -461,7 +461,7 @@ export default function CyclePlanPage() {
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="font-semibold">Status Atual:</h4>
-                                    <p className="text-lg font-medium text-[#6C47D8]">{getStatusLabel(cyclePlan.status)}</p>
+                                    <p className="text-lg font-medium text-[#C02807]">{getStatusLabel(cyclePlan.status)}</p>
                                 </div>
                                 {cyclePlan.approvalData && (
                                     <div className="space-y-2">
@@ -469,7 +469,7 @@ export default function CyclePlanPage() {
                                         {cyclePlan.approvalData.public_share_token && (
                                             <p className="text-sm text-gray-700">
                                                 Link de Aprovação: 
-                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#6C47D8] hover:underline">
+                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#C02807] hover:underline">
                                                     Abrir Link <ExternalLink className="inline-block w-4 h-4 ml-1" />
                                                 </a>
                                             </p>

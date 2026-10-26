@@ -174,7 +174,7 @@ export function buildOverviewActionCards(counts, { userId = null, lens = 'agency
         definition: 'Tarefas abertas da agência com prazo anterior a hoje.',
         count: counts.agencyOverdue,
         tone: 'danger',
-        href: buildTasksManagerHref({}),
+        href: buildTasksManagerHref({ preset: 'agency_overdue' }),
       });
     }
     if (counts.pendingApprovals > 0) {
@@ -194,7 +194,7 @@ export function buildOverviewActionCards(counts, { userId = null, lens = 'agency
         definition: 'Status blocked na agência.',
         count: counts.agencyBlocked,
         tone: 'danger',
-        href: buildTasksManagerHref({}),
+        href: buildTasksManagerHref({ preset: 'agency_blocked' }),
       });
     }
     if (counts.waitingClient > 0) {

@@ -1384,7 +1384,7 @@
 .finance-table thead th { position: sticky; top: 0; z-index: 1; text-align: left; padding: 10px 12px; background: var(--surface); border-bottom: 0.5px solid var(--border-light); font-size: var(--font-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); white-space: nowrap; }
 .finance-table thead th.finance-num { text-align: right; }
 .finance-table td { padding: 10px 12px; border-bottom: 0.5px solid var(--border-light); vertical-align: middle; }
-.finance-table tbody tr:hover td { background: rgba(108, 71, 216, 0.03); }
+.finance-table tbody tr:hover td { background: rgba(192, 40, 7, 0.03); }
 .finance-table .finance-num { text-align: right; font-variant-numeric: tabular-nums; }
 .accounts-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
 .accounts-header-title { margin: 0; }
@@ -1537,7 +1537,7 @@
 .finance-journal-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
 .finance-journal-head-content { min-width: 0; flex: 1; }
 .finance-journal-head-title { margin: 0 0 5px; }
-.finance-journal-head-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(108, 71, 216, 0.12), rgba(108, 71, 216, 0.04)); border: 0.5px solid var(--border-violet); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-primary); }
+.finance-journal-head-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(192, 40, 7, 0.12), rgba(192, 40, 7, 0.04)); border: 0.5px solid var(--border-violet); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-primary); }
 .finance-journal-lead { font-size: var(--font-base); color: var(--text-secondary); line-height: 1.5; margin: 0; max-width: 640px; }
 .finance-journal-linked-tx { margin-bottom: 16px; }
 
@@ -3065,12 +3065,12 @@
 
 .mensal-summary-card--clickable:hover {
   border-color: var(--v300);
-  box-shadow: 0 2px 8px rgba(108, 71, 216, 0.08);
+  box-shadow: 0 2px 8px rgba(192, 40, 7, 0.08);
 }
 
 .mensal-summary-card--clickable.mensal-summary-card--active {
   border-color: var(--v500, var(--petroleo));
-  box-shadow: 0 0 0 2px rgba(108, 71, 216, 0.15);
+  box-shadow: 0 0 0 2px rgba(192, 40, 7, 0.15);
 }
 
 .mensal-summary-card--today .mensal-summary-card__value {
@@ -3103,8 +3103,8 @@ button.mensal-summary-card--static {
 }
 
 button.mensal-summary-card--static.mensal-summary-card--filter-active {
-  border-color: var(--color-primary, var(--v700, #6c47d8));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #6c47d8) 18%, transparent);
+  border-color: var(--color-primary, var(--v700, #C02807));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #C02807) 18%, transparent);
 }
 
 button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hover {
@@ -3734,7 +3734,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--color-border, #e8e5f5);
-  background: color-mix(in srgb, var(--color-primary-surface, #ede9fb) 28%, #fff);
+  background: color-mix(in srgb, var(--color-primary-surface, #FCE8E3) 28%, #fff);
 }
 
 .finance-discount-presets__fields {
@@ -3865,8 +3865,8 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  background: var(--color-primary-surface, #ede9fb);
-  color: var(--color-badge-primary-text, #4a2fa3);
+  background: var(--color-primary-surface, #FCE8E3);
+  color: var(--color-badge-primary-text, #8A1C05);
   border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
@@ -3874,7 +3874,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   margin-bottom: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--color-primary-surface, #ede9fb) 55%, var(--color-card-bg, #fff));
+  background: color-mix(in srgb, var(--color-primary-surface, #FCE8E3) 55%, var(--color-card-bg, #fff));
 }
 
 .finance-settings-account-fees-overview__title {
@@ -3916,7 +3916,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--color-card-border, #e8e5f5);
-  background: color-mix(in srgb, var(--color-primary-surface, #ede9fb) 35%, var(--color-card-bg, #fff));
+  background: color-mix(in srgb, var(--color-primary-surface, #FCE8E3) 35%, var(--color-card-bg, #fff));
 }
 
 .finance-bank-fees-panel__header {
@@ -3932,7 +3932,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
 }
 
 .finance-bank-fees-panel__header:hover {
-  background: color-mix(in srgb, var(--color-primary-surface, #ede9fb) 50%, transparent);
+  background: color-mix(in srgb, var(--color-primary-surface, #FCE8E3) 50%, transparent);
 }
 
 .finance-bank-fees-panel__icon {
@@ -3944,7 +3944,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   border-radius: 10px;
   flex-shrink: 0;
   background: var(--color-card-bg, #fff);
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
   border: 1px solid var(--color-card-border, #e8e5f5);
 }
 
@@ -4021,7 +4021,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
 }
 
 .finance-bank-fees-toggle__input:checked + .finance-bank-fees-toggle__track {
-  background: var(--color-primary, #6c47d8);
+  background: var(--color-primary, #C02807);
 }
 
 .finance-bank-fees-toggle__input:checked + .finance-bank-fees-toggle__track::after {
@@ -4029,7 +4029,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
 }
 
 .finance-bank-fees-toggle__input:focus-visible + .finance-bank-fees-toggle__track {
-  outline: 2px solid var(--color-primary, #6c47d8);
+  outline: 2px solid var(--color-primary, #C02807);
   outline-offset: 2px;
 }
 
@@ -4340,7 +4340,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   backdrop-filter: blur(16px) saturate(1.6);
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
   border: 0.5px solid var(--border-light);
-  box-shadow: 0 2px 16px rgba(108, 71, 216, 0.08);
+  box-shadow: 0 2px 16px rgba(192, 40, 7, 0.08);
 }
 
 .finance-settings-sticky-save--top {
@@ -4359,7 +4359,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
   border-top: 0.5px solid var(--border-light);
   border-bottom: none;
   border-radius: 0;
-  box-shadow: 0 -2px 16px rgba(108, 71, 216, 0.06);
+  box-shadow: 0 -2px 16px rgba(192, 40, 7, 0.06);
 }
 
 @media (min-width: 901px) {
@@ -4468,7 +4468,7 @@ button.mensal-summary-card--static:not(.mensal-summary-card--filter-active):hove
 }
 
 .finance-settings-sidenav__item:hover {
-  background: rgba(108, 71, 216, 0.06);
+  background: rgba(192, 40, 7, 0.06);
   color: var(--v700);
 }
 

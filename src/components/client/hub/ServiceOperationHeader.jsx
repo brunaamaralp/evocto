@@ -38,7 +38,7 @@ export default function ServiceOperationHeader({
       </div>
       {showCta && ctaText ? (
         <Button
-          className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto"
+          className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto"
           onClick={onCreate}
         >
           <Plus className="mr-1.5 h-4 w-4" aria-hidden />

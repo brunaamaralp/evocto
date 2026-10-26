@@ -19,7 +19,7 @@ const DesignSystemAudit = () => {
           component: "globals.css + CSS Variables",
           status: "excellent",
           details: [
-            "Paleta consolidada azul (#3B82F6) e roxo (#8B5CF6)",
+            "Paleta Narrativa: burnt grape (#C02807) e orange rose (#FF643D)",
             "Variáveis CSS bem estruturadas",
             "Gradientes da marca consistentes",
             "Cores funcionais limitadas (sucesso, aviso, erro)"
@@ -96,7 +96,7 @@ const DesignSystemAudit = () => {
             "Componentizar skeletons reutilizáveis",
             "Padronizar loading em botões e forms",
             "Implementar progressive loading",
-            "Estados de carregamento com marca Evocto"
+            "Estados de carregamento com marca narrativa"
           ]
         },
         {
@@ -278,7 +278,7 @@ const DesignSystemAudit = () => {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
           Auditoria do Design System
         </h1>
-        <p className="text-slate-600">Análise completa dos componentes do sistema Evocto</p>
+        <p className="text-slate-600">Análise completa dos componentes do sistema narrativa</p>
       </div>
 
       {Object.entries(auditResults).map(([key, section]) => (

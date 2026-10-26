@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Task } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,11 @@ import {
   Clock, Link2, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  buildDependencyStatus,
+  checkDependencyResolution,
+  listManualBlockers,
+} from '@/lib/taskDependencyStatus';
 
 const DEPENDENCY_TYPES = {
   finish_to_start: {
@@ -56,11 +61,12 @@ const STATUS_INFO = {
 export default function TaskDependencies({ 
   task, 
   onUpdate, 
-  dependencyStatus, 
+  dependencyStatus: dependencyStatusProp, 
   onDependencyChange 
 }) {
   const { user } = useSession();
   const [availableTasks, setAvailableTasks] = useState([]);
+  const [depTasksById, setDepTasksById] = useState({});
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDependency, setNewDependency] = useState({
@@ -72,11 +78,10 @@ export default function TaskDependencies({
   const loadAvailableTasks = useCallback(async () => {
     try {
       const agencyId = user?.agencyId || user?.data?.agencyId;
-      // Buscar tarefas do mesmo cliente, excluindo a atual e suas dependências existentes
-      const allTasks = await Task.filter({
-        ...(agencyId ? { agencyId } : {}),
-        clientId: task.clientId
-      });
+      const filter = agencyId ? { agencyId } : {};
+      if (task.clientId) filter.clientId = task.clientId;
+
+      const allTasks = await Task.filter(filter);
 
       const existingDeps = task.dependencies?.map(dep => dep.taskId) || [];
       const available = allTasks.filter(t => 
@@ -85,15 +90,47 @@ export default function TaskDependencies({
         t.status !== 'cancelled'
       );
 
+      const byId = {};
+      for (const t of allTasks) {
+        if (t?.id) byId[String(t.id)] = t;
+      }
+      // Carrega deps órfãs (outro cliente / sem clientId) sob demanda
+      for (const depId of existingDeps) {
+        const key = String(depId);
+        if (byId[key]) continue;
+        try {
+          const fetched = await Task.get(key);
+          if (fetched?.id) byId[String(fetched.id)] = fetched;
+        } catch {
+          /* ignore missing */
+        }
+      }
+
+      setDepTasksById(byId);
       setAvailableTasks(available);
     } catch (error) {
       console.error('Erro ao carregar tarefas:', error);
     }
-  }, [task.id, task.clientId, task.dependencies, user.data?.agencyId]);
+  }, [task.id, task.clientId, task.dependencies, user?.agencyId, user?.data?.agencyId]);
 
   useEffect(() => {
     loadAvailableTasks();
   }, [loadAvailableTasks]);
+
+  const computedStatus = useMemo(
+    () => buildDependencyStatus(task, depTasksById),
+    [task, depTasksById]
+  );
+  const dependencyStatus =
+    dependencyStatusProp?.canStart != null
+      ? {
+          canStart: Boolean(dependencyStatusProp.canStart),
+          blockedBy: Array.isArray(dependencyStatusProp.blockedBy)
+            ? dependencyStatusProp.blockedBy
+            : [],
+        }
+      : computedStatus;
+  const manualBlockers = listManualBlockers(task);
 
   const addDependency = async () => {
     if (!newDependency.taskId) {
@@ -214,41 +251,33 @@ export default function TaskDependencies({
     }
   };
 
-  const checkDependencyStatus = (dependency, depTask) => {
-    if (!depTask) return { isResolved: false, reason: 'Tarefa não encontrada' };
-
-    switch (dependency.type) {
-      case 'finish_to_start':
-        return { 
-          isResolved: depTask.status === 'completed',
-          reason: depTask.status === 'completed' ? 'Tarefa concluída' : `Aguardando conclusão (${depTask.status})`
-        };
-      case 'start_to_start':
-        return { 
-          isResolved: ['in_progress', 'in_review', 'completed'].includes(depTask.status),
-          reason: ['in_progress', 'in_review', 'completed'].includes(depTask.status) ? 
-            'Tarefa iniciada' : `Aguardando início (${depTask.status})`
-        };
-      case 'finish_to_finish':
-        return { 
-          isResolved: depTask.status === 'completed',
-          reason: depTask.status === 'completed' ? 'Tarefa concluída' : `Aguardando conclusão (${depTask.status})`
-        };
-      case 'start_to_finish':
-        return { 
-          isResolved: ['in_progress', 'in_review', 'completed'].includes(depTask.status),
-          reason: ['in_progress', 'in_review', 'completed'].includes(depTask.status) ? 
-            'Tarefa iniciada' : `Aguardando início (${depTask.status})`
-        };
-      default:
-        return { isResolved: false, reason: 'Tipo de dependência desconhecido' };
-    }
-  };
-
   const dependencies = task.dependencies || [];
 
   return (
     <div className="space-y-4">
+      {manualBlockers.length > 0 ? (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-4 space-y-2">
+            <div className="flex items-center gap-2 text-red-800 font-medium">
+              <AlertTriangle className="w-5 h-5" />
+              Bloqueios manuais
+            </div>
+            <ul className="space-y-1 text-sm text-red-700">
+              {manualBlockers.map((b, i) => (
+                <li key={b.id || `${b.reason || 'block'}-${i}`}>
+                  {b.reason || b.message || 'Bloqueio registrado'}
+                  {b.critical ? (
+                    <Badge variant="secondary" className="ml-2 text-[10px] bg-red-100 text-red-800">
+                      crítico
+                    </Badge>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Status Geral */}
       <Card className={!dependencyStatus.canStart ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'}>
         <CardContent className="pt-4">
@@ -413,11 +442,16 @@ export default function TaskDependencies({
       {dependencies.length > 0 ? (
         <div className="space-y-3">
           {dependencies.map((dependency) => {
-            const depTask = dependencyStatus.blockedBy.find(b => b.dependency.taskId === dependency.taskId)?.task ||
-                            availableTasks.find(t => t.id === dependency.taskId);
-            
+            const depTask =
+              depTasksById[String(dependency.taskId)] ||
+              dependencyStatus.blockedBy.find(
+                (b) => String(b.dependency?.taskId) === String(dependency.taskId)
+              )?.task ||
+              availableTasks.find((t) => String(t.id) === String(dependency.taskId)) ||
+              null;
+
             const depConfig = DEPENDENCY_TYPES[dependency.type] || DEPENDENCY_TYPES.finish_to_start;
-            const depStatus = checkDependencyStatus(dependency, depTask);
+            const depStatus = checkDependencyResolution(dependency, depTask);
             const IconComponent = depConfig.icon;
 
             return (

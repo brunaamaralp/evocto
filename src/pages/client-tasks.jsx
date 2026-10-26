@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import LoadingState from '@/components/shared/LoadingStates';
 import EmptyState from '@/components/shared/EmptyState';
 import TaskManager from '@/components/tasks/TaskManager';
-import TaskForm from '@/components/tasks/TaskForm';
+import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
@@ -77,7 +77,7 @@ export default function ClientTasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [campaignRedirectError, setCampaignRedirectError] = useState(null);
-  const [showTaskForm, setShowTaskForm] = useState(() => {
+  const [showCreateModal, setShowCreateModal] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('create') === '1';
   });
@@ -86,13 +86,12 @@ export default function ClientTasksPage() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('create') !== '1') return;
-    setShowTaskForm(true);
+    setShowCreateModal(true);
     params.delete('create');
     const qs = params.toString();
     const next = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
     window.history.replaceState({}, '', next);
   }, []);
-  const [editingTask, setEditingTask] = useState(null);
   const [listRefreshKey, setListRefreshKey] = useState(0);
 
   const { generateTasksWithFeedback } = useTaskGeneration();
@@ -281,18 +280,15 @@ export default function ClientTasksPage() {
   };
 
   const handleCreateTask = () => {
-    setEditingTask(null);
-    setShowTaskForm(true);
+    setShowCreateModal(true);
   };
 
-  const handleTaskSaved = async () => {
-    setShowTaskForm(false);
-    setEditingTask(null);
+  const handleTaskCreated = async () => {
+    setShowCreateModal(false);
 
     if (selectedServiceId) {
       await loadTasksForService(selectedServiceId);
     }
-    // TaskManager mantém estado próprio — força reload da lista embutida
     setListRefreshKey((k) => k + 1);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('task:refresh'));
@@ -391,7 +387,7 @@ export default function ClientTasksPage() {
                   <p className="text-xs text-[#7A7595] truncate">
                     <Link
                       to={campaignHref}
-                      className="hover:text-[#6C47D8] hover:underline"
+                      className="hover:text-[#C02807] hover:underline"
                     >
                       {campaignName}
                     </Link>
@@ -412,7 +408,7 @@ export default function ClientTasksPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
-              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#6C47D8] flex-shrink-0" />
+              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#C02807] flex-shrink-0" />
               <span className="truncate">Tarefas</span>
             </h1>
           </div>
@@ -493,20 +489,15 @@ export default function ClientTasksPage() {
         />
       )}
 
-      {showTaskForm && (
-        <TaskForm
-          task={editingTask}
-          isOpen={showTaskForm}
-          onClose={() => setShowTaskForm(false)}
-          onSave={handleTaskSaved}
-          clientId={clientId}
-          serviceId={selectedServiceId}
-          cycleId={cycleId}
-          briefingId={briefingId}
-          defaultStatus="todo"
-          compact={isCampaignScope}
-        />
-      )}
+      <TaskCreateModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={handleTaskCreated}
+        defaultClientId={clientId}
+        defaultServiceId={selectedServiceId}
+        defaultBriefingId={briefingId}
+        defaultCycleId={cycleId}
+      />
     </div>
   );
 }

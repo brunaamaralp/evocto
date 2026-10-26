@@ -55,7 +55,7 @@ export function GlobalSearchTrigger({ compact = false, className = '' }) {
         type="button"
         onClick={openGlobalSearch}
         className={cn(
-          'inline-flex h-9 w-9 items-center justify-center rounded-full text-[#7A7595] hover:bg-[#F5F2FC] hover:text-[#18162A] transition-colors',
+          'inline-flex h-9 w-9 items-center justify-center rounded-full text-[#7A7595] hover:bg-[#EEF4FA] hover:text-[#18162A] transition-colors',
           className
         )}
         aria-label="Abrir busca"
@@ -70,7 +70,7 @@ export function GlobalSearchTrigger({ compact = false, className = '' }) {
       type="button"
       onClick={openGlobalSearch}
       className={cn(
-        'flex w-full items-center gap-2 h-10 pl-3.5 pr-3 rounded-full bg-[#F5F2FC] border border-transparent text-sm text-left text-[#7A7595] hover:border-[#AFA9EC]/60 focus:outline-none focus:ring-2 focus:ring-[#6C47D8]/30 transition-shadow',
+        'flex w-full items-center gap-2 h-10 pl-3.5 pr-3 rounded-full bg-[#EEF4FA] border border-transparent text-sm text-left text-[#7A7595] hover:border-[#FF9A7A]/60 focus:outline-none focus:ring-2 focus:ring-[#C02807]/30 transition-shadow',
         className
       )}
       aria-label="Abrir busca global"

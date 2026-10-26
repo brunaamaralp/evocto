@@ -107,7 +107,7 @@ export default function LibraryPage() {
           placeholder="Buscar na biblioteca..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 rounded-full bg-[#F5F2FC] border-transparent"
+          className="pl-10 rounded-full bg-[#EEF4FA] border-transparent"
         />
       </div>
 

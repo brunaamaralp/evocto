@@ -15,7 +15,7 @@
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: var(--v100, #ede9fb);
+  background: var(--v100, #FCE8E3);
   color: var(--color-text-primary, #18162a);
 }
 

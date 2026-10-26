@@ -27,11 +27,13 @@ import {
   ArrowRight,
   CheckCircle,
   CheckCircle2, // New import
-  Building2 // New import
+  Building2, // New import
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { buildBriefingInicialHref } from '@/lib/briefingInicial';
+import { buildGerarMaterialHref } from '@/lib/generateMaterialApi';
 import { format, isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { isBriefingCompleted, getBriefingCompletionDetails } from '@/components/utils/briefingUtils';
@@ -51,7 +53,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
   const [briefingStatus, setBriefingStatus] = useState(null);
   const [servicesStatus, setServicesStatus] = useState(null);
 
-  // CORREÇÃO: Função unificada para verificar qualquer briefing
+  // CORRE��O: Fun��o unificada para verificar qualquer briefing
   const checkAnyBriefingExists = useCallback(async (clientId) => {
     try {
       // 1. Verificar Brief interno
@@ -59,7 +61,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
       const internalBriefs = await Brief.filter({ projectId: clientId });
 
       if (internalBriefs && internalBriefs.length > 0) {
-        console.log(`✅ Cliente ${clientId} tem ${internalBriefs.length} briefing(s) interno(s)`);
+        console.log(`? Cliente ${clientId} tem ${internalBriefs.length} briefing(s) interno(s)`);
         return true;
       }
 
@@ -71,11 +73,11 @@ export default function OverviewTab({ client, services, onUpdate }) {
       });
 
       if (publicResponses && publicResponses.length > 0) {
-        console.log(`✅ Cliente ${clientId} tem ${publicResponses.length} briefing(s) público(s)`);
+        console.log(`? Cliente ${clientId} tem ${publicResponses.length} briefing(s) p�blico(s)`);
         return true;
       }
 
-      console.log(`❌ Cliente ${clientId} não possui briefing`);
+      console.log(`? Cliente ${clientId} n�o possui briefing`);
       return false;
 
     } catch (error) {
@@ -116,7 +118,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
         active: activeClientServices
       });
 
-      // Calcular estatísticas do projeto (using fetchedServices for consistency)
+      // Calcular estat�sticas do projeto (using fetchedServices for consistency)
       const activeServicesForStats = fetchedServices.filter(s => s.is_active && !s.is_template).length;
       const activeTasks = taskData.filter(t => ['todo', 'in_progress'].includes(t.status)).length;
       const overdueTasks = taskData.filter(t =>
@@ -149,15 +151,15 @@ export default function OverviewTab({ client, services, onUpdate }) {
   // Handler para concluir briefing rapidamente quando >=50%
   const handleConcludeBriefing = async () => {
     const info = getBriefingCompletionDetails(briefings, publicBriefings);
-    // Se já concluído, apenas recarrega
+    // Se j� conclu�do, apenas recarrega
     if (info.completed) {
-      toast.info('O briefing já está completo!');
+      toast.info('O briefing j� est� completo!');
       await loadProjectData();
       return;
     }
 
     try {
-      // Preferir atualizar um Brief existente; senão criar um mínimo com READY
+      // Preferir atualizar um Brief existente; sen�o criar um m�nimo com READY
       if (briefings.length > 0) {
         await Brief.update(briefings[0].id, { status: 'READY', completion_score: Math.max(60, briefings[0].completion_score || 0) });
       } else {
@@ -170,7 +172,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
           company_profile: ''
         });
       }
-      toast.success('Briefing concluído com sucesso!');
+      toast.success('Briefing conclu�do com sucesso!');
     } catch (error) {
       console.error('Erro ao concluir briefing:', error);
       toast.error('Erro ao concluir briefing.');
@@ -178,7 +180,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
     await loadProjectData();
   };
 
-  // 🎯 VERIFICAÇÃO UNIFICADA
+  // ?? VERIFICA��O UNIFICADA
   const hasServices = (services || []).length > 0;
   const hasDeliverables = (services || []).some(s => Array.isArray(s?.deliverables) && s.deliverables.length > 0);
   const briefingOk = isBriefingCompleted(briefings, publicBriefings);
@@ -208,7 +210,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-gray-600">
               <Briefcase className="w-4 h-4 text-blue-600" />
-              <span>Serviços Ativos</span>
+              <span>Servi�os Ativos</span>
             </div>
             <Badge variant="secondary">{projectStats.activeServices || 0}</Badge>
           </div>
@@ -227,7 +229,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
             <Badge variant="secondary">{projectStats.overdueTasks || 0}</Badge>
           </div>
           <div className="text-sm text-gray-600 pt-2">
-            Próxima entrega: {upcoming.length ? new Date(upcoming[0].dueDate).toLocaleDateString('pt-BR') : '—'}
+            Pr�xima entrega: {upcoming.length ? new Date(upcoming[0].dueDate).toLocaleDateString('pt-BR') : '�'}
           </div>
         </CardContent>
       </Card>
@@ -262,8 +264,8 @@ export default function OverviewTab({ client, services, onUpdate }) {
                 )}
                 <p className="text-sm text-gray-600 mt-1">
                   {briefingStatus?.exists
-                    ? 'O cliente já preencheu o briefing inicial'
-                    : 'Briefing ainda não foi preenchido'
+                    ? 'O cliente j� preencheu o briefing inicial'
+                    : 'Briefing ainda n�o foi preenchido'
                   }
                 </p>
               </div>
@@ -288,7 +290,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Building2 className="h-5 w-5 mr-2" />
-              Serviços
+              Servi�os
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -304,14 +306,14 @@ export default function OverviewTab({ client, services, onUpdate }) {
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
                   {servicesStatus?.active > 0
-                    ? `${servicesStatus.active} serviço(s) em execução`
-                    : 'Nenhum serviço ativo'
+                    ? `${servicesStatus.active} servi�o(s) em execu��o`
+                    : 'Nenhum servi�o ativo'
                   }
                 </p>
               </div>
 
               <Button size="sm" onClick={() => navigate(createPageUrl('client-services') + `?clientId=${client.id}`)}>
-                {servicesStatus?.total > 0 ? 'Gerenciar' : 'Criar Serviço'}
+                {servicesStatus?.total > 0 ? 'Gerenciar' : 'Criar Servi�o'}
               </Button>
             </div>
           </CardContent>
@@ -321,7 +323,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
       {/* Conditional Rendering for Setup Guide or Dashboard */}
       {!setupComplete ? (
         <div className="space-y-6">
-          {/* Guia legado que você já vê com a barra de progresso */}
+          {/* Guia legado que voc� j� v� com a barra de progresso */}
           <ClientSetupGuide
             client={client}
             services={services}
@@ -330,7 +332,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
             onConcludeBriefing={handleConcludeBriefing}
           />
 
-          {/* Cartão adicional: Conclusão rápida do briefing (não depende do layout do guia) */}
+          {/* Cart�o adicional: Conclus�o r�pida do briefing (n�o depende do layout do guia) */}
           {(() => {
             const info = getBriefingCompletionDetails(briefings, publicBriefings);
             const canConclude = !info.completed && info.bestPercentage >= 50;
@@ -338,12 +340,12 @@ export default function OverviewTab({ client, services, onUpdate }) {
               <Card className="border-blue-200 bg-blue-50">
                 <CardHeader>
                   <CardTitle className="text-blue-900 text-base">
-                    Conclusão rápida do Briefing
+                    Conclus�o r�pida do Briefing
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex items-center justify-between gap-4">
                   <div className="text-sm text-blue-900">
-                    Detectamos {Math.round(info.bestPercentage)}% de preenchimento. Você pode concluir o briefing agora.
+                    Detectamos {Math.round(info.bestPercentage)}% de preenchimento. Voc� pode concluir o briefing agora.
                   </div>
                   <Button onClick={handleConcludeBriefing} className="bg-blue-600 hover:bg-blue-700">
                     Concluir Briefing
@@ -354,7 +356,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
           })()}
         </div>
       ) : (
-        // ============ DASHBOARD PÓS-SETUP ============
+        // ============ DASHBOARD P�S-SETUP ============
 
         <div className="space-y-6">
           {/* Header do Projeto */}
@@ -365,11 +367,11 @@ export default function OverviewTab({ client, services, onUpdate }) {
                   Projeto em Andamento
                 </h2>
                 <p className="text-gray-600">
-                  Acompanhe o progresso e próximas atividades
+                  Acompanhe o progresso e pr�ximas atividades
                 </p>
               </div>
               <Badge className="bg-green-100 text-green-800 border-green-200">
-                ✅ Configuração Completa
+                ? Configura��o Completa
               </Badge>
             </div>
           </div>
@@ -381,14 +383,14 @@ export default function OverviewTab({ client, services, onUpdate }) {
               <SummaryPanel />
             </div>
             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Estatísticas do Projeto - Retaining some key stats that might not be in SummaryPanel */}
+              {/* Estat�sticas do Projeto - Retaining some key stats that might not be in SummaryPanel */}
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="flex items-center justify-center mb-2">
                     <Target className="w-5 h-5 text-purple-600 mr-2" />
                     <span className="text-2xl font-bold text-purple-600">{projectStats.completedTasks}</span>
                   </div>
-                  <p className="text-sm text-gray-600">Tarefas Concluídas</p>
+                  <p className="text-sm text-gray-600">Tarefas Conclu�das</p>
                 </CardContent>
               </Card>
 
@@ -405,12 +407,12 @@ export default function OverviewTab({ client, services, onUpdate }) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Próximos Passos */}
+            {/* Pr�ximos Passos */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Target className="w-5 h-5 mr-2" />
-                  Próximos Passos
+                  Pr�ximos Passos
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -452,8 +454,8 @@ export default function OverviewTab({ client, services, onUpdate }) {
                     if (upcoming.length > 0) {
                       steps.push({
                         icon: Calendar,
-                        title: 'Tarefas próximas do prazo',
-                        description: `${upcoming.length} tarefa(s) precisam de atenção`,
+                        title: 'Tarefas pr�ximas do prazo',
+                        description: `${upcoming.length} tarefa(s) precisam de aten��o`,
                         urgency: 'low',
                         action: () => navigate(createPageUrl('client-tasks') + `?clientId=${client.id}`)
                       });
@@ -463,13 +465,13 @@ export default function OverviewTab({ client, services, onUpdate }) {
                       steps.push({
                         icon: CheckCircle,
                         title: 'Projeto em dia!',
-                        description: 'Todas as tarefas estão organizadas',
+                        description: 'Todas as tarefas est�o organizadas',
                         urgency: 'none',
                         action: () => navigate(createPageUrl('client-tasks') + `?clientId=${client.id}`)
                       });
                     }
 
-                    return steps.slice(0, 3); // Max 3 próximos passos
+                    return steps.slice(0, 3); // Max 3 pr�ximos passos
                   };
 
                   const nextSteps = getNextSteps();
@@ -506,12 +508,12 @@ export default function OverviewTab({ client, services, onUpdate }) {
               </CardContent>
             </Card>
 
-            {/* Próximas Tarefas */}
+            {/* Pr�ximas Tarefas */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Clock className="w-5 h-5 mr-2" />
-                  Próximas Tarefas
+                  Pr�ximas Tarefas
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -527,11 +529,11 @@ export default function OverviewTab({ client, services, onUpdate }) {
                       const dueDate = parseISO(dueDateString);
 
                       if (isToday(dueDate)) return 'Hoje';
-                      if (isTomorrow(dueDate)) return 'Amanhã';
+                      if (isTomorrow(dueDate)) return 'Amanh�';
                       if (isThisWeek(dueDate)) return format(dueDate, 'eeee', { locale: ptBR });
                       return format(dueDate, 'dd/MM', { locale: ptBR });
                     } catch {
-                      return 'Data inválida';
+                      return 'Data inv�lida';
                     }
                   };
 
@@ -551,7 +553,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
                           >
                             {task.priority === 'urgent' ? 'Urgente' :
                               task.priority === 'high' ? 'Alta' :
-                                task.priority === 'medium' ? 'Média' : 'Baixa'}
+                                task.priority === 'medium' ? 'M�dia' : 'Baixa'}
                           </Badge>
                         </div>
                       ))}
@@ -559,7 +561,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <CheckSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>Nenhuma tarefa próxima do prazo</p>
+                      <p>Nenhuma tarefa pr�xima do prazo</p>
                     </div>
                   );
                 })()}
@@ -567,10 +569,10 @@ export default function OverviewTab({ client, services, onUpdate }) {
             </Card>
           </div>
 
-          {/* Ações Rápidas */}
+          {/* A��es R�pidas */}
           <Card>
             <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
+              <CardTitle>A��es R�pidas</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -586,14 +588,14 @@ export default function OverviewTab({ client, services, onUpdate }) {
                     },
                     {
                       title: 'Ver Documentos',
-                      description: 'Arquivos e relatórios',
+                      description: 'Arquivos e relat�rios',
                       icon: FolderOpen,
                       href: createPageUrl('client-documents') + `?clientId=${client.id}`,
                       color: 'bg-green-50 text-green-600 border-green-200'
                     },
                     {
-                      title: 'Gerar Relatório',
-                      description: 'Relatório de progresso',
+                      title: 'Gerar Relat�rio',
+                      description: 'Relat�rio de progresso',
                       icon: TrendingUp,
                       href: createPageUrl('custom-reports') + `?clientId=${client.id}`,
                       color: 'bg-purple-50 text-purple-600 border-purple-200'
@@ -604,6 +606,13 @@ export default function OverviewTab({ client, services, onUpdate }) {
                       icon: FileText,
                       href: createPageUrl(buildBriefingInicialHref(client.id)),
                       color: 'bg-orange-50 text-orange-600 border-orange-200'
+                    },
+                    {
+                      title: 'Gerar material',
+                      description: 'Proposta ou apresenta��o com IA',
+                      icon: Sparkles,
+                      href: createPageUrl(buildGerarMaterialHref(client.id)),
+                      color: 'bg-indigo-50 text-indigo-600 border-indigo-200'
                     }
                   ];
                   return quickActions.map((action, index) => {
@@ -627,11 +636,11 @@ export default function OverviewTab({ client, services, onUpdate }) {
             </CardContent>
           </Card>
 
-          {/* Lista de Serviços */}
+          {/* Lista de Servi�os */}
           {services.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Serviços do Cliente</CardTitle>
+                <CardTitle>Servi�os do Cliente</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">

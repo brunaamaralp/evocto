@@ -94,10 +94,10 @@ const StatsCard = ({ title, value, change, icon: Icon, trend }) => {
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : null;
 
   return (
-    <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
+    <Card className="rounded-2xl border-transparent shadow-sm bg-[#EEF4FA]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="text-sm font-medium text-[#7A7595]">{title}</div>
-        <Icon className="h-4 w-4 text-[#6C47D8]" />
+        <Icon className="h-4 w-4 text-[#C02807]" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-[#18162A]">{value}</div>
@@ -174,10 +174,10 @@ const ApprovalFilters = ({ filters, onFiltersChange }) => {
 // Tabela de aprovações
 const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
   return (
-    <div className="bg-white rounded-2xl border border-[#D4CBF5] overflow-hidden shadow-sm">
+    <div className="bg-white rounded-2xl border border-[#FFD4C8] overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-[#F5F2FC]">
+          <thead className="bg-[#EEF4FA]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Conteúdo
@@ -207,7 +207,7 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                 Math.ceil((new Date(approval.expiresAt) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
               return (
-                <tr key={approval.id} className="hover:bg-[#F5F2FC]">
+                <tr key={approval.id} className="hover:bg-[#EEF4FA]">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-[#18162A]">
@@ -481,7 +481,7 @@ export default function ApprovalDashboard() {
     return (
       <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-[#6C47D8] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-[#C02807] border-t-transparent rounded-full animate-spin" />
             <span className="ml-3 text-[#7A7595]">Carregando dashboard...</span>
           </div>
       </div>

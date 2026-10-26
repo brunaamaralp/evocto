@@ -1,6 +1,6 @@
 /**
- * Briefing inicial: Empresa + insumos do plano anual (ciclos/seeds).
- * Pode ser preenchido pelo cliente (link) ou pela equipe.
+ * Briefing inicial: DNA da empresa (insumo para an�lise).
+ * Planejamento m�s a m�s fica no Panorama � n�o faz parte deste formul�rio.
  */
 import { Brief, Client } from '@/api/entities';
 import {
@@ -13,21 +13,12 @@ import {
 } from '@/lib/empresaConfig';
 import {
   BRIEF_KIND_ANUAL,
-  DEFAULT_CICLOS_COMERCIAIS,
-  buildBriefingsMesSeeds,
-  buildCampanhaAnualBriefPayload,
-  normalizeCiclosComerciais,
-  normalizeMesInicio,
   normalizeProdutosLinhas,
-  validateCiclosComerciais,
 } from '@/lib/campanhaAnualSchema';
 
 export const BRIEF_KIND_INICIAL = 'briefing_inicial';
 
 export function emptyBriefingInicialForm(clientName = '') {
-  const now = new Date();
-  const mes_inicio = now.getMonth() + 1;
-  const ciclos = normalizeCiclosComerciais(DEFAULT_CICLOS_COMERCIAIS);
   return {
     empresa: {
       ...EMPTY_EMPRESA_FORM,
@@ -35,10 +26,6 @@ export function emptyBriefingInicialForm(clientName = '') {
       formato_padrao: { ...EMPTY_EMPRESA_FORM.formato_padrao },
       produtos_linhas: [],
     },
-    ano: now.getFullYear(),
-    mes_inicio,
-    ciclos_comerciais: ciclos,
-    briefings_mes: buildBriefingsMesSeeds(ciclos, [], mes_inicio),
   };
 }
 
@@ -65,25 +52,7 @@ export function normalizeBriefingInicialForm(raw = {}, clientName = '') {
   empresa.formato_padrao = normalizeFormato(empresa.formato_padrao);
   empresa.produtos_linhas = normalizeProdutosLinhas(empresa.produtos_linhas);
 
-  const ciclos = normalizeCiclosComerciais(
-    raw.ciclos_comerciais || base.ciclos_comerciais
-  );
-  const mes_inicio = normalizeMesInicio(
-    raw.mes_inicio ?? raw.mesInicio,
-    raw.mes_inicio == null && raw.mesInicio == null ? base.mes_inicio : base.mes_inicio
-  );
-
-  return {
-    empresa,
-    ano: Number(raw.ano) || base.ano,
-    mes_inicio,
-    ciclos_comerciais: ciclos,
-    briefings_mes: buildBriefingsMesSeeds(
-      ciclos,
-      raw.briefings_mes || base.briefings_mes,
-      mes_inicio
-    ),
-  };
+  return { empresa };
 }
 
 export function validateBriefingInicialForm(form) {
@@ -98,14 +67,6 @@ export function validateBriefingInicialForm(form) {
     errors.produtos_linhas = 'Cadastre ao menos uma linha/produto';
   }
 
-  const cic = validateCiclosComerciais(n.ciclos_comerciais, { requireFullYear: true });
-  if (!cic.valid) Object.assign(errors, cic.errors);
-
-  if (!n.ano || n.ano < 2020 || n.ano > 2100) errors.ano = 'Ano inválido';
-  if (!n.mes_inicio || n.mes_inicio < 1 || n.mes_inicio > 12) {
-    errors.mes_inicio = 'Mês de início inválido';
-  }
-
   return { valid: Object.keys(errors).length === 0, errors, value: n };
 }
 
@@ -115,6 +76,7 @@ export function isBriefingInicialFormComplete(form) {
 
 /**
  * Localiza o brief de DNA / briefing inicial do cliente.
+ * Prefer�ncia: briefing_inicial; legado: campanha_anual com origem_briefing_inicial.
  */
 export function findBriefingInicialBrief(briefs = []) {
   const list = Array.isArray(briefs) ? briefs : [];
@@ -136,7 +98,7 @@ export function findBriefingInicialBrief(briefs = []) {
 export function resolveBriefingInicialStatus(briefs = []) {
   const brief = findBriefingInicialBrief(briefs);
   if (!brief) {
-    return { status: 'missing', brief: null, label: 'Não preenchido' };
+    return { status: 'missing', brief: null, label: 'N�o preenchido' };
   }
   const annual = String(brief.status_anual || '').toLowerCase();
   const status = String(brief.status || '').toUpperCase();
@@ -157,7 +119,7 @@ export function resolveBriefingInicialStatus(briefs = []) {
   return { status: 'ready', brief, label: 'Preenchido' };
 }
 
-/** Notifica páginas do hub para recarregar briefs após salvar. */
+/** Notifica p�ginas do hub para recarregar briefs ap�s salvar. */
 export function dispatchBriefingUpdated(clientId) {
   if (typeof window === 'undefined' || !clientId) return;
   window.dispatchEvent(
@@ -165,7 +127,7 @@ export function dispatchBriefingUpdated(clientId) {
   );
 }
 
-/** Rota canônica do editor de briefing inicial (sem hub intermediário). */
+/** Rota can�nica do editor de briefing inicial (sem hub intermedi�rio). */
 export function buildBriefingInicialHref(clientId, { briefingId = null } = {}) {
   const id = String(clientId || '').trim();
   if (!id) return 'briefing-inicial';
@@ -175,27 +137,24 @@ export function buildBriefingInicialHref(clientId, { briefingId = null } = {}) {
   return `briefing-inicial?${params.toString()}`;
 }
 
-/** Progresso do formulário público/interno (para progressData do token). */
+/** Progresso do formul�rio p�blico/interno (para progressData do token). */
 export function countInicialProgress(form) {
   const n = normalizeBriefingInicialForm(form);
   let done = 0;
-  const total = 6;
+  const total = 5;
   if (String(n.empresa.nome || '').trim()) done += 1;
   if (String(n.empresa.publico_alvo || '').trim()) done += 1;
   if (String(n.empresa.tom_brand || '').trim()) done += 1;
   if (Number(n.empresa.orcamento_padrao_mensal) > 0) done += 1;
   if ((n.empresa.produtos_linhas || []).some((p) => p.nome)) done += 1;
-  if (validateCiclosComerciais(n.ciclos_comerciais, { requireFullYear: true }).valid) {
-    done += 1;
-  }
   return { done, total };
 }
 
 /**
- * Monta payload do Brief campanha_anual a partir do form do briefing inicial.
+ * Payload do Brief briefing_inicial (DNA da empresa � sem plano anual).
  * @param {'publico'|'equipe'} [origem='publico']
  */
-export function buildAnualPayloadFromInicial({
+export function buildBriefingInicialBriefPayload({
   agencyId,
   clientId,
   empresa,
@@ -206,28 +165,52 @@ export function buildAnualPayloadFromInicial({
 }) {
   const n = normalizeBriefingInicialForm(form);
   const fromPublic = origem === 'publico';
-  return buildCampanhaAnualBriefPayload({
+  const nome =
+    String(empresa?.nome || n.empresa?.nome || '').trim() || 'Cliente';
+  const empSnap = {
+    nome: n.empresa.nome,
+    publico_alvo: n.empresa.publico_alvo,
+    tom_brand: n.empresa.tom_brand,
+    orcamento_padrao_mensal: n.empresa.orcamento_padrao_mensal,
+    formato_padrao: n.empresa.formato_padrao,
+    restricoes_criativas: n.empresa.restricoes_criativas,
+    produtos_linhas: n.empresa.produtos_linhas,
+    brand_guidelines: n.empresa.brand_guidelines || null,
+  };
+
+  return {
+    ...(existing || {}),
     agencyId,
     clientId,
-    empresa,
-    ano: n.ano,
-    mes_inicio: n.mes_inicio,
-    ciclos_comerciais: n.ciclos_comerciais,
-    briefings_mes: n.briefings_mes,
-    userId,
-    existing: {
-      ...(existing || {}),
-      brief_kind: BRIEF_KIND_ANUAL,
-      is_public_briefing: fromPublic,
-      origem_briefing_inicial: true,
-      origem_preenchimento: fromPublic ? 'publico' : 'equipe',
-    },
-  });
+    projectId: clientId,
+    empresaId: empresa?.id || existing?.empresaId || null,
+    brief_kind: BRIEF_KIND_INICIAL,
+    title: `Briefing inicial � ${nome}`,
+    status: existing?.status || 'DRAFT',
+    objectives: 'Briefing inicial da empresa',
+    business_context:
+      'DNA da marca � an�lise pr�via antes do planejamento m�s a m�s',
+    company_profile: empSnap.publico_alvo || '',
+    budget_expectations: String(empSnap.orcamento_padrao_mensal || ''),
+    communication_preferences: empSnap.tom_brand || '',
+    produtos_snapshot: empSnap.produtos_linhas || [],
+    empresa_snapshot: empSnap,
+    origem_briefing_inicial: true,
+    origem_preenchimento: fromPublic ? 'publico' : 'equipe',
+    is_public_briefing: Boolean(existing?.is_public_briefing) || fromPublic,
+    editado_em: new Date().toISOString(),
+    updated_by: userId || existing?.updated_by || null,
+  };
+}
+
+/** @deprecated Use buildBriefingInicialBriefPayload � briefing n�o cria plano anual. */
+export function buildAnualPayloadFromInicial(args) {
+  return buildBriefingInicialBriefPayload(args);
 }
 
 /**
- * Salva briefing inicial pela equipe (sem token público).
- * Cria/atualiza Empresa + Brief campanha_anual.
+ * Salva briefing inicial pela equipe (sem token p�blico).
+ * Cria/atualiza Empresa + Brief briefing_inicial.
  */
 export async function saveBriefingInicialInterno({
   agencyId,
@@ -239,14 +222,14 @@ export async function saveBriefingInicialInterno({
   existingBrief = null,
 }) {
   if (!agencyId || !clientId) {
-    throw new Error('agencyId e clientId obrigatórios');
+    throw new Error('agencyId e clientId obrigat�rios');
   }
 
   let n;
   if (!draft) {
     const { valid, errors, value } = validateBriefingInicialForm(form);
     if (!valid) {
-      const err = new Error('Preencha os campos obrigatórios');
+      const err = new Error('Preencha os campos obrigat�rios');
       err.errors = errors;
       throw err;
     }
@@ -279,7 +262,7 @@ export async function saveBriefingInicialInterno({
     throw err;
   } else if (!empresa?.id) {
     throw new Error(
-      'Para rascunho, preencha ao menos nome, público, tom, orçamento e um produto'
+      'Para rascunho, preencha ao menos nome, p�blico, tom, or�amento e um produto'
     );
   }
 
@@ -289,17 +272,10 @@ export async function saveBriefingInicialInterno({
   }
   if (!existing) {
     const list = await Brief.filter({ agencyId, clientId }).catch(() => []);
-    existing =
-      (list || []).find(
-        (b) =>
-          b.brief_kind === BRIEF_KIND_ANUAL &&
-          (b.origem_briefing_inicial || b.status_anual === 'rascunho')
-      ) ||
-      (list || []).find((b) => b.brief_kind === BRIEF_KIND_ANUAL) ||
-      null;
+    existing = findBriefingInicialBrief(list || []);
   }
 
-  const payload = buildAnualPayloadFromInicial({
+  const payload = buildBriefingInicialBriefPayload({
     agencyId,
     clientId,
     empresa,
@@ -310,12 +286,18 @@ export async function saveBriefingInicialInterno({
   });
 
   payload.status = draft ? 'DRAFT' : 'READY';
-  payload.status_anual = draft ? 'rascunho' : 'input_pronto';
   payload.completion_score = draft ? 40 : 100;
   payload.origem_briefing_inicial = true;
   payload.origem_preenchimento = 'equipe';
   payload.is_public_briefing = Boolean(existing?.is_public_briefing);
   payload.editado_em = new Date().toISOString();
+  // Limpa v�nculo com plano anual r�gido (legado)
+  delete payload.status_anual;
+  delete payload.ciclos_comerciais;
+  delete payload.briefings_mes;
+  delete payload.mes_inicio;
+  delete payload.ano;
+  delete payload.campanhas;
 
   const brief = existing?.id
     ? await Brief.update(existing.id, payload)
@@ -324,7 +306,7 @@ export async function saveBriefingInicialInterno({
   if (!draft) {
     await Client.update(clientId, {
       ultimo_briefing_id: brief.id,
-      ultimo_briefing_campanha: `Plano anual ${n.ano}`,
+      ultimo_briefing_campanha: `Briefing inicial � ${empresa?.nome || n.empresa.nome || ''}`,
       ultimo_briefing_em: new Date().toISOString(),
       ultimo_briefing_objetivo: 'Briefing inicial (equipe)',
     }).catch(() => null);

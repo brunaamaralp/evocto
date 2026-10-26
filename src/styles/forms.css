@@ -83,7 +83,7 @@ select.form-input.navi-control--toolbar {
 
 .form-input:focus {
   border: var(--control-border-focus);
-  box-shadow: 0 0 0 3px rgba(108, 71, 216, 0.12);
+  box-shadow: 0 0 0 3px rgba(192, 40, 7, 0.12);
 }
 
 .form-input::placeholder {

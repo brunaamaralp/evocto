@@ -112,7 +112,7 @@ export function buildCycleReportPrintDoc({ cycle, client, service, learnings = [
         heading: 'Próximos passos',
         paragraphs: [
           closing.nextActions ||
-            'Agendar reunião de alinhamento e gerar o plano do próximo ciclo no Evocto.',
+            'Agendar reunião de alinhamento e gerar o plano do próximo ciclo no narrativa.',
         ],
       },
     ].filter(Boolean),
@@ -153,7 +153,7 @@ export function buildClientHistoryPrintDoc({ client, periodLabel, entries = [] }
 
   return {
     title: `Histórico de decisões — ${clientName}`,
-    subtitle: periodLabel || 'Exportação Evocto',
+    subtitle: periodLabel || 'Exportação narrativa',
     sections,
   };
 }

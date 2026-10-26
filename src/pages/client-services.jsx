@@ -134,7 +134,7 @@ export default function ClientServicesPage() {
       setup: { color: 'bg-gray-100 text-gray-800', icon: Clock, label: 'Configuração' },
       active: { color: 'bg-green-100 text-green-800', icon: Play, label: 'Ativo' },
       briefing_pending: { color: 'bg-yellow-100 text-yellow-800', icon: FileText, label: 'Aguardando Briefing' },
-      kpis_setup: { color: 'bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]', icon: TrendingUp, label: 'Configurando KPIs' },
+      kpis_setup: { color: 'bg-[#FCE8E3] text-[#8A1C05] border border-[#FFD4C8]', icon: TrendingUp, label: 'Configurando KPIs' },
       in_execution: { color: 'bg-green-100 text-green-800', icon: Play, label: 'Em Execução' },
       closing: { color: 'bg-orange-100 text-orange-800', icon: Clock, label: 'Finalizando' },
       completed: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Concluído' },
@@ -410,7 +410,7 @@ export default function ClientServicesPage() {
                   {serviceTemplates.map((template) => (
                     <Card 
                       key={template.id} 
-                      className="rounded-2xl hover:shadow-md transition-all cursor-pointer border-2 border-transparent hover:border-[#D4CBF5] shadow-sm"
+                      className="rounded-2xl hover:shadow-md transition-all cursor-pointer border-2 border-transparent hover:border-[#FFD4C8] shadow-sm"
                       onClick={() => handleCreateService(template.id)}
                     >
                       <CardHeader>
@@ -419,7 +419,7 @@ export default function ClientServicesPage() {
                             <CardTitle className="text-lg">{template.name}</CardTitle>
                             <p className="text-sm text-[#7A7595] mt-1">{template.category}</p>
                           </div>
-                          <Badge className="bg-[#EDE9FB] text-[#4A2FA3] border border-[#D4CBF5]">Template</Badge>
+                          <Badge className="bg-[#FCE8E3] text-[#8A1C05] border border-[#FFD4C8]">Template</Badge>
                         </div>
                       </CardHeader>
                       

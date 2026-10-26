@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Soft-UI pastel map for stages and modules.
  * Tailwind-ready class tokens used across shell, kanban, and cards.
  */
@@ -126,11 +126,11 @@ export const STAGE_ALIASES = {
 
 export const MODULE_PASTELS = {
   dashboard: {
-    bg: 'bg-[#EDE9FB]',
-    soft: 'bg-[#F5F2FC]',
-    text: 'text-[#4A2FA3]',
-    accent: 'bg-[#6C47D8]',
-    border: 'border-[#D4CBF5]',
+    bg: 'bg-[#FCE8E3]',
+    soft: 'bg-[#EEF4FA]',
+    text: 'text-[#8A1C05]',
+    accent: 'bg-[#C02807]',
+    border: 'border-[#FFD4C8]',
   },
   clients: {
     bg: 'bg-[#EAF2FB]',

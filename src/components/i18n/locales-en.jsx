@@ -1,7 +1,7 @@
 
 const ptTranslations = {
   "app": {
-    "name": "Evocto",
+    "name": "narrativa",
     "tagline": "Inteligência Contínua para Agências"
   },
   "nav": {
@@ -380,7 +380,7 @@ const ptTranslations = {
         "review": "Revisar Minhas Respostas"
       },
       "aiSuggestion": {
-        "label": "Sugestão Evocto",
+        "label": "Sugestão narrativa",
         "added": "Pergunta de IA adicionada ao briefing"
       },
       "errors": {
@@ -389,7 +389,7 @@ const ptTranslations = {
     },
     "validation": {
       "analyzing": "Analisando sua resposta...",
-      "aiSuggestion": "Sugestão Evocto",
+      "aiSuggestion": "Sugestão narrativa",
       "followUpTriggered": "Pergunta adicional acionada",
       "incompleteResponse": "A resposta parece incompleta",
       "vagueness": "A resposta poderia ser mais específica",
@@ -479,7 +479,7 @@ const ptTranslations = {
     "hero": {
       "title": "Scale your agency with<br />continuous intelligence",
       "subtitle": "Turn every delivery into learning, creating a living foundation that fuels monthly planning, gives the team clarity, and proves the evolution of strategies and results to the client month after month.",
-      "tagline": "Evocto is your new strategic arm."
+      "tagline": "narrativa is your new strategic arm."
     },
     "problems": {
       "title": "3 tentacles to transform your agency",
@@ -500,7 +500,7 @@ const ptTranslations = {
       }
     },
     "benefits": {
-      "title": "What your agency gains with Evocto",
+      "title": "What your agency gains with narrativa",
       "dashboard": {
         "title": "Today Dashboard",
         "description": "Everything that matters in one place: ready plans, pending approvals, and clear next steps for each client."
@@ -536,13 +536,13 @@ const ptTranslations = {
     "validationError": "Erro de Validação"
   },
   "onboarding": {
-    "welcome": "Olá! Sou Evocto, seu polvo de inteligência contínua! 🎯 Vou guiá-lo pelos primeiros passos para transformar sua agência em uma máquina de resultados consistentes.",
+    "welcome": "Olá! Sou narrativa, seu polvo de inteligência contínua! 🎯 Vou guiá-lo pelos primeiros passos para transformar sua agência em uma máquina de resultados consistentes.",
     "addClient": "Primeiro, vamos adicionar seu cliente! 👥 Cada um dos meus tentáculos capturará insights únicos deles. Clique em 'Novo Cliente' para começar.",
     "fillBriefing": "Perfeito! Agora preciso conhecer este cliente a fundo. 📋 Vamos preencher o Briefing - quanto mais detalhes, melhores insights eu gero!",
     "generatePlan": "Briefing completo! ✨ Hora da mágica - vou gerar o primeiro Plano Mensal usando IA. Prepare-se para estratégias personalizadas!",
     "sendApproval": "Plano pronto! 🎉 Agora você pode enviá-lo para aprovação do cliente. Um link será gerado para que eles revisem e aprovem.",
     "showLearnings": "Por último, mas não menos importante: aqui estão seus Aprendizados! 📚 Cada resultado que você registra se torna inteligência para futuros clientes.",
-    "completed": "Parabéns! 🎊 Você dominou o básico do Evocto. Agora é só executar, registrar resultados e deixar a inteligência crescer. Vamos dominar o mercado juntos!",
+    "completed": "Parabéns! 🎊 Você dominou o básico do narrativa. Agora é só executar, registrar resultados e deixar a inteligência crescer. Vamos dominar o mercado juntos!",
     "firstUse": {
       "clients": "Ops! Ainda não temos clientes aqui. 🤔 Que tal adicionarmos o primeiro? Cada cliente é uma oportunidade de aprender e crescer!",
       "briefing": "Briefing vazio ainda! 📝 Preencha as informações do cliente para eu gerar insights poderosos. Quanto mais detalhes, melhor!",

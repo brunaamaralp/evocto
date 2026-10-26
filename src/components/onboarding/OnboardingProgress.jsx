@@ -122,7 +122,7 @@ export default function OnboardingProgress({ onboardingState }) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            🐙 Primeiros Passos com o Evocto
+            Primeiros Passos com a narrativa
           </CardTitle>
           <Badge variant="outline">
             {completedSteps} de {steps.length} concluídos
@@ -153,7 +153,7 @@ export default function OnboardingProgress({ onboardingState }) {
                 Parabéns! Onboarding Completo
               </h3>
               <p className="text-sm text-green-700">
-                Você está pronto para usar todas as funcionalidades do Evocto!
+                Você está pronto para usar todas as funcionalidades da narrativa!
               </p>
             </div>
           </div>

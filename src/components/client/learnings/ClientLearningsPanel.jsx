@@ -140,7 +140,7 @@ export default function ClientLearningsPanel({
         <select
           value={confidenceFilter}
           onChange={(e) => setConfidenceFilter(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#C02807] focus:border-[#C02807]"
         >
           <option value="all">Todas Confianças</option>
           <option value="high">Alta (≥80%)</option>
@@ -151,7 +151,7 @@ export default function ClientLearningsPanel({
         <select
           value={reviewedFilter}
           onChange={(e) => setReviewedFilter(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#6C47D8] focus:border-[#6C47D8]"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#C02807] focus:border-[#C02807]"
         >
           <option value="all">Todos Status</option>
           <option value="reviewed">Revisados</option>

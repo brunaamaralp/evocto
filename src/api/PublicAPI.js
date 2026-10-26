@@ -305,13 +305,13 @@ export class PublicAPI extends EventEmitter {
   initializeDocumentation() {
     this.documentation.set('v1', {
       version: 'v1',
-      title: 'Evocto Marketplace API',
-      description: 'API pública para acesso aos serviços do marketplace Evocto',
-      baseUrl: 'https://api.evocto.com',
+      title: 'narrativa Marketplace API',
+      description: 'API pública para acesso aos serviços do marketplace narrativa',
+      baseUrl: 'https://api.narrativa.com',
       contact: {
-        name: 'Evocto Support',
-        email: 'api@evocto.com',
-        url: 'https://evocto.com/support'
+        name: 'narrativa Support',
+        email: 'api@narrativa.com',
+        url: 'https://narrativa.com/support'
       },
       license: {
         name: 'MIT',

@@ -1,4 +1,4 @@
-﻿
+
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import WorkloadByPersonPanel from './WorkloadByPersonPanel';
 
-const _COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+const _COLORS = ['#C02807', '#10B981', '#F59E0B', '#EF4444', '#FF643D', '#06B6D4'];
 
 export default function TaskAnalytics({ tasks, users, analytics }) {
   
@@ -120,7 +120,7 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
       { name: 'Urgente', value: tasks.filter(t => t.priority === 'urgent').length, color: '#EF4444' },
       { name: 'Alta', value: tasks.filter(t => t.priority === 'high').length, color: '#F59E0B' },
       { name: 'Média', value: tasks.filter(t => t.priority === 'medium').length, color: '#10B981' },
-      { name: 'Baixa', value: tasks.filter(t => t.priority === 'low').length, color: '#3B82F6' }
+      { name: 'Baixa', value: tasks.filter(t => t.priority === 'low').length, color: '#C02807' }
     ].filter(item => item.value > 0);
 
     const statusData = [
@@ -249,8 +249,8 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
                   type="monotone" 
                   dataKey="created" 
                   stackId="1" 
-                  stroke="#3B82F6" 
-                  fill="#3B82F6" 
+                  stroke="#C02807" 
+                  fill="#C02807" 
                   fillOpacity={0.6}
                   name="Criadas"
                 />
@@ -382,7 +382,7 @@ export default function TaskAnalytics({ tasks, users, analytics }) {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#3B82F6" />
+              <Bar dataKey="value" fill="#C02807" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

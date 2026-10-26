@@ -1,46 +1,46 @@
 :root {
-  /* Primária */
-  --color-primary: #6C47D8;
-  --color-primary-light: #AFA9EC;
-  --color-primary-surface: #EDE9FB;
-  --color-primary-dark: #4A2FA3;
+  /* Primária — Burnt Grape */
+  --color-primary: #C02807;
+  --color-primary-light: #FF643D;
+  --color-primary-surface: #FCE8E3;
+  --color-primary-dark: #8A1C05;
 
-  /* Accent — verde mais vibrante, próximo do logo */
-  --color-accent: #22C98A;
-  --color-accent-light: #80E8C4;
-  --color-accent-surface: #D0F7EC;
-  --color-accent-dark: #085041;
+  /* Accent — Orange Rosé */
+  --color-accent: #FF643D;
+  --color-accent-light: #FF9A7A;
+  --color-accent-surface: #FFE8E0;
+  --color-accent-dark: #C4451F;
 
-  /* Highlight — fluor pontual (metas, badges de energia, notificações) */
-  --color-highlight: #B2F100;
-  --color-highlight-surface: #F0FFB8;
+  /* Highlight — Sky Blue (pontual: badges, info, superfícies suaves) */
+  --color-highlight: #BBD9F4;
+  --color-highlight-surface: #E8F2FB;
 
-  --color-success: var(--color-accent);
-  --color-success-surface: var(--color-accent-surface);
+  --color-success: #2A9D6E;
+  --color-success-surface: #D8F3E8;
   --color-danger: #E24B4A;
   --color-warning: #C47A00;
-  --color-text-heading: #18162A;
-  --color-border: #E8E5F5;
+  --color-text-heading: #1A1210;
+  --color-border: #E5ECF3;
   --color-white: #FFFFFF;
   --color-surface: var(--color-card-bg);
   --color-surface-canvas: var(--color-content-bg);
 
-  /* Sidebar / Topbar */
-  --color-sidebar-bg: #13111F;
-  --color-topbar-bg: #13111F;
-  --color-sidebar-text: #7A7595;
-  --color-sidebar-active-bg: rgba(108, 71, 216, 0.22);
-  --color-sidebar-active-text: #C4B4F5;
-  --color-sidebar-active-icon: #AFA9EC;
-  --color-sidebar-section: #6E6A88;
+  /* Sidebar / Topbar — profundo quente */
+  --color-sidebar-bg: #1A0D0B;
+  --color-topbar-bg: #1A0D0B;
+  --color-sidebar-text: #A89A96;
+  --color-sidebar-active-bg: rgba(192, 40, 7, 0.28);
+  --color-sidebar-active-text: #FFD4C8;
+  --color-sidebar-active-icon: #FF643D;
+  --color-sidebar-section: #8A7A76;
   --color-sidebar-border: rgba(255, 255, 255, 0.06);
-  --color-sidebar-avatar-bg: #2A2640;
-  --color-sidebar-avatar-text: #AFA9EC;
+  --color-sidebar-avatar-bg: #2E1A16;
+  --color-sidebar-avatar-text: #FFD4C8;
 
-  /* Conteúdo */
-  --color-content-bg: #FFFFFF;
-  --color-card-bg: #FFFFFF;
-  --color-card-border: #E8E5F5;
+  /* Conteúdo — Cloud */
+  --color-content-bg: #FFFCFC;
+  --color-card-bg: #FFFCFC;
+  --color-card-border: #E5ECF3;
 
   /* Tipografia — escala rem (base 16px) */
   --font-2xs:  0.625rem;   /* 10px */
@@ -86,28 +86,29 @@
   --ease-out:      cubic-bezier(0, 0, 0.2, 1);
   --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Soft UI shell */
-  --color-canvas: #F0ECF8;
-  --color-canvas-client: #E6F4F1;
+  /* Soft UI shell — sky + cloud */
+  --color-canvas: #EEF4FA;
+  --color-canvas-client: #E8F2FB;
   --radius-panel: 24px;
   --radius-card: 20px;
   --radius-pill: 9999px;
-  --shadow-soft: 0 8px 32px rgba(24, 22, 42, 0.06), 0 2px 8px rgba(24, 22, 42, 0.04);
-  --shadow-card: 0 4px 16px rgba(24, 22, 42, 0.05), 0 1px 3px rgba(24, 22, 42, 0.04);
-  --shadow-elevated: 0 12px 40px rgba(24, 22, 42, 0.1);
+  --shadow-soft: 0 8px 32px rgba(26, 18, 16, 0.06), 0 2px 8px rgba(26, 18, 16, 0.04);
+  --shadow-card: 0 4px 16px rgba(26, 18, 16, 0.05), 0 1px 3px rgba(26, 18, 16, 0.04);
+  --shadow-elevated: 0 12px 40px rgba(26, 18, 16, 0.1);
 
-  /* Tipografia / superfícies legadas (forms, finance settings) */
-  --ff-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
+  /* Tipografia / superfícies — Manrope (UI) + Archivo (display) */
+  --ff-ui: 'Manrope', system-ui, sans-serif;
+  --ff-display: 'Archivo', system-ui, sans-serif;
   --ff-body: var(--ff-ui);
   --font-sans: var(--ff-ui);
-  /* Aliases de marca (CSS legado Navi → Evocto) */
-  --evocto-brand-img-bg-light: #ffffff;
-  --evocto-brand-img-bg-dark: #13111f;
+  /* Aliases de marca (CSS legado Navi → Evocto → Narrativa) */
+  --evocto-brand-img-bg-light: #FFFCFC;
+  --evocto-brand-img-bg-dark: #1A0D0B;
   --navi-brand-img-bg-light: var(--evocto-brand-img-bg-light);
   --navi-brand-img-bg-dark: var(--evocto-brand-img-bg-dark);
   --ink: var(--color-text-heading);
   --text-secondary: var(--color-text-secondary);
-  --text-muted: #7a7595;
+  --text-muted: #7A6E6A;
   --surface: var(--color-card-bg);
   --surface-hover: color-mix(in srgb, var(--color-primary-surface) 45%, var(--color-card-bg));
   --faint: color-mix(in srgb, var(--color-text-secondary) 72%, white);

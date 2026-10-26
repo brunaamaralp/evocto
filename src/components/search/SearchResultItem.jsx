@@ -36,7 +36,9 @@ const getResultUrl = (item) => {
     case 'service':
       return toPage('service-detail') + `?serviceId=${item.id}`;
     case 'task':
-      return toPage('client-tasks') + `?taskId=${item.id}`;
+      return createPageUrl(
+        `tasks-manager?taskId=${encodeURIComponent(item.id)}`
+      );
     case 'briefing':
       return createPageUrl(buildBriefingInicialHref(item.metadata?.clientId));
     case 'document':

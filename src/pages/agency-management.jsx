@@ -26,7 +26,7 @@ export default function AgencyManagementPage() {
   const [agencyData, setAgencyData] = useState({
     agencyName: '',
     logoUrl: '',
-    primaryColor: '#2563EB',
+    primaryColor: '#8A1C05',
     secondaryColor: '#F1F5F9',
     contactEmail: '',
     contactPhone: ''
@@ -39,7 +39,7 @@ export default function AgencyManagementPage() {
       setAgencyData({
         agencyName: agency.agencyName || '',
         logoUrl: agency.logoUrl || '',
-        primaryColor: agency.primaryColor || '#2563EB',
+        primaryColor: agency.primaryColor || '#8A1C05',
         secondaryColor: agency.secondaryColor || '#F1F5F9',
         contactEmail: agency.contactEmail || '',
         contactPhone: agency.contactPhone || ''
@@ -260,7 +260,7 @@ export default function AgencyManagementPage() {
                       <Input
                         value={agencyData.primaryColor}
                         onChange={(e) => setAgencyData(prev => ({ ...prev, primaryColor: e.target.value }))}
-                        placeholder="#2563EB"
+                        placeholder="#8A1C05"
                         className="font-mono"
                       />
                     </div>

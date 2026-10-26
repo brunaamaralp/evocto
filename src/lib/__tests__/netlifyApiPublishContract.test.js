@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 const ROOT = resolve(process.cwd());
 const REQUIRED = [
   'client-portal',
+  'client-accesses',
   'approval-workflow',
   'public-briefing',
   'material-deliveries',
@@ -44,6 +45,7 @@ describe('vite api-dev routes', () => {
 
   it.each([
     'client-portal',
+    'client-accesses',
     'approval-workflow',
     'public-briefing',
     'material-deliveries',

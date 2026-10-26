@@ -41,6 +41,21 @@ describe('taskFilterPresets Phase B', () => {
     expect(buildTasksManagerHref({ preset: 'nope' })).toMatch(/tasks-manager\/?$/);
   });
 
+  it('agency_overdue and agency_blocked deep-link presets', () => {
+    expect(getTaskFilterPreset('agency_overdue')?.apply({}).dueRange).toBe(
+      'overdue'
+    );
+    expect(getTaskFilterPreset('agency_blocked')?.apply({}).status).toBe(
+      'blocked'
+    );
+    expect(buildTasksManagerHref({ preset: 'agency_overdue' })).toContain(
+      'preset=agency_overdue'
+    );
+    expect(buildTasksManagerHref({ preset: 'agency_blocked' })).toContain(
+      'preset=agency_blocked'
+    );
+  });
+
   it('filters my overdue assigned tasks', () => {
     const filters = getTaskFilterPreset('my_overdue').apply({ userId });
     const overdueMine = {
@@ -144,5 +159,39 @@ describe('createManualTask payload', () => {
     expect(() => buildManualTaskPayload({ title: ' ', agencyId: 'ag' })).toThrow(
       /Título/
     );
+  });
+
+  it('scopes campaign quick-add with briefingId and kanbanColumn', () => {
+    const payload = buildManualTaskPayload({
+      title: 'Roteiro',
+      agencyId: 'ag-1',
+      clientId: 'c1',
+      serviceId: 's1',
+      briefingId: 'b1',
+      cycleId: 'cy1',
+      status: 'roteiro',
+      kanbanColumn: 'roteiros',
+      quickAdd: true,
+    });
+    expect(payload.briefingId).toBe('b1');
+    expect(payload.briefId).toBe('b1');
+    expect(payload.cycleId).toBe('cy1');
+    expect(payload.kanbanColumn).toBe('roteiros');
+    expect(payload.status).toBe('roteiro');
+  });
+
+  it('persists assignee dual-write and dueDate from quick-add', () => {
+    const payload = buildManualTaskPayload({
+      title: 'Com prazo',
+      agencyId: 'ag-1',
+      userId: 'u-creator',
+      assignedTo: 'u-assignee',
+      dueDate: '2026-10-25',
+      quickAdd: true,
+    });
+    expect(payload.assigneeId).toBe('u-assignee');
+    expect(payload.assignedTo).toBe('u-assignee');
+    expect(payload.dueDate).toMatch(/^2026-10-25/);
+    expect(payload.tags).toContain('quick_add');
   });
 });

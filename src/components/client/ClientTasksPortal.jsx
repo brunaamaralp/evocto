@@ -23,6 +23,7 @@ import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { isImageAttachment } from '@/lib/taskAttachmentsUpload';
+import { filterCommentsForClient } from '@/lib/taskCommentVisibility';
 
 function TaskAttachmentsPreview({ attachments }) {
   const list = Array.isArray(attachments) ? attachments.filter((a) => a?.url) : [];
@@ -304,8 +305,11 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
           </div>
         )}
 
-        {/* Timeline de atividades */}
-        {task.comments && task.comments.length > 0 && (
+        {/* Timeline: só comentários marcados para o cliente */}
+        {(() => {
+          const clientComments = filterCommentsForClient(task.comments);
+          if (!clientComments.length) return null;
+          return (
           <div className="mt-4">
             <Button
               variant="ghost"
@@ -314,7 +318,7 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
               className="text-gray-600 p-0 h-auto"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
-              Ver atividades ({task.comments.length})
+              Ver atividades ({clientComments.length})
             </Button>
             
             <AnimatePresence>
@@ -325,8 +329,8 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-3 space-y-2"
                 >
-                  {task.comments.slice(-3).map((comment, index) => (
-                    <div key={index} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+                  {clientComments.slice(-3).map((comment, index) => (
+                    <div key={comment.id || index} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
                       <Activity className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-700">{comment.content}</p>
@@ -343,7 +347,8 @@ const ClientTaskCard = ({ task, onApprove, onRequestChanges, showActions = false
               )}
             </AnimatePresence>
           </div>
-        )}
+          );
+        })()}
       </CardContent>
     </motion.div>
   );

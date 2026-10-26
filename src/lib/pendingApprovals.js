@@ -6,6 +6,7 @@
 import { CyclePlan } from '@/api/entities';
 import { ApprovalRequest } from '@/api/entities';
 import { createPageUrl } from '@/utils';
+import { staffCycleApprovalHref } from '@/lib/cycleApprovalLegacy';
 
 /**
  * @param {string} agencyId
@@ -72,7 +73,7 @@ export function mapPendingApprovalsForDashboard({ cycles = [], requests = [] } =
     approverEmail: cycle.approverEmail || '',
     created_date: cycle.created_date || cycle.$createdAt || cycle.updated_date,
     expiresAt: cycle.approval_due_at || cycle.expiresAt || null,
-    href: createPageUrl(`cycle-approval?id=${cycle.id}`),
+    href: staffCycleApprovalHref(cycle.id, createPageUrl),
     pdfUrl: cycle.approvalData?.pdfUrl || cycle.pdfUrl || null,
     source: 'cycle',
   }));

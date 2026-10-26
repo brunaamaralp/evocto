@@ -1,7 +1,7 @@
 import '../../styles/error-fallback.css';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import EvoctoBrandLockup from '../EvoctoBrandLockup.jsx';
+import NarrativaBrandLockup from '../NarrativaBrandLockup.jsx';
 import { isChunkLoadError } from '../../lib/lazyWithRetry.js';
 
 function ErrorFallback({ onReset, isStaleBundle = false, error = null }) {
@@ -9,7 +9,7 @@ function ErrorFallback({ onReset, isStaleBundle = false, error = null }) {
 
   return (
     <div className="navi-error-fallback">
-      <EvoctoBrandLockup height={72} variant="dark" />
+      <NarrativaBrandLockup height={72} variant="dark" />
       <h1 className="navi-error-fallback__title">Algo inesperado aconteceu.</h1>
       <p className="navi-error-fallback__sub">
         {isStaleBundle

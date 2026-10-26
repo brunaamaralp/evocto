@@ -42,7 +42,7 @@ const FileUploadCard = ({ title, description, files, onFilesChange }) => {
   };
 
   return (
-    <Card className="rounded-2xl border-dashed border-2 border-[#D4CBF5] hover:border-[#6C47D8] transition-colors shadow-sm">
+    <Card className="rounded-2xl border-dashed border-2 border-[#FFD4C8] hover:border-[#C02807] transition-colors shadow-sm">
       <CardContent className="pt-6">
         <div className="text-center">
           <Upload className="mx-auto h-8 w-8 text-slate-400 mb-4" />
@@ -453,7 +453,7 @@ export default function CycleClosing() {
               {learnings.length > 0 && (
                 <div className="space-y-3">
                   {learnings.map((learning) => (
-                    <div key={learning.id} className="p-3 bg-[#F5F2FC] rounded-2xl">
+                    <div key={learning.id} className="p-3 bg-[#EEF4FA] rounded-2xl">
                       <h4 className="font-medium text-sm text-[#18162A]">{learning.title}</h4>
                       <p className="text-xs text-slate-600 mt-1">{learning.description}</p>
                     </div>

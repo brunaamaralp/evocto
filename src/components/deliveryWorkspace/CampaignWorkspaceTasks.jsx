@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronRight, Loader2, Plus } from 'lucide-react';
+import { Check, ChevronRight, Loader2, Plus, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Task } from '@/api/entities';
 import TaskTimerButton from '@/components/tasks/TaskTimerButton';
-import TaskForm from '@/components/tasks/TaskForm';
+import TaskCreateModal from '@/components/tasks/TaskCreateModal';
+import { useSession } from '@/components/auth/SessionManager';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
+import { createManualTask } from '@/lib/createManualTask';
+import { openTaskDrawer } from '@/lib/openTaskDrawer';
 import { completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
+import { getTaskAssigneeId, isTaskOverdue } from '@/lib/taskFilterPresets';
 import { statusLabelPt } from '@/lib/statusLabelsPt';
 
 /** Colunas Kanban da campanha (spec produto). */
@@ -59,6 +64,14 @@ export const CAMPAIGN_DONE_PATCH = Object.freeze({
   status: 'completed',
 });
 
+/** Status default ao criar na coluna (quick-add). */
+const COLUMN_CREATE_STATUS = Object.freeze({
+  planejamento: 'todo',
+  roteiros: 'roteiro',
+  producao: 'in_progress',
+  revisao: 'in_review',
+});
+
 export function columnForTask(task) {
   const status = String(task?.status || 'todo').toLowerCase();
   const stage = String(task?.kanbanColumn || task?.stage || task?.pipeline_stage || '')
@@ -90,9 +103,120 @@ function isDoneTask(task) {
   return ['completed', 'done', 'approved', 'published'].includes(status);
 }
 
-function openTaskDrawer(task) {
-  if (!task?.id || typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent('task:open', { detail: { taskId: task.id } }));
+function formatDueShort(dueDate) {
+  if (!dueDate) return null;
+  const d = new Date(dueDate);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+function assigneeLabel(task) {
+  if (task?.assigneeName) return String(task.assigneeName);
+  const id = getTaskAssigneeId(task);
+  if (!id) return null;
+  return 'Atribuída';
+}
+
+function CampaignQuickAdd({
+  columnId,
+  agencyId,
+  userId,
+  clientId,
+  serviceId,
+  cycleId,
+  briefingId,
+  disabled,
+  onCreated,
+}) {
+  const [title, setTitle] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [assignToMe, setAssignToMe] = useState(true);
+  const [dueDate, setDueDate] = useState('');
+  const createStatus = COLUMN_CREATE_STATUS[columnId];
+  if (!createStatus) return null;
+
+  const submit = async ({ openDrawer = false } = {}) => {
+    const trimmed = title.trim();
+    if (!trimmed || saving || !agencyId || !clientId || !serviceId || disabled) return;
+    setSaving(true);
+    try {
+      const created = await createManualTask({
+        title: trimmed,
+        agencyId,
+        userId: userId || null,
+        clientId,
+        serviceId,
+        cycleId: cycleId || null,
+        briefingId: briefingId || null,
+        status: createStatus,
+        kanbanColumn: columnId,
+        quickAdd: true,
+        assignedTo: showMore && assignToMe ? userId || null : null,
+        dueDate: showMore && dueDate ? dueDate : null,
+      });
+      setTitle('');
+      setDueDate('');
+      setShowMore(false);
+      toast.success(
+        openDrawer ? 'Tarefa criada — complete os detalhes' : 'Tarefa criada'
+      );
+      if (typeof onCreated === 'function') await onCreated(created);
+      if (openDrawer && created?.id) openTaskDrawer(created.id);
+    } catch (err) {
+      console.error('[CampaignWorkspaceTasks] quick-add', err);
+      toast.error(err?.message || 'Não foi possível criar a tarefa');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 space-y-1">
+      <Input
+        value={title}
+        disabled={saving || disabled || !agencyId}
+        placeholder="Adicionar…"
+        className="h-7 bg-white text-xs"
+        aria-label={`Criar tarefa em ${columnId}`}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            void submit({ openDrawer: e.shiftKey });
+          }
+        }}
+      />
+      {showMore ? (
+        <div className="space-y-1">
+          <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
+            <input
+              type="checkbox"
+              checked={assignToMe}
+              disabled={saving || !userId}
+              onChange={(e) => setAssignToMe(e.target.checked)}
+            />
+            Atribuir a mim
+          </label>
+          <Input
+            type="date"
+            value={dueDate}
+            disabled={saving}
+            className="h-7 bg-white text-xs"
+            aria-label="Prazo"
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className="text-[10px] text-slate-500 hover:underline"
+        onClick={() => setShowMore((v) => !v)}
+      >
+        {showMore ? 'Menos' : 'Responsável / prazo'}
+      </button>
+    </div>
+  );
 }
 
 function TaskCard({ task, busyId, onAdvance, onComplete }) {
@@ -100,15 +224,40 @@ function TaskCard({ task, busyId, onAdvance, onComplete }) {
   const done = isDoneTask(task) || col === 'publicacao';
   const busy = busyId === task.id;
   const canAdvance = !done && CAMPAIGN_COLUMN_ADVANCE[col];
+  const overdue = isTaskOverdue(task);
+  const dueLabel = formatDueShort(task.dueDate);
+  const who = assigneeLabel(task);
 
   return (
-    <li className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm">
+    <li
+      className={`rounded-lg border bg-white p-2.5 shadow-sm ${
+        overdue ? 'border-red-300 ring-1 ring-red-200' : 'border-slate-200'
+      }`}
+    >
       <button
         type="button"
         className="w-full text-left"
-        onClick={() => openTaskDrawer(task)}
+        onClick={() => openTaskDrawer(task.id)}
       >
         <p className="text-sm font-medium text-slate-800 leading-snug">{task.title}</p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+          {who ? (
+            <span className="inline-flex items-center gap-0.5">
+              <User className="h-2.5 w-2.5" />
+              {who}
+            </span>
+          ) : (
+            <span className="text-amber-700">Sem responsável</span>
+          )}
+          {dueLabel ? (
+            <span className={overdue ? 'font-medium text-red-600' : ''}>
+              {overdue ? 'Atrasada · ' : ''}
+              {dueLabel}
+            </span>
+          ) : !done ? (
+            <span className="text-slate-400">Sem prazo</span>
+          ) : null}
+        </div>
       </button>
       <div className="mt-2 flex items-center justify-between gap-2">
         <Badge variant="outline" className="text-[10px]">
@@ -170,11 +319,12 @@ export default function CampaignWorkspaceTasks({
   briefingId = null,
   cycleId = null,
 }) {
+  const { user, agencyId } = useSession();
   const [busyId, setBusyId] = useState(null);
   const [localOverrides, setLocalOverrides] = useState({});
   const [showCreate, setShowCreate] = useState(false);
 
-  const canCreate = Boolean(clientId && serviceId);
+  const canCreate = Boolean(clientId && serviceId && agencyId);
 
   const effectiveTasks = useMemo(() => {
     return (Array.isArray(tasks) ? tasks : []).map((t) =>
@@ -218,13 +368,6 @@ export default function CampaignWorkspaceTasks({
     }
   };
 
-  const handleAdvance = async (task) => {
-    const col = columnForTask(task);
-    const next = CAMPAIGN_COLUMN_ADVANCE[col];
-    if (!next) return;
-    await patchTask(task, next, 'Tarefa avançada');
-  };
-
   const handleComplete = async (task) => {
     if (!task?.id || busyId) return;
     setBusyId(task.id);
@@ -261,10 +404,31 @@ export default function CampaignWorkspaceTasks({
     }
   };
 
-  const handleTaskSaved = async () => {
+  const handleAdvance = async (task) => {
+    const col = columnForTask(task);
+    const next = CAMPAIGN_COLUMN_ADVANCE[col];
+    if (!next) return;
+    // Transição terminal usa o mesmo caminho de conclusão (notificações/histórico).
+    if (String(next.status).toLowerCase() === 'completed') {
+      await handleComplete(task);
+      return;
+    }
+    await patchTask(task, next, 'Tarefa avançada');
+  };
+
+  const handleTaskCreated = async () => {
     setShowCreate(false);
     if (typeof onTasksNeedReload === 'function') {
       await onTasksNeedReload();
+    }
+  };
+
+  const handleQuickCreated = async () => {
+    if (typeof onTasksNeedReload === 'function') {
+      await onTasksNeedReload();
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('task:refresh'));
     }
   };
 
@@ -289,19 +453,12 @@ export default function CampaignWorkspaceTasks({
         </div>
       </div>
 
-      {effectiveTasks.length === 0 ? (
+      {effectiveTasks.length === 0 && !canCreate ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-8 text-center">
           <p className="text-sm text-slate-600">Nenhuma tarefa nesta campanha ainda.</p>
-          {canCreate ? (
-            <Button className="mt-4" size="sm" onClick={() => setShowCreate(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Criar primeira tarefa
-            </Button>
-          ) : (
-            <p className="mt-2 text-xs text-slate-500">
-              Abra o workspace com cliente e serviço para criar tarefas.
-            </p>
-          )}
+          <p className="mt-2 text-xs text-slate-500">
+            Abra o workspace com cliente e serviço para criar tarefas.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 overflow-x-auto">
@@ -329,25 +486,33 @@ export default function CampaignWorkspaceTasks({
                   />
                 ))}
               </ul>
+              {canCreate ? (
+                <CampaignQuickAdd
+                  columnId={col.id}
+                  agencyId={agencyId}
+                  userId={user?.id}
+                  clientId={clientId}
+                  serviceId={serviceId}
+                  cycleId={cycleId}
+                  briefingId={briefingId}
+                  disabled={Boolean(busyId)}
+                  onCreated={handleQuickCreated}
+                />
+              ) : null}
             </div>
           ))}
         </div>
       )}
 
-      {showCreate && canCreate ? (
-        <TaskForm
-          task={null}
-          isOpen={showCreate}
-          onClose={() => setShowCreate(false)}
-          onSave={handleTaskSaved}
-          clientId={clientId}
-          serviceId={serviceId}
-          cycleId={cycleId}
-          briefingId={briefingId}
-          defaultStatus="todo"
-          compact
-        />
-      ) : null}
+      <TaskCreateModal
+        open={showCreate}
+        onOpenChange={setShowCreate}
+        onSuccess={handleTaskCreated}
+        defaultClientId={clientId}
+        defaultServiceId={serviceId}
+        defaultBriefingId={briefingId}
+        defaultCycleId={cycleId}
+      />
     </section>
   );
 }

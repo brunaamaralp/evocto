@@ -38,7 +38,7 @@ export default function ServiceDeliverablesPage() {
   if (!isAuthenticated) {
     return (
       <div>
-        <Card className="rounded-2xl border-transparent shadow-sm bg-[#F5F2FC]">
+        <Card className="rounded-2xl border-transparent shadow-sm bg-[#EEF4FA]">
           <CardHeader>
             <CardTitle className="text-[#18162A] font-bold tracking-tight">Entregáveis do Serviço</CardTitle>
           </CardHeader>
@@ -56,7 +56,7 @@ export default function ServiceDeliverablesPage() {
   return (
     <div className="space-y-6">
       <Card className="rounded-2xl border-transparent shadow-sm">
-        <CardHeader className="bg-[#F5F2FC] rounded-t-2xl">
+        <CardHeader className="bg-[#EEF4FA] rounded-t-2xl">
           <CardTitle className="text-[#18162A] font-bold tracking-tight">Entregáveis do Serviço</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

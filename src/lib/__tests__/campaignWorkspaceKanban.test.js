@@ -38,9 +38,19 @@ describe('columnForTask / advance', () => {
       kanbanColumn: 'roteiros',
       status: 'roteiro',
     });
+    expect(CAMPAIGN_COLUMN_ADVANCE.revisao).toEqual({
+      kanbanColumn: 'publicacao',
+      status: 'completed',
+    });
     expect(CAMPAIGN_DONE_PATCH).toEqual({
       kanbanColumn: 'publicacao',
       status: 'completed',
     });
+  });
+
+  it('status terminal ignora kanbanColumn desatualizado', () => {
+    expect(
+      columnForTask({ status: 'completed', kanbanColumn: 'planejamento' })
+    ).toBe('publicacao');
   });
 });

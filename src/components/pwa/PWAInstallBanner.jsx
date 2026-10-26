@@ -45,7 +45,7 @@ export default function PWAInstallBanner() {
   const handleInstall = async () => {
     try {
       await install();
-      toast.success('Evocto instalada');
+      toast.success('narrativa instalada');
     } catch {
       /* usuário cancelou ou prompt indisponível */
     }
@@ -72,7 +72,7 @@ export default function PWAInstallBanner() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-[#18162A]">Atualização disponível</p>
               <p className="text-xs text-[#7A7595] mt-0.5">
-                Há uma nova versão da Evocto pronta para carregar.
+                Há uma nova versão da narrativa pronta para carregar.
               </p>
             </div>
             <Button size="sm" className="shrink-0" onClick={handleUpdate}>
@@ -83,7 +83,7 @@ export default function PWAInstallBanner() {
         ) : (
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-[#18162A]">Instalar Evocto</p>
+              <p className="text-sm font-semibold text-[#18162A]">Instalar narrativa</p>
               <p className="text-xs text-[#7A7595] mt-0.5">
                 Acesso rápido na tela inicial, como um app.
               </p>

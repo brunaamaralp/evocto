@@ -552,7 +552,7 @@ export default function ClientDetailPage() {
       </div>
 
       {!hasService ? (
-        <section className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC] px-4 py-4">
+        <section className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA] px-4 py-4">
           <p className="text-sm font-medium text-[#111]">
             Qual serviço foi contratado?
           </p>
@@ -644,7 +644,7 @@ export default function ClientDetailPage() {
       {needsOnboarding ? (
         <section
           aria-labelledby="setup-heading"
-          className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC]/50 p-4 sm:p-5"
+          className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA]/50 p-4 sm:p-5"
         >
           <h2 id="setup-heading" className="text-sm font-medium text-[#111]">
             Configuração inicial ({completedSteps}/{setupChecklist.length})

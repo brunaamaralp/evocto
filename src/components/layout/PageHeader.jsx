@@ -59,7 +59,7 @@ export default function PageHeader({
       ) : null}
 
       {toolbar ? (
-        <div className="rounded-2xl bg-[#F5F2FC]/80 border border-[#E8E5F5]/80 p-3 sm:p-4">
+        <div className="rounded-2xl bg-[#EEF4FA]/80 border border-[#E8E5F5]/80 p-3 sm:p-4">
           {toolbar}
         </div>
       ) : null}

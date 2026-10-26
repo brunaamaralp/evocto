@@ -45,7 +45,7 @@ export default function PendingApprovalsWidget({ cycles = [] }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={safeGet(cycle, 'status', 'unknown')} />
-                  <Link to={createPageUrl('cycle-approval') + `?id=${safeGet(cycle, 'id', '')}`}>
+                  <Link to={createPageUrl('cycle-approval') + `?id=${encodeURIComponent(safeGet(cycle, 'id', ''))}`}>
                     <Button size="sm" variant="outline">
                       Revisar
                     </Button>

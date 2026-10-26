@@ -46,7 +46,7 @@ export default function MobileBottomNav({
   if (hidden) return null;
 
   const isClient = mode === 'client' && Boolean(clientId);
-  const activeClass = isClient ? 'text-teal-700' : 'text-[#6C47D8]';
+  const activeClass = isClient ? 'text-teal-700' : 'text-[#C02807]';
   const idleClass = isClient
     ? 'text-[#7A7595] hover:text-teal-800'
     : 'text-[#7A7595] hover:text-[#18162A]';

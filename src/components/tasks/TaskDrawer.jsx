@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Client } from "@/api/entities";
@@ -10,6 +10,14 @@ import {
   buildTaskDeepLink,
   readTaskIdFromSearch,
 } from "@/lib/openTaskDrawer";
+import { listTaskDrawerContextLinks } from "@/lib/taskDrawerContextLinks";
+import {
+  COMMENT_VISIBILITY,
+  getCommentVisibility,
+  withCommentVisibility,
+} from "@/lib/taskCommentVisibility";
+import { listManualBlockers } from "@/lib/taskDependencyStatus";
+import { getTaskAssigneeId } from "@/lib/taskFilterPresets";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -45,7 +53,8 @@ import {
   Loader2, Calendar, Paperclip, CheckSquare, Send,
   AlertCircle, MessageCircle, Clock,
   Flag, Eye, AtSign, Check, Download, Trash2, Plus, Link2, History,
-  MoreVertical, Copy, X, Upload, ChevronUp, ChevronDown, Image as ImageIcon
+  MoreVertical, Copy, X, Upload, ChevronUp, ChevronDown, Image as ImageIcon,
+  ChevronRight, FolderOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import TaskTimerButton from "@/components/tasks/TaskTimerButton";
@@ -147,10 +156,18 @@ export default function TaskDrawer() {
   const [editingDesc, setEditingDesc] = React.useState(false);
 
   const [commentText, setCommentText] = React.useState("");
+  const [commentVisibility, setCommentVisibility] = React.useState(
+    COMMENT_VISIBILITY.INTERNAL
+  );
   const [commentSending, setCommentSending] = React.useState(false);
+  const [newTag, setNewTag] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState(0);
-  const [activeTab, setActiveTab] = React.useState("more");
+  const [activeTab, setActiveTab] = React.useState("comments");
+  const contextLinks = React.useMemo(
+    () => listTaskDrawerContextLinks(task),
+    [task]
+  );
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [pendingRemove, setPendingRemove] = React.useState(null); // { type, id, label }
   const [dragOver, setDragOver] = React.useState(false);
@@ -504,7 +521,7 @@ export default function TaskDrawer() {
   const handleAssigneeChange = async (value) => {
     if (!task) return;
     const assigneeId = !value || value === UNASSIGNED ? null : value;
-    const previousAssignee = task.assignedTo || task.assigneeId || null;
+    const previousAssignee = getTaskAssigneeId(task);
     if (String(previousAssignee || "") === String(assigneeId || "")) return;
 
     const partial = {
@@ -816,18 +833,23 @@ export default function TaskDrawer() {
         }
       }
 
-      comments.unshift({
-        id: `c_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        userId: currentUserId,
-        userEmail: user?.email,
-        userName: user?.full_name || user?.email,
-        content: commentText.trim(),
-        type: "comment",
-        mentions,
-        attachments: [],
-        createdAt: new Date().toISOString(),
-        isEdited: false,
-      });
+      comments.unshift(
+        withCommentVisibility(
+          {
+            id: `c_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            userId: currentUserId,
+            userEmail: user?.email,
+            userName: user?.full_name || user?.email,
+            content: commentText.trim(),
+            type: "comment",
+            mentions,
+            attachments: [],
+            createdAt: new Date().toISOString(),
+            isEdited: false,
+          },
+          commentVisibility
+        )
+      );
 
       const updated = await Task.update(task.id, { comments });
       setTask(updated);
@@ -849,7 +871,12 @@ export default function TaskDrawer() {
       }
 
       setCommentText("");
-      toast.success("Comentário enviado");
+      setCommentVisibility(COMMENT_VISIBILITY.INTERNAL);
+      toast.success(
+        commentVisibility === COMMENT_VISIBILITY.CLIENT
+          ? "Comentário enviado (visível ao cliente)"
+          : "Comentário interno enviado"
+      );
     } catch (e) {
       console.error(e);
       toast.error("Erro ao enviar comentário");
@@ -864,14 +891,43 @@ export default function TaskDrawer() {
     return Math.round((list.filter((c) => c.completed).length / list.length) * 100);
   }, [task]);
 
-  const assigneeValue = task?.assigneeId || task?.assignedTo || UNASSIGNED;
+  const addTag = async () => {
+    const tag = newTag.trim().toLowerCase();
+    if (!task || !tag) return;
+    const tags = Array.isArray(task.tags) ? [...task.tags] : [];
+    if (tags.includes(tag)) {
+      setNewTag("");
+      return;
+    }
+    tags.push(tag);
+    setNewTag("");
+    await patchTask({ tags }, { field: "tags" });
+  };
+
+  const removeTag = async (tagToRemove) => {
+    if (!task) return;
+    const tags = (Array.isArray(task.tags) ? task.tags : []).filter(
+      (t) => t !== tagToRemove
+    );
+    await patchTask({ tags }, { field: "tags" });
+  };
+
+  const assigneeValue = getTaskAssigneeId(task) || UNASSIGNED;
   const meetingItem = isMeetingTask(task);
+  const manualBlockers = listManualBlockers(task);
+  const dependencyCount = Array.isArray(task?.dependencies)
+    ? task.dependencies.length
+    : 0;
+  const showBlockBanner =
+    String(task?.status || "").toLowerCase() === "blocked" ||
+    manualBlockers.length > 0 ||
+    dependencyCount > 0;
   const dueValue = task?.dueDate
     ? meetingItem
       ? toDatetimeLocalValue(task.dueDate)
       : String(task.dueDate).slice(0, 10)
     : "";
-  const assignedUser = getAssignedUser(task?.assigneeId || task?.assignedTo);
+  const assignedUser = getAssignedUser(getTaskAssigneeId(task));
 
   React.useEffect(() => {
     if (editingTitle && titleInputRef.current) {
@@ -957,6 +1013,29 @@ export default function TaskDrawer() {
                     </span>
                   ) : null}
                 </div>
+                {contextLinks.length > 0 ? (
+                  <nav
+                    className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs"
+                    aria-label="Contexto da tarefa"
+                  >
+                    {contextLinks.map((link, index) => (
+                      <React.Fragment key={link.href + link.label}>
+                        {index > 0 ? (
+                          <ChevronRight className="w-3 h-3 text-muted-foreground/70 shrink-0" />
+                        ) : (
+                          <FolderOpen className="w-3 h-3 text-muted-foreground/70 shrink-0 mr-0.5" />
+                        )}
+                        <Link
+                          to={link.href}
+                          className="font-medium text-teal-800 hover:underline truncate max-w-[140px]"
+                          onClick={() => setOpen(false)}
+                        >
+                          {link.label}
+                        </Link>
+                      </React.Fragment>
+                    ))}
+                  </nav>
+                ) : null}
               </div>
 
               <DropdownMenu>
@@ -1006,6 +1085,37 @@ export default function TaskDrawer() {
 
           {!loading && task && (
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-5">
+              {showBlockBanner ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 space-y-1">
+                  <div className="flex items-center gap-2 font-medium">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {String(task.status || "").toLowerCase() === "blocked" ||
+                    manualBlockers.length > 0
+                      ? "Atenção: tarefa bloqueada"
+                      : "Esta tarefa tem dependências"}
+                  </div>
+                  {manualBlockers.length > 0 ? (
+                    <ul className="text-xs space-y-0.5 pl-6 list-disc">
+                      {manualBlockers.map((b, i) => (
+                        <li key={b.id || i}>
+                          {b.reason || b.message || "Bloqueio registrado"}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {dependencyCount > 0 ? (
+                    <button
+                      type="button"
+                      className="text-xs underline underline-offset-2 pl-6"
+                      onClick={() => setActiveTab("dependencies")}
+                    >
+                      Ver {dependencyCount} dependência
+                      {dependencyCount === 1 ? "" : "s"}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+
               {/* Property rows */}
               <div className="space-y-2.5">
                 <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-center gap-2">
@@ -1142,6 +1252,65 @@ export default function TaskDrawer() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-start gap-2">
+                  <span className="text-xs font-medium text-muted-foreground pt-2">
+                    Tags
+                  </span>
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(task.tags || []).length === 0 ? (
+                        <span className="text-xs text-muted-foreground py-1">
+                          Nenhuma tag
+                        </span>
+                      ) : (
+                        (task.tags || []).map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-[11px] gap-1 pr-1"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              className="rounded-sm hover:text-red-600"
+                              aria-label={`Remover tag ${tag}`}
+                              disabled={savingField === "tags"}
+                              onClick={() => removeTag(tag)}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Input
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="Nova tag…"
+                        className="h-8 text-sm"
+                        disabled={savingField === "tags"}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addTag();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-8 shrink-0"
+                        disabled={savingField === "tags" || !newTag.trim()}
+                        onClick={() => void addTag()}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 pt-1">
@@ -1397,9 +1566,9 @@ export default function TaskDrawer() {
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <div className="overflow-x-auto -mx-1 px-1 mb-3">
                     <TabsList className="inline-flex w-max min-w-full h-auto gap-1">
-                      <TabsTrigger value="more" className="text-xs shrink-0 gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        Tempo
+                      <TabsTrigger value="comments" className="text-xs shrink-0 gap-1">
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Comentários
                       </TabsTrigger>
                       <TabsTrigger value="checklist" className="text-xs shrink-0 gap-1">
                         <CheckSquare className="w-3.5 h-3.5" />
@@ -1410,10 +1579,6 @@ export default function TaskDrawer() {
                           </Badge>
                         )}
                       </TabsTrigger>
-                      <TabsTrigger value="comments" className="text-xs shrink-0 gap-1">
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Comentários
-                      </TabsTrigger>
                       <TabsTrigger value="dependencies" className="text-xs shrink-0 gap-1">
                         <Link2 className="w-3.5 h-3.5" />
                         Deps
@@ -1421,6 +1586,10 @@ export default function TaskDrawer() {
                       <TabsTrigger value="history" className="text-xs shrink-0 gap-1">
                         <History className="w-3.5 h-3.5" />
                         Histórico
+                      </TabsTrigger>
+                      <TabsTrigger value="more" className="text-xs shrink-0 gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        Tempo
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -1497,6 +1666,11 @@ export default function TaskDrawer() {
                           </Button>
                         </div>
                       ))}
+                      {!(task.checklist || []).length ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhum item no checklist
+                        </p>
+                      ) : null}
                     </div>
                   </TabsContent>
 
@@ -1508,11 +1682,29 @@ export default function TaskDrawer() {
                         placeholder="Escreva um comentário… Use @nome para mencionar"
                         rows={3}
                       />
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                          <AtSign className="w-3 h-3" />
-                          Use @ para mencionar
-                        </span>
+                      <div className="flex flex-wrap justify-between items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                            <AtSign className="w-3 h-3" />
+                            Use @ para mencionar
+                          </span>
+                          <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
+                            <Switch
+                              checked={
+                                commentVisibility === COMMENT_VISIBILITY.CLIENT
+                              }
+                              onCheckedChange={(checked) =>
+                                setCommentVisibility(
+                                  checked
+                                    ? COMMENT_VISIBILITY.CLIENT
+                                    : COMMENT_VISIBILITY.INTERNAL
+                                )
+                              }
+                              aria-label="Comentário visível ao cliente"
+                            />
+                            Visível ao cliente
+                          </label>
+                        </div>
                         <Button
                           size="sm"
                           onClick={submitComment}
@@ -1528,31 +1720,50 @@ export default function TaskDrawer() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {(task.comments || []).map((c) => (
-                        <div
-                          key={c.id}
-                          className={`rounded-md border p-3 ${
-                            c.type === "system" ? "bg-[var(--color-primary-surface)]/60 border-[#D4CBF5]" : ""
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Avatar className="w-6 h-6">
-                              <AvatarFallback className="text-[10px]">
-                                {(c.userName || c.userEmail || "?").charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium">
-                              {c.userName || c.userEmail}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {c.createdAt
-                                ? new Date(c.createdAt).toLocaleString("pt-BR")
-                                : ""}
-                            </span>
+                      {(task.comments || []).map((c) => {
+                        const vis = getCommentVisibility(c);
+                        return (
+                          <div
+                            key={c.id}
+                            className={`rounded-md border p-3 ${
+                              c.type === "system"
+                                ? "bg-[var(--color-primary-surface)]/60 border-[#FFD4C8]"
+                                : ""
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback className="text-[10px]">
+                                  {(c.userName || c.userEmail || "?").charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium">
+                                {c.userName || c.userEmail}
+                              </span>
+                              {c.type !== "system" ? (
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] h-4 px-1 ${
+                                    vis === COMMENT_VISIBILITY.CLIENT
+                                      ? "border-teal-300 text-teal-800"
+                                      : "border-slate-300 text-slate-600"
+                                  }`}
+                                >
+                                  {vis === COMMENT_VISIBILITY.CLIENT
+                                    ? "Cliente"
+                                    : "Interno"}
+                                </Badge>
+                              ) : null}
+                              <span className="text-[10px] text-muted-foreground">
+                                {c.createdAt
+                                  ? new Date(c.createdAt).toLocaleString("pt-BR")
+                                  : ""}
+                              </span>
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{c.content}</p>
                           </div>
-                          <p className="text-sm whitespace-pre-wrap">{c.content}</p>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {!(task.comments || []).length && (
                         <p className="text-sm text-muted-foreground text-center py-6">
                           Nenhum comentário ainda

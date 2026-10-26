@@ -56,7 +56,7 @@ export default function ClientBriefingStatusCard({
   return (
     <section
       aria-labelledby="briefing-status-heading"
-      className="rounded-2xl border border-[#E8E5F5] bg-[#F5F2FC] px-4 py-4"
+      className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA] px-4 py-4"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
@@ -80,7 +80,7 @@ export default function ClientBriefingStatusCard({
           className={
             isReady
               ? 'w-full shrink-0 sm:w-auto'
-              : 'w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto'
+              : 'w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto'
           }
           variant={isReady ? 'outline' : 'default'}
         >

@@ -1,4 +1,4 @@
-﻿
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,12 +38,20 @@ function fromDatetimeLocalValue(local) {
  * @param {(open: boolean) => void} props.onOpenChange
  * @param {(task: object) => void} [props.onSuccess]
  * @param {'task' | 'meeting'} [props.defaultKind]
+ * @param {string|null} [props.defaultClientId]
+ * @param {string|null} [props.defaultServiceId]
+ * @param {string|null} [props.defaultBriefingId]
+ * @param {string|null} [props.defaultCycleId]
  */
 export default function TaskCreateModal({
   open,
   onOpenChange,
   onSuccess,
   defaultKind = "task",
+  defaultClientId = null,
+  defaultServiceId = null,
+  defaultBriefingId = null,
+  defaultCycleId = null,
 }) {
   const { user, agencyId } = useSession();
   const [loading, setLoading] = React.useState(false);
@@ -93,34 +101,7 @@ export default function TaskCreateModal({
     }
   }, [agencyId]);
 
-  const resetForm = React.useCallback((nextKind = defaultKind) => {
-    const meeting = nextKind === "meeting";
-    setKind(meeting ? "meeting" : "task");
-    setTaskData({
-      title: "",
-      description: "",
-      status: "todo",
-      priority: "medium",
-      type: meeting ? "reuniao" : "analise_documentos",
-      clientId: INTERNAL_CLIENT_VALUE,
-      serviceId: "",
-      assignedTo: UNASSIGNED_VALUE,
-      dueDate: "",
-      estimatedHours: meeting ? 1 : 4,
-    });
-    setError("");
-    setServices([]);
-    setShowMoreOptions(false);
-  }, [defaultKind]);
-
-  React.useEffect(() => {
-    if (open) {
-      loadFormData();
-      resetForm(defaultKind);
-    }
-  }, [open, loadFormData, resetForm, defaultKind]);
-
-  const loadServices = async (clientId) => {
+  const loadServices = React.useCallback(async (clientId) => {
     if (!clientId || clientId === INTERNAL_CLIENT_VALUE) {
       setServices([]);
       return;
@@ -136,7 +117,47 @@ export default function TaskCreateModal({
     } catch (err) {
       console.error("Erro ao carregar serviços:", err);
     }
-  };
+  }, []);
+
+  const resetForm = React.useCallback(
+    async (nextKind = defaultKind) => {
+      const meeting = nextKind === "meeting";
+      const clientId = defaultClientId
+        ? String(defaultClientId)
+        : INTERNAL_CLIENT_VALUE;
+      const serviceId = defaultServiceId ? String(defaultServiceId) : "";
+      setKind(meeting ? "meeting" : "task");
+      setTaskData({
+        title: "",
+        description: "",
+        status: "todo",
+        priority: "medium",
+        type: meeting ? "reuniao" : "analise_documentos",
+        clientId,
+        serviceId,
+        assignedTo: UNASSIGNED_VALUE,
+        dueDate: "",
+        estimatedHours: meeting ? 1 : 4,
+      });
+      setError("");
+      setServices([]);
+      setShowMoreOptions(false);
+      if (clientId !== INTERNAL_CLIENT_VALUE) {
+        await loadServices(clientId);
+        if (serviceId) {
+          setTaskData((prev) => ({ ...prev, serviceId }));
+        }
+      }
+    },
+    [defaultKind, defaultClientId, defaultServiceId, loadServices]
+  );
+
+  React.useEffect(() => {
+    if (open) {
+      loadFormData();
+      void resetForm(defaultKind);
+    }
+  }, [open, loadFormData, resetForm, defaultKind]);
 
   const handleClientChange = (clientId) => {
     setTaskData((prev) => ({
@@ -212,6 +233,10 @@ export default function TaskCreateModal({
         isMeeting,
         activityKind: isMeeting ? "meeting" : null,
         startDate: isMeeting && dueDateIso ? dueDateIso : undefined,
+        briefingId: isInternalTask ? null : defaultBriefingId || null,
+        cycleId: isInternalTask ? null : defaultCycleId || null,
+        kanbanColumn:
+          !isInternalTask && defaultBriefingId ? "planejamento" : undefined,
       });
 
       if (onSuccess) {
@@ -457,7 +482,7 @@ export default function TaskCreateModal({
             <div className="border rounded-lg p-3 space-y-3">
               <button
                 type="button"
-                className="text-sm font-medium text-[#6C47D8] hover:underline"
+                className="text-sm font-medium text-[#C02807] hover:underline"
                 onClick={() => setShowMoreOptions((v) => !v)}
                 aria-expanded={showMoreOptions}
               >

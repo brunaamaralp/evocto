@@ -44,7 +44,7 @@ export default function SettingsPage() {
     contactEmail: agency?.contactEmail || '',
     contactPhone: agency?.contactPhone || '',
     logoUrl: agency?.logoUrl || '',
-    primaryColor: agency?.primaryColor || '#2563EB',
+    primaryColor: agency?.primaryColor || '#8A1C05',
     secondaryColor: agency?.secondaryColor || '#F1F5F9'
   });
   
@@ -79,7 +79,7 @@ export default function SettingsPage() {
         contactEmail: agency.contactEmail || '',
         contactPhone: agency.contactPhone || '',
         logoUrl: agency.logoUrl || '',
-        primaryColor: agency.primaryColor || '#2563EB',
+        primaryColor: agency.primaryColor || '#8A1C05',
         secondaryColor: agency.secondaryColor || '#F1F5F9'
       });
       

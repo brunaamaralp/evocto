@@ -47,7 +47,7 @@ export class Phase3Config {
       publicAPI: {
         enabled: true,
         version: 'v1',
-        baseURL: 'https://api.evocto.com',
+        baseURL: 'https://api.estudionarrativa.com',
         rateLimiting: {
           default: { requests: 100, window: 3600 },
           premium: { requests: 1000, window: 3600 },
@@ -72,14 +72,14 @@ export class Phase3Config {
         enabled: true,
         pwa: {
           enabled: true,
-          cacheName: 'evocto-pwa-v1',
+          cacheName: 'narrativa-pwa-v1',
           cacheStrategy: 'cache-first',
           offlinePage: '/offline.html',
           manifest: {
-            name: 'Evocto Marketplace',
-            shortName: 'Evocto',
+            name: 'narrativa Marketplace',
+            shortName: 'narrativa',
             description: 'Marketplace de serviços de consultoria',
-            themeColor: '#6C47D8',
+            themeColor: '#C02807',
             backgroundColor: '#ffffff',
             display: 'standalone',
             orientation: 'portrait',

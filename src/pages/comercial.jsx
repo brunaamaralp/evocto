@@ -1,5 +1,5 @@
 /**
- * CRM leve da agência — /comercial (SPEC_CONTROLE_AGENCIA P2.1 opção A).
+ * CRM leve da ag�ncia � /comercial (SPEC_CONTROLE_AGENCIA P2.1 op��o A).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -39,6 +39,7 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Sparkles,
   UserPlus,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -52,6 +53,12 @@ import {
   canConvertLead,
   convertLeadToClient,
 } from '@/lib/agencyLeads/convertLeadToClient';
+import {
+  canGenerateProposalFromLead,
+  ensureClientFromLead,
+  overridesFromLead,
+} from '@/lib/agencyLeads/ensureClientFromLead';
+import { buildGerarMaterialHref } from '@/lib/generateMaterialApi';
 
 function emptyForm() {
   return {
@@ -82,6 +89,7 @@ export default function ComercialPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [convertingId, setConvertingId] = useState(null);
+  const [generatingLeadId, setGeneratingLeadId] = useState(null);
   const [error, setError] = useState(null);
   const [missingTable, setMissingTable] = useState(false);
   const [leads, setLeads] = useState([]);
@@ -185,7 +193,7 @@ export default function ComercialPage() {
       console.error('[comercial] save failed:', err);
       if (isMissingTableError(err)) {
         setMissingTable(true);
-        toast.error('Tabela agency_leads ainda não existe no Appwrite');
+        toast.error('Tabela agency_leads ainda n�o existe no Appwrite');
       } else {
         toast.error(err?.message || 'Erro ao salvar lead');
       }
@@ -224,7 +232,7 @@ export default function ComercialPage() {
       });
       toast.success(
         result.alreadyConverted
-          ? 'Lead já convertido'
+          ? 'Lead j� convertido'
           : `Cliente criado: ${result.client?.name || 'ok'}`
       );
       await loadLeads();
@@ -233,9 +241,47 @@ export default function ComercialPage() {
       }
     } catch (err) {
       console.error('[comercial] convert failed:', err);
-      toast.error(err?.message || 'Não foi possível criar o cliente. Tente de novo.');
+      toast.error(err?.message || 'N�o foi poss�vel criar o cliente. Tente de novo.');
     } finally {
       setConvertingId(null);
+    }
+  };
+
+  const handleGenerateProposal = async (lead) => {
+    if (!lead || !canGenerateProposalFromLead(lead) || generatingLeadId || !agencyId) return;
+    setGeneratingLeadId(lead.id);
+    try {
+      let clientId = lead.convertedClientId || null;
+      let working = lead;
+      if (!clientId) {
+        const result = await ensureClientFromLead({ lead, agencyId });
+        clientId = result.clientId;
+        working = result.lead || lead;
+        toast.success(
+          result.alreadyLinked
+            ? 'Cliente j� vinculado'
+            : 'Cliente vinculado para a proposta (deal continua em aberto)'
+        );
+        await loadLeads();
+      }
+      const pref = overridesFromLead(working);
+      navigate(
+        createPageUrl(
+          buildGerarMaterialHref(clientId, {
+            tipo: 'proposta',
+            leadId: working.id || lead.id,
+            titulo: pref.titulo || undefined,
+            objetivo: pref.objetivo || undefined,
+            escopo: pref.escopo || undefined,
+            investimento: pref.investimento || undefined,
+          })
+        )
+      );
+    } catch (err) {
+      console.error('[comercial] generate proposal failed:', err);
+      toast.error(err?.message || 'N�o foi poss�vel abrir a gera��o de proposta.');
+    } finally {
+      setGeneratingLeadId(null);
     }
   };
 
@@ -246,7 +292,7 @@ export default function ComercialPage() {
   if (!agencyId) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
-        <p className="text-sm text-[#7A7595]">Organização não encontrada.</p>
+        <p className="text-sm text-[#7A7595]">Organiza��o n�o encontrada.</p>
       </div>
     );
   }
@@ -254,7 +300,7 @@ export default function ComercialPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-[#6C47D8]" />
+        <Loader2 className="h-7 w-7 animate-spin text-[#C02807]" />
       </div>
     );
   }
@@ -267,7 +313,7 @@ export default function ComercialPage() {
             Comercial
           </h1>
           <p className="text-sm text-[#7A7595]">
-            Pipeline leve da agência — lead até cliente
+            Pipeline leve da ag�ncia � lead at� cliente
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -284,7 +330,7 @@ export default function ComercialPage() {
           <Button
             type="button"
             size="sm"
-            className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+            className="bg-[#C02807] hover:bg-[#8A1C05]"
             onClick={openCreate}
             disabled={missingTable}
           >
@@ -295,13 +341,13 @@ export default function ComercialPage() {
       </header>
 
       {missingTable ? (
-        <div className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/60 px-4 py-5 text-sm">
-          <p className="font-semibold text-[#18162A]">Comercial ainda em configuração</p>
+        <div className="rounded-xl border border-[#E8E5F5] bg-[#EEF4FA]/60 px-4 py-5 text-sm">
+          <p className="font-semibold text-[#18162A]">Comercial ainda em configura��o</p>
           <p className="mt-1.5 leading-relaxed text-[#7A7595]">
-            O pipeline de leads precisa ser ativado no servidor da organização. Peça ao
+            O pipeline de leads precisa ser ativado no servidor da organiza��o. Pe�a ao
             administrador para concluir o setup (ou rode{' '}
             <span className="font-medium text-[#18162A]">npm run appwrite:setup-agency-leads</span>
-            ) e atualize esta página.
+            ) e atualize esta p�gina.
           </p>
           <Button
             type="button"
@@ -332,11 +378,11 @@ export default function ComercialPage() {
         <div className="rounded-xl border border-dashed border-[#E8E5F5] bg-white px-6 py-10 text-center">
           <p className="text-base font-semibold text-[#18162A]">Nenhum lead ainda</p>
           <p className="mt-1 text-sm text-[#7A7595]">
-            Cadastre oportunidades e mova pelo funil até converter em cliente.
+            Cadastre oportunidades e mova pelo funil at� converter em cliente.
           </p>
           <Button
             type="button"
-            className="mt-4 bg-[#6C47D8] hover:bg-[#5A3BC0]"
+            className="mt-4 bg-[#C02807] hover:bg-[#8A1C05]"
             onClick={openCreate}
           >
             <Plus className="mr-1.5 h-4 w-4" />
@@ -363,6 +409,8 @@ export default function ComercialPage() {
                 {(byStage[stage.id] || []).map((lead) => {
                   const valueLabel = formatLeadValue(lead.estimatedValue);
                   const converting = convertingId === lead.id;
+                  const generating = generatingLeadId === lead.id;
+                  const canGen = canGenerateProposalFromLead(lead);
                   return (
                     <li key={lead.id}>
                       <div className="rounded-2xl border border-[#E8E5F5] bg-white p-3 shadow-none">
@@ -378,7 +426,7 @@ export default function ComercialPage() {
                             <p className="truncate text-xs text-[#7A7595]">{lead.name}</p>
                           ) : null}
                           {valueLabel ? (
-                            <p className="mt-1 text-xs font-medium text-[#6C47D8]">
+                            <p className="mt-1 text-xs font-medium text-[#C02807]">
                               {valueLabel}
                             </p>
                           ) : null}
@@ -401,12 +449,29 @@ export default function ComercialPage() {
                             </SelectContent>
                           </Select>
 
+                          {canGen ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-8 w-full bg-[#C02807] text-xs text-white hover:bg-[#8A1C05]"
+                              disabled={generating || Boolean(generatingLeadId)}
+                              onClick={() => handleGenerateProposal(lead)}
+                            >
+                              {generating ? (
+                                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                              )}
+                              Gerar proposta
+                            </Button>
+                          ) : null}
+
                           {lead.convertedClientId ? (
                             <Link
                               to={createPageUrl(
                                 `client-detail?clientId=${lead.convertedClientId}`
                               )}
-                              className="inline-flex items-center text-xs font-medium text-[#6C47D8] hover:underline"
+                              className="inline-flex items-center text-xs font-medium text-[#C02807] hover:underline"
                             >
                               Abrir cliente
                               <ArrowRight className="ml-1 h-3 w-3" />
@@ -450,13 +515,13 @@ export default function ComercialPage() {
             <AlertDialogTitle>Criar cliente a partir deste lead?</AlertDialogTitle>
             <AlertDialogDescription>
               Vamos cadastrar <strong className="text-[#18162A]">{convertLabel}</strong> como
-              cliente ativo e abrir o hub dele. Também criamos uma tarefa de onboarding.
+              cliente ativo e abrir o hub dele. Tamb�m criamos uma tarefa de onboarding.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={Boolean(convertingId)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
               disabled={Boolean(convertingId)}
               onClick={(e) => {
                 e.preventDefault();
@@ -466,7 +531,7 @@ export default function ComercialPage() {
               {convertingId ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando…
+                  Criando�
                 </>
               ) : (
                 'Criar cliente'
@@ -499,7 +564,7 @@ export default function ComercialPage() {
                 value={form.companyName}
                 onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))}
                 className="mt-1.5"
-                placeholder="Razão social / marca"
+                placeholder="Raz�o social / marca"
               />
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -538,7 +603,7 @@ export default function ComercialPage() {
                 />
               </div>
               <div>
-                <Label>Estágio</Label>
+                <Label>Est�gio</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) => setForm((p) => ({ ...p, status: v }))}
@@ -564,7 +629,7 @@ export default function ComercialPage() {
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                 className="mt-1.5"
-                placeholder="Contexto da oportunidade…"
+                placeholder="Contexto da oportunidade�"
               />
             </div>
           </div>
@@ -579,7 +644,7 @@ export default function ComercialPage() {
             </Button>
             <Button
               type="button"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
               onClick={handleSave}
               disabled={saving}
             >

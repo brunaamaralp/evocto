@@ -3,16 +3,16 @@
 export const designTokens = {
   colors: {
     primary: {
-      50: '#F5F2FC',
-      100: '#EDE9FB',
-      200: '#D4CBF5',
-      300: '#AFA9EC',
-      400: '#8B7AE0',
-      500: '#6C47D8', // Brand purple
-      600: '#5A3BC0',
-      700: '#4A2FA3',
-      800: '#3A2480',
-      900: '#2A1A5C'
+      50: '#EEF4FA',
+      100: '#FCE8E3',
+      200: '#FFD4C8',
+      300: '#FF9A7A',
+      400: '#FF643D',
+      500: '#C02807', // Burnt Grape
+      600: '#8A1C05',
+      700: '#6B1504',
+      800: '#4A0E03',
+      900: '#1A0D0B'
     },
     secondary: {
       50: '#F8FAFC',
@@ -44,7 +44,7 @@ export const designTokens = {
   },
   typography: {
     fonts: {
-      sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+      sans: ['Manrope', 'system-ui', 'sans-serif'],
       mono: ['JetBrains Mono', 'Monaco', 'monospace']
     },
     sizes: {
@@ -103,8 +103,8 @@ export const Card = ({ children, className = '', variant = 'default', ...props }
   const variants = {
     default: 'bg-white shadow-[var(--shadow-card)] border border-[#E8E5F5]/60',
     elevated: 'bg-white shadow-[var(--shadow-elevated)] border border-[#E8E5F5]/40',
-    outlined: 'bg-white border-2 border-[#D4CBF5]',
-    ghost: 'bg-[#F5F2FC] border border-[#EDE9FB]'
+    outlined: 'bg-white border-2 border-[#FFD4C8]',
+    ghost: 'bg-[#EEF4FA] border border-[#FCE8E3]'
   };
   
   return (
@@ -148,7 +148,7 @@ export const StatusBadge = ({ status, children, size = 'base' }) => {
     success: 'bg-[var(--color-success-surface)] text-[var(--color-accent-dark)] border-[color-mix(in_srgb,var(--color-accent)_35%,white)]',
     warning: 'bg-[#FFF8E6] text-[#7A5A10] border-[#F0DC9A]',
     error: 'bg-[color-mix(in_srgb,var(--color-danger)_12%,white)] text-[#8A2A2A] border-[color-mix(in_srgb,var(--color-danger)_35%,white)]',
-    info: 'bg-[var(--color-primary-surface)] text-[var(--color-primary-dark)] border-[#D4CBF5]',
+    info: 'bg-[var(--color-primary-surface)] text-[var(--color-primary-dark)] border-[#FFD4C8]',
     neutral: 'bg-[#F1F1F3] text-[#4A4A55] border-[#D0D0D6]'
   };
   

@@ -22,7 +22,8 @@ import {
 import BriefingInicialFormFields from '@/components/briefing/BriefingInicialFormFields';
 
 /**
- * Formulário público do briefing inicial (Empresa + insumos do plano anual).
+ * Formul�rio p�blico do briefing inicial (DNA da empresa).
+ * Planejamento m�s a m�s � feito depois pela equipe no Panorama.
  */
 export default function PublicBriefingPage() {
   const token = useMemo(() => {
@@ -42,7 +43,7 @@ export default function PublicBriefingPage() {
     let cancelled = false;
     async function load() {
       if (!token) {
-        setError('Link inválido: token ausente');
+        setError('Link inv�lido: token ausente');
         setLoading(false);
         return;
       }
@@ -62,7 +63,7 @@ export default function PublicBriefingPage() {
         }
       } catch (err) {
         if (cancelled) return;
-        setError(err.message || 'Não foi possível validar o link');
+        setError(err.message || 'N�o foi poss�vel validar o link');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -91,7 +92,7 @@ export default function PublicBriefingPage() {
     const { valid, errors: nextErrors } = validateBriefingInicialForm(form);
     setErrors(nextErrors);
     if (!valid) {
-      toast.error('Preencha os campos obrigatórios');
+      toast.error('Preencha os campos obrigat�rios');
       const firstKey = Object.keys(nextErrors)[0];
       const el =
         document.getElementById(firstKey) ||
@@ -139,8 +140,8 @@ export default function PublicBriefingPage() {
             <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
             <h1 className="text-xl font-semibold text-slate-900">Enviado com sucesso</h1>
             <p className="text-slate-600 text-sm">
-              Recebemos o briefing inicial de {ctx?.clientName}. A equipe montará o plano
-              anual a partir dessas informações.
+              Recebemos o briefing inicial de {ctx?.clientName}. A equipe vai analisar
+              e, em seguida, planejar m�s a m�s.
             </p>
           </CardContent>
         </Card>
@@ -154,22 +155,15 @@ export default function PublicBriefingPage() {
         <div>
           <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
             <Lock className="w-3.5 h-3.5" />
-            Link seguro · Briefing inicial
+            Link seguro � Briefing inicial
           </div>
           <h1 className="text-2xl font-semibold text-[#18162A]">
             {ctx?.clientName || 'Cliente'}
           </h1>
           <p className="text-[#7A7595] mt-1">
-            Duas partes: dados da empresa e calendário comercial do ano. Leva poucos minutos.
+            Dados da empresa (p�blico, tom, produtos). Leva poucos minutos � o
+            planejamento vem depois, com a equipe.
           </p>
-          <div className="mt-4 flex gap-2 text-sm">
-            <span className="rounded-full bg-white border border-[#D4CBF5] px-3 py-1 text-[#18162A]">
-              1. Empresa
-            </span>
-            <span className="rounded-full bg-white border border-[#E8E4F4] px-3 py-1 text-[#7A7595]">
-              2. Plano do ano
-            </span>
-          </div>
         </div>
 
         <BriefingInicialFormFields form={form} onChange={setForm} errors={errors} />
@@ -187,7 +181,7 @@ export default function PublicBriefingPage() {
             </Button>
             <Button
               type="button"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+              className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
               onClick={handleSubmit}
               disabled={!canSubmit}
             >

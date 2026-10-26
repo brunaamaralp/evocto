@@ -13,6 +13,7 @@ import {
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import { openTaskDrawer } from '@/lib/openTaskDrawer';
 
 // Componente de tarefa em destaque
 const TaskQuickCard = ({ task, onClick }) => {
@@ -194,8 +195,8 @@ export const TasksWidget = ({ clientId = null, cycleId = null }) => {
 
 
   const handleTaskClick = (task) => {
-    // Navegar para a tarefa ou abrir modal
-    window.open(`/tasks-manager?taskId=${task.id}`, '_blank');
+    if (!task?.id) return;
+    openTaskDrawer(task.id);
   };
 
   const priorityTasks = tasks

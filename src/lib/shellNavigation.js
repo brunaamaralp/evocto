@@ -29,6 +29,7 @@ export const SHELL_PAGE_LABELS = {
   client: 'Visão geral',
   'client-tasks': 'Tarefas',
   'client-documents': 'Documentos',
+  'client-acessos': 'Acessos e informações',
   'client-financeiro': 'Financeiro',
   'client-learnings': 'Aprendizados',
   'client-evolution': 'Aprendizados',

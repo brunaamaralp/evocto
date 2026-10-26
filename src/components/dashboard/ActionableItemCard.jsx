@@ -31,7 +31,9 @@ export default function ActionableItemCard({ item }) {
       case 'service':
         return createPageUrl('service-detail') + `?serviceId=${item.entityId}`;
       case 'task':
-        return createPageUrl('client-tasks') + `?taskId=${item.entityId}`;
+        return createPageUrl(
+          `tasks-manager?taskId=${encodeURIComponent(item.entityId)}`
+        );
       case 'briefing':
         return createPageUrl(buildBriefingInicialHref(item.metadata?.clientId));
       case 'approval':

@@ -150,7 +150,7 @@ export default function ContractedServiceSetup({
       <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-lg sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-[#E8E5F5] px-5 py-4">
           <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2 text-[#6C47D8]">
+            <div className="mb-1 flex items-center gap-2 text-[#C02807]">
               <Briefcase className="h-4 w-4" aria-hidden />
               <span className="text-xs font-semibold uppercase tracking-wide">
                 Contrato
@@ -262,7 +262,7 @@ export default function ContractedServiceSetup({
             </Button>
             <Button
               type="submit"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
               disabled={saving || loading || !templateId}
             >
               {saving ? (

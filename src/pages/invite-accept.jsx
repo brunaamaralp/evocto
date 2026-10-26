@@ -163,7 +163,7 @@ export default function InviteAcceptPage() {
                   </Button>
                 )}
                 <a
-                  href="mailto:suporte@evocto.com?subject=Reenvio%20de%20convite&body=Meu%20convite%20expirou.%20Poderiam%20reenviar%3F"
+                  href="mailto:contato@estudionarrativa.com?subject=Reenvio%20de%20convite&body=Meu%20convite%20expirou.%20Poderiam%20reenviar%3F"
                   className="w-full inline-flex items-center justify-center gap-2 text-blue-700 hover:text-blue-800"
                 >
                   <Mail className="w-4 h-4" /> Pedir reenvio por e-mail

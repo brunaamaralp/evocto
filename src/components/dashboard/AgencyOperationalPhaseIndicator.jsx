@@ -7,7 +7,7 @@ import {
 } from '@/lib/agencyOperationalCycle';
 import { getActivityKindLabel } from '@/constants/activityKinds';
 
-const BRAND = '#6C47D8';
+const BRAND = '#C02807';
 
 /**
  * @param {{ state: 'completed' | 'current' | 'upcoming' }} props
@@ -224,7 +224,7 @@ export default function AgencyOperationalPhaseIndicator({
             <button
               type="button"
               onClick={() => setDetailsOpen((v) => !v)}
-              className="inline-flex items-center gap-0.5 text-xs font-medium text-[#6C47D8] hover:underline"
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-[#C02807] hover:underline"
               aria-expanded={detailsOpen}
             >
               {detailsOpen ? 'Ocultar' : 'O que é isso?'}
@@ -237,7 +237,7 @@ export default function AgencyOperationalPhaseIndicator({
           ) : null}
         </div>
         {detailsOpen ? (
-          <div className="rounded-xl border border-[#E8E5F5] bg-[#F5F2FC]/60 px-3 py-3 space-y-2">
+          <div className="rounded-xl border border-[#E8E5F5] bg-[#EEF4FA]/60 px-3 py-3 space-y-2">
             {periodLabel ? (
               <p className="text-xs text-[#7A7595]" data-testid="agency-operational-period">
                 {periodLabel}

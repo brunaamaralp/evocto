@@ -134,7 +134,7 @@ export default function PasswordReset() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center text-slate-600">
-              Se <strong>{email}</strong> estiver cadastrado no Evocto, você receberá um link
+              Se <strong>{email}</strong> estiver cadastrado no narrativa, você receberá um link
               para criar uma nova senha.
             </p>
             <p className="text-center text-sm text-slate-500">O link expira em 1 hora.</p>

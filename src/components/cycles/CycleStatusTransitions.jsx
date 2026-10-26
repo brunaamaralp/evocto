@@ -140,10 +140,11 @@ export const executeStatusAction = async (cycle, actionType, updateCycle) => {
         break;
         
       case 'open_approval_link':
-        if (cycle.approvalData?.public_share_token) {
-          window.open(createPageUrl(`cycle-approval/${cycle.approvalData.public_share_token}`), '_blank');
+        // Staff-only legacy surface — never expose raw public_share_token in the URL path.
+        if (cycle?.id) {
+          window.open(createPageUrl(`cycle-approval?id=${encodeURIComponent(cycle.id)}`), '_blank');
         } else {
-          toast.error("Link de aprovação não encontrado");
+          toast.error("Ciclo sem identificador para abertura interna");
         }
         break;
         

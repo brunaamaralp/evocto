@@ -101,7 +101,7 @@ export class TwoFactorAuth extends EventEmitter {
    * Gera QR Code para configuração
    */
   generateQRCode(userId, secret) {
-    const issuer = 'Evocto';
+    const issuer = 'narrativa';
     const accountName = userId;
     const otpauth = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
     

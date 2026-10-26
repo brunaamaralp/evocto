@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Task } from '@/api/entities';
@@ -33,6 +33,7 @@ import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
   getTaskAssigneeId,
+  isTaskOverdue,
   resolvePresetFromQuery,
 } from '@/lib/taskFilterPresets';
 import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
@@ -56,9 +57,18 @@ const DENSITY_STORAGE_KEY = 'evocto:tasks-manager-density';
 // Soft pastel kanban columns (mapa canônico)
 const KANBAN_COLUMNS = getKanbanBoardColumns();
 
-function QuickAddTask({ columnId, agencyId, userId, disabled }) {
+function QuickAddTask({
+  columnId,
+  agencyId,
+  userId,
+  users = [],
+  disabled,
+}) {
   const [title, setTitle] = React.useState('');
   const [saving, setSaving] = React.useState(false);
+  const [showMore, setShowMore] = React.useState(false);
+  const [assignee, setAssignee] = React.useState('me');
+  const [dueDate, setDueDate] = React.useState('');
 
   const submit = async ({ openDrawer = false } = {}) => {
     const trimmed = title.trim();
@@ -69,14 +79,24 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
         columnId && !['completed', 'blocked', 'cancelled'].includes(columnId)
           ? columnId
           : 'todo';
+      let assignedTo = null;
+      if (showMore) {
+        if (assignee === 'me') assignedTo = userId || null;
+        else if (assignee && assignee !== 'unassigned') assignedTo = assignee;
+      }
       const created = await createManualTask({
         title: trimmed,
         agencyId,
         userId: userId || null,
         status,
         quickAdd: true,
+        assignedTo,
+        dueDate: showMore && dueDate ? dueDate : null,
       });
       setTitle('');
+      setDueDate('');
+      setAssignee('me');
+      setShowMore(false);
       toast.success(
         openDrawer
           ? 'Tarefa criada — complete os detalhes'
@@ -95,7 +115,7 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
   };
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 space-y-1.5">
       <Input
         value={title}
         disabled={saving || disabled || !agencyId}
@@ -110,13 +130,52 @@ function QuickAddTask({ columnId, agencyId, userId, disabled }) {
           }
         }}
       />
-      {saving ? (
-        <p className="mt-1 text-[10px] text-[#7A7595]">Salvando…</p>
-      ) : (
-        <p className="mt-1 text-[10px] text-[#7A7595]">
-          Enter cria · Shift+Enter abre detalhes
-        </p>
-      )}
+      {showMore ? (
+        <div className="grid grid-cols-1 gap-1.5">
+          <Select
+            value={assignee}
+            onValueChange={setAssignee}
+            disabled={saving || disabled}
+          >
+            <SelectTrigger className="h-8 bg-white/90 text-xs">
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="me">Eu</SelectItem>
+              <SelectItem value="unassigned">Sem responsável</SelectItem>
+              {(users || []).map((u) => (
+                <SelectItem key={u.id} value={String(u.id)}>
+                  {u.full_name || u.name || u.email || u.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="date"
+            value={dueDate}
+            disabled={saving || disabled}
+            className="h-8 bg-white/90 text-xs"
+            aria-label="Prazo"
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </div>
+      ) : null}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          className="text-[10px] text-[#7A7595] underline-offset-2 hover:underline"
+          onClick={() => setShowMore((v) => !v)}
+        >
+          {showMore ? 'Menos' : 'Responsável / prazo'}
+        </button>
+        {saving ? (
+          <p className="text-[10px] text-[#7A7595]">Salvando…</p>
+        ) : (
+          <p className="text-[10px] text-[#7A7595]">
+            Enter · Shift+Enter abre
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -145,13 +204,17 @@ function TaskCard({ task, users, clients, density = 'comfortable' }) {
     }
   };
 
-  const assignedUser = getAssignedUser(task.assignedTo || task.assigneeId);
+  const assigneeId = getTaskAssigneeId(task);
+  const assignedUser = getAssignedUser(assigneeId);
   const client = getClient(task.clientId);
-  const colorStyle = assigneeColorStyle(getTaskAssigneeId(task));
+  const colorStyle = assigneeColorStyle(assigneeId);
+  const overdue = isTaskOverdue(task);
 
   return (
     <Card
-      className={`${compact ? 'mb-1.5' : 'mb-3'} cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden rounded-2xl border-transparent`}
+      className={`${compact ? 'mb-1.5' : 'mb-3'} cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden rounded-2xl border-transparent ${
+        overdue ? 'ring-1 ring-red-300/80' : ''
+      }`}
       style={colorStyle}
     >
       <CardContent className={compact ? 'p-2' : 'p-3'}>
@@ -175,7 +238,14 @@ function TaskCard({ task, users, clients, density = 'comfortable' }) {
             )}
             
             {task.dueDate && (
-              <Badge variant="outline" className="text-xs">
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  overdue
+                    ? 'border-red-300 bg-red-50 text-red-700'
+                    : ''
+                }`}
+              >
                 <Clock className="w-3 h-3 mr-1" />
                 {compact
                   ? new Date(task.dueDate).toLocaleDateString('pt-BR', {
@@ -183,20 +253,27 @@ function TaskCard({ task, users, clients, density = 'comfortable' }) {
                       month: '2-digit',
                     })
                   : new Date(task.dueDate).toLocaleDateString()}
+                {!compact && overdue ? ' · Atrasada' : null}
               </Badge>
             )}
           </div>
           
           {!compact ? (
-            <div className="flex items-center justify-between text-xs">
-              {assignedUser && (
-                <div className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  <span className="truncate max-w-20">{assignedUser.full_name || assignedUser.email}</span>
-                </div>
-              )}
+            <div className="flex items-center justify-between text-xs gap-2">
+              <div className="flex items-center gap-1 min-w-0">
+                <Users className="w-3 h-3 shrink-0" />
+                <span
+                  className={`truncate max-w-24 ${
+                    assignedUser ? '' : 'text-amber-700 font-medium'
+                  }`}
+                >
+                  {assignedUser
+                    ? assignedUser.full_name || assignedUser.email
+                    : 'Sem responsável'}
+                </span>
+              </div>
               
-              <div className="flex items-center gap-1 text-gray-500">
+              <div className="flex items-center gap-1 text-gray-500 shrink-0">
                 <Building2 className="w-3 h-3" />
                 <span className="truncate max-w-20">
                   {client?.name || 'Interno'}
@@ -289,6 +366,7 @@ function TaskColumn({
                   columnId={column.id}
                   agencyId={agencyId}
                   userId={userId}
+                  users={users}
                 />
               </div>
             )}
@@ -326,6 +404,9 @@ export default function TasksManagerPage() {
   const [searchTerm, setSearchTerm] = useState(() => urlStateInit.q);
   const [selectedStatus, setSelectedStatus] = useState(
     () => urlStateInit.status
+  );
+  const [selectedDueRange, setSelectedDueRange] = useState(
+    () => urlStateInit.dueRange || 'all'
   );
   const [presetFilters, setPresetFilters] = useState({ ...EMPTY_TASK_FILTERS });
   const [createOpen, setCreateOpen] = useState(false);
@@ -388,7 +469,23 @@ export default function TasksManagerPage() {
     if (nextFilters.status && nextFilters.status !== 'all') {
       setSelectedStatus(String(nextFilters.status));
     }
+    if (nextFilters.dueRange && nextFilters.dueRange !== 'all') {
+      setSelectedDueRange(String(nextFilters.dueRange));
+    } else if (
+      nextFilters.preset === 'agency_blocked' ||
+      nextFilters.preset === 'awaiting_review'
+    ) {
+      setSelectedDueRange('all');
+    }
   }, [searchParams, currentUserId, setSearchParams, presetFilters.preset]);
+
+  // Sync dueRange solto da URL (sem preset)
+  useEffect(() => {
+    const fromUrl = readTaskManagerUrlState(searchParams).dueRange || 'all';
+    if (!searchParams.get('preset') && fromUrl !== selectedDueRange) {
+      setSelectedDueRange(fromUrl);
+    }
+  }, [searchParams, selectedDueRange]);
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
@@ -498,6 +595,10 @@ export default function TasksManagerPage() {
         selectedStatus !== 'all'
           ? selectedStatus
           : presetFilters.status || 'all',
+      dueRange:
+        selectedDueRange !== 'all'
+          ? selectedDueRange
+          : presetFilters.dueRange || 'all',
       search: searchTerm || presetFilters.search || '',
     };
 
@@ -510,6 +611,7 @@ export default function TasksManagerPage() {
     selectedClient,
     selectedUser,
     selectedStatus,
+    selectedDueRange,
     searchTerm,
     presetFilters,
     currentUserId,
@@ -610,6 +712,7 @@ export default function TasksManagerPage() {
     setSelectedClient('all');
     setSelectedUser('all');
     setSelectedStatus('all');
+    setSelectedDueRange('all');
     setSearchTerm('');
     setPresetFilters({ ...EMPTY_TASK_FILTERS });
     setSearchParams(clearTaskManagerFilterParams(searchParams), {
@@ -656,6 +759,7 @@ export default function TasksManagerPage() {
     selectedClient !== 'all' ||
     selectedUser !== 'all' ||
     selectedStatus !== 'all' ||
+    selectedDueRange !== 'all' ||
     Boolean(searchTerm) ||
     Boolean(activePresetId);
 
@@ -740,7 +844,7 @@ export default function TasksManagerPage() {
           ) : null}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
             {/* Busca textual */}
             <div className="lg:col-span-2">
               <div className="relative">
@@ -822,6 +926,7 @@ export default function TasksManagerPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os responsáveis</SelectItem>
+                <SelectItem value="unassigned">Sem responsável</SelectItem>
                 {users
                   .filter(u => ['owner', 'admin', 'team'].includes(u.role))
                   .map(user => (
@@ -832,6 +937,33 @@ export default function TasksManagerPage() {
                       </div>
                     </SelectItem>
                   ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por prazo */}
+            <Select
+              value={selectedDueRange}
+              onValueChange={(value) => {
+                setSelectedDueRange(value);
+                setPresetFilters((prev) => ({
+                  ...prev,
+                  dueRange: value,
+                  preset: null,
+                }));
+                writeFilterParams(
+                  { dueRange: value },
+                  { clearPreset: true }
+                );
+              }}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Prazo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Qualquer prazo</SelectItem>
+                <SelectItem value="overdue">Atrasadas</SelectItem>
+                <SelectItem value="next_48h">Próximas 48h</SelectItem>
+                <SelectItem value="this_week">Esta semana</SelectItem>
               </SelectContent>
             </Select>
 
@@ -913,7 +1045,7 @@ export default function TasksManagerPage() {
 
       {/* Quadro Kanban ou Calendário semanal */}
       {viewMode === 'week' ? (
-        <div className="rounded-2xl p-4 bg-[#F5F2FC]/50">
+        <div className="rounded-2xl p-4 bg-[#EEF4FA]/50">
           <TaskCalendarView
             tasks={filteredTasks.map((task) => {
               const assigneeId = getTaskAssigneeId(task);
@@ -939,7 +1071,7 @@ export default function TasksManagerPage() {
           />
         </div>
       ) : (
-      <div className="rounded-2xl p-4 bg-[#F5F2FC]/50">
+      <div className="rounded-2xl p-4 bg-[#EEF4FA]/50">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Container principal com scroll horizontal */}
           <div className="kanban-scroll-container overflow-x-auto">

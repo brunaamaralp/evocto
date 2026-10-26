@@ -290,16 +290,16 @@ export default function PublicDocumentPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-400">
-          <p>Documento compartilhado de forma segura via Evocto</p>
+          <p>Documento compartilhado de forma segura via narrativa</p>
           <p className="mt-1">
             Powered by{' '}
             <a 
-              href="https://evocto.com" 
+              href="https://narrativa.com" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800"
             >
-              Evocto
+              narrativa
             </a>
           </p>
         </div>

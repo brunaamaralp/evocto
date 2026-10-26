@@ -54,11 +54,15 @@ const tables = new TablesDB(client);
 const storage = new Storage(client);
 
 const tablePerms = [Permission.create(Role.users())];
-const publicTablePerms = [
-  Permission.create(Role.users()),
-  Permission.read(Role.any()),
-  Permission.update(Role.any()),
-];
+/**
+ * NEW setups only — least privilege for public_briefing_* tables.
+ * Guests use /api/public-briefing (API key). Do NOT grant Role.any().
+ *
+ * Existing Cloud projects are NOT mutated by this script on re-run for
+ * permission downgrades. Applying Role.any() removal to production requires
+ * an explicit approved migration + rollback plan (see Fase 1.1 audit).
+ */
+const publicTablePerms = [Permission.create(Role.users())];
 
 const TABLES = [
   {

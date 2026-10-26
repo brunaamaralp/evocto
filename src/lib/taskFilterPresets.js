@@ -309,6 +309,26 @@ export const TASK_FILTER_PRESETS = [
       preset: 'this_week',
     }),
   },
+  {
+    id: 'agency_overdue',
+    label: 'Atrasadas (agência)',
+    apply: () => ({
+      ...EMPTY_TASK_FILTERS,
+      dueRange: 'overdue',
+      openOnly: true,
+      preset: 'agency_overdue',
+    }),
+  },
+  {
+    id: 'agency_blocked',
+    label: 'Bloqueadas (agência)',
+    apply: () => ({
+      ...EMPTY_TASK_FILTERS,
+      status: 'blocked',
+      openOnly: true,
+      preset: 'agency_blocked',
+    }),
+  },
 ];
 
 const PRESET_BY_ID = Object.fromEntries(
@@ -332,13 +352,28 @@ export function resolvePresetFromQuery(raw) {
 
 /**
  * Href canônico para /tasks-manager com preset (e params extras opcionais).
- * @param {{ preset?: string, view?: string }} opts
+ * @param {{
+ *   preset?: string,
+ *   view?: string,
+ *   dueRange?: string,
+ *   status?: string,
+ *   assignee?: string,
+ * }} opts
  */
 export function buildTasksManagerHref(opts = {}) {
   const params = new URLSearchParams();
   const preset = resolvePresetFromQuery(opts.preset);
   if (preset) params.set('preset', preset.id);
   if (opts.view === 'week') params.set('view', 'week');
+  if (opts.dueRange && opts.dueRange !== 'all') {
+    params.set('dueRange', String(opts.dueRange));
+  }
+  if (opts.status && opts.status !== 'all') {
+    params.set('status', String(opts.status));
+  }
+  if (opts.assignee && opts.assignee !== 'all') {
+    params.set('assignee', String(opts.assignee));
+  }
   const qs = params.toString();
   const path = qs ? `tasks-manager?${qs}` : 'tasks-manager';
   return createPageUrl(path);
@@ -395,4 +430,7 @@ export const TASKS_MANAGER_QUICK_PRESETS = [
   'waiting_client',
   'awaiting_review',
   'waiting_others',
+  'agency_overdue',
+  'agency_blocked',
+  'this_week',
 ];

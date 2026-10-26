@@ -28,7 +28,7 @@ function MemberList({ members, invites }) {
                 <p className="font-medium text-[#18162A]">{member.full_name}</p>
                 <p className="text-sm text-[#7A7595]">{member.email}</p>
               </div>
-              <span className="text-sm capitalize px-2.5 py-1 rounded-full bg-[#EDE9FB] text-[#6C47D8]">{member.role}</span>
+              <span className="text-sm capitalize px-2.5 py-1 rounded-full bg-[#FCE8E3] text-[#C02807]">{member.role}</span>
             </li>
           ))}
           {invites.map(invite => (
@@ -167,7 +167,7 @@ export default function MyAgencyPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#6C47D8]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#C02807]" />
       </div>
     );
   }

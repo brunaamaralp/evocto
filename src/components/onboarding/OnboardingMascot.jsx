@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '../i18n/I18nProvider';
-import EvoctoMascot from '@/components/brand/EvoctoMascot';
+import NarrativaIsotipo from '@/components/brand/NarrativaIsotipo';
 
 const OnboardingMascot = ({
   message,
@@ -22,7 +22,7 @@ const OnboardingMascot = ({
     const heroSize = size === 'large' ? 'large' : size === 'small' ? 'small' : size;
     return (
       <div className="relative inline-flex flex-col items-center">
-        <EvoctoMascot size={heroSize} className="drop-shadow-sm" />
+        <NarrativaIsotipo size={heroSize} className="drop-shadow-sm" />
         {showSpeechBubble && speechText ? (
           <div className="mt-4 max-w-xs rounded-2xl border border-violet-100 bg-white px-4 py-3 text-center text-sm text-slate-700 shadow-sm">
             {speechText}
@@ -69,7 +69,7 @@ const OnboardingMascot = ({
     <Card className={`${getVariantStyles()} border-2 transition-all duration-300 hover:shadow-md`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <EvoctoMascot size={56} mark className="shrink-0" />
+          <NarrativaIsotipo size={56} mark className="shrink-0" />
           <div className="flex-1">
             {showProgress && step && totalSteps && (
               <div className="flex items-center gap-2 mb-2">

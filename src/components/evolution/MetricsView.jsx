@@ -74,7 +74,7 @@ export default function MetricsView({ events, learnings }) {
                 <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="eventos" fill="#6C47D8" name="Nº de Eventos" />
+                <Bar dataKey="eventos" fill="#C02807" name="Nº de Eventos" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -117,7 +117,7 @@ export default function MetricsView({ events, learnings }) {
           <div className="flex flex-wrap gap-3">
             {typeFrequency.map(([type, count]) => (
               <Badge key={type} variant="secondary" className="text-sm px-4 py-2">
-                {type} <span className="ml-2 bg-[#D4CBF5] text-[#6C47D8] text-xs font-bold px-2 rounded-full">{count}</span>
+                {type} <span className="ml-2 bg-[#FFD4C8] text-[#C02807] text-xs font-bold px-2 rounded-full">{count}</span>
               </Badge>
             ))}
             {typeFrequency.length === 0 && <p className="text-sm text-slate-500">Nenhum tipo registrado.</p>}

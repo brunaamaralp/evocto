@@ -38,37 +38,37 @@
 
 .btn-primary {
   border: none;
-  background: var(--color-primary, #6c47d8);
+  background: var(--color-primary, #C02807);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(108, 71, 216, 0.22);
+  box-shadow: 0 2px 8px rgba(192, 40, 7, 0.22);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-primary, #6c47d8) 88%, #18162a);
+  background: color-mix(in srgb, var(--color-primary, #C02807) 88%, #18162a);
 }
 
 .btn-secondary {
   border: 0.5px solid var(--color-card-border, #e8e5f5);
-  background: var(--color-primary-surface, #ede9fb);
-  color: var(--color-primary, #6c47d8);
+  background: var(--color-primary-surface, #FCE8E3);
+  color: var(--color-primary, #C02807);
 }
 
 .btn-outline {
   border: 1px solid var(--color-card-border, #e8e5f5);
   background: var(--color-card-bg, #fff);
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
 }
 
 .btn-ghost {
   border: 1px solid transparent;
   background: transparent;
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
 }
 
 .btn-outline:hover:not(:disabled),
 .btn-ghost:hover:not(:disabled) {
-  background: var(--color-primary-surface, #ede9fb);
-  border-color: color-mix(in srgb, var(--color-primary-light, #afa9ec) 55%, var(--color-card-border, #e8e5f5));
+  background: var(--color-primary-surface, #FCE8E3);
+  border-color: color-mix(in srgb, var(--color-primary-light, #FF9A7A) 55%, var(--color-card-border, #e8e5f5));
 }
 
 .btn-sm {

@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 
 /**
- * Relatório de Auditoria - Evocto MVP
- * Data: 2025-01-21 | Branch: audit/2025-01-21-evocto-ux-ui-a11y-perf-sec
+ * Relatório de Auditoria - narrativa MVP
+ * Data: 2025-01-21 | Branch: audit/2025-01-21-narrativa-ux-ui-a11y-perf-sec
  */
 
 const auditResults = {
@@ -173,9 +173,9 @@ export default function EvoctoAuditReport() {
       
       {/* Header */}
       <div className="border-b pb-4">
-        <h1 className="text-2xl font-bold">Relatório de Auditoria - Evocto MVP</h1>
+        <h1 className="text-2xl font-bold">Relatório de Auditoria - narrativa MVP</h1>
         <p className="text-gray-600 mt-2">
-          Data: 2025-01-21 | Branch: audit/2025-01-21-evocto-ux-ui-a11y-perf-sec
+          Data: 2025-01-21 | Branch: audit/2025-01-21-narrativa-ux-ui-a11y-perf-sec
         </p>
       </div>
 

@@ -165,7 +165,7 @@ export default function BriefingCampanhaPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#6C47D8]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#C02807]" />
       </div>
     );
   }
@@ -311,12 +311,12 @@ export default function BriefingCampanhaPage() {
             </CardContent>
           </Card>
           <Card
-            className="rounded-2xl border-transparent shadow-sm bg-[#EDE9FB] cursor-pointer hover:border-[#D4CBF5] hover:shadow-md transition-all"
+            className="rounded-2xl border-transparent shadow-sm bg-[#FCE8E3] cursor-pointer hover:border-[#FFD4C8] hover:shadow-md transition-all"
             onClick={() => setStep('form')}
           >
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
-                <Keyboard className="w-4 h-4 text-[#6C47D8]" />
+                <Keyboard className="w-4 h-4 text-[#C02807]" />
                 Formulário rápido
               </CardTitle>
             </CardHeader>
@@ -330,7 +330,7 @@ export default function BriefingCampanhaPage() {
           >
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
-                <FileText className="w-4 h-4 text-[#6C47D8]" />
+                <FileText className="w-4 h-4 text-[#C02807]" />
                 Descrever a mão
               </CardTitle>
             </CardHeader>

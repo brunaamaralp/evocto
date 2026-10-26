@@ -145,7 +145,7 @@ select.task-select option {
   width: 100%; max-width: 480px;
   margin: auto;
   flex-shrink: 0;
-  box-shadow: 0 24px 60px rgba(0, 4, 53, 0.18), 0 2px 8px rgba(108, 71, 216,0.08);
+  box-shadow: 0 24px 60px rgba(0, 4, 53, 0.18), 0 2px 8px rgba(192, 40, 7,0.08);
   border: 0.5px solid var(--border-light);
   max-height: min(92vh, calc(100dvh - 32px)); overflow-y: auto;
 }
@@ -266,7 +266,7 @@ select.task-select option {
   padding: 12px 14px; border-bottom: 1px solid var(--border);
 }
 .tasks-kanban-col--late .tasks-kanban-col-head { background: rgba(220, 38, 38, 0.08); }
-.tasks-kanban-col--todo .tasks-kanban-col-head { background: rgba(108, 71, 216, 0.08); }
+.tasks-kanban-col--todo .tasks-kanban-col-head { background: rgba(192, 40, 7, 0.08); }
 .tasks-kanban-col--done .tasks-kanban-col-head { background: rgba(22, 163, 74, 0.1); }
 .tasks-kanban-col-title { font-size: 13px; font-weight: 700; color: var(--ink); }
 .tasks-quick-create {
@@ -347,7 +347,7 @@ select.task-select option {
 
 .tasks-kanban-col-drop-host .kanban-col-drop-zone {
   --kanban-col-accent: var(--v500);
-  --kanban-col-accent-bg: rgba(108, 71, 216, 0.08);
+  --kanban-col-accent-bg: rgba(192, 40, 7, 0.08);
 }
 
 .tasks-kanban-col--late .kanban-col-drop-zone {
@@ -365,7 +365,7 @@ select.task-select option {
   inset: 6px;
   border: 2px dashed color-mix(in srgb, var(--kanban-col-accent, var(--v500)) 55%, var(--border-mid));
   border-radius: 10px;
-  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(108, 71, 216, 0.08)) 70%, transparent);
+  background: color-mix(in srgb, var(--kanban-col-accent-bg, rgba(192, 40, 7, 0.08)) 70%, transparent);
   pointer-events: none;
   z-index: 3;
   display: flex;
@@ -391,7 +391,7 @@ select.task-select option {
   margin: 4px 0;
   border-radius: 10px;
   border: 2px dashed color-mix(in srgb, var(--v500) 50%, var(--border-mid));
-  background: rgba(108, 71, 216, 0.06);
+  background: rgba(192, 40, 7, 0.06);
 }
 
 .tasks-cal-layout {
@@ -424,8 +424,8 @@ select.task-select option {
 }
 .tasks-cal-cell--empty { background: transparent; border: none; min-height: 0; }
 .tasks-cal-cell--today {
-  border-color: var(--v500); box-shadow: 0 0 0 1px rgba(108, 71, 216, 0.25);
-  background: rgba(108, 71, 216, 0.04);
+  border-color: var(--v500); box-shadow: 0 0 0 1px rgba(192, 40, 7, 0.25);
+  background: rgba(192, 40, 7, 0.04);
 }
 .tasks-cal-day-num {
   font-size: 12px; font-weight: 800; color: var(--text-secondary); margin-bottom: 6px;
@@ -545,7 +545,7 @@ select.task-select option {
   gap: 10px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(108, 71, 216, 0.05) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(192, 40, 7, 0.05) 0%, transparent 100%);
 }
 .tasks-student-card__profile {
   display: flex;
@@ -581,7 +581,7 @@ select.task-select option {
   letter-spacing: 0.02em;
   color: var(--v700);
   background: var(--v50);
-  border: 1px solid rgba(108, 71, 216, 0.18);
+  border: 1px solid rgba(192, 40, 7, 0.18);
 }
 .tasks-student-card__avatar--unlinked {
   color: var(--text-muted);
@@ -651,7 +651,7 @@ select.task-select option {
   font-weight: 700;
   color: var(--v700);
   background: var(--v50);
-  border: 1px solid rgba(108, 71, 216, 0.15);
+  border: 1px solid rgba(192, 40, 7, 0.15);
   border-radius: 999px;
   padding: 3px 10px;
   line-height: 1.2;

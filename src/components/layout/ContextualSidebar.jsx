@@ -27,10 +27,11 @@ import {
   Clock,
   Handshake,
   ClipboardCheck,
+  KeyRound,
 } from 'lucide-react';
 import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
-import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
+import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientTasksHref } from '@/lib/taskScope';
@@ -199,6 +200,13 @@ export default function ContextualSidebar({
             currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
         },
         { type: 'section', label: 'Cliente' },
+        {
+          type: 'link',
+          label: 'Acessos e informações',
+          icon: KeyRound,
+          href: createPageUrl(`client-acessos?clientId=${clientId}`),
+          isActive: currentPage === 'client-acessos',
+        },
         {
           type: 'link',
           label: 'Documentos',
@@ -406,10 +414,10 @@ export default function ContextualSidebar({
             >
               {collapsed ? (
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-                  <EvoctoBrandLockup variant="mark" height={22} className="brightness-0 invert" />
+                  <NarrativaBrandLockup variant="mark" height={22} className="brightness-0 invert" />
                 </span>
               ) : (
-                <EvoctoBrandLockup variant="dark" height={26} className="max-w-[168px]" />
+                <NarrativaBrandLockup variant="dark" height={26} className="max-w-[168px]" />
               )}
             </Link>
           )}

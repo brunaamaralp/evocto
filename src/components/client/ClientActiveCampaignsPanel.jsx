@@ -37,7 +37,7 @@ function CampaignRow({ campaign }) {
         <div className="min-w-0 flex-1">
           <Link
             to={campaign.href}
-            className="block truncate text-base font-semibold text-[#18162A] hover:text-[#6C47D8]"
+            className="block truncate text-base font-semibold text-[#18162A] hover:text-[#C02807]"
           >
             {campaign.name}
           </Link>
@@ -72,7 +72,7 @@ function CampaignRow({ campaign }) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Button asChild size="sm" className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
+        <Button asChild size="sm" className="bg-[#C02807] hover:bg-[#8A1C05]">
           <Link to={campaign.href}>
             Abrir campanha
             <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -119,14 +119,14 @@ export default function ClientActiveCampaignsPanel({
             <button
               type="button"
               onClick={onCreateCampaign}
-              className="text-sm font-medium text-[#6C47D8] hover:underline"
+              className="text-sm font-medium text-[#C02807] hover:underline"
             >
               + Nova campanha
             </button>
           ) : (
             <Link
               to={newBriefHref}
-              className="text-sm font-medium text-[#6C47D8] hover:underline"
+              className="text-sm font-medium text-[#C02807] hover:underline"
             >
               + Nova campanha
             </Link>
@@ -145,14 +145,14 @@ export default function ClientActiveCampaignsPanel({
           {showCreateCta ? (
             onCreateCampaign ? (
               <Button
-                className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                className="bg-[#C02807] hover:bg-[#8A1C05]"
                 onClick={onCreateCampaign}
               >
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova campanha
               </Button>
             ) : (
-              <Button asChild className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
+              <Button asChild className="bg-[#C02807] hover:bg-[#8A1C05]">
                 <Link to={newBriefHref}>
                   <Plus className="mr-1.5 h-4 w-4" />
                   Nova campanha

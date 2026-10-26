@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '@/api/entities';
 import { User } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
@@ -383,7 +383,7 @@ function EnhancedKanbanColumn({ column, tasks, users, onCardClick, _isDraggingOv
   const useVirtualization = tasks.length > 50; // Virtualize when many tasks
 
   return (
-    <div className={`flex-shrink-0 w-80 min-w-80 rounded-2xl p-4 ${column.color || 'bg-[#F5F2FC]'}`}>
+    <div className={`flex-shrink-0 w-80 min-w-80 rounded-2xl p-4 ${column.color || 'bg-[#EEF4FA]'}`}>
       {/* Enhanced Column Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

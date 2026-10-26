@@ -1,7 +1,7 @@
 
 export const ptTranslations = {
   "app": {
-    "name": "Evocto",
+    "name": "narrativa",
     "tagline": "Inteligência Contínua para Agências"
   },
   "nav": {
@@ -423,7 +423,7 @@ export const ptTranslations = {
         "review": "Revisar Minhas Respostas"
       },
       "aiSuggestion": {
-        "label": "Sugestão do Evocto",
+        "label": "Sugestão da narrativa",
         "added": "Pergunta da IA adicionada ao briefing"
       },
       "errors": {
@@ -432,7 +432,7 @@ export const ptTranslations = {
     },
     "validation": {
       "analyzing": "Analisando sua resposta...",
-      "aiSuggestion": "Sugestão do Evocto",
+      "aiSuggestion": "Sugestão da narrativa",
       "followUpTriggered": "Pergunta adicional acionada",
       "incompleteResponse": "Resposta parece incompleta",
       "vagueness": "Resposta pode ser mais específica",
@@ -543,13 +543,13 @@ export const ptTranslations = {
     "validationError": "Erro de Validação"
   },
   "onboarding": {
-    "welcome": "Olá! Eu sou o Evocto, seu polvo de inteligência contínua! 🎯 Vou te guiar pelos primeiros passos para transformar sua agência numa máquina de resultados consistentes.",
+    "welcome": "Olá! Eu sou o narrativa, seu polvo de inteligência contínua! 🎯 Vou te guiar pelos primeiros passos para transformar sua agência numa máquina de resultados consistentes.",
     "addClient": "Primeiro, vamos adicionar seu cliente! 👥 Cada tentáculo meu vai capturar insights únicos dele. Clique em 'Novo Cliente' para começar.",
     "fillBriefing": "Perfeito! Agora preciso conhecer a fundo esse cliente. 📋 Vamos preencher o Briefing - quanto mais detalhes, melhores insights eu gero!",
     "generatePlan": "Briefing completo! ✨ Hora da mágica - vou gerar o primeiro Planejamento do Mês usando IA. Prepare-se para estratégias personalizadas!",
     "sendApproval": "Planejamento pronto! 🎉 Agora você pode enviar para aprovação do cliente. Um link será gerado para ele revisar e aprovar.",
     "showLearnings": "Por último, mas não menos importante: aqui ficam seus Aprendizados! 📚 Cada resultado que você registra vira inteligência para os próximos clientes.",
-    "completed": "Parabéns! 🎊 Você dominou os básicos do Evocto. Agora é só executar, registrar resultados e deixar a inteligência crescer. Vamos dominar o mercado juntos!",
+    "completed": "Parabéns! 🎊 Você dominou os básicos do narrativa. Agora é só executar, registrar resultados e deixar a inteligência crescer. Vamos dominar o mercado juntos!",
     "firstUse": {
       "clients": "Ops! Ainda não temos clientes por aqui. 🤔 Vamos adicionar o primeiro? Cada cliente é uma oportunidade de aprender e crescer!",
       "briefing": "Briefing vazio ainda! 📝 Preencha as informações do cliente para eu gerar insights poderosos. Quanto mais detalhes, melhor!",
@@ -626,11 +626,12 @@ export const ptTranslations = {
     "hero": {
       "title": "Orquestre seu time de marketing<br />com inteligência contínua",
       "subtitle": "Transforme cada entrega em aprendizado, alinhando briefing, aprovação e evolução estratégica com o cliente.",
-      "tagline": "Evocto é o hub operacional do seu marketing."
+      "tagline": "narrativa é o hub operacional do seu marketing."
     },
     "problems": {
       "title": "3 pilares para organizar sua operação de marketing",
-      "withEvoctoPrefix": "Com Evocto:",
+      "withNarrativaPrefix": "Com narrativa:",
+      "withEvoctoPrefix": "Com narrativa:",
       "planning": {
         "heading": "Planejamento Descentralizado",
         "problem": "Cada pessoa do time tem seu método. Planos ficam em planilhas isoladas, dificultando a visão global e o reaproveitamento do que funcionou.",
@@ -648,7 +649,7 @@ export const ptTranslations = {
       }
     },
     "benefits": {
-      "title": "O que sua agência ganha com o Evocto",
+      "title": "O que sua agência ganha com a narrativa",
       "dashboard": {
         "title": "Visão 360° do Cliente",
         "description": "Dashboard central com clientes, serviços, status e saúde da operação em um só lugar."

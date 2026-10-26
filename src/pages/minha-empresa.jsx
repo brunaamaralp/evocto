@@ -34,8 +34,8 @@ function emptyAgencyForm() {
   return {
     agencyName: '',
     logoUrl: '',
-    primaryColor: '#6C47D8',
-    secondaryColor: '#F5F2FC',
+    primaryColor: '#C02807',
+    secondaryColor: '#EEF4FA',
     contactEmail: '',
     contactPhone: '',
   };
@@ -60,8 +60,8 @@ export default function MinhaEmpresaPage() {
     setAgencyData({
       agencyName: agency.agencyName || '',
       logoUrl: agency.logoUrl || '',
-      primaryColor: agency.primaryColor || '#6C47D8',
-      secondaryColor: agency.secondaryColor || '#F5F2FC',
+      primaryColor: agency.primaryColor || '#C02807',
+      secondaryColor: agency.secondaryColor || '#EEF4FA',
       contactEmail: agency.contactEmail || '',
       contactPhone: agency.contactPhone || '',
     });
@@ -163,7 +163,7 @@ export default function MinhaEmpresaPage() {
           {canInvite && activeTab === 'equipe' ? (
             <Button
               size="sm"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
               onClick={() => setShowInviteModal(true)}
             >
               <Plus className="mr-1.5 h-4 w-4" />
@@ -175,7 +175,7 @@ export default function MinhaEmpresaPage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-[#F5F2FC] p-1 sm:grid sm:w-full sm:grid-cols-3">
+          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-[#EEF4FA] p-1 sm:grid sm:w-full sm:grid-cols-3">
             <TabsTrigger value="geral" className="gap-2 data-[state=active]:bg-white">
               <Building2 className="h-4 w-4 shrink-0" />
               Geral
@@ -245,7 +245,7 @@ export default function MinhaEmpresaPage() {
                 <Button
                   onClick={handleSaveAgency}
                   disabled={saving}
-                  className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                  className="bg-[#C02807] hover:bg-[#8A1C05]"
                 >
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -259,11 +259,11 @@ export default function MinhaEmpresaPage() {
           </div>
           <p className="text-xs text-[#7A7595]">
             Preferências pessoais e integrações ficam em{' '}
-            <Link to={createPageUrl('settings')} className="font-medium text-[#6C47D8] hover:underline">
+            <Link to={createPageUrl('settings')} className="font-medium text-[#C02807] hover:underline">
               Configurações
             </Link>
             . Financeiro operacional em{' '}
-            <Link to={createPageUrl('financeiro')} className="font-medium text-[#6C47D8] hover:underline">
+            <Link to={createPageUrl('financeiro')} className="font-medium text-[#C02807] hover:underline">
               Financeiro
             </Link>
             .
@@ -383,7 +383,7 @@ export default function MinhaEmpresaPage() {
                 <Button
                   onClick={handleSaveAgency}
                   disabled={saving}
-                  className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+                  className="bg-[#C02807] hover:bg-[#8A1C05]"
                 >
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

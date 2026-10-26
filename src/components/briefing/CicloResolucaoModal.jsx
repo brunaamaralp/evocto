@@ -47,7 +47,7 @@ export default function CicloResolucaoModal({
               <p className="text-xs text-slate-600">{CICLO_HINTS[cicloPlano]}</p>
             )}
           </div>
-          <div className="rounded-lg border border-[#D4CBF5] bg-[#F5F2FC] p-3 space-y-1">
+          <div className="rounded-lg border border-[#FFD4C8] bg-[#EEF4FA] p-3 space-y-1">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs uppercase tracking-wide text-slate-500">Detectado</p>
               {confianca > 0 && (
@@ -74,7 +74,7 @@ export default function CicloResolucaoModal({
             <Button
               type="button"
               variant={diverge ? 'outline' : 'default'}
-              className={!diverge ? 'bg-[#6C47D8] hover:bg-[#5A3BC0] text-white' : ''}
+              className={!diverge ? 'bg-[#C02807] hover:bg-[#8A1C05] text-white' : ''}
               onClick={() =>
                 onConfirm?.({
                   escolha: cicloPlano,
@@ -90,7 +90,7 @@ export default function CicloResolucaoModal({
           {cicloDetectado && (
             <Button
               type="button"
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+              className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
               onClick={() =>
                 onConfirm?.({
                   escolha: cicloDetectado,

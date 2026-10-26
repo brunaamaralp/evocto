@@ -92,7 +92,7 @@ export default function ServiceCard({
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               {isTemplate ? (
-                <Badge variant="secondary" className="bg-[#EDE9FB] text-[#4A2FA3]">
+                <Badge variant="secondary" className="bg-[#FCE8E3] text-[#8A1C05]">
                   Template
                 </Badge>
               ) : (

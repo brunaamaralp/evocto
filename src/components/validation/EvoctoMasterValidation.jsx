@@ -339,7 +339,7 @@ export default function EvoctoMasterValidation() {
     await validateEndToEnd();
     setOverallProgress(100);
 
-    toast.success('✅ Validação completa do Evocto finalizada!');
+    toast.success('✅ Validação completa do narrativa finalizada!');
   }, [
     agency?.id,
     validateDashboard,
@@ -458,7 +458,7 @@ export default function EvoctoMasterValidation() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Validação Completa do Evocto</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Validação Completa do narrativa</h1>
           <p className="text-slate-600 mt-1">
             Checklist master de funcionalidades da plataforma de inteligência contínua
           </p>
@@ -538,9 +538,9 @@ export default function EvoctoMasterValidation() {
           }>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>
-              {getOverallStatus() === 'pass' ? '✅ Evocto validado com sucesso!' :
-               getOverallStatus() === 'partial' ? '⚠️ Evocto parcialmente validado' :
-               '❌ Evocto precisa de ajustes'}
+              {getOverallStatus() === 'pass' ? '✅ narrativa validado com sucesso!' :
+               getOverallStatus() === 'partial' ? '⚠️ narrativa parcialmente validado' :
+               '❌ narrativa precisa de ajustes'}
             </AlertTitle>
             <AlertDescription>
               {getOverallStatus() === 'pass' ? 

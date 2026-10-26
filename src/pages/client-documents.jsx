@@ -19,7 +19,7 @@ import {
   FileText, Download, Upload, Eye,
   Search, User, 
   File, Image, Archive, Share2,
-  ArrowLeft, RefreshCw, Loader2
+  ArrowLeft, RefreshCw, Loader2, Sparkles
 } from 'lucide-react';
 import {
   Select,
@@ -36,26 +36,27 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getCardPastel } from '@/lib/modulePastels';
 import { UploadFile } from '@/api/integrations';
+import { buildGerarMaterialHref } from '@/lib/generateMaterialApi';
 
 const DOCUMENT_GROUPS = {
-  diagnostic: 'Diagnóstico',
-  report: 'Relatórios',
-  deliverable: 'Entregáveis',
+  diagnostic: 'Diagn�stico',
+  report: 'Relat�rios',
+  deliverable: 'Entreg�veis',
   contract: 'Contratos',
-  presentation: 'Apresentações', 
-  analysis: 'Análises',
+  presentation: 'Apresenta��es', 
+  analysis: 'An�lises',
   other: 'Outros'
 };
 
 const VISIBILITY_LABELS = {
   internal: 'Interno',
   client: 'Cliente',
-  public: 'Público'
+  public: 'P�blico'
 };
 
 const STATUS_LABELS = {
   draft: 'Rascunho',
-  review: 'Em Revisão',
+  review: 'Em Revis�o',
   approved: 'Aprovado',
   archived: 'Arquivado'
 };
@@ -63,8 +64,8 @@ const STATUS_LABELS = {
 const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlighted = false }) => {
   const getFileIcon = (fileType) => {
     if (fileType?.includes('pdf')) return <File className="w-5 h-5 text-red-500" />;
-    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#6C47D8]" />;
-    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-[#6C47D8]" />;
+    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#C02807]" />;
+    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-[#C02807]" />;
     if (fileType?.includes('excel') || fileType?.includes('sheet')) return <FileText className="w-5 h-5 text-green-600" />;
     return <File className="w-5 h-5 text-gray-500" />;
   };
@@ -80,7 +81,7 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlig
     <Card
       id={`document-${document.id}`}
       className={`rounded-2xl border-transparent shadow-sm hover:shadow-md transition-shadow ${
-        highlighted ? 'ring-2 ring-[#6C47D8] border-[#D4CBF5]' : ''
+        highlighted ? 'ring-2 ring-[#C02807] border-[#FFD4C8]' : ''
       }`}
     >
       <CardContent className="p-4">
@@ -217,7 +218,7 @@ export default function ClientDocumentsPage() {
 
   useEffect(() => {
     if (!clientId) {
-      toast.error('ID do cliente não fornecido');
+      toast.error('ID do cliente n�o fornecido');
       return;
     }
 
@@ -238,7 +239,7 @@ export default function ClientDocumentsPage() {
       return;
     }
     if (!agencyId || !clientId) {
-      toast.error('Cliente ou agência não identificados');
+      toast.error('Cliente ou ag�ncia n�o identificados');
       return;
     }
 
@@ -247,7 +248,7 @@ export default function ClientDocumentsPage() {
 
       const uploaded = await UploadFile({ file });
       const fileUrl = uploaded.file_url || uploaded.url;
-      if (!fileUrl) throw new Error('URL do arquivo não retornada');
+      if (!fileUrl) throw new Error('URL do arquivo n�o retornada');
 
       await ClientDocument.create({
         agencyId,
@@ -282,8 +283,8 @@ export default function ClientDocumentsPage() {
   };
 
   const handleViewDocument = async (_document) => {
-    // TODO: Implementar visualização do documento
-    toast.info('Visualização em desenvolvimento');
+    // TODO: Implementar visualiza��o do documento
+    toast.info('Visualiza��o em desenvolvimento');
   };
 
   const handleDownloadDocument = async (document) => {
@@ -302,8 +303,8 @@ export default function ClientDocumentsPage() {
   };
 
   const handleEditDocument = (_document) => {
-    // TODO: Implementar edição/compartilhamento
-    toast.info('Edição em desenvolvimento');
+    // TODO: Implementar edi��o/compartilhamento
+    toast.info('Edi��o em desenvolvimento');
   };
 
   // Filtrar documentos
@@ -320,7 +321,7 @@ export default function ClientDocumentsPage() {
     return matchesSearch && matchesGroup && matchesStatus && matchesVisibility;
   });
 
-  // Estatísticas
+  // Estat�sticas
   const stats = {
     total: documents.length,
     byGroup: Object.keys(DOCUMENT_GROUPS).reduce((acc, group) => {
@@ -342,8 +343,8 @@ export default function ClientDocumentsPage() {
       <div className="max-w-6xl mx-auto">
           <EmptyState
             icon={FileText}
-            title="Cliente não encontrado"
-            description="O cliente solicitado não existe ou você não tem permissão para acessá-lo."
+            title="Cliente n�o encontrado"
+            description="O cliente solicitado n�o existe ou voc� n�o tem permiss�o para acess�-lo."
             primaryAction={{
               label: 'Voltar aos Clientes',
               onClick: () => window.location.href = createPageUrl('clients')
@@ -379,18 +380,26 @@ export default function ClientDocumentsPage() {
               </p>
             </div>
           </div>
-          <Button size="sm" onClick={() => setUploadModalOpen(true)}>
-            <Upload className="w-4 h-4 mr-1" />
-            Upload
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link to={createPageUrl(buildGerarMaterialHref(clientId))}>
+                <Sparkles className="w-4 h-4 mr-1" />
+                Gerar com IA
+              </Link>
+            </Button>
+            <Button size="sm" onClick={() => setUploadModalOpen(true)}>
+              <Upload className="w-4 h-4 mr-1" />
+              Upload
+            </Button>
+          </div>
         </div>
 
-        {/* Estatísticas */}
+        {/* Estat�sticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
             { icon: FileText, label: 'Total de Documentos', value: stats.total, idx: 0 },
-            { icon: Eye, label: 'Visíveis ao Cliente', value: stats.byVisibility.client || 0, idx: 2 },
-            { icon: Archive, label: 'Relatórios', value: stats.byGroup.report || 0, idx: 3 },
+            { icon: Eye, label: 'Vis�veis ao Cliente', value: stats.byVisibility.client || 0, idx: 2 },
+            { icon: Archive, label: 'Relat�rios', value: stats.byGroup.report || 0, idx: 3 },
             { icon: User, label: 'Documentos Internos', value: stats.byVisibility.internal || 0, idx: 1 },
           ].map(({ icon: Icon, label, value, idx }) => {
             const pastel = getCardPastel(idx);
@@ -488,7 +497,7 @@ export default function ClientDocumentsPage() {
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onEdit={handleEditDocument}
-                onDelete={() => {}} // TODO: Implementar exclusão
+                onDelete={() => {}} // TODO: Implementar exclus�o
               />
             ))}
           </div>
@@ -499,7 +508,7 @@ export default function ClientDocumentsPage() {
             description={
               searchTerm || selectedGroup !== 'all'
                 ? 'Tente ajustar os filtros de busca'
-                : 'Este cliente ainda não possui documentos cadastrados.'
+                : 'Este cliente ainda n�o possui documentos cadastrados.'
             }
             primaryAction={{
               label: 'Upload Documento',
@@ -571,7 +580,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
       return;
     }
     if (!metadata.title.trim()) {
-      toast.error('Informe o título do documento');
+      toast.error('Informe o t�tulo do documento');
       return;
     }
     onUpload(file, metadata);
@@ -603,7 +612,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="document-title">Título</Label>
+            <Label htmlFor="document-title">T�tulo</Label>
             <Input
               id="document-title"
               value={metadata.title}
@@ -614,7 +623,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="document-description">Descrição (opcional)</Label>
+            <Label htmlFor="document-description">Descri��o (opcional)</Label>
             <Textarea
               id="document-description"
               value={metadata.description}

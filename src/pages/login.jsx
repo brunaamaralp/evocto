@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
-import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
-import EvoctoMascot from '@/components/brand/EvoctoMascot';
+import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
+import NarrativaIsotipo from '@/components/brand/NarrativaIsotipo';
 import { useSession, SESSION_STATUS } from '@/components/auth/SessionManager';
 
 function homeForUser(user) {
@@ -82,9 +82,9 @@ export default function LoginPage() {
 
   if (checkingSession || isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F2FC] via-white to-[#EDE9FB] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#EEF4FA] via-white to-[#FCE8E3] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3 text-[#7A7595]">
-          <Loader2 className="h-8 w-8 animate-spin text-[#6C47D8]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#C02807]" />
           <p className="text-sm">
             {isAuthenticated ? 'Abrindo seu painel...' : 'Verificando sessão...'}
           </p>
@@ -94,16 +94,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F2FC] via-white to-[#EDE9FB] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#EEF4FA] via-white to-[#FCE8E3] flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-[var(--shadow-elevated)] border-transparent">
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center gap-3">
-            <EvoctoMascot mark size={56} />
-            <EvoctoBrandLockup height={36} variant="auth" />
+            <NarrativaIsotipo mark size={56} />
+            <NarrativaBrandLockup height={36} variant="auth" />
           </div>
           <div>
             <CardTitle className="text-2xl text-[#18162A]">Entrar</CardTitle>
-            <p className="text-sm text-[#7A7595] mt-1">Acesse sua agência no Evocto</p>
+            <p className="text-sm text-[#7A6E6A] mt-1">Acesse sua agência na narrativa</p>
           </div>
         </CardHeader>
         <CardContent>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  className="pl-9 rounded-xl bg-[#F5F2FC] border-transparent focus-visible:ring-[#6C47D8]"
+                  className="pl-9 rounded-xl bg-[#EEF4FA] border-transparent focus-visible:ring-[#C02807]"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="pl-9 pr-10 rounded-xl bg-[#F5F2FC] border-transparent focus-visible:ring-[#6C47D8]"
+                  className="pl-9 pr-10 rounded-xl bg-[#EEF4FA] border-transparent focus-visible:ring-[#C02807]"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -159,7 +159,7 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex justify-between text-sm">
-              <Link to="/create-account" className="text-[#6C47D8] hover:underline font-medium">
+              <Link to="/create-account" className="text-[#C02807] hover:underline font-medium">
                 Criar conta
               </Link>
               <Link to="/password-reset" className="text-[#7A7595] hover:underline">

@@ -14,7 +14,7 @@
   pointer-events: none;
   background:
     radial-gradient(ellipse 100% 60% at 50% -10%, rgba(93, 226, 193, 0.1) 0%, transparent 55%),
-    linear-gradient(180deg, #0c0a14 0%, #13111f 100%);
+    linear-gradient(180deg, #0c0a14 0%, #1A0D0B 100%);
 }
 
 .legal-page__blob {
@@ -115,7 +115,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
@@ -151,7 +151,7 @@
 }
 
 .legal-doc__intro a {
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
   font-weight: 600;
 }
 
@@ -186,7 +186,7 @@
 }
 
 .legal-doc__foot a {
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
   font-weight: 600;
 }
 
@@ -213,12 +213,12 @@
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  accent-color: var(--color-primary, #6c47d8);
+  accent-color: var(--color-primary, #C02807);
   cursor: pointer;
 }
 
 .legal-consent a {
-  color: var(--color-primary, #6c47d8);
+  color: var(--color-primary, #C02807);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;

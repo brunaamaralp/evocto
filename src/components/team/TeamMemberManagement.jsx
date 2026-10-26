@@ -328,7 +328,7 @@ export default function TeamMemberManagement({
           {showInviteButton && canInvite && (
             <Button
               onClick={openInvite}
-              className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+              className="bg-[#C02807] hover:bg-[#8A1C05]"
             >
               <Plus className="w-4 h-4 mr-2" />
               Adicionar membro
@@ -371,10 +371,10 @@ export default function TeamMemberManagement({
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="members" className="data-[state=active]:bg-[#6C47D8] data-[state=active]:text-white">
+          <TabsTrigger value="members" className="data-[state=active]:bg-[#C02807] data-[state=active]:text-white">
             Membros ({members.length})
           </TabsTrigger>
-          <TabsTrigger value="invites" className="data-[state=active]:bg-[#6C47D8] data-[state=active]:text-white">
+          <TabsTrigger value="invites" className="data-[state=active]:bg-[#C02807] data-[state=active]:text-white">
             Convites ({invites.length})
           </TabsTrigger>
         </TabsList>
@@ -391,7 +391,7 @@ export default function TeamMemberManagement({
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum membro ainda</h3>
               <p className="text-gray-600 mb-4">Comece convidando seu primeiro membro da equipe.</p>
               {canInvite && (
-                <Button onClick={openInvite} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
+                <Button onClick={openInvite} className="bg-[#C02807] hover:bg-[#8A1C05]">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar membro
                 </Button>
@@ -412,7 +412,7 @@ export default function TeamMemberManagement({
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum convite enviado</h3>
               <p className="text-gray-600 mb-4">Convide membros para sua equipe.</p>
               {canInvite && (
-                <Button onClick={openInvite} className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
+                <Button onClick={openInvite} className="bg-[#C02807] hover:bg-[#8A1C05]">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar membro
                 </Button>

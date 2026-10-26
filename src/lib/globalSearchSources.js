@@ -148,7 +148,7 @@ export async function fetchGlobalSearchEntities(agencyId) {
       clientId: c.clientId || null,
       title: c.cyclePeriod || c.title || 'Ciclo',
       subtitle: c.status || '',
-      href: createPageUrl(`cycle-approval?id=${c.id}`),
+      href: createPageUrl(`cycle-approval?id=${encodeURIComponent(c.id)}`),
       group: 'Ciclos',
     })),
     partialFailure: failedSources.length > 0,

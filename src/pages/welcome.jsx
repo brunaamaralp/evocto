@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import EvoctoBrandLockup from '@/components/EvoctoBrandLockup';
-import EvoctoMascot from '@/components/brand/EvoctoMascot';
+import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
+import NarrativaIsotipo from '@/components/brand/NarrativaIsotipo';
 import { BRAND } from '@/lib/brandAssets';
 import { trialMarketing } from '@/lib/trialCopy';
 import { useSession } from '@/components/auth/SessionManager';
@@ -79,7 +79,7 @@ export default function WelcomePage() {
       <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
           <Link to="/" className="flex min-w-0 items-center shrink" aria-label={BRAND.name}>
-            <EvoctoBrandLockup
+            <NarrativaBrandLockup
               height={28}
               className="max-w-[112px] sm:max-w-[168px]"
             />
@@ -116,7 +116,7 @@ export default function WelcomePage() {
         <section className="relative overflow-hidden">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(108,71,216,0.07),transparent_45%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(192,40,7,0.07),transparent_45%)]"
           />
           <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 sm:gap-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
             <div className="space-y-6 sm:space-y-8">
@@ -160,10 +160,10 @@ export default function WelcomePage() {
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <EvoctoMascot
+              <NarrativaIsotipo
                 size="xl"
                 className="w-[6.75rem] sm:w-[11rem] lg:w-[15rem]"
-                alt={`${BRAND.name} — mascote`}
+                alt={`${BRAND.name} — isotipo`}
               />
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function WelcomePage() {
                         {index + 1}
                       </span>
                       <Icon
-                        className="h-5 w-5 text-[var(--color-primary,#6C47D8)]"
+                        className="h-5 w-5 text-[var(--color-primary,#C02807)]"
                         aria-hidden
                       />
                     </div>
@@ -264,7 +264,7 @@ export default function WelcomePage() {
         </section>
 
         {/* CTA final */}
-        <section className="bg-[var(--color-sidebar-bg,#13111F)] py-20 text-white">
+        <section className="bg-[var(--color-sidebar-bg,#1A0D0B)] py-20 text-white">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Seu time para de apagar incêndios
@@ -275,7 +275,7 @@ export default function WelcomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
                 size="lg"
-                className="bg-white px-8 text-[var(--color-primary,#6C47D8)] hover:bg-white/90"
+                className="bg-white px-8 text-[var(--color-primary,#C02807)] hover:bg-white/90"
                 asChild
               >
                 <Link to="/create-account">{trialMarketing.finalCta}</Link>
@@ -294,9 +294,9 @@ export default function WelcomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 bg-[var(--color-sidebar-bg,#13111F)] py-10 text-center text-sm text-[var(--color-sidebar-text,#7A7595)]">
+      <footer className="border-t border-white/10 bg-[var(--color-sidebar-bg,#1A0D0B)] py-10 text-center text-sm text-[var(--color-sidebar-text,#7A7595)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <EvoctoBrandLockup variant="dark" height={28} />
+          <NarrativaBrandLockup variant="dark" height={28} />
           <p>Operação de marketing mais clara para times, agências e clientes</p>
           <div className="flex flex-wrap items-center justify-center gap-6">
             <Link to="/terms-of-service" className="hover:text-white transition-colors">

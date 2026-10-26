@@ -184,6 +184,8 @@ import agencymanagement from "./agency-management";
 
 import clientdocuments from "./client-documents";
 
+import clientacessos from "./client-acessos";
+
 import clientfinanceiro from "./client-financeiro";
 
 import systemhealth from "./system-health";
@@ -219,6 +221,8 @@ import briefingCampanhaAnual from "./briefing-campanha-anual";
 import planejamento from "./planejamento";
 
 import briefingInicial from "./briefing-inicial";
+
+import gerarMaterial from "./gerar-material";
 
 import clientCampaign from "./client-campaign";
 
@@ -440,6 +444,8 @@ const PAGES = {
     
     "client-documents": clientdocuments,
 
+    "client-acessos": clientacessos,
+
     "client-financeiro": clientfinanceiro,
     
     "system-health": systemhealth,
@@ -475,6 +481,8 @@ const PAGES = {
     "planejamento": planejamento,
 
     "briefing-inicial": briefingInicial,
+
+    "gerar-material": gerarMaterial,
 
     "client-campaign": clientCampaign,
     "campaign": clientCampaign,
@@ -730,6 +738,8 @@ function PagesContent() {
                 
                 <Route path="/client-documents" element={createElement(clientdocuments)} />
 
+                <Route path="/client-acessos" element={createElement(clientacessos)} />
+
                 <Route path="/client-financeiro" element={createElement(clientfinanceiro)} />
                 
                 <Route path="/system-health" element={createElement(systemhealth)} />
@@ -765,6 +775,8 @@ function PagesContent() {
                 <Route path="/briefing-campanha-anual" element={createElement(briefingCampanhaAnual)} />
 
                 <Route path="/briefing-inicial" element={createElement(briefingInicial)} />
+
+                <Route path="/gerar-material" element={createElement(gerarMaterial)} />
 
                 <Route path="/client-campaign" element={createElement(clientCampaign)} />
                 <Route path="/campaign" element={createElement(clientCampaign)} />

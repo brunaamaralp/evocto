@@ -229,7 +229,7 @@ export default function ServiceTemplatesPage() {
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="bg-[#6C47D8] hover:bg-[#5A3BC0]"
+            className="bg-[#C02807] hover:bg-[#8A1C05]"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Template

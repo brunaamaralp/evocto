@@ -253,14 +253,14 @@ function buildAttentionQueue(tasks, clients, todayStart, approvalItems = []) {
 function overviewCountClass(tone) {
   if (tone === 'danger') return 'text-[#c0392b]';
   if (tone === 'warning') return 'text-[#b45309]';
-  if (tone === 'primary') return 'text-[#6C47D8]';
+  if (tone === 'primary') return 'text-[#C02807]';
   return 'text-[#18162A]';
 }
 
 function overviewAccentClass(tone) {
   if (tone === 'danger') return 'bg-[#c0392b]';
   if (tone === 'warning') return 'bg-[#b45309]';
-  if (tone === 'primary') return 'bg-[#6C47D8]';
+  if (tone === 'primary') return 'bg-[#C02807]';
   return 'bg-[#E8E5F5]';
 }
 
@@ -421,7 +421,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
         {isAgenda && item.dueLabel ? (
           <span
             className={`text-[11px] font-medium tabular-nums ${
-              item.dueLabel === 'Hoje' ? 'text-[#6C47D8]' : 'text-[#7A7595]'
+              item.dueLabel === 'Hoje' ? 'text-[#C02807]' : 'text-[#7A7595]'
             }`}
           >
             {item.dueLabel}
@@ -441,7 +441,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
     variant === 'attention' && isOverdue
       ? 'border-l-[#c0392b]'
       : variant === 'attention'
-        ? 'border-l-[#6C47D8]'
+        ? 'border-l-[#C02807]'
         : isAgenda
           ? 'border-l-transparent'
           : 'border-l-transparent';
@@ -500,7 +500,7 @@ function CampaignProgressBar({ completed, total }) {
         aria-label={`Progresso: ${pct}%`}
       >
         <div
-          className="h-full rounded-full bg-[#6C47D8] transition-[width] duration-300"
+          className="h-full rounded-full bg-[#C02807] transition-[width] duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -538,7 +538,7 @@ function PortfolioSection({ portfolio }) {
         </h2>
         <Link
           to={createPageUrl('clients')}
-          className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+          className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
         >
           {portfolio.truncated ? 'Ver todos' : 'Clientes'}
         </Link>
@@ -563,7 +563,7 @@ function PortfolioSection({ portfolio }) {
                 <td className="px-3.5 py-2.5">
                   <Link
                     to={row.href}
-                    className="font-medium text-[#18162A] hover:text-[#6C47D8]"
+                    className="font-medium text-[#18162A] hover:text-[#C02807]"
                   >
                     {row.name}
                   </Link>
@@ -843,7 +843,7 @@ export default function DashboardPage() {
             Sua conta não está vinculada a uma agência. Crie uma conta de agência ou peça um convite ao administrador.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button asChild className="bg-[#6C47D8] hover:bg-[#5A3BC0]">
+            <Button asChild className="bg-[#C02807] hover:bg-[#8A1C05]">
               <Link to="/create-account">Criar agência</Link>
             </Button>
             <Button asChild variant="outline">
@@ -951,7 +951,7 @@ export default function DashboardPage() {
             </Button>
             <Button
               type="button"
-              className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto"
+              className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto"
               onClick={() => {
                 setCreateKind('task');
                 setCreateOpen(true);
@@ -962,7 +962,7 @@ export default function DashboardPage() {
             </Button>
           </div>
         ) : (
-          <Button asChild className="w-full shrink-0 bg-[#6C47D8] hover:bg-[#5A3BC0] sm:w-auto">
+          <Button asChild className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto">
             <Link to={nextSetupStep?.href || createPageUrl('clients')}>
               <Plus className="mr-1.5 h-4 w-4" />
               {nextSetupStep?.cta || 'Começar'}
@@ -982,7 +982,7 @@ export default function DashboardPage() {
                 <Link
                   to={card.href}
                   title={card.definition}
-                  className="group flex flex-col gap-2 rounded-xl border border-[#E8E5F5] bg-white px-3.5 py-3.5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/35"
+                  className="group flex flex-col gap-2 rounded-xl border border-[#E8E5F5] bg-white px-3.5 py-3.5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
                 >
                   <span
                     className={`h-0.5 w-6 rounded-full ${overviewAccentClass(card.tone)}`}
@@ -1016,8 +1016,8 @@ export default function DashboardPage() {
                   Precisa de atenção
                 </h2>
                 <Link
-                  to={buildTasksManagerHref({})}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+                  to={buildTasksManagerHref({ preset: 'agency_overdue' })}
+                  className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
                 >
                   Ver todas
                 </Link>
@@ -1044,12 +1044,12 @@ export default function DashboardPage() {
                   id="work-agenda-heading"
                   className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
                 >
-                  <CalendarDays className="h-4 w-4 text-[#6C47D8]" aria-hidden />
+                  <CalendarDays className="h-4 w-4 text-[#C02807]" aria-hidden />
                   Agenda
                 </h2>
                 <Link
-                  to={buildTasksManagerHref({})}
-                  className="shrink-0 text-sm font-medium text-[#6C47D8] hover:underline"
+                  to={buildTasksManagerHref({ preset: 'this_week' })}
+                  className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
                 >
                   Ver todas
                 </Link>
@@ -1111,7 +1111,7 @@ export default function DashboardPage() {
           {hasCampaigns ? (
             <Link
               to={createPageUrl('clients')}
-              className="text-sm font-medium text-[#6C47D8] hover:underline"
+              className="text-sm font-medium text-[#C02807] hover:underline"
             >
               {focusCampaigns.truncated ? 'Ver todas' : 'Clientes'}
             </Link>
@@ -1159,7 +1159,7 @@ export default function DashboardPage() {
                     {!step.done ? (
                       <Link
                         to={step.href}
-                        className="mt-2 inline-flex items-center text-sm font-medium text-[#6C47D8] hover:underline"
+                        className="mt-2 inline-flex items-center text-sm font-medium text-[#C02807] hover:underline"
                       >
                         {step.cta}
                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -1185,7 +1185,7 @@ export default function DashboardPage() {
                         <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#6C47D8]">
+                        <span className="shrink-0 text-sm font-medium text-[#C02807]">
                           Definir entrega
                         </span>
                       </Link>
@@ -1208,7 +1208,7 @@ export default function DashboardPage() {
                         <span className="truncate text-sm font-medium text-[#18162A]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#6C47D8]">
+                        <span className="shrink-0 text-sm font-medium text-[#C02807]">
                           Criar campanha
                         </span>
                       </Link>
@@ -1265,7 +1265,7 @@ export default function DashboardPage() {
                   <li key={`${campaign.clientId}-${campaign.id}`}>
                     <Link
                       to={campaign.href}
-                      className="block h-full rounded-xl border border-[#E8E5F5] p-4 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C47D8]/35"
+                      className="block h-full rounded-xl border border-[#E8E5F5] p-4 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -1302,7 +1302,7 @@ export default function DashboardPage() {
       >
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
           onClick={() => {
             setCreateKind('task');
             setCreateOpen(true);
@@ -1313,14 +1313,14 @@ export default function DashboardPage() {
         </button>
         <Link
           to={createPageUrl('clients')}
-          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
         >
           <FolderOpen className="h-3.5 w-3.5" aria-hidden />
           Clientes
         </Link>
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
           onClick={() => openGlobalSearch()}
         >
           <Search className="h-3.5 w-3.5" aria-hidden />
@@ -1328,7 +1328,7 @@ export default function DashboardPage() {
         </button>
         <Link
           to={createPageUrl('approval-dashboard')}
-          className="inline-flex items-center gap-1.5 font-medium text-[#6C47D8] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
         >
           <ClipboardList className="h-3.5 w-3.5" aria-hidden />
           Aprovações

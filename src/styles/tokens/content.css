@@ -4,31 +4,31 @@
  */
 
 :root {
-  --color-primary: #6C47D8;
-  --color-primary-light: #AFA9EC;
-  --color-primary-surface: #EDE9FB;
-  --color-primary-dark: #4A2FA3;
-  --color-accent: #22C98A;
-  --color-accent-light: #80E8C4;
-  --color-accent-surface: #D0F7EC;
-  --color-accent-dark: #085041;
-  --color-highlight: #B2F100;
-  --color-highlight-surface: #F0FFB8;
-  --color-content-bg: #FFFFFF;
-  --color-card-bg: #FFFFFF;
-  --color-card-border: #E8E5F5;
-  --color-text-primary: #18162A;
+  --color-primary: #C02807;
+  --color-primary-light: #FF643D;
+  --color-primary-surface: #FCE8E3;
+  --color-primary-dark: #8A1C05;
+  --color-accent: #FF643D;
+  --color-accent-light: #FF9A7A;
+  --color-accent-surface: #FFE8E0;
+  --color-accent-dark: #C4451F;
+  --color-highlight: #BBD9F4;
+  --color-highlight-surface: #E8F2FB;
+  --color-content-bg: #FFFCFC;
+  --color-card-bg: #FFFCFC;
+  --color-card-border: #E5ECF3;
+  --color-text-primary: #1A1210;
   --color-text-heading: var(--color-text-primary);
-  --color-text-secondary: #9896A8;
+  --color-text-secondary: #7A6E6A;
   --color-danger: #E24B4A;
   --color-warning: #C47A00;
   --color-border: var(--color-card-border);
   --color-white: #FFFFFF;
   --color-surface: var(--color-card-bg);
   --color-surface-canvas: var(--color-content-bg);
-  --color-badge-primary-text: #4A2FA3;
-  --color-status-positive-text: var(--color-accent-dark);
-  --color-agenda-today-bg: #FAFAFE;
+  --color-badge-primary-text: #8A1C05;
+  --color-status-positive-text: #1F6B4A;
+  --color-agenda-today-bg: #F5F9FC;
 }
 
 .navi-main-stack .main-content {
@@ -76,12 +76,12 @@
 .navi-main-stack .main-content .btn-primary {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(108, 71, 216, 0.22);
+  box-shadow: 0 2px 8px rgba(192, 40, 7, 0.22);
 }
 
 .navi-main-stack .main-content .btn-primary:hover {
-  background: color-mix(in srgb, var(--color-primary) 88%, #18162A);
-  box-shadow: 0 4px 14px rgba(108, 71, 216, 0.28);
+  background: color-mix(in srgb, var(--color-primary) 88%, #1A1210);
+  box-shadow: 0 4px 14px rgba(192, 40, 7, 0.28);
 }
 
 /* Botões secundários */

@@ -107,8 +107,8 @@ export function TailwindBuilder() {
         },
         backgroundImage: {
           'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-          'evocto-gradient': 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
-          'evocto-gradient-hover': 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+          'narrativa-gradient': 'linear-gradient(135deg, #C02807 0%, #FF643D 100%)',
+          'narrativa-gradient-hover': 'linear-gradient(135deg, #8A1C05 0%, #C4451F 100%)',
         },
         boxShadow: {
           'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',

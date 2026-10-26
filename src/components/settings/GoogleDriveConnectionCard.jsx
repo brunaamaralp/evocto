@@ -81,7 +81,7 @@ export default function GoogleDriveConnectionCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-600">
-          Arquivos de aprovação ficam no Drive da agência. O cliente acessa só pelo link do Evocto.
+          Arquivos de aprovação ficam no Drive da agência. O cliente acessa só pelo link do narrativa.
         </p>
 
         {loading ? (

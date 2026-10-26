@@ -133,7 +133,7 @@ export function ClientLayout({ children }) {
                     className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
                     style={{
                       background: agency?.primaryColor ? 
-                        `linear-gradient(135deg, ${agency.primaryColor} 0%, ${agency.secondaryColor || '#8B5CF6'} 100%)` :
+                        `linear-gradient(135deg, ${agency.primaryColor} 0%, ${agency.secondaryColor || '#FF643D'} 100%)` :
                         undefined
                     }}
                   >

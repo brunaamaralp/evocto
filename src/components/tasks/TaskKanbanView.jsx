@@ -92,6 +92,15 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
               isOverdue ? 'border-red-200 bg-red-50' : ''
             } ${hasSpecialFlags ? 'ring-2 ring-blue-200' : ''}`}
               style={isOverdue ? undefined : assigneeStyle}
+              onClick={() => onEditTask?.(task)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onEditTask?.(task);
+                }
+              }}
             >
               <CardContent className="p-4">
                 {/* Header da Tarefa */}

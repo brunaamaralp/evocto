@@ -16,16 +16,13 @@ import {
 } from '@/lib/empresaConfig';
 import {
   BRIEF_KIND_INICIAL,
-  buildAnualPayloadFromInicial,
+  buildBriefingInicialBriefPayload,
   emptyBriefingInicialForm,
   normalizeBriefingInicialForm,
   validateBriefingInicialForm,
   countInicialProgress,
 } from '@/lib/briefingInicial';
-import {
-  BRIEF_KIND_ANUAL,
-  normalizeCampanhaAnualPayload,
-} from '@/lib/campanhaAnualSchema';
+import { buildAgencyTeamRowPermissions } from '@/lib/publicBriefingPermissions';
 
 const SYSTEM_KEYS = new Set([
   'id',
@@ -139,17 +136,37 @@ async function updatePublicRow(tableId, rowId, data) {
   return mergeRow(updated);
 }
 
-function teamAndPublicPerms(agencyId, { allowPublicUpdate = false } = {}) {
-  const perms = [
-    Permission.read(Role.any()),
-    Permission.read(Role.team(agencyId)),
-    Permission.update(Role.team(agencyId)),
-    Permission.delete(Role.team(agencyId)),
-  ];
-  if (allowPublicUpdate) {
-    perms.push(Permission.update(Role.any()));
+/**
+ * Least privilege for NEW briefing rows.
+ * Guests use /api/public-briefing (admin). Do not grant Role.any().
+ * @deprecated name kept for call-site clarity; ignores allowPublicUpdate.
+ */
+function teamAndPublicPerms(agencyId, _opts = {}) {
+  return buildAgencyTeamRowPermissions(agencyId, { Permission, Role });
+}
+
+/**
+ * Call server public-briefing API (preferred path for validate/save).
+ * @param {string} route
+ * @param {{ method?: string, token?: string, body?: object }} opts
+ */
+async function callPublicBriefingApi(route, { method = 'GET', token, body } = {}) {
+  const params = new URLSearchParams({ route });
+  if (method === 'GET' && token) params.set('token', token);
+  const url = `/api/public-briefing?${params}`;
+  const res = await fetch(url, {
+    method,
+    headers: method === 'GET' ? undefined : { 'Content-Type': 'application/json' },
+    body: method === 'GET' ? undefined : JSON.stringify(body || { token }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || data.message || 'Erro na API de briefing');
+    err.status = res.status;
+    err.errors = data.errors;
+    throw err;
   }
-  return perms;
+  return data;
 }
 
 function publicUrlForToken(token) {
@@ -175,8 +192,8 @@ function isInicialToken(t) {
 }
 
 /**
- * Gera link público do briefing inicial (Empresa + insumos do plano anual).
- * Máximo 1 token ativo de briefing_inicial por cliente.
+ * Gera link p�blico do briefing inicial (DNA da empresa).
+ * M�ximo 1 token ativo de briefing_inicial por cliente.
  */
 export async function generatePublicBriefingToken({
   clientId,
@@ -188,19 +205,19 @@ export async function generatePublicBriefingToken({
   agencyId: agencyIdArg = null,
   briefKind = BRIEF_KIND_INICIAL,
 } = {}) {
-  if (!clientId) throw new Error('clientId é obrigatório');
+  if (!clientId) throw new Error('clientId � obrigat�rio');
 
   const kind = briefKind || BRIEF_KIND_INICIAL;
   if (kind !== BRIEF_KIND_INICIAL) {
     throw new Error(
-      'Links públicos só são permitidos para o briefing inicial da empresa'
+      'Links p�blicos s� s�o permitidos para o briefing inicial da empresa'
     );
   }
 
   const account = getAccount();
   const user = await account.get();
   const client = await Client.get(clientId);
-  if (!client) throw new Error('Cliente não encontrado');
+  if (!client) throw new Error('Cliente n�o encontrado');
 
   const agencyId = agencyIdArg || client.agencyId;
   if (!agencyId) throw new Error('agencyId ausente');
@@ -273,28 +290,26 @@ export async function generatePublicBriefingToken({
     };
   }
 
-  const draftAnual = {
+  const draftInicial = {
     agencyId,
     clientId,
     projectId: clientId,
     empresaId: empresa?.id || null,
-    brief_kind: BRIEF_KIND_ANUAL,
-    title: `Plano anual ${emptyForm.ano} — aguardando cliente`,
+    brief_kind: BRIEF_KIND_INICIAL,
+    title: `Briefing inicial � ${client.name || 'aguardando cliente'}`,
     status: 'DRAFT',
-    status_anual: 'rascunho',
-    ano: emptyForm.ano,
-    ciclos_comerciais: emptyForm.ciclos_comerciais,
-    briefings_mes: emptyForm.briefings_mes,
-    campanhas: [],
     completion_score: 0,
     is_public_briefing: true,
     origem_briefing_inicial: true,
     public_token: token,
+    objectives: 'Briefing inicial da empresa',
+    business_context:
+      'DNA da marca � an�lise pr�via antes do planejamento m�s a m�s',
   };
 
   await createPublicRow(
     'briefs',
-    { ...draftAnual, id: briefId },
+    { ...draftInicial, id: briefId },
     teamAndPublicPerms(agencyId, { allowPublicUpdate: true })
   );
 
@@ -308,7 +323,7 @@ export async function generatePublicBriefingToken({
       briefId,
       status: 'draft',
       responses: emptyForm,
-      progressData: { totalSteps: 6, completedCount: 0 },
+      progressData: { totalSteps: 5, completedCount: 0 },
       lastSavedAt: new Date().toISOString(),
       metadata: { language, briefKind: BRIEF_KIND_INICIAL },
     },
@@ -363,13 +378,21 @@ export async function generatePublicBriefingToken({
 }
 
 /**
- * Valida token público (sem login).
+ * Valida token público (sem login). Prefere API admin; fallback SDK só se a API estiver indisponível.
  */
 export async function validatePublicBriefingToken({ token } = {}) {
   if (!token) {
     const err = new Error('Token obrigatório');
     err.status = 400;
     throw err;
+  }
+
+  try {
+    const apiResult = await callPublicBriefingApi('validate', { method: 'GET', token });
+    if (apiResult?.data) return { success: true, status: 200, data: apiResult.data };
+  } catch (apiErr) {
+    // Fallback: tokens legados com Role.any() ainda podem ser lidos via SDK.
+    if (apiErr?.status && apiErr.status !== 404 && apiErr.status < 500) throw apiErr;
   }
 
   let record;
@@ -382,7 +405,7 @@ export async function validatePublicBriefingToken({ token } = {}) {
   }
 
   if (!record || record.token !== token) {
-    const err = new Error('Token não encontrado');
+    const err = new Error('Token n�o encontrado');
     err.status = 404;
     throw err;
   }
@@ -443,13 +466,13 @@ export async function validatePublicBriefingToken({ token } = {}) {
 
   const fromResponse = response?.responses || {};
   const draftForm = normalizeBriefingInicialForm(
-    fromResponse.empresa || fromResponse.ciclos_comerciais
+    fromResponse.empresa
       ? fromResponse
       : {
-          empresa: fromResponse,
-          ano: brief?.ano,
-          ciclos_comerciais: brief?.ciclos_comerciais,
-          briefings_mes: brief?.briefings_mes,
+          empresa:
+            fromResponse.nome || fromResponse.publico_alvo
+              ? fromResponse
+              : brief?.empresa_snapshot || fromResponse,
         },
     record.clientSnapshot?.name || ''
   );
@@ -476,7 +499,8 @@ export async function validatePublicBriefingToken({ token } = {}) {
 }
 
 /**
- * Salva respostas do briefing inicial (Empresa + ciclos/seeds → plano anual).
+ * Salva respostas do briefing inicial (DNA da empresa → Brief briefing_inicial).
+ * Prefere API admin (sem Role.any()); fallback SDK + apply-client para legado.
  */
 export async function savePublicBriefingResponse({
   token,
@@ -486,11 +510,26 @@ export async function savePublicBriefingResponse({
 } = {}) {
   if (!token) throw new Error('Token obrigatório');
 
+  try {
+    const apiResult = await callPublicBriefingApi('save', {
+      method: 'POST',
+      body: { token, inicialForm, campanhaForm, draft },
+    });
+    if (apiResult?.success !== false) {
+      return {
+        success: true,
+        data: apiResult.data || apiResult,
+      };
+    }
+  } catch (apiErr) {
+    if (apiErr?.status && apiErr.status >= 400 && apiErr.status < 500) throw apiErr;
+  }
+
   const validation = await validatePublicBriefingToken({ token });
   const ctx = validation.data;
 
   if (ctx.alreadySubmitted && !draft) {
-    const err = new Error('Briefing já foi enviado');
+    const err = new Error('Briefing j� foi enviado');
     err.status = 409;
     throw err;
   }
@@ -498,7 +537,7 @@ export async function savePublicBriefingResponse({
   // Legacy callers passing campanhaForm are rejected for new tokens
   if (campanhaForm && !inicialForm && ctx.briefKind === BRIEF_KIND_INICIAL) {
     const err = new Error(
-      'Este link é do briefing inicial. Envie empresa + insumos do plano anual.'
+      'Este link � do briefing inicial. Envie os dados da empresa.'
     );
     err.status = 400;
     throw err;
@@ -512,7 +551,7 @@ export async function savePublicBriefingResponse({
   if (!draft) {
     const { valid, errors } = validateBriefingInicialForm(form);
     if (!valid) {
-      const err = new Error('Preencha todos os campos obrigatórios');
+      const err = new Error('Preencha todos os campos obrigat�rios');
       err.errors = errors;
       err.status = 400;
       throw err;
@@ -539,7 +578,7 @@ export async function savePublicBriefingResponse({
   let empresaUpdated = false;
   let clientUpdated = false;
 
-  // Com sessão (agência): grava Empresa + Brief direto
+  // Com sess�o (ag�ncia): grava Empresa + Brief direto
   try {
     await getAccount().get();
     empresa = await saveEmpresa({
@@ -552,57 +591,55 @@ export async function savePublicBriefingResponse({
     empresaUpdated = true;
 
     const existingBrief = await Brief.get(ctx.briefId).catch(() => null);
-    const anualPayload = buildAnualPayloadFromInicial({
+    const inicialPayload = buildBriefingInicialBriefPayload({
       agencyId: ctx.agencyId,
       clientId: ctx.clientId,
       empresa,
       form,
       existing: existingBrief,
+      origem: 'publico',
     });
-    anualPayload.is_public_briefing = true;
-    anualPayload.origem_briefing_inicial = true;
-    anualPayload.public_token = token;
-    anualPayload.public_submitted_at = draft ? null : new Date().toISOString();
-    anualPayload.status = draft ? 'DRAFT' : anualPayload.status;
-    anualPayload.completion_score = draft ? 30 : anualPayload.completion_score;
+    inicialPayload.is_public_briefing = true;
+    inicialPayload.origem_briefing_inicial = true;
+    inicialPayload.public_token = token;
+    inicialPayload.public_submitted_at = draft ? null : new Date().toISOString();
+    inicialPayload.status = draft ? 'DRAFT' : 'READY';
+    inicialPayload.completion_score = draft ? 30 : 100;
 
-    brief = await Brief.update(ctx.briefId, anualPayload);
+    brief = await Brief.update(ctx.briefId, inicialPayload);
     briefUpdated = true;
 
     if (!draft) {
       await Client.update(ctx.clientId, {
         ultimo_briefing_id: ctx.briefId,
-        ultimo_briefing_campanha: `Plano anual ${form.ano}`,
+        ultimo_briefing_campanha: `Briefing inicial � ${form.empresa.nome || ''}`,
         ultimo_briefing_em: new Date().toISOString(),
         ultimo_briefing_objetivo: 'Briefing inicial da empresa',
       });
       clientUpdated = true;
     }
   } catch {
-    // Guest: tenta patch público do brief + API admin
+    // Guest: tenta patch p�blico do brief + API admin
     try {
       const patch = {
-        brief_kind: BRIEF_KIND_ANUAL,
-        title: `Plano anual ${form.ano} — ${form.empresa.nome || 'Campanhas'}`,
-        status: draft ? 'DRAFT' : 'DRAFT',
-        status_anual: draft ? 'rascunho' : 'input_pronto',
-        ano: form.ano,
-        ciclos_comerciais: form.ciclos_comerciais,
-        briefings_mes: form.briefings_mes,
+        brief_kind: BRIEF_KIND_INICIAL,
+        title: `Briefing inicial � ${form.empresa.nome || 'Cliente'}`,
+        status: draft ? 'DRAFT' : 'READY',
         produtos_snapshot: form.empresa.produtos_linhas,
+        empresa_snapshot: form.empresa,
         is_public_briefing: true,
         origem_briefing_inicial: true,
         public_token: token,
         public_submitted_at: draft ? null : new Date().toISOString(),
-        completion_score: draft ? 30 : 60,
+        completion_score: draft ? 30 : 100,
         editado_em: new Date().toISOString(),
-        // snapshot empresa no brief até apply-client criar Empresa
+        // snapshot empresa no brief at� apply-client criar Empresa
         _empresa_form: form.empresa,
       };
       brief = await updatePublicRow('briefs', ctx.briefId, patch);
       briefUpdated = true;
     } catch (err) {
-      console.warn('Guest não atualizou brief (ok):', err?.message || err);
+      console.warn('Guest n�o atualizou brief (ok):', err?.message || err);
     }
   }
 
@@ -622,7 +659,6 @@ export async function savePublicBriefingResponse({
       ? undefined
       : {
           tipo: BRIEF_KIND_INICIAL,
-          ano: form.ano,
           empresa_nome: form.empresa.nome,
           briefId: ctx.briefId,
           responseId: ctx.responseId,
@@ -683,7 +719,7 @@ export async function revokePublicBriefingToken({
     const inicial = (rows || []).find((t) => isInicialToken(t));
     targetId = inicial?.id || inicial?.token || rows?.[0]?.id || rows?.[0]?.token;
   }
-  if (!targetId) throw new Error('tokenId não encontrado');
+  if (!targetId) throw new Error('tokenId n�o encontrado');
 
   const updated = await PublicBriefingToken.update(targetId, {
     status: 'revoked',
@@ -696,7 +732,7 @@ export async function revokePublicBriefingToken({
 }
 
 /**
- * Sincroniza Empresa + plano anual a partir da resposta pública (agência).
+ * Sincroniza Empresa + briefing inicial a partir da resposta p�blica (ag�ncia).
  */
 export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   if (!briefId && !tokenHint) return null;
@@ -733,6 +769,10 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
     if (response?.responses) {
       form = normalizeBriefingInicialForm(response.responses);
     }
+  } else if (brief._empresa_form || brief.empresa_snapshot) {
+    form = normalizeBriefingInicialForm({
+      empresa: brief._empresa_form || brief.empresa_snapshot,
+    });
   }
 
   const { valid } = validateBriefingInicialForm(form);
@@ -752,22 +792,25 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   }
 
   if (empresa) {
-    const payload = buildAnualPayloadFromInicial({
+    const payload = buildBriefingInicialBriefPayload({
       agencyId: brief.agencyId,
       clientId: brief.clientId,
       empresa,
       form,
-      existing: normalizeCampanhaAnualPayload(brief),
+      existing: brief,
+      origem: 'publico',
     });
     payload.is_public_briefing = true;
     payload.origem_briefing_inicial = true;
+    payload.status = 'READY';
+    payload.completion_score = 100;
     payload.public_submitted_at = new Date().toISOString();
     brief = await Brief.update(resolvedBriefId, payload);
   }
 
   await Client.update(brief.clientId, {
     ultimo_briefing_id: resolvedBriefId,
-    ultimo_briefing_campanha: `Plano anual ${form.ano || brief.ano || ''}`,
+    ultimo_briefing_campanha: `Briefing inicial � ${form.empresa?.nome || empresa?.nome || ''}`,
     ultimo_briefing_em: new Date().toISOString(),
     ultimo_briefing_objetivo: 'Briefing inicial da empresa',
   });

@@ -25,15 +25,15 @@ export const CLIENT_CONTEXT = {
 };
 
 export const GLOBAL_SHELL = {
-  sidebarBg: 'bg-[#13111F]',
-  sidebarText: 'text-[#C4B4F5]',
+  sidebarBg: 'bg-[#1A0D0B]',
+  sidebarText: 'text-[#FFD4C8]',
   sidebarMuted: 'text-[#7A7595]',
   sidebarBorder: 'border-white/5',
-  sidebarHover: 'hover:bg-white/5 hover:text-[#EDE9FB]',
-  sidebarActive: 'bg-[rgba(108,71,216,0.28)] text-[#EDE9FB] shadow-sm',
-  sidebarIconActive: 'text-[#AFA9EC]',
-  logoBg: 'bg-[#6C47D8]',
-  avatarBg: 'bg-[#6C47D8]',
+  sidebarHover: 'hover:bg-white/5 hover:text-[#FCE8E3]',
+  sidebarActive: 'bg-[rgba(192,40,7,0.28)] text-[#FCE8E3] shadow-sm',
+  sidebarIconActive: 'text-[#FF9A7A]',
+  logoBg: 'bg-[#C02807]',
+  avatarBg: 'bg-[#C02807]',
 };
 
 export function isClientContextPath(pathname = '', search = '') {

@@ -4,6 +4,7 @@
  */
 
 import { Task } from '@/api/entities';
+import { buildTaskScopeFields } from '@/lib/taskScope';
 
 /**
  * @param {object} input
@@ -24,6 +25,9 @@ import { Task } from '@/api/entities';
  * @param {string|null} [input.activityKind]
  * @param {string[]} [input.extraTags]
  * @param {string|null} [input.startDate]
+ * @param {string|null} [input.cycleId]
+ * @param {string|null} [input.briefingId]
+ * @param {string|null} [input.kanbanColumn]
  */
 export function buildManualTaskPayload(input = {}) {
   const title = String(input.title || '').trim();
@@ -65,6 +69,18 @@ export function buildManualTaskPayload(input = {}) {
   const startDate =
     input.startDate ||
     (isMeeting && dueDateIso ? dueDateIso : new Date().toISOString());
+  const scope = buildTaskScopeFields({
+    cycleId: input.cycleId || input.cyclePlanId || null,
+    briefingId: input.briefingId || input.briefId || null,
+  });
+  const hasCampaignScope = Boolean(scope.briefingId || scope.briefId);
+  const kanbanColumn =
+    input.kanbanColumn ||
+    (hasCampaignScope
+      ? 'planejamento'
+      : safeStatus === 'todo'
+        ? 'todo'
+        : safeStatus);
 
   return {
     agencyId: input.agencyId,
@@ -86,8 +102,9 @@ export function buildManualTaskPayload(input = {}) {
     estimatedHours: Number(input.estimatedHours) || (isMeeting ? 1 : 4),
     actualHours: 0,
     progress: 0,
-    kanbanColumn: safeStatus === 'todo' ? 'todo' : safeStatus,
+    kanbanColumn,
     kanbanPosition: 0,
+    ...scope,
     clientVisible: false,
     dependencies: [],
     blockedBy: [],

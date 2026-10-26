@@ -122,7 +122,7 @@ export default function ClientsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6C47D8] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C02807] mx-auto mb-4"></div>
           <p className="text-[#7A7595]">Carregando clientes...</p>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function ClientsPage() {
               placeholder="Buscar clientes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-full bg-[#F5F2FC] border-transparent"
+              className="pl-10 rounded-full bg-[#EEF4FA] border-transparent"
             />
           </div>
         </div>
@@ -237,8 +237,8 @@ export default function ClientsPage() {
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-12 rounded-2xl bg-[#F5F2FC]">
-          <Users className="w-12 h-12 text-[#AFA9EC] mx-auto mb-4" />
+        <div className="text-center py-12 rounded-2xl bg-[#EEF4FA]">
+          <Users className="w-12 h-12 text-[#FF9A7A] mx-auto mb-4" />
           <h3 className="text-lg font-medium text-[#18162A] mb-2">
             Nenhum cliente encontrado
           </h3>

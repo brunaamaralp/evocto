@@ -135,7 +135,7 @@ export default function ServiceDetailPage() {
       <div>
         
         {/* Header fixo */}
-        <div className="bg-[#F5F2FC] border-b border-[#D4CBF5] sticky top-0 z-10">
+        <div className="bg-[#EEF4FA] border-b border-[#FFD4C8] sticky top-0 z-10">
           <div className="max-w-7xl mx-auto py-4">
             
             {/* Breadcrumbs */}
@@ -182,7 +182,7 @@ export default function ServiceDetailPage() {
                       variant={service.is_template ? "secondary" : "default"}
                       className={service.is_template ? 
                         "bg-purple-100 text-purple-800 border-purple-300" : 
-                        "bg-[#EDE9FB] text-[#4A2FA3] border-[#D4CBF5]"
+                        "bg-[#FCE8E3] text-[#8A1C05] border-[#FFD4C8]"
                       }
                     >
                       {getServiceTypeLabel(service)}
@@ -207,7 +207,7 @@ export default function ServiceDetailPage() {
                     {context.client && (
                       <button
                         onClick={handleViewClient}
-                        className="flex items-center gap-1 hover:text-[#6C47D8] transition-colors"
+                        className="flex items-center gap-1 hover:text-[#C02807] transition-colors"
                       >
                         <Users className="w-4 h-4" />
                         <span>{context.client.name}</span>

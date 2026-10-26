@@ -45,7 +45,7 @@ function TeamManagementPage() {
         {canInvite && (
           <Button
             onClick={() => setShowInviteModal(true)}
-            className="bg-[#6C47D8] hover:bg-[#5A3BC0] self-start sm:self-auto"
+            className="bg-[#C02807] hover:bg-[#8A1C05] self-start sm:self-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar membro

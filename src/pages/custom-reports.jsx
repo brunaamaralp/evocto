@@ -241,13 +241,13 @@ export default function CustomReportsPage() {
                       onClick={() => setSelectedReportType(report.id)}
                       className={`p-4 rounded-2xl cursor-pointer transition-all border ${
                         isSelected
-                          ? `border-[#6C47D8] ring-2 ring-[#6C47D8]/20 ${cardPastel.bg}`
+                          ? `border-[#C02807] ring-2 ring-[#C02807]/20 ${cardPastel.bg}`
                           : `border-transparent hover:shadow-[var(--shadow-elevated)] ${cardPastel.bg}`
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <report.icon className={`w-5 h-5 mt-1 shrink-0 ${
-                          isSelected ? 'text-[#6C47D8]' : cardPastel.text
+                          isSelected ? 'text-[#C02807]' : cardPastel.text
                         }`} />
                         <div>
                           <h3 className="font-medium text-[#18162A]">{report.name}</h3>
