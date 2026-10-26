@@ -1,4 +1,8 @@
 import { account, client, clearClientJwt, clearSessionJwtCache, createSessionJwt } from './appwrite';
+import {
+    clearPersistedAppwriteSession,
+    persistAppwriteSessionAfterTick,
+} from './appwriteSessionPersist';
 import { ID } from 'appwrite';
 
 export const authService = {
@@ -12,6 +16,7 @@ export const authService = {
         }
         clearSessionJwtCache();
         const session = await account.createEmailPasswordSession(email, password);
+        await persistAppwriteSessionAfterTick(session);
         if (import.meta.env.DEV) {
             console.log('[Auth] Login successful');
         }
@@ -52,6 +57,7 @@ export const authService = {
         } catch (e) {
             void e;
         }
+        clearPersistedAppwriteSession();
     },
 
     async updatePassword(newPassword, oldPassword) {

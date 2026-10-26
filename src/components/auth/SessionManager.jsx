@@ -63,21 +63,33 @@ export function SessionManager({ children, isPublicPage = false }) {
     }
   }, [user, agency]);
 
+  const isUnauthorizedError = useCallback((authError) => {
+    const status = authError?.response?.status || authError?.status || authError?.code;
+    const message = String(authError?.message || '').toLowerCase();
+    return (
+      status === 401
+      || message.includes('401')
+      || message.includes('unauthorized')
+      || message.includes('invalid credentials')
+      || message.includes('user_unauthorized')
+      || message.includes('guest')
+    );
+  }, []);
+
   const handleAuthFailure = useCallback(async (authError) => {
     if (!mountedRef.current) return;
 
     if (isPublicRef.current) {
-      clearAuthState();
+      // Em página pública, ausência de sessão é normal — não trata como erro fatal
+      if (isUnauthorizedError(authError) || !authError) {
+        clearAuthState();
+        return;
+      }
+      setLoading(false);
       return;
     }
 
-    const is401 =
-      authError?.response?.status === 401 ||
-      authError?.status === 401 ||
-      authError?.message?.includes('401') ||
-      authError?.message?.includes('status code 401');
-
-    if (is401) {
+    if (isUnauthorizedError(authError)) {
       clearAuthState();
       setTimeout(() => {
         if (mountedRef.current && typeof window !== 'undefined') {
@@ -87,10 +99,11 @@ export function SessionManager({ children, isPublicPage = false }) {
       return;
     }
 
+    // Rede/offline: mantém chance de retry — não manda pro login (PWA ao reabrir)
     setError('Erro de conexão');
     setSessionStatus(SESSION_STATUS.ERROR);
     setLoading(false);
-  }, [clearAuthState]);
+  }, [clearAuthState, isUnauthorizedError]);
 
   const loadAgencyInBackground = useCallback(async (agencyId) => {
     if (!agencyId) return;
@@ -120,7 +133,31 @@ export function SessionManager({ children, isPublicPage = false }) {
         }
         setError(null);
 
-        const userData = await User.me();
+        let userData = null;
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            userData = await User.me();
+            lastError = null;
+            break;
+          } catch (err) {
+            lastError = err;
+            if (isUnauthorizedError(err)) break;
+            await new Promise((r) => setTimeout(r, 350 * (attempt + 1)));
+          }
+        }
+
+        if (lastError) {
+          // Já autenticado + falha de rede: não derruba a sessão só porque a PWA reabriu offline
+          if (userRef.current?.id && !isUnauthorizedError(lastError)) {
+            setLoading(false);
+            setSessionStatus(SESSION_STATUS.AUTHENTICATED);
+            return userRef.current;
+          }
+          await handleAuthFailure(lastError);
+          return null;
+        }
+
         if (!mountedRef.current) return null;
 
         if (!userData?.id) {
@@ -145,7 +182,7 @@ export function SessionManager({ children, isPublicPage = false }) {
     })();
 
     return inFlightRef.current;
-  }, [clearAuthState, handleAuthFailure, loadAgencyInBackground]);
+  }, [clearAuthState, handleAuthFailure, isUnauthorizedError, loadAgencyInBackground]);
 
   const login = useCallback(async (credentials) => {
     try {
@@ -198,21 +235,23 @@ export function SessionManager({ children, isPublicPage = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- montagem única; inFlight deduplica
   }, []);
 
-  // Em rota protegida com erro de sessão, redireciona ao login após breve pausa.
+  // Reabre a PWA / volta à aba: revalida sessão sem deslogar por blip de rede.
   useEffect(() => {
-    if (isPublicPage) return;
-    if (sessionStatus !== SESSION_STATUS.ERROR && !(error && !loading)) return;
-
-    const timer = setTimeout(() => {
-      if (!mountedRef.current) return;
-      clearAuthState();
-      if (typeof window !== 'undefined') {
-        window.location.replace(buildLoginRedirectUrl());
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!userRef.current?.id) {
+        void bootstrapAuth({ force: true });
+        return;
       }
-    }, 1600);
-
-    return () => clearTimeout(timer);
-  }, [isPublicPage, sessionStatus, error, loading, clearAuthState]);
+      void bootstrapAuth({ force: true });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [bootstrapAuth]);
 
   // Ao entrar em rota protegida, garante loading até a sessão aquecida estar pronta.
   useEffect(() => {
@@ -278,11 +317,21 @@ export function SessionManager({ children, isPublicPage = false }) {
   if (sessionStatus === SESSION_STATUS.ERROR || (error && !loading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="max-w-md w-full mx-auto p-6 bg-white rounded-2xl shadow-lg text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Sessão indisponível</h2>
+        <div className="max-w-md w-full mx-auto p-6 bg-white rounded-2xl shadow-lg text-center space-y-3">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Sem conexão com a sessão</h2>
           <p className="text-gray-600 mb-4">
-            Não foi possível carregar sua sessão. Entre novamente para continuar.
+            Não foi possível validar seu acesso agora (rede). Sua sessão pode continuar salva neste aparelho.
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              void bootstrapAuth({ force: true });
+            }}
+            className="w-full bg-[#C02807] hover:bg-[#8A1C05] text-white font-semibold py-2 px-4 rounded-lg transition-all"
+          >
+            Tentar de novo
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -291,9 +340,9 @@ export function SessionManager({ children, isPublicPage = false }) {
                 window.location.replace(buildLoginRedirectUrl());
               }
             }}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+            className="w-full border border-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all"
           >
-            Fazer Login Agora
+            Ir para o login
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@
   "name": "narrativa — Marketing Operacional",
   "short_name": "narrativa",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

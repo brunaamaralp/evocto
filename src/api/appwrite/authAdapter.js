@@ -1,4 +1,8 @@
 import { getAccount, getTablesDB, getTeams, DATABASE_ID, ID, Permission, Role } from '@/api/appwriteClient';
+import {
+  clearPersistedAppwriteSession,
+  persistAppwriteSessionAfterTick,
+} from '@/lib/appwriteSessionPersist';
 import { createEntityAdapter } from './entityAdapter';
 
 function mapUser(account, profile = {}) {
@@ -59,10 +63,12 @@ export const authAdapter = {
     } catch {
       // no existing session
     }
-    await account.createEmailPasswordSession({
+    const session = await account.createEmailPasswordSession({
       email: credentials.email,
       password: credentials.password,
     });
+    // Garante sessão no localStorage (PWA / fechar aba) — cookie de terceiros some fácil
+    await persistAppwriteSessionAfterTick(session);
     return this.me();
   },
 
@@ -73,6 +79,7 @@ export const authAdapter = {
     } catch {
       // already logged out
     }
+    clearPersistedAppwriteSession();
   },
 
   async create(userData = {}) {

@@ -1,11 +1,12 @@
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
 import NarrativaIsotipo from '@/components/brand/NarrativaIsotipo';
 import { BRAND } from '@/lib/brandAssets';
 import { trialMarketing } from '@/lib/trialCopy';
-import { useSession } from '@/components/auth/SessionManager';
+import { useSession, SESSION_STATUS } from '@/components/auth/SessionManager';
 
 const HERO = {
   title: 'O hub operacional do seu marketing',
@@ -71,8 +72,16 @@ const GAINS = [
 ];
 
 export default function WelcomePage() {
-  const { isAuthenticated, user } = useSession();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, sessionStatus } = useSession();
   const appHome = user?.role === 'client' ? '/client-portal' : '/dashboard';
+
+  // PWA start_url "/" — se a sessão persistiu, vai direto ao painel
+  useEffect(() => {
+    if (isAuthenticated && user?.id && sessionStatus === SESSION_STATUS.AUTHENTICATED) {
+      navigate(appHome, { replace: true });
+    }
+  }, [isAuthenticated, user?.id, sessionStatus, appHome, navigate]);
 
   return (
     <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">

@@ -1,4 +1,5 @@
 import { Client, Account, TablesDB, Storage, Teams, ID, Query, Permission, Role } from 'appwrite';
+import { restoreAppwriteSession } from '@/lib/appwriteSessionPersist';
 
 export const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 export const APPWRITE_PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
@@ -19,6 +20,9 @@ export function getAppwriteClient() {
   clientInstance = new Client()
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT_ID);
+
+  // PWA / fechar aba: reaplica secret + cookieFallback antes do primeiro Account.get()
+  restoreAppwriteSession(clientInstance);
 
   return clientInstance;
 }
