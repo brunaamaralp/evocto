@@ -98,6 +98,78 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/generate-material"
+  to = "/.netlify/functions/generate-material"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/generate-material/"
+  to = "/.netlify/functions/generate-material"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/client-portal"
+  to = "/.netlify/functions/client-portal"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/client-portal/"
+  to = "/.netlify/functions/client-portal"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/client-accesses"
+  to = "/.netlify/functions/client-accesses"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/client-accesses/"
+  to = "/.netlify/functions/client-accesses"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/approval-workflow"
+  to = "/.netlify/functions/approval-workflow"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/approval-workflow/"
+  to = "/.netlify/functions/approval-workflow"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/public-briefing"
+  to = "/.netlify/functions/public-briefing"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/public-briefing/"
+  to = "/.netlify/functions/public-briefing"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/extract-briefing-inicial"
+  to = "/.netlify/functions/extract-briefing-inicial"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/extract-briefing-inicial/"
+  to = "/.netlify/functions/extract-briefing-inicial"
+  status = 200
+  force = true
+
 # Service Worker e assets PWA — não cachear o SW no CDN
 [[headers]]
   for = "/sw.js"

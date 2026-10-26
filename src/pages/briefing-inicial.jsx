@@ -11,16 +11,18 @@ import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 import { getEmpresaByClientId, empresaToForm } from '@/lib/empresaConfig';
 import {
   emptyBriefingInicialForm,
+  findBriefingInicialBrief,
   isBriefingInicialFormComplete,
   normalizeBriefingInicialForm,
   saveBriefingInicialInterno,
   validateBriefingInicialForm,
 } from '@/lib/briefingInicial';
-import { BRIEF_KIND_ANUAL } from '@/lib/campanhaAnualSchema';
 import BriefingInicialFormFields from '@/components/briefing/BriefingInicialFormFields';
+import BriefingInicialFileImport from '@/components/briefing/BriefingInicialFileImport';
 
 /**
- * Preenchimento interno do briefing inicial (equipe).
+ * Preenchimento interno do briefing inicial (equipe) � s� DNA da empresa.
+ * Planejamento fica no Panorama, ap�s an�lise.
  */
 export default function BriefingInicialPage() {
   const { user, agencyId, isAuthenticated } = useSession();
@@ -49,7 +51,7 @@ export default function BriefingInicialPage() {
       setError(null);
       const clientData = await Client.get(clientId);
       if (!clientData || clientData.agencyId !== agencyId) {
-        throw new Error('Cliente não encontrado');
+        throw new Error('Cliente n�o encontrado');
       }
       setClient(clientData);
 
@@ -60,12 +62,7 @@ export default function BriefingInicialPage() {
       }
       if (!existingBrief) {
         const list = await Brief.filter({ agencyId, clientId }).catch(() => []);
-        existingBrief =
-          (list || []).find(
-            (b) => b.brief_kind === BRIEF_KIND_ANUAL && b.origem_briefing_inicial
-          ) ||
-          (list || []).find((b) => b.brief_kind === BRIEF_KIND_ANUAL) ||
-          null;
+        existingBrief = findBriefingInicialBrief(list || []);
       }
       if (existingBrief?.id) setBriefingId(existingBrief.id);
 
@@ -75,23 +72,13 @@ export default function BriefingInicialPage() {
           ...base.empresa,
           ...empresaToForm(empresa, clientData.name || ''),
         };
+      } else if (existingBrief?.empresa_snapshot) {
+        base.empresa = {
+          ...base.empresa,
+          ...empresaToForm(existingBrief.empresa_snapshot, clientData.name || ''),
+        };
       }
-      if (existingBrief) {
-        setForm(
-          normalizeBriefingInicialForm(
-            {
-              empresa: base.empresa,
-              ano: existingBrief.ano,
-              mes_inicio: existingBrief.mes_inicio,
-              ciclos_comerciais: existingBrief.ciclos_comerciais,
-              briefings_mes: existingBrief.briefings_mes,
-            },
-            clientData.name || ''
-          )
-        );
-      } else {
-        setForm(normalizeBriefingInicialForm(base, clientData.name || ''));
-      }
+      setForm(normalizeBriefingInicialForm(base, clientData.name || ''));
     } catch (err) {
       setError(err.message || 'Erro ao carregar');
     } finally {
@@ -110,7 +97,7 @@ export default function BriefingInicialPage() {
       const { valid, errors: nextErrors } = validateBriefingInicialForm(form);
       setErrors(nextErrors);
       if (!valid) {
-        toast.error('Preencha os campos obrigatórios');
+        toast.error('Preencha os campos obrigat�rios');
         document.querySelector('[data-section="empresa"]')?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
@@ -153,7 +140,7 @@ export default function BriefingInicialPage() {
   }
 
   if (!clientId) {
-    return <p className="text-red-600 p-6">clientId obrigatório na URL.</p>;
+    return <p className="text-red-600 p-6">clientId obrigat�rio na URL.</p>;
   }
 
   if (error) {
@@ -175,15 +162,15 @@ export default function BriefingInicialPage() {
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
         <h1 className="text-xl font-semibold text-[#18162A]">Briefing inicial salvo</h1>
         <p className="text-sm text-[#7A7595]">
-          Empresa e contexto de {client?.name} estão prontos. Siga para o Panorama
-          e planeje mês a mês.
+          DNA de {client?.name} registrado. Analise o briefing e, depois, planeje
+          m�s a m�s no Panorama.
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Button variant="outline" onClick={backToHub}>
-            Voltar à visão geral
+            Voltar � vis�o geral
           </Button>
           <Button
-            className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+            className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
             onClick={() => navigate(buildAnnualPlanHref(clientId))}
           >
             Abrir panorama
@@ -202,16 +189,28 @@ export default function BriefingInicialPage() {
         <div>
           <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
             <PenLine className="w-3.5 h-3.5" />
-            Preenchimento interno · Briefing inicial
+            Preenchimento interno � Briefing inicial
           </div>
           <h1 className="text-2xl font-semibold text-[#18162A]">
             {client?.name || 'Cliente'}
           </h1>
           <p className="text-[#7A7595] mt-1">
-            Mesmo formulário do link público — preenchido pela equipe.
+            DNA da empresa (p�blico, tom, produtos). O plano do ano nasce depois,
+            no Panorama � ap�s an�lise deste briefing.
           </p>
         </div>
       </div>
+
+      <BriefingInicialFileImport
+        form={form}
+        clientName={client?.name || ''}
+        disabled={saving || done}
+        onApply={(next) => {
+          setForm(next);
+          setErrors({});
+          setDone(false);
+        }}
+      />
 
       <BriefingInicialFormFields form={form} onChange={setForm} errors={errors} />
 
@@ -228,7 +227,7 @@ export default function BriefingInicialPage() {
           </Button>
           <Button
             type="button"
-            className="bg-[#6C47D8] hover:bg-[#5A3BC0] text-white"
+            className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
             onClick={() => handleSave(false)}
             disabled={!canSubmit}
           >

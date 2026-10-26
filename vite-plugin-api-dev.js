@@ -10,7 +10,25 @@ import { loadEnv } from 'vite';
 const ROUTES = {
   '/api/invite-client': () => import('./lib/server/inviteClientHandler.js'),
   '/api/team-members': () => import('./lib/server/teamMembersHandler.js'),
+  '/api/generate-material': () => import('./lib/server/generateMaterialHandler.js'),
+  '/api/material-deliveries': () => import('./lib/server/materialDeliveriesHandler.js'),
+  '/api/client-portal': () => import('./lib/server/clientPortalHandler.js'),
+  '/api/client-accesses': () => import('./lib/server/clientAccessesHandler.js'),
+  '/api/approval-workflow': () => import('./lib/server/approvalWorkflowHandler.js'),
+  '/api/public-briefing': () => import('./lib/server/publicBriefingHandler.js'),
+  '/api/extract-briefing-inicial': () =>
+    import('./lib/server/extractBriefingInicialHandler.js'),
 };
+
+/** Handlers that accept GET (besides POST/OPTIONS). */
+const GET_ALLOWED = new Set([
+  '/api/generate-material',
+  '/api/material-deliveries',
+  '/api/client-portal',
+  '/api/client-accesses',
+  '/api/approval-workflow',
+  '/api/public-briefing',
+]);
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -87,7 +105,11 @@ function attachApiMiddleware(middlewares) {
       next();
       return;
     }
-    if (req.method !== 'POST' && req.method !== 'OPTIONS') {
+    if (
+      req.method !== 'POST' &&
+      req.method !== 'OPTIONS' &&
+      !(GET_ALLOWED.has(pathname) && req.method === 'GET')
+    ) {
       next();
       return;
     }
