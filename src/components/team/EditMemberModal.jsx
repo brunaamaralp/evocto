@@ -97,7 +97,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
         setCredentials({
           email: result.email || form.email.trim(),
           password: result.temporaryPassword,
-          loginUrl: result.loginUrl || `${window.location.origin}/login`,
+          loginUrl: `${window.location.origin}/login`,
           name: result.name || form.name.trim(),
         });
         return;

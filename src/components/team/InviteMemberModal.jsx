@@ -110,7 +110,8 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
         setCredentials({
           email: result.email || form.email.trim(),
           password: result.temporaryPassword,
-          loginUrl: result.loginUrl || `${window.location.origin}/login`,
+          // Sempre origem atual + /login (ignora APP_PUBLIC_URL com path errado tipo /review)
+          loginUrl: `${window.location.origin}/login`,
           name: result.name || form.name.trim(),
         });
         return;
