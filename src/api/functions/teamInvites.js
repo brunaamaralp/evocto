@@ -172,7 +172,8 @@ async function teamMembersApi(route, body) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${jwt}`,
       },
-      body: JSON.stringify(body || {}),
+      // route também no body (fallback se rewrite Netlify perder a query)
+      body: JSON.stringify({ ...(body || {}), route, action: route }),
     });
   } catch (err) {
     console.warn('[teamInvites] API team-members indisponível:', err?.message || err);
@@ -420,12 +421,14 @@ export async function updateMemberCredentials(params = {}) {
     return fail('weak_password', 'A senha deve ter pelo menos 8 caracteres');
   }
 
-  return updateMemberCredentialsViaApi({
+  const result = await updateMemberCredentialsViaApi({
     userId,
     email: email || undefined,
     password: password || undefined,
     name: name || undefined,
   });
+  // Compat com callers que fazem `const { data } = await updateMemberCredentials(...)`
+  return result;
 }
 
 async function listInvites() {

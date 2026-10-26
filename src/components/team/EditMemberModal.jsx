@@ -81,11 +81,15 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
     setLoading(true);
     try {
       const payload = {
-        userId: member.id,
+        userId: member.id || member.$id,
         email: form.email.trim(),
         name: form.name.trim(),
         ...(resetPassword ? { password: form.password } : {}),
       };
+      if (!payload.userId) {
+        toast.error('Membro sem ID — recarregue a página e tente de novo.');
+        return;
+      }
       const result = await onSave(payload);
       if (result?.success === false) return;
 

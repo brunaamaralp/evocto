@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, Plus, UserCheck, Clock, UserX, 
   Send, Ban, Crown, Shield, 
-  User as UserIcon, Pencil, Mail
+  User as UserIcon, Pencil, Mail, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -42,7 +42,12 @@ export default function TeamMemberManagement({
   const loadMembers = useCallback(async () => {
     try {
       const teamMembers = await User.filter({ agencyId: currentUser.agencyId });
-      setMembers(teamMembers);
+      // Portal de cliente não é membro de equipe — filtrar para não quebrar a lista/UI.
+      const staffOnly = (Array.isArray(teamMembers) ? teamMembers : []).filter((m) => {
+        const role = String(m?.role || '').toLowerCase();
+        return role !== 'client';
+      });
+      setMembers(staffOnly);
     } catch (error) {
       console.error('Error loading members:', error);
     }
@@ -179,6 +184,9 @@ export default function TeamMemberManagement({
         cannot_edit_owner: 'Não é possível editar o proprietário por aqui',
         cannot_edit_self: 'Para alterar sua senha, use Minha conta',
         api_unavailable: 'API de membros indisponível no momento',
+        route_not_found: 'Atualize a página e tente de novo (versão nova do app).',
+        not_found: 'Membro não encontrado',
+        forbidden: 'Sem permissão para editar este membro',
       };
       toast.error(errorMessages[data?.error] || data?.message || 'Erro ao atualizar membro');
       return data || { success: false };
@@ -187,6 +195,18 @@ export default function TeamMemberManagement({
       toast.error('Erro ao atualizar membro. Tente novamente.');
       return { success: false, message: error?.message };
     }
+  };
+
+  const currentRole = String(currentUser?.role || currentUser?.data?.role || '').toLowerCase();
+  const canManageMembers = currentRole === 'owner' || currentRole === 'admin';
+  const memberId = (m) => m?.id || m?.$id || '';
+  const canEditMember = (member) => {
+    if (!canManageMembers) return false;
+    const id = memberId(member);
+    if (!id || id === (currentUser?.id || currentUser?.$id)) return false;
+    const role = String(member?.role || '').toLowerCase();
+    if (role === 'owner' || role === 'client') return false;
+    return true;
   };
 
   // Função para cores de função consolidadas com paleta Evocto
@@ -263,17 +283,16 @@ export default function TeamMemberManagement({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {member.id !== currentUser.id
-            && member.role !== 'owner'
-            && (currentUser.role === 'owner' || currentUser.role === 'admin') && (
+          {canEditMember(member) && (
             <Button
-              variant="ghost"
+              type="button"
+              variant="outline"
               size="sm"
-              className="text-gray-600 hover:text-gray-800"
+              className="gap-1.5 text-[#18162A]"
               onClick={() => setEditingMember(member)}
-              aria-label={`Editar ${member.full_name || member.email || 'membro'}`}
             >
               <Pencil className="w-4 h-4" />
+              Editar
             </Button>
           )}
         </div>
@@ -349,7 +368,7 @@ export default function TeamMemberManagement({
     );
   }
 
-  const canInvite = ['owner', 'admin'].includes(currentUser.role);
+  const canInvite = canManageMembers;
   const showToolbar = showTitle || (showInviteButton && canInvite);
 
   return (
