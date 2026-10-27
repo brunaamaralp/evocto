@@ -7,7 +7,7 @@ import { normalizeBriefingInicialForm } from './briefingInicial.js';
 import { normalizeFormato } from './empresaConfig.js';
 import { normalizeProdutosLinhas } from './campanhaAnualSchema.js';
 
-export const EXTRACT_BRIEFING_SCHEMA_VERSION = 1;
+export const EXTRACT_BRIEFING_SCHEMA_VERSION = 2;
 
 /** ~3.5 MB — Netlify body limit ~6 MB com base64. */
 export const EXTRACT_BRIEFING_MAX_BYTES = Math.floor(3.5 * 1024 * 1024);
@@ -31,6 +31,16 @@ const EXT_TO_MIME = {
   '.md': 'text/plain',
 };
 
+const TRACKED_KEYS = [
+  'nome',
+  'publico_alvo',
+  'tom_brand',
+  'orcamento_padrao_mensal',
+  'formato_padrao',
+  'restricoes_criativas',
+  'produtos_linhas',
+];
+
 function asString(v) {
   return String(v ?? '').trim();
 }
@@ -38,6 +48,10 @@ function asString(v) {
 function asPositiveNumber(v) {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function hasOwn(obj, key) {
+  return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
 
 export function extensionOf(filename = '') {
@@ -60,7 +74,6 @@ export function resolveExtractBriefingFileMeta({ filename, mimeType } = {}) {
     mime = EXT_TO_MIME[ext] || '';
   }
 
-  // Alguns browsers mandam DOC legado; só aceitamos DOCX real pelo conteúdo.
   if (mime === 'application/msword' && ext === '.docx') {
     mime =
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -74,9 +87,6 @@ export function resolveExtractBriefingFileMeta({ filename, mimeType } = {}) {
       message: 'Use PDF, DOCX ou TXT.',
     };
   }
-  if (ext && entry.ext.length && !entry.ext.includes(ext) && ext !== '.doc') {
-    // Extensão estranha mas MIME ok — ainda aceita.
-  }
   if (ext === '.doc') {
     return {
       ok: false,
@@ -89,9 +99,56 @@ export function resolveExtractBriefingFileMeta({ filename, mimeType } = {}) {
 }
 
 /**
- * Normaliza o JSON da IA para o shape do formulário (empresa.*).
+ * Detecta quais campos a IA realmente preencheu (sem contar fallback de clientName).
  */
-export function normalizeExtractedBriefingEmpresa(raw = {}, clientName = '') {
+export function detectFilledKeysFromRaw(raw = {}) {
+  const src = raw?.empresa && typeof raw.empresa === 'object' ? raw.empresa : raw;
+  const declared = Array.isArray(raw?.campos_preenchidos)
+    ? raw.campos_preenchidos.map((k) => String(k)).filter((k) => TRACKED_KEYS.includes(k))
+    : null;
+
+  if (declared && declared.length) return [...new Set(declared)];
+
+  const keys = [];
+  if (asString(src.nome)) keys.push('nome');
+  if (asString(src.publico_alvo || src.publico)) keys.push('publico_alvo');
+  if (asString(src.tom_brand || src.tom || src.tom_de_marca)) keys.push('tom_brand');
+  if (
+    asPositiveNumber(src.orcamento_padrao_mensal) != null ||
+    asPositiveNumber(src.orcamento) != null
+  ) {
+    keys.push('orcamento_padrao_mensal');
+  }
+  const formato = src.formato_padrao || src.formato || {};
+  if (
+    asPositiveNumber(formato.num_videos ?? formato.videos) != null ||
+    asPositiveNumber(formato.num_designs ?? formato.designs) != null ||
+    asString(formato.duracao_videos || formato.duracao)
+  ) {
+    keys.push('formato_padrao');
+  }
+  if (asString(src.restricoes_criativas || src.restricoes || src.nao_fazer)) {
+    keys.push('restricoes_criativas');
+  }
+  const produtos = src.produtos_linhas || src.produtos || src.linhas || [];
+  if (Array.isArray(produtos) && produtos.some((p) => asString(p?.nome))) {
+    keys.push('produtos_linhas');
+  }
+  return keys;
+}
+
+/**
+ * Normaliza o JSON da IA para o shape do formulário (empresa.*).
+ * @param {object} raw
+ * @param {string} [clientName]
+ * @param {{ allowClientNameFallback?: boolean }} [opts]
+ */
+export function normalizeExtractedBriefingEmpresa(
+  raw = {},
+  clientName = '',
+  opts = {}
+) {
+  const allowClientNameFallback = opts.allowClientNameFallback !== false;
   const src = raw?.empresa && typeof raw.empresa === 'object' ? raw.empresa : raw;
   const formatoRaw = src.formato_padrao || src.formato || {};
   const orcamento =
@@ -99,8 +156,9 @@ export function normalizeExtractedBriefingEmpresa(raw = {}, clientName = '') {
     asPositiveNumber(src.orcamento) ??
     '';
 
+  const nomeFromDoc = asString(src.nome);
   const empresa = {
-    nome: asString(src.nome) || asString(clientName),
+    nome: nomeFromDoc || (allowClientNameFallback ? asString(clientName) : ''),
     publico_alvo: asString(src.publico_alvo || src.publico),
     tom_brand: asString(src.tom_brand || src.tom || src.tom_de_marca),
     restricoes_criativas: asString(
@@ -122,24 +180,59 @@ export function normalizeExtractedBriefingEmpresa(raw = {}, clientName = '') {
 }
 
 /**
- * Mescla extração no formulário atual: valores não vazios da IA prevalecem;
- * brand_guidelines do formulário atual é preservado.
+ * Aplica a extração no formulário.
+ * - Campos que a IA preencheu substituem o valor atual
+ * - Campos vazios na IA mantêm o valor atual
+ * - brand_guidelines sempre preservado
  */
 export function mergeBriefingInicialFromExtract(
   currentForm,
   extracted,
-  clientName = ''
+  clientName = '',
+  opts = {}
 ) {
+  const filledKeys = Array.isArray(opts.filledKeys)
+    ? opts.filledKeys
+    : detectFilledKeysFromRaw(
+        extracted?.empresa ? extracted : { empresa: extracted }
+      );
+
   const current = normalizeBriefingInicialForm(currentForm, clientName);
   const incoming = normalizeExtractedBriefingEmpresa(
     extracted?.empresa ? extracted : { empresa: extracted },
-    clientName
+    clientName,
+    { allowClientNameFallback: false }
   );
 
   const cur = current.empresa;
   const inc = incoming.empresa;
+  const filled = new Set(filledKeys);
 
-  const pickStr = (keep, next) => {
+  const pickIfFilled = (key, keep, next) => {
+    if (!filled.has(key)) return keep;
+    if (key === 'orcamento_padrao_mensal') {
+      return Number(next) > 0 ? Number(next) : keep;
+    }
+    if (key === 'produtos_linhas') {
+      return Array.isArray(next) && next.some((p) => asString(p.nome))
+        ? next
+        : keep;
+    }
+    if (key === 'formato_padrao') {
+      return {
+        num_videos:
+          Number(next?.num_videos) > 0
+            ? Number(next.num_videos)
+            : keep.num_videos,
+        num_designs:
+          Number(next?.num_designs) > 0
+            ? Number(next.num_designs)
+            : keep.num_designs,
+        duracao_videos: asString(next?.duracao_videos)
+          ? String(next.duracao_videos).trim()
+          : keep.duracao_videos,
+      };
+    }
     const n = asString(next);
     return n ? n : keep;
   };
@@ -147,78 +240,68 @@ export function mergeBriefingInicialFromExtract(
   const merged = {
     empresa: {
       ...cur,
-      nome: pickStr(cur.nome, inc.nome) || clientName || '',
-      publico_alvo: pickStr(cur.publico_alvo, inc.publico_alvo),
-      tom_brand: pickStr(cur.tom_brand, inc.tom_brand),
-      restricoes_criativas: pickStr(
+      nome: pickIfFilled('nome', cur.nome, inc.nome) || clientName || cur.nome,
+      publico_alvo: pickIfFilled(
+        'publico_alvo',
+        cur.publico_alvo,
+        inc.publico_alvo
+      ),
+      tom_brand: pickIfFilled('tom_brand', cur.tom_brand, inc.tom_brand),
+      restricoes_criativas: pickIfFilled(
+        'restricoes_criativas',
         cur.restricoes_criativas,
         inc.restricoes_criativas
       ),
-      orcamento_padrao_mensal:
-        Number(inc.orcamento_padrao_mensal) > 0
-          ? Number(inc.orcamento_padrao_mensal)
-          : cur.orcamento_padrao_mensal,
-      formato_padrao: {
-        num_videos:
-          Number(inc.formato_padrao?.num_videos) > 0
-            ? Number(inc.formato_padrao.num_videos)
-            : cur.formato_padrao.num_videos,
-        num_designs:
-          Number(inc.formato_padrao?.num_designs) > 0
-            ? Number(inc.formato_padrao.num_designs)
-            : cur.formato_padrao.num_designs,
-        duracao_videos: pickStr(
-          cur.formato_padrao.duracao_videos,
-          inc.formato_padrao?.duracao_videos
-        ),
-      },
-      produtos_linhas: (inc.produtos_linhas || []).some((p) => asString(p.nome))
-        ? inc.produtos_linhas
-        : cur.produtos_linhas,
+      orcamento_padrao_mensal: pickIfFilled(
+        'orcamento_padrao_mensal',
+        cur.orcamento_padrao_mensal,
+        inc.orcamento_padrao_mensal
+      ),
+      formato_padrao: pickIfFilled(
+        'formato_padrao',
+        cur.formato_padrao,
+        inc.formato_padrao
+      ),
+      produtos_linhas: pickIfFilled(
+        'produtos_linhas',
+        cur.produtos_linhas,
+        inc.produtos_linhas
+      ),
       brand_guidelines: cur.brand_guidelines || null,
     },
   };
 
-  return normalizeBriefingInicialForm(merged, clientName);
+  return {
+    form: normalizeBriefingInicialForm(merged, clientName),
+    filledKeys: [...filled],
+  };
 }
 
 /**
- * Conta quantos campos-chave a extração preencheu (feedback na UI).
+ * Conta campos realmente vindos do documento (não o nome do cliente do sistema).
  */
-export function countExtractedFields(form) {
+export function countExtractedFields(form, filledKeys = null) {
+  if (Array.isArray(filledKeys)) {
+    return { filled: filledKeys.length, keys: filledKeys };
+  }
   const n = normalizeBriefingInicialForm(form);
   const e = n.empresa;
-  let filled = 0;
   const keys = [];
-  if (asString(e.nome)) {
-    filled += 1;
-    keys.push('nome');
-  }
-  if (asString(e.publico_alvo)) {
-    filled += 1;
-    keys.push('publico_alvo');
-  }
-  if (asString(e.tom_brand)) {
-    filled += 1;
-    keys.push('tom_brand');
-  }
-  if (Number(e.orcamento_padrao_mensal) > 0) {
-    filled += 1;
-    keys.push('orcamento');
-  }
-  if (asString(e.restricoes_criativas)) {
-    filled += 1;
-    keys.push('restricoes');
-  }
+  if (asString(e.nome)) keys.push('nome');
+  if (asString(e.publico_alvo)) keys.push('publico_alvo');
+  if (asString(e.tom_brand)) keys.push('tom_brand');
+  if (Number(e.orcamento_padrao_mensal) > 0) keys.push('orcamento_padrao_mensal');
+  if (asString(e.restricoes_criativas)) keys.push('restricoes_criativas');
   if ((e.produtos_linhas || []).some((p) => asString(p.nome))) {
-    filled += 1;
-    keys.push('produtos');
+    keys.push('produtos_linhas');
   }
-  if (Number(e.formato_padrao?.num_videos) > 0) {
-    filled += 1;
-    keys.push('formato');
+  if (
+    Number(e.formato_padrao?.num_videos) > 0 ||
+    Number(e.formato_padrao?.num_designs) > 0
+  ) {
+    keys.push('formato_padrao');
   }
-  return { filled, keys };
+  return { filled: keys.length, keys };
 }
 
 export function validateExtractBriefingRequest(body = {}) {
@@ -236,7 +319,6 @@ export function validateExtractBriefingRequest(body = {}) {
     errors.mimeType = meta.message;
   }
 
-  // Rough size from base64 length
   const approxBytes = Math.floor((contentBase64.length * 3) / 4);
   if (contentBase64 && approxBytes > EXTRACT_BRIEFING_MAX_BYTES) {
     errors.size = `Arquivo muito grande (máx. ${Math.floor(EXTRACT_BRIEFING_MAX_BYTES / (1024 * 1024))} MB)`;
@@ -257,3 +339,5 @@ export function validateExtractBriefingRequest(body = {}) {
       : null,
   };
 }
+
+export { TRACKED_KEYS, hasOwn };

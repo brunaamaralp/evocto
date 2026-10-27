@@ -7,6 +7,10 @@
   node_bundler = "esbuild"
   included_files = ["lib/server/**", "src/lib/**"]
 
+# Claude + PDF pode passar de 10s (default).
+[functions."extract-briefing-inicial"]
+  timeout = 26
+
 # APIs antes do SPA fallback
 [[redirects]]
   from = "/api/material-deliveries"

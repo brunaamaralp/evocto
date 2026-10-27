@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   countExtractedFields,
+  detectFilledKeysFromRaw,
   mergeBriefingInicialFromExtract,
   normalizeExtractedBriefingEmpresa,
   resolveExtractBriefingFileMeta,
@@ -43,12 +44,21 @@ describe('extractBriefingInicialSchema', () => {
     expect(form.empresa.produtos_linhas[0].nome).toBe('Linha Gold');
   });
 
+  it('detects filled keys without counting empty clientName fallback', () => {
+    const keys = detectFilledKeysFromRaw({
+      empresa: { publico_alvo: 'PME', tom_brand: 'Direto' },
+    });
+    expect(keys).toContain('publico_alvo');
+    expect(keys).toContain('tom_brand');
+    expect(keys).not.toContain('nome');
+  });
+
   it('merges extract without wiping existing brand_guidelines', () => {
     const current = emptyBriefingInicialForm('Cliente');
     current.empresa.tom_brand = 'Atual';
     current.empresa.brand_guidelines = { url: 'https://x', name: 'g.pdf' };
 
-    const merged = mergeBriefingInicialFromExtract(
+    const { form: merged, filledKeys } = mergeBriefingInicialFromExtract(
       current,
       {
         empresa: {
@@ -60,16 +70,19 @@ describe('extractBriefingInicialSchema', () => {
       'Cliente'
     );
 
+    expect(filledKeys).toEqual(
+      expect.arrayContaining(['publico_alvo', 'tom_brand', 'produtos_linhas'])
+    );
     expect(merged.empresa.tom_brand).toBe('Direto');
     expect(merged.empresa.publico_alvo).toBe('PME');
     expect(merged.empresa.brand_guidelines?.url).toBe('https://x');
     expect(merged.empresa.produtos_linhas[0].nome).toBe('Serviço A');
   });
 
-  it('keeps current string when extract is empty', () => {
+  it('keeps current string when extract field was not filled by IA', () => {
     const current = emptyBriefingInicialForm('Cliente');
     current.empresa.publico_alvo = 'Já preenchido';
-    const merged = mergeBriefingInicialFromExtract(
+    const { form: merged } = mergeBriefingInicialFromExtract(
       current,
       { empresa: { publico_alvo: '', tom_brand: 'Novo tom' } },
       'Cliente'
@@ -85,21 +98,18 @@ describe('extractBriefingInicialSchema', () => {
     const ok = validateExtractBriefingRequest({
       filename: 'a.txt',
       mimeType: 'text/plain',
-      contentBase64: Buffer.from('conteudo de briefing de teste com texto').toString(
-        'base64'
-      ),
+      contentBase64: Buffer.from(
+        'conteudo de briefing de teste com texto'
+      ).toString('base64'),
       clientName: 'X',
     });
     expect(ok.valid).toBe(true);
     expect(ok.value.kind).toBe('txt');
   });
 
-  it('counts filled fields', () => {
-    const form = normalizeExtractedBriefingEmpresa({
-      nome: 'A',
-      publico_alvo: 'B',
-      tom_brand: 'C',
-    });
-    expect(countExtractedFields(form).filled).toBeGreaterThanOrEqual(3);
+  it('counts filled fields from keys list', () => {
+    expect(
+      countExtractedFields(null, ['nome', 'publico_alvo', 'tom_brand']).filled
+    ).toBe(3);
   });
 });

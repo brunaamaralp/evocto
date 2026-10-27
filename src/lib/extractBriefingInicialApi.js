@@ -19,7 +19,10 @@ async function authHeaders(extra = {}) {
 async function parseRes(res) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error(friendlyError(body, 'action'));
+    const message =
+      (typeof body?.message === 'string' && body.message.trim()) ||
+      friendlyError(body?.error || body, 'action');
+    const err = new Error(message);
     err.code = body.error;
     err.status = res.status;
     err.body = body;

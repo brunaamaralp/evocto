@@ -8,11 +8,19 @@ import {
   extractBriefingInicialFromFile,
 } from '@/lib/extractBriefingInicialApi';
 import { mergeBriefingInicialFromExtract } from '@/lib/extractBriefingInicialSchema';
-import { friendlyError } from '@/lib/errorMessages';
+
+const FIELD_LABELS = {
+  nome: 'Nome',
+  publico_alvo: 'Público-alvo',
+  tom_brand: 'Tom de marca',
+  orcamento_padrao_mensal: 'Orçamento',
+  formato_padrao: 'Formato (vídeos/designs)',
+  restricoes_criativas: 'Restrições',
+  produtos_linhas: 'Produtos/linhas',
+};
 
 /**
  * Upload de PDF/DOCX/TXT → extrai DNA → aplica no formulário para revisão.
- * Um clique escolhe o arquivo e já dispara a leitura.
  */
 export default function BriefingInicialFileImport({
   form,
@@ -23,9 +31,13 @@ export default function BriefingInicialFileImport({
 }) {
   const inputRef = useRef(null);
   const rootRef = useRef(null);
+  const formRef = useRef(form);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState(null);
+  const [errorHint, setErrorHint] = useState(null);
+
+  formRef.current = form;
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -35,6 +47,7 @@ export default function BriefingInicialFileImport({
   const clearFile = () => {
     setFile(null);
     setHint(null);
+    setErrorHint(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -42,35 +55,58 @@ export default function BriefingInicialFileImport({
     if (!selected || loading || disabled) return;
     setLoading(true);
     setHint(null);
+    setErrorHint(null);
     try {
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
       });
-      const merged = mergeBriefingInicialFromExtract(
-        form,
-        result.form || { empresa: result.empresa },
-        clientName
-      );
+      const filledKeys = result.filled_keys || [];
+      const { form: merged, filledKeys: appliedKeys } =
+        mergeBriefingInicialFromExtract(
+          formRef.current,
+          result.form || { empresa: result.empresa },
+          clientName,
+          { filledKeys }
+        );
+
       onApply?.(merged, {
         filename: selected.name,
-        filled: result.filled,
+        filled: appliedKeys.length,
+        filledKeys: appliedKeys,
         avisos: result.avisos || [],
       });
-      const n = Number(result.filled) || 0;
+
+      const labels = appliedKeys
+        .map((k) => FIELD_LABELS[k] || k)
+        .filter(Boolean);
       toast.success(
-        n > 0
-          ? `${n} campo(s) preenchido(s) a partir do arquivo. Revise e salve.`
+        labels.length
+          ? `Preenchemos: ${labels.join(', ')}. Revise e salve.`
           : 'Arquivo lido. Revise o formulário e salve.'
       );
-      if (Array.isArray(result.avisos) && result.avisos.length) {
-        setHint(result.avisos.slice(0, 3).join(' · '));
-      } else {
-        setHint(
-          `Importado de “${selected.name}”. Confira os campos abaixo antes de salvar.`
-        );
-      }
+
+      const avisoTxt =
+        Array.isArray(result.avisos) && result.avisos.length
+          ? ` · ${result.avisos.slice(0, 2).join(' · ')}`
+          : '';
+      setHint(
+        labels.length
+          ? `Campos atualizados: ${labels.join(', ')}${avisoTxt}`
+          : `Importado de “${selected.name}”. Confira os campos abaixo.`
+      );
+
+      requestAnimationFrame(() => {
+        document
+          .querySelector('[data-section="empresa"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } catch (err) {
-      toast.error(friendlyError(err, 'action'));
+      const msg =
+        err?.body?.message ||
+        err?.message ||
+        'Não foi possível ler o arquivo.';
+      setErrorHint(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -106,8 +142,8 @@ export default function BriefingInicialFileImport({
             Importar briefing de arquivo
           </p>
           <p className="text-sm text-[#7A7595] mt-1">
-            Envie um PDF, DOCX ou TXT. O sistema lê o conteúdo, preenche o
-            formulário e você revisa antes de salvar.
+            O sistema lê o documento e responde aos campos do formulário
+            (público, tom, produtos…). Você revisa e salva.
           </p>
         </div>
       </div>
@@ -130,7 +166,7 @@ export default function BriefingInicialFileImport({
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Lendo arquivo…
+              Lendo e preenchendo… (pode levar até 1 min)
             </>
           ) : (
             <>
@@ -157,7 +193,13 @@ export default function BriefingInicialFileImport({
         ) : null}
       </div>
 
-      {hint ? (
+      {errorHint ? (
+        <Alert className="border-red-200 bg-red-50 py-2">
+          <AlertDescription className="text-xs text-red-800">
+            {errorHint}
+          </AlertDescription>
+        </Alert>
+      ) : hint ? (
         <Alert className="border-emerald-200 bg-emerald-50/80 py-2">
           <AlertDescription className="text-xs text-emerald-900">
             {hint}
@@ -165,8 +207,8 @@ export default function BriefingInicialFileImport({
         </Alert>
       ) : (
         <p className="text-xs text-[#9A94B0]">
-          Depois da leitura, confira os campos da empresa abaixo e clique em
-          salvar.
+          Prefira TXT/DOCX com texto selecionável. PDF escaneado (só imagem)
+          pode falhar.
         </p>
       )}
     </section>
