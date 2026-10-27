@@ -39,24 +39,24 @@ import { UploadFile } from '@/api/integrations';
 import { buildGerarMaterialHref } from '@/lib/generateMaterialApi';
 
 const DOCUMENT_GROUPS = {
-  diagnostic: 'Diagn�stico',
-  report: 'Relat�rios',
-  deliverable: 'Entreg�veis',
+  diagnostic: 'Diagnóstico',
+  report: 'Relatórios',
+  deliverable: 'Entregáveis',
   contract: 'Contratos',
-  presentation: 'Apresenta��es', 
-  analysis: 'An�lises',
+  presentation: 'Apresentações', 
+  analysis: 'Análises',
   other: 'Outros'
 };
 
 const VISIBILITY_LABELS = {
   internal: 'Interno',
   client: 'Cliente',
-  public: 'P�blico'
+  public: 'Público'
 };
 
 const STATUS_LABELS = {
   draft: 'Rascunho',
-  review: 'Em Revis�o',
+  review: 'Em Revisão',
   approved: 'Aprovado',
   archived: 'Arquivado'
 };
@@ -218,7 +218,7 @@ export default function ClientDocumentsPage() {
 
   useEffect(() => {
     if (!clientId) {
-      toast.error('ID do cliente n�o fornecido');
+      toast.error('ID do cliente não fornecido');
       return;
     }
 
@@ -239,7 +239,7 @@ export default function ClientDocumentsPage() {
       return;
     }
     if (!agencyId || !clientId) {
-      toast.error('Cliente ou ag�ncia n�o identificados');
+      toast.error('Cliente ou agência não identificados');
       return;
     }
 
@@ -248,7 +248,7 @@ export default function ClientDocumentsPage() {
 
       const uploaded = await UploadFile({ file, agencyId });
       const fileUrl = uploaded.file_url || uploaded.url;
-      if (!fileUrl) throw new Error('URL do arquivo n�o retornada');
+      if (!fileUrl) throw new Error('URL do arquivo não retornada');
 
       await ClientDocument.create({
         agencyId,
@@ -284,8 +284,8 @@ export default function ClientDocumentsPage() {
   };
 
   const handleViewDocument = async (_document) => {
-    // TODO: Implementar visualiza��o do documento
-    toast.info('Visualiza��o em desenvolvimento');
+    // TODO: Implementar visualização do documento
+    toast.info('Visualização em desenvolvimento');
   };
 
   const handleDownloadDocument = async (document) => {
@@ -321,8 +321,8 @@ export default function ClientDocumentsPage() {
   };
 
   const handleEditDocument = (_document) => {
-    // TODO: Implementar edi��o/compartilhamento
-    toast.info('Edi��o em desenvolvimento');
+    // TODO: Implementar edição/compartilhamento
+    toast.info('Edição em desenvolvimento');
   };
 
   // Filtrar documentos
@@ -339,7 +339,7 @@ export default function ClientDocumentsPage() {
     return matchesSearch && matchesGroup && matchesStatus && matchesVisibility;
   });
 
-  // Estat�sticas
+  // Estatísticas
   const stats = {
     total: documents.length,
     byGroup: Object.keys(DOCUMENT_GROUPS).reduce((acc, group) => {
@@ -361,8 +361,8 @@ export default function ClientDocumentsPage() {
       <div className="max-w-6xl mx-auto">
           <EmptyState
             icon={FileText}
-            title="Cliente n�o encontrado"
-            description="O cliente solicitado n�o existe ou voc� n�o tem permiss�o para acess�-lo."
+            title="Cliente não encontrado"
+            description="O cliente solicitado não existe ou você não tem permissão para acessá-lo."
             primaryAction={{
               label: 'Voltar aos Clientes',
               onClick: () => window.location.href = createPageUrl('clients')
@@ -412,12 +412,12 @@ export default function ClientDocumentsPage() {
           </div>
         </div>
 
-        {/* Estat�sticas */}
+        {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
             { icon: FileText, label: 'Total de Documentos', value: stats.total, idx: 0 },
-            { icon: Eye, label: 'Vis�veis ao Cliente', value: stats.byVisibility.client || 0, idx: 2 },
-            { icon: Archive, label: 'Relat�rios', value: stats.byGroup.report || 0, idx: 3 },
+            { icon: Eye, label: 'Visíveis ao Cliente', value: stats.byVisibility.client || 0, idx: 2 },
+            { icon: Archive, label: 'Relatórios', value: stats.byGroup.report || 0, idx: 3 },
             { icon: User, label: 'Documentos Internos', value: stats.byVisibility.internal || 0, idx: 1 },
           ].map(({ icon: Icon, label, value, idx }) => {
             const pastel = getCardPastel(idx);
@@ -515,7 +515,7 @@ export default function ClientDocumentsPage() {
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onEdit={handleEditDocument}
-                onDelete={() => {}} // TODO: Implementar exclus�o
+                onDelete={() => {}} // TODO: Implementar exclusão
               />
             ))}
           </div>
@@ -526,7 +526,7 @@ export default function ClientDocumentsPage() {
             description={
               searchTerm || selectedGroup !== 'all'
                 ? 'Tente ajustar os filtros de busca'
-                : 'Este cliente ainda n�o possui documentos cadastrados.'
+                : 'Este cliente ainda não possui documentos cadastrados.'
             }
             primaryAction={{
               label: 'Upload Documento',
@@ -598,7 +598,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
       return;
     }
     if (!metadata.title.trim()) {
-      toast.error('Informe o t�tulo do documento');
+      toast.error('Informe o título do documento');
       return;
     }
     onUpload(file, metadata);
@@ -630,7 +630,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="document-title">T�tulo</Label>
+            <Label htmlFor="document-title">Título</Label>
             <Input
               id="document-title"
               value={metadata.title}
@@ -641,7 +641,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="document-description">Descri��o (opcional)</Label>
+            <Label htmlFor="document-description">Descrição (opcional)</Label>
             <Textarea
               id="document-description"
               value={metadata.description}

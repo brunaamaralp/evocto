@@ -6,7 +6,7 @@ import ProdutosLinhasEditor from '@/components/briefing/anual/ProdutosLinhasEdit
 
 /**
  * Campos do briefing inicial (DNA da empresa).
- * Planejamento m�s a m�s fica no Panorama, ap�s an�lise deste briefing.
+ * Planejamento mês a mês fica no Panorama, após análise deste briefing.
  */
 export default function BriefingInicialFormFields({
   form,
@@ -38,7 +38,7 @@ export default function BriefingInicialFormFields({
         <CardHeader>
           <CardTitle className="text-lg text-[#18162A]">Empresa</CardTitle>
           <p className="text-sm text-[#7A7595] font-normal">
-            P�blico, tom, formato e produtos � o DNA para analisar antes de planejar.
+            Público, tom, formato e produtos — o DNA para analisar antes de planejar.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -52,7 +52,7 @@ export default function BriefingInicialFormFields({
             {errors.nome && <p className="text-xs text-red-600">{errors.nome}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="publico">P�blico-alvo</Label>
+            <Label htmlFor="publico">Público-alvo</Label>
             <Textarea
               id="publico"
               rows={3}
@@ -75,7 +75,7 @@ export default function BriefingInicialFormFields({
             )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="orcamento">Or�amento mensal padr�o (R$)</Label>
+            <Label htmlFor="orcamento">Orçamento mensal padrão (R$)</Label>
             <Input
               id="orcamento"
               type="number"
@@ -91,7 +91,7 @@ export default function BriefingInicialFormFields({
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>V�deos / m�s</Label>
+              <Label>Vídeos / mês</Label>
               <Input
                 type="number"
                 min={0}
@@ -100,7 +100,7 @@ export default function BriefingInicialFormFields({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Designs / m�s</Label>
+              <Label>Designs / mês</Label>
               <Input
                 type="number"
                 min={0}
@@ -109,7 +109,7 @@ export default function BriefingInicialFormFields({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Dura��o v�deos</Label>
+              <Label>Duração vídeos</Label>
               <Input
                 value={emp.formato_padrao?.duracao_videos || ''}
                 onChange={(e) => setFormato('duracao_videos', e.target.value)}
@@ -117,7 +117,7 @@ export default function BriefingInicialFormFields({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="restricoes">Restri��es criativas</Label>
+            <Label htmlFor="restricoes">Restrições criativas</Label>
             <Textarea
               id="restricoes"
               rows={2}

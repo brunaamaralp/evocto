@@ -24,7 +24,7 @@ import {
 import ProdutosLinhasEditor from '@/components/briefing/anual/ProdutosLinhasEditor';
 
 /**
- * Modal create/edit da configura��o padr�o da empresa (cliente).
+ * Modal create/edit da configuração padrão da empresa (cliente).
  */
 export default function ConfigurarEmpresaModal({
   open,
@@ -122,7 +122,7 @@ export default function ConfigurarEmpresaModal({
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>Configurar Empresa</DialogTitle>
           <DialogDescription>
-            Defina nome, p�blico, tom e produtos � DNA usado nas campanhas ap�s an�lise.
+            Defina nome, público, tom e produtos usados no plano anual e nas campanhas.
           </DialogDescription>
         </DialogHeader>
 
@@ -139,7 +139,7 @@ export default function ConfigurarEmpresaModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="emp-publico">* P�blico-Alvo (padr�o)</Label>
+            <Label htmlFor="emp-publico">* Público-Alvo (padrão)</Label>
             <Textarea
               id="emp-publico"
               value={form.publico_alvo}
@@ -154,7 +154,7 @@ export default function ConfigurarEmpresaModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="emp-videos">* N�mero de V�deos</Label>
+              <Label htmlFor="emp-videos">* Número de Vídeos</Label>
               <Input
                 id="emp-videos"
                 type="number"
@@ -167,7 +167,7 @@ export default function ConfigurarEmpresaModal({
               )}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="emp-designs">* N�mero de Designs</Label>
+              <Label htmlFor="emp-designs">* Número de Designs</Label>
               <Input
                 id="emp-designs"
                 type="number"
@@ -182,7 +182,7 @@ export default function ConfigurarEmpresaModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="emp-duracao">* Dura��o dos V�deos</Label>
+            <Label htmlFor="emp-duracao">* Duração dos Vídeos</Label>
             <Input
               id="emp-duracao"
               value={form.formato_padrao.duracao_videos}
@@ -195,7 +195,7 @@ export default function ConfigurarEmpresaModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="emp-orcamento">* Or�amento Mensal Padr�o</Label>
+            <Label htmlFor="emp-orcamento">* Orçamento Mensal Padrão</Label>
             <Input
               id="emp-orcamento"
               type="number"
@@ -216,7 +216,7 @@ export default function ConfigurarEmpresaModal({
               id="emp-tom"
               value={form.tom_brand}
               onChange={(e) => setField('tom_brand', e.target.value)}
-              placeholder="Premium, aconchego, aut�ntico"
+              placeholder="Premium, aconchego, autêntico"
               className="min-h-[72px]"
             />
             {errors.tom_brand && (
@@ -225,12 +225,12 @@ export default function ConfigurarEmpresaModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="emp-restricoes">Restri��es criativas</Label>
+            <Label htmlFor="emp-restricoes">Restrições criativas</Label>
             <Textarea
               id="emp-restricoes"
               value={form.restricoes_criativas || ''}
               onChange={(e) => setField('restricoes_criativas', e.target.value)}
-              placeholder="Sem atores profissionais, autenticidade, casais reais�"
+              placeholder="Sem atores profissionais, autenticidade, casais reais…"
               className="min-h-[64px]"
             />
           </div>
@@ -278,7 +278,7 @@ export default function ConfigurarEmpresaModal({
           </Button>
           <Button type="button" className="w-full sm:w-auto" disabled={!canSave} onClick={handleSave}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Salvar Configura��o
+            Salvar Configuração
           </Button>
         </DialogFooter>
       </DialogContent>

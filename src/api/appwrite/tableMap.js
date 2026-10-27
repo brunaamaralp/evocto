@@ -16,19 +16,19 @@ export const TABLE_MAP = {
   LearningEntry: 'learning_entries',
   EvolutionEvent: 'evolution_events',
   FinancialKPI: 'financial_kpis',
-  // Configura��o padr�o da empresa (campanhas mensais)
+  // Configuração padrão da empresa (campanhas mensais)
   Empresa: 'empresas',
   Notification: 'notifications',
   AuditLog: 'audit_logs',
   PublicBriefingToken: 'public_briefing_tokens',
   PublicBriefingResponse: 'public_briefing_responses',
-  // Entregas e aprova��es de material
+  // Entregas e aprovações de material
   MaterialDelivery: 'material_deliveries',
   MaterialDeliveryVersion: 'material_delivery_versions',
   AgencyDriveConnection: 'agency_drive_connections',
-  /** CRM leve da ag�ncia (P2.1) */
+  /** CRM leve da agência (P2.1) */
   AgencyLead: 'agency_leads',
-  /** Jobs de proposta/apresenta��o (Claude Skills) */
+  /** Jobs de proposta/apresentação (Claude Skills) */
   GenerateMaterialJob: 'generate_material_jobs',
   /** Credenciais/acessos por cliente (server-only API) */
   ClientAccess: 'client_accesses',
@@ -43,7 +43,7 @@ export const PHASE1_TABLES = Object.values(TABLE_MAP);
 /**
  * Indexed / typed columns per table. Everything else goes into `payload` JSON.
  *
- * LearningEntry: c�digo legado filtra por `projectId` (= clientId).
+ * LearningEntry: código legado filtra por `projectId` (= clientId).
  * Mantemos `projectId` e `clientId` indexados para alinhar schema novo e queries antigas.
  */
 export const TABLE_COLUMNS = {
@@ -213,7 +213,7 @@ export const TABLE_COLUMNS = {
     'status',
     'is_current',
   ],
-  /** Colunas tipadas m�nimas; companyName, notes, estimatedValue v�o no payload. */
+  /** Colunas tipadas mínimas; companyName, notes, estimatedValue vão no payload. */
   agency_leads: [
     'agencyId',
     'name',
@@ -274,7 +274,7 @@ export const DATETIME_COLUMNS = new Set([
   'revokedAt',
 ]);
 
-/** Integer columns � pass through as numbers in entityAdapter. */
+/** Integer columns — pass through as numbers in entityAdapter. */
 export const INTEGER_COLUMNS = new Set([
   'latestVersionNumber',
   'versionNumber',

@@ -192,8 +192,8 @@ function isInicialToken(t) {
 }
 
 /**
- * Gera link p�blico do briefing inicial (DNA da empresa).
- * M�ximo 1 token ativo de briefing_inicial por cliente.
+ * Gera link público do briefing inicial (Empresa + insumos do plano anual).
+ * Máximo 1 token ativo de briefing_inicial por cliente.
  */
 export async function generatePublicBriefingToken({
   clientId,
@@ -205,19 +205,19 @@ export async function generatePublicBriefingToken({
   agencyId: agencyIdArg = null,
   briefKind = BRIEF_KIND_INICIAL,
 } = {}) {
-  if (!clientId) throw new Error('clientId � obrigat�rio');
+  if (!clientId) throw new Error('clientId é obrigatório');
 
   const kind = briefKind || BRIEF_KIND_INICIAL;
   if (kind !== BRIEF_KIND_INICIAL) {
     throw new Error(
-      'Links p�blicos s� s�o permitidos para o briefing inicial da empresa'
+      'Links públicos só são permitidos para o briefing inicial da empresa'
     );
   }
 
   const account = getAccount();
   const user = await account.get();
   const client = await Client.get(clientId);
-  if (!client) throw new Error('Cliente n�o encontrado');
+  if (!client) throw new Error('Cliente não encontrado');
 
   const agencyId = agencyIdArg || client.agencyId;
   if (!agencyId) throw new Error('agencyId ausente');
@@ -296,7 +296,7 @@ export async function generatePublicBriefingToken({
     projectId: clientId,
     empresaId: empresa?.id || null,
     brief_kind: BRIEF_KIND_INICIAL,
-    title: `Briefing inicial � ${client.name || 'aguardando cliente'}`,
+    title: `Briefing inicial — ${client.name || 'aguardando cliente'}`,
     status: 'DRAFT',
     completion_score: 0,
     is_public_briefing: true,
@@ -304,7 +304,7 @@ export async function generatePublicBriefingToken({
     public_token: token,
     objectives: 'Briefing inicial da empresa',
     business_context:
-      'DNA da marca � an�lise pr�via antes do planejamento m�s a m�s',
+      'DNA da marca — análise prévia antes do planejamento mês a mês',
   };
 
   await createPublicRow(
@@ -405,7 +405,7 @@ export async function validatePublicBriefingToken({ token } = {}) {
   }
 
   if (!record || record.token !== token) {
-    const err = new Error('Token n�o encontrado');
+    const err = new Error('Token não encontrado');
     err.status = 404;
     throw err;
   }
@@ -529,7 +529,7 @@ export async function savePublicBriefingResponse({
   const ctx = validation.data;
 
   if (ctx.alreadySubmitted && !draft) {
-    const err = new Error('Briefing j� foi enviado');
+    const err = new Error('Briefing já foi enviado');
     err.status = 409;
     throw err;
   }
@@ -537,7 +537,7 @@ export async function savePublicBriefingResponse({
   // Legacy callers passing campanhaForm are rejected for new tokens
   if (campanhaForm && !inicialForm && ctx.briefKind === BRIEF_KIND_INICIAL) {
     const err = new Error(
-      'Este link � do briefing inicial. Envie os dados da empresa.'
+      'Este link é do briefing inicial. Envie os dados da empresa.'
     );
     err.status = 400;
     throw err;
@@ -551,7 +551,7 @@ export async function savePublicBriefingResponse({
   if (!draft) {
     const { valid, errors } = validateBriefingInicialForm(form);
     if (!valid) {
-      const err = new Error('Preencha todos os campos obrigat�rios');
+      const err = new Error('Preencha todos os campos obrigatórios');
       err.errors = errors;
       err.status = 400;
       throw err;
@@ -578,7 +578,7 @@ export async function savePublicBriefingResponse({
   let empresaUpdated = false;
   let clientUpdated = false;
 
-  // Com sess�o (ag�ncia): grava Empresa + Brief direto
+  // Com sessão (agência): grava Empresa + Brief direto
   try {
     await getAccount().get();
     empresa = await saveEmpresa({
@@ -612,18 +612,18 @@ export async function savePublicBriefingResponse({
     if (!draft) {
       await Client.update(ctx.clientId, {
         ultimo_briefing_id: ctx.briefId,
-        ultimo_briefing_campanha: `Briefing inicial � ${form.empresa.nome || ''}`,
+        ultimo_briefing_campanha: `Plano anual ${form.ano}`,
         ultimo_briefing_em: new Date().toISOString(),
         ultimo_briefing_objetivo: 'Briefing inicial da empresa',
       });
       clientUpdated = true;
     }
   } catch {
-    // Guest: tenta patch p�blico do brief + API admin
+    // Guest: tenta patch público do brief + API admin
     try {
       const patch = {
         brief_kind: BRIEF_KIND_INICIAL,
-        title: `Briefing inicial � ${form.empresa.nome || 'Cliente'}`,
+        title: `Briefing inicial — ${form.empresa.nome || 'Cliente'}`,
         status: draft ? 'DRAFT' : 'READY',
         produtos_snapshot: form.empresa.produtos_linhas,
         empresa_snapshot: form.empresa,
@@ -633,13 +633,13 @@ export async function savePublicBriefingResponse({
         public_submitted_at: draft ? null : new Date().toISOString(),
         completion_score: draft ? 30 : 100,
         editado_em: new Date().toISOString(),
-        // snapshot empresa no brief at� apply-client criar Empresa
+        // snapshot empresa no brief até apply-client criar Empresa
         _empresa_form: form.empresa,
       };
       brief = await updatePublicRow('briefs', ctx.briefId, patch);
       briefUpdated = true;
     } catch (err) {
-      console.warn('Guest n�o atualizou brief (ok):', err?.message || err);
+      console.warn('Guest não atualizou brief (ok):', err?.message || err);
     }
   }
 
@@ -719,7 +719,7 @@ export async function revokePublicBriefingToken({
     const inicial = (rows || []).find((t) => isInicialToken(t));
     targetId = inicial?.id || inicial?.token || rows?.[0]?.id || rows?.[0]?.token;
   }
-  if (!targetId) throw new Error('tokenId n�o encontrado');
+  if (!targetId) throw new Error('tokenId não encontrado');
 
   const updated = await PublicBriefingToken.update(targetId, {
     status: 'revoked',
@@ -732,7 +732,7 @@ export async function revokePublicBriefingToken({
 }
 
 /**
- * Sincroniza Empresa + briefing inicial a partir da resposta p�blica (ag�ncia).
+ * Sincroniza Empresa + plano anual a partir da resposta pública (agência).
  */
 export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
   if (!briefId && !tokenHint) return null;
@@ -810,7 +810,7 @@ export async function syncClientFromPublicBriefing(briefId, tokenHint = null) {
 
   await Client.update(brief.clientId, {
     ultimo_briefing_id: resolvedBriefId,
-    ultimo_briefing_campanha: `Briefing inicial � ${form.empresa?.nome || empresa?.nome || ''}`,
+    ultimo_briefing_campanha: `Plano anual ${form.ano || brief.ano || ''}`,
     ultimo_briefing_em: new Date().toISOString(),
     ultimo_briefing_objetivo: 'Briefing inicial da empresa',
   });

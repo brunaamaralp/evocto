@@ -21,8 +21,8 @@ import BriefingInicialFormFields from '@/components/briefing/BriefingInicialForm
 import BriefingInicialFileImport from '@/components/briefing/BriefingInicialFileImport';
 
 /**
- * Preenchimento interno do briefing inicial (equipe) � s� DNA da empresa.
- * Planejamento fica no Panorama, ap�s an�lise.
+ * Preenchimento interno do briefing inicial (equipe).
+ * Planejamento fica no Panorama, após análise.
  */
 export default function BriefingInicialPage() {
   const { user, agencyId, isAuthenticated } = useSession();
@@ -52,7 +52,7 @@ export default function BriefingInicialPage() {
       setError(null);
       const clientData = await Client.get(clientId);
       if (!clientData || clientData.agencyId !== agencyId) {
-        throw new Error('Cliente n�o encontrado');
+        throw new Error('Cliente não encontrado');
       }
       setClient(clientData);
 
@@ -98,7 +98,7 @@ export default function BriefingInicialPage() {
       const { valid, errors: nextErrors } = validateBriefingInicialForm(form);
       setErrors(nextErrors);
       if (!valid) {
-        toast.error('Preencha os campos obrigat�rios');
+        toast.error('Preencha os campos obrigatórios');
         document.querySelector('[data-section="empresa"]')?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
@@ -141,7 +141,7 @@ export default function BriefingInicialPage() {
   }
 
   if (!clientId) {
-    return <p className="text-red-600 p-6">clientId obrigat�rio na URL.</p>;
+    return <p className="text-red-600 p-6">clientId obrigatório na URL.</p>;
   }
 
   if (error) {
@@ -164,11 +164,11 @@ export default function BriefingInicialPage() {
         <h1 className="text-xl font-semibold text-[#18162A]">Briefing inicial salvo</h1>
         <p className="text-sm text-[#7A7595]">
           DNA de {client?.name} registrado. Analise o briefing e, depois, planeje
-          m�s a m�s no Panorama.
+          mês a mês no Panorama.
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Button variant="outline" onClick={backToHub}>
-            Voltar � vis�o geral
+            Voltar à visão geral
           </Button>
           <Button
             className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
@@ -190,13 +190,13 @@ export default function BriefingInicialPage() {
         <div>
           <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
             <PenLine className="w-3.5 h-3.5" />
-            Preenchimento interno � Briefing inicial
+            Preenchimento interno · Briefing inicial
           </div>
           <h1 className="text-2xl font-semibold text-[#18162A]">
             {client?.name || 'Cliente'}
           </h1>
           <p className="text-[#7A7595] mt-1">
-            DNA da empresa (p�blico, tom, produtos). Voc� pode importar de um
+            DNA da empresa (público, tom, produtos). Voc— pode importar de um
             arquivo ou preencher manualmente. O plano do ano fica no Panorama.
           </p>
         </div>
