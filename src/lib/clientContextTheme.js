@@ -18,12 +18,12 @@ export const CLIENT_CONTEXT = {
   sidebarHover: 'hover:bg-white/5 hover:text-[#FCE8E3]',
   sidebarActive: 'bg-[rgba(187,217,244,0.22)] text-[#E8F2FB] shadow-sm',
   sidebarIconActive: 'text-[#BBD9F4]',
-  sidebarFooter: 'bg-[#1A0D0B]/
+  sidebarFooter: 'bg-[#1A0D0B]',
   logoBg: 'bg-[#C02807]',
   avatarBg: 'bg-[#C02807]',
   /** Chip / banner no header */
   chip: 'bg-[#BBD9F4] text-[#1A0D0B]',
-  chipSoft: 'bg-[#E8F2FB] text-[#1A0D0B] border-[#BBD9F4]/
+  chipSoft: 'bg-[#E8F2FB] text-[#1A0D0B] border-[#BBD9F4]',
   /** Borda de destaque no conteúdo */
   contentAccent: 'border-l-4 border-l-[#BBD9F4]',
 };
