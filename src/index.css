@@ -160,7 +160,7 @@
     font-weight: 500;
   }
 
-  /* Sidebar scroll — discreto, alinhado ao roxo / teal da marca */
+  /* Sidebar scroll — discreto, alinhado à identidade Narrativa */
   .evocto-sidebar-scroll {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--color-primary-light) 40%, transparent) transparent;

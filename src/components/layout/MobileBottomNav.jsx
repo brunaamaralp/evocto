@@ -46,9 +46,10 @@ export default function MobileBottomNav({
   if (hidden) return null;
 
   const isClient = mode === 'client' && Boolean(clientId);
-  const activeClass = isClient ? 'text-teal-700' : 'text-[#C02807]';
+  /** Cliente: Sky (highlight); global: Burnt Grape — ambos da identidade Narrativa */
+  const activeClass = isClient ? 'text-[#2B6A9E]' : 'text-[#C02807]';
   const idleClass = isClient
-    ? 'text-[#7A7595] hover:text-teal-800'
+    ? 'text-[#7A7595] hover:text-[#1A0D0B]'
     : 'text-[#7A7595] hover:text-[#18162A]';
 
   return (

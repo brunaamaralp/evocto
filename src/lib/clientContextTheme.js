@@ -1,6 +1,7 @@
 /**
  * Tokens visuais do contexto de cliente vs. sistema global.
- * Global: purple brand + canvas lavanda; cliente: teal para leitura imediata.
+ * Ambos usam a identidade Narrativa; o modo cliente diferencia
+ * com Sky Blue (highlight) em vez do Burnt Grape do shell global.
  */
 export const CLIENT_CONTEXT = {
   label: 'Contexto do cliente',
@@ -8,20 +9,23 @@ export const CLIENT_CONTEXT = {
   /** Fundo da casca da página */
   shellBg: 'evocto-shell--client',
   /** Faixa superior permanente */
-  topBar: 'bg-teal-700',
-  /** Sidebar */
-  sidebarBg: 'bg-teal-950',
-  sidebarText: 'text-teal-50',
-  sidebarMuted: 'text-teal-200/80',
-  sidebarBorder: 'border-teal-800/60',
-  sidebarHover: 'hover:bg-teal-900 hover:text-white',
-  sidebarActive: 'bg-teal-700 text-white shadow-sm',
-  sidebarFooter: 'bg-teal-900/80 border-teal-800/60',
+  topBar: 'bg-[#1A0D0B]',
+  /** Sidebar — mesma base quente da marca; ativo em Sky */
+  sidebarBg: 'bg-[#1A0D0B]',
+  sidebarText: 'text-[#FFD4C8]',
+  sidebarMuted: 'text-[#A89A96]',
+  sidebarBorder: 'border-white/5',
+  sidebarHover: 'hover:bg-white/5 hover:text-[#FCE8E3]',
+  sidebarActive: 'bg-[rgba(187,217,244,0.22)] text-[#E8F2FB] shadow-sm',
+  sidebarIconActive: 'text-[#BBD9F4]',
+  sidebarFooter: 'bg-[#1A0D0B]/
+  logoBg: 'bg-[#C02807]',
+  avatarBg: 'bg-[#C02807]',
   /** Chip / banner no header */
-  chip: 'bg-teal-700 text-white',
-  chipSoft: 'bg-teal-100 text-teal-900 border-teal-200',
+  chip: 'bg-[#BBD9F4] text-[#1A0D0B]',
+  chipSoft: 'bg-[#E8F2FB] text-[#1A0D0B] border-[#BBD9F4]/
   /** Borda de destaque no conteúdo */
-  contentAccent: 'border-l-4 border-l-teal-600',
+  contentAccent: 'border-l-4 border-l-[#BBD9F4]',
 };
 
 export const GLOBAL_SHELL = {

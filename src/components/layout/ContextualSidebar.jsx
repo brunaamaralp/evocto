@@ -1,5 +1,5 @@
 /**
- * Soft UI rail: dark brand (global) vs teal (cliente).
+ * Soft UI rail: Narrativa dark brand — Sky (cliente) vs Burnt Grape (global).
  * Hierarquia cliente: Operação (hub/lente) → Planejamento → Cliente.
  * serviceId no hub é lente, não troca para shell de serviço.
  */
@@ -396,23 +396,42 @@ export default function ContextualSidebar({
       <div className={`p-4 border-b ${theme.sidebarBorder}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'}`}>
           {isClientMode ? (
-            <>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-teal-600">
-                <span className="text-white font-bold text-sm">
-                  {client?.name?.[0] || 'C'}
-                </span>
-              </div>
-              {!collapsed && (
-                <div className="min-w-0">
-                  <h2 className={`font-semibold truncate text-sm ${theme.sidebarText}`}>
-                    {client?.name || 'Cliente'}
-                  </h2>
-                  <p className={`text-xs truncate ${theme.sidebarMuted}`}>
-                    {client?.sector || 'Cliente'}
-                  </p>
+            <div className={`flex flex-col min-w-0 ${collapsed ? 'items-center gap-2' : 'w-full gap-3'}`}>
+              <Link
+                to={createPageUrl('dashboard')}
+                className={`flex items-center min-w-0 ${collapsed ? '' : 'w-full'}`}
+                aria-label={BRAND.name}
+                onClick={onClose}
+                title="Ir ao painel"
+              >
+                {collapsed ? (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                    <NarrativaBrandLockup variant="mark" height={18} className="brightness-0 invert" />
+                  </span>
+                ) : (
+                  <NarrativaBrandLockup variant="dark" height={22} className="max-w-[148px] opacity-90" />
+                )}
+              </Link>
+              <div className={`flex items-center min-w-0 ${collapsed ? '' : 'space-x-3'}`}>
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${theme.logoBg || 'bg-[#C02807]'}`}
+                >
+                  <span className="text-white font-bold text-sm">
+                    {client?.name?.[0] || 'C'}
+                  </span>
                 </div>
-              )}
-            </>
+                {!collapsed && (
+                  <div className="min-w-0">
+                    <h2 className={`font-semibold truncate text-sm ${theme.sidebarText}`}>
+                      {client?.name || 'Cliente'}
+                    </h2>
+                    <p className={`text-xs truncate ${theme.sidebarMuted}`}>
+                      {client?.sector || CLIENT_CONTEXT.label}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <Link
               to={createPageUrl('dashboard')}

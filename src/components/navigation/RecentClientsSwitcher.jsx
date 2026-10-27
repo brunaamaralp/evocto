@@ -81,7 +81,7 @@ export default function RecentClientsSwitcher({
         <DropdownMenuSeparator />
         {hasCurrent ? (
           <DropdownMenuItem disabled className="opacity-100">
-            <Building2 className="h-4 w-4 mr-2 text-teal-600" />
+            <Building2 className="h-4 w-4 mr-2 text-[#C02807]" />
             <div className="min-w-0 flex flex-col">
               <span className="truncate font-medium">
                 {currentClientName || 'Cliente atual'}
@@ -103,7 +103,7 @@ export default function RecentClientsSwitcher({
                 to={buildRecentClientHref(c.id)}
                 className="flex items-center cursor-pointer"
               >
-                <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-teal-600 text-[10px] font-bold text-white">
+                <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C02807] text-[10px] font-bold text-white">
                   {(c.name || 'C')[0].toUpperCase()}
                 </span>
                 <div className="min-w-0 flex flex-col">
