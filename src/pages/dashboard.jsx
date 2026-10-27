@@ -44,8 +44,6 @@ import {
   mapPendingApprovalsForDashboard,
 } from '@/lib/pendingApprovals';
 import {
-  buildOverviewCounts,
-  buildOverviewActionCards,
   buildAgendaBuckets,
   collectCampaignBlockers,
 } from '@/lib/dashboardActionMetrics';
@@ -248,20 +246,6 @@ function buildAttentionQueue(tasks, clients, todayStart, approvalItems = []) {
       return a.sortAt - b.sortAt;
     })
     .slice(0, 6);
-}
-
-function overviewCountClass(tone) {
-  if (tone === 'danger') return 'text-[#c0392b]';
-  if (tone === 'warning') return 'text-[#b45309]';
-  if (tone === 'primary') return 'text-[#C02807]';
-  return 'text-[#18162A]';
-}
-
-function overviewAccentClass(tone) {
-  if (tone === 'danger') return 'bg-[#c0392b]';
-  if (tone === 'warning') return 'bg-[#b45309]';
-  if (tone === 'primary') return 'bg-[#C02807]';
-  return 'bg-[#E8E5F5]';
 }
 
 function removeTaskFromDashboardData(prev, taskId) {
@@ -650,20 +634,6 @@ export default function DashboardPage() {
         services
       );
 
-      const activeCampaignCount = campaignGroups.reduce(
-        (n, g) => n + (g.campaigns?.length || 0),
-        0
-      );
-
-      const overviewCounts = buildOverviewCounts({
-        tasks,
-        todayStart,
-        pendingApprovalCount: pendingApprovals?.reliable
-          ? pendingApprovals.count
-          : approvalItems.length,
-        activeCampaignCount,
-      });
-
       const portfolio = buildAgencyPortfolioRows({
         clients: clientsForCampaigns,
         campaignGroups,
@@ -696,7 +666,7 @@ export default function DashboardPage() {
         { max: 8 }
       );
       const agendaBuckets = buildAgendaBuckets(tasks, clientsForCampaigns, todayStart, {
-        upcomingDays: 2,
+        upcomingDays: 7,
       });
       const campaignBlockers = collectCampaignBlockers(campaignGroups, { max: 5 });
       const setupSteps = buildSetupSteps({
@@ -737,7 +707,6 @@ export default function DashboardPage() {
         attentionQueue,
         agendaBuckets,
         campaignBlockers,
-        overviewCounts,
         setupSteps,
         clientsWithoutCampaigns,
         clientsWithoutService,
@@ -871,7 +840,6 @@ export default function DashboardPage() {
     attentionQueue,
     agendaBuckets = { today: [], upcoming: [], todayTotal: 0, upcomingTotal: 0 },
     campaignBlockers = [],
-    overviewCounts = {},
     setupSteps,
     clientsWithoutCampaigns,
     clientsWithoutService = [],
@@ -908,15 +876,14 @@ export default function DashboardPage() {
     currentPhase: operationalCycle?.currentPhase || null,
     maxItems: 5,
   });
-  const overviewCards = buildOverviewActionCards(overviewCounts, {
-    lens: 'agency',
-  });
   const agendaToday = agendaBuckets.today || [];
   const agendaUpcoming = agendaBuckets.upcoming || [];
   const agendaTodayTotal = agendaBuckets.todayTotal || 0;
+  const agendaUpcomingTotal = agendaBuckets.upcomingTotal || 0;
+  const attentionCount = attentionQueue.length;
 
   const hasWorkColumns =
-    attentionQueue.length > 0 || agendaToday.length > 0 || agendaUpcoming.length > 0;
+    attentionCount > 0 || agendaToday.length > 0 || agendaUpcoming.length > 0;
 
   return (
     <div className="-mx-4 min-h-[calc(100vh-4rem)] bg-white px-4 pb-10 pt-2 sm:-mx-6 sm:px-6">
@@ -971,41 +938,9 @@ export default function DashboardPage() {
         )}
       </header>
 
-      {overviewCards.length > 0 ? (
-        <section aria-labelledby="overview-heading">
-          <h2 id="overview-heading" className="sr-only">
-            Visão geral
-          </h2>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {overviewCards.map((card) => (
-              <li key={card.id}>
-                <Link
-                  to={card.href}
-                  title={card.definition}
-                  className="group flex flex-col gap-2 rounded-xl border border-[#E8E5F5] bg-white px-3.5 py-3.5 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
-                >
-                  <span
-                    className={`h-0.5 w-6 rounded-full ${overviewAccentClass(card.tone)}`}
-                    aria-hidden
-                  />
-                  <span
-                    className={`text-2xl font-semibold tabular-nums leading-none tracking-tight ${overviewCountClass(card.tone)}`}
-                  >
-                    {card.count}
-                  </span>
-                  <span className="text-xs font-medium leading-snug text-[#7A7595] group-hover:text-[#18162A]">
-                    {card.label}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       {hasWorkColumns ? (
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-6">
-          {attentionQueue.length > 0 ? (
+          {attentionCount > 0 ? (
             <section aria-labelledby="attention-heading" className="min-w-0">
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2
@@ -1014,6 +949,9 @@ export default function DashboardPage() {
                 >
                   <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
                   Precisa de atenção
+                  <span className="font-medium tabular-nums text-[#7A7595]">
+                    · {attentionCount}
+                  </span>
                 </h2>
                 <Link
                   to={buildTasksManagerHref({ preset: 'agency_overdue' })}
@@ -1046,6 +984,15 @@ export default function DashboardPage() {
                 >
                   <CalendarDays className="h-4 w-4 text-[#C02807]" aria-hidden />
                   Agenda
+                  {agendaTodayTotal > 0 ? (
+                    <span className="font-medium tabular-nums text-[#7A7595]">
+                      · hoje {agendaTodayTotal}
+                    </span>
+                  ) : agendaUpcomingTotal > 0 ? (
+                    <span className="font-medium tabular-nums text-[#7A7595]">
+                      · {agendaUpcomingTotal}
+                    </span>
+                  ) : null}
                 </h2>
                 <Link
                   to={buildTasksManagerHref({ preset: 'this_week' })}
@@ -1079,7 +1026,12 @@ export default function DashboardPage() {
 
               {agendaUpcoming.length > 0 ? (
                 <div>
-                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">Em seguida</h3>
+                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">
+                    Em seguida
+                    {agendaUpcomingTotal > agendaUpcoming.length
+                      ? ` · ${agendaUpcomingTotal}`
+                      : ''}
+                  </h3>
                   <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
                     {agendaUpcoming.map((item) => (
                       <ItemRow
@@ -1096,6 +1048,46 @@ export default function DashboardPage() {
             </section>
           )}
         </div>
+      ) : hasCampaigns ? (
+        <section
+          aria-labelledby="work-empty-heading"
+          className="rounded-xl border border-[#E8E5F5] px-5 py-6 sm:px-6"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-1">
+              <h2
+                id="work-empty-heading"
+                className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+              >
+                <ClipboardList className="h-4 w-4 text-[#7A7595]" aria-hidden />
+                Nada urgente na operação
+              </h2>
+              <p className="text-sm text-[#7A7595]">
+                Sem atrasadas, bloqueios ou prazos nesta semana. Crie uma tarefa ou revise a lista.
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shrink-0 border-[#E8E5F5] sm:w-auto"
+                onClick={() => {
+                  setCreateKind('task');
+                  setCreateOpen(true);
+                }}
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                Nova tarefa
+              </Button>
+              <Button asChild className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto">
+                <Link to={buildTasksManagerHref({ preset: 'this_week' })}>
+                  Ver tarefas
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
       ) : null}
 
       {portfolioRows.length > 0 ? <PortfolioSection portfolio={portfolio} /> : null}
