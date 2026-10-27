@@ -150,7 +150,7 @@ export default function ClientSettingsPage() {
     <div className="max-w-4xl mx-auto space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+            <Button asChild variant="ghost" size="icon" className="page-back-btn h-8 w-8 shrink-0 -ml-1.5">
               <Link
                 to={createPageUrl(`client-detail?clientId=${clientId}`)}
                 aria-label="Voltar ao cliente"

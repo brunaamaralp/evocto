@@ -25,14 +25,10 @@ import {
   validateCampanhaForm,
 } from '@/lib/campanhaBriefing';
 import { launchCampanhaFromBrief } from '@/lib/launchCampanhaFromBrief';
-import {
-  CICLOS_COMERCIAIS_OPS,
-  TIPOS_CAMPANHA,
-  previewPhasesForTipo,
-} from '@/lib/tipoCampanhaPipeline';
+import { TIPOS_CAMPANHA, previewPhasesForTipo } from '@/lib/tipoCampanhaPipeline';
 
 /**
- * Formulário reduzido: 5 campos da campanha + tipo/ciclo/linha + herança da empresa.
+ * Formulário reduzido: campos da campanha + tipo/linha + herança da empresa.
  * Ao confirmar: salva briefing + cria ciclo + gera tarefas.
  */
 export default function BriefingFormSimples({
@@ -166,7 +162,7 @@ export default function BriefingFormSimples({
             )}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Tipo de campanha</Label>
               <Select
@@ -180,27 +176,6 @@ export default function BriefingFormSimples({
                   {TIPOS_CAMPANHA.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Fase comercial</Label>
-              <Select
-                value={form.ciclo_comercial || '__none__'}
-                onValueChange={(v) =>
-                  setField('ciclo_comercial', v === '__none__' ? '' : v)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Opcional" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">—</SelectItem>
-                  {CICLOS_COMERCIAIS_OPS.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

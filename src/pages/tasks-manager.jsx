@@ -413,6 +413,9 @@ export default function TasksManagerPage() {
   const [createKind, setCreateKind] = useState('task');
   const viewFromUrl = urlStateInit.view;
   const [viewMode, setViewMode] = useState(viewFromUrl); // 'kanban' | 'week'
+  const [mobileKanbanColumn, setMobileKanbanColumn] = useState(
+    () => KANBAN_COLUMNS[0]?.id || 'todo'
+  );
   const activePresetId = presetFilters.preset || null;
 
   const writeFilterParams = useCallback(
@@ -1073,16 +1076,52 @@ export default function TasksManagerPage() {
       ) : (
       <div className="rounded-2xl p-4 bg-[#EEF4FA]/50">
         <DragDropContext onDragEnd={handleDragEnd}>
-          {/* Container principal com scroll horizontal */}
-          <div className="kanban-scroll-container overflow-x-auto">
-            <div 
+          {/* Mobile: uma coluna por vez (evita só scroll horizontal) */}
+          <div className="lg:hidden space-y-3">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              {KANBAN_COLUMNS.map((column) => {
+                const count = tasksByStatus[column.id]?.length || 0;
+                const active = mobileKanbanColumn === column.id;
+                return (
+                  <Button
+                    key={column.id}
+                    type="button"
+                    variant={active ? 'default' : 'outline'}
+                    size="sm"
+                    className="shrink-0 touch-target h-11 text-xs"
+                    onClick={() => setMobileKanbanColumn(column.id)}
+                  >
+                    {column.title} ({count})
+                  </Button>
+                );
+              })}
+            </div>
+            {KANBAN_COLUMNS.filter((c) => c.id === mobileKanbanColumn).map((column) => (
+              <div key={column.id} className="w-full min-w-0 [&_.flex-shrink-0]:w-full [&_.flex-shrink-0]:min-w-0">
+                <TaskColumn
+                  column={column}
+                  tasks={tasksByStatus[column.id] || []}
+                  users={users}
+                  clients={clients}
+                  droppableId={column.id}
+                  agencyId={agencyId}
+                  userId={currentUserId}
+                  density={density}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: board horizontal */}
+          <div className="hidden lg:block kanban-scroll-container overflow-x-auto">
+            <div
               className="flex gap-4 pb-4"
-              style={{ 
+              style={{
                 width: `${KANBAN_COLUMNS.length * (density === 'compact' ? 256 : 320) + (KANBAN_COLUMNS.length - 1) * 16}px`,
-                minHeight: '600px'
+                minHeight: '600px',
               }}
             >
-              {KANBAN_COLUMNS.map(column => (
+              {KANBAN_COLUMNS.map((column) => (
                 <TaskColumn
                   key={column.id}
                   column={column}

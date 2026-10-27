@@ -127,13 +127,17 @@ export function dispatchBriefingUpdated(clientId) {
   );
 }
 
-/** Rota can�nica do editor de briefing inicial (sem hub intermedi�rio). */
-export function buildBriefingInicialHref(clientId, { briefingId = null } = {}) {
+/** Rota canônica do editor de briefing inicial (sem hub intermediário). */
+export function buildBriefingInicialHref(
+  clientId,
+  { briefingId = null, importFile = false } = {}
+) {
   const id = String(clientId || '').trim();
   if (!id) return 'briefing-inicial';
   const params = new URLSearchParams();
   params.set('clientId', id);
   if (briefingId) params.set('briefingId', String(briefingId));
+  if (importFile) params.set('import', '1');
   return `briefing-inicial?${params.toString()}`;
 }
 

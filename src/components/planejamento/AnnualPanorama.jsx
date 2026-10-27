@@ -127,7 +127,7 @@ export default function AnnualPanorama({
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-slate-800">Timeline</h2>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory sm:mx-0 sm:px-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0 sm:snap-none md:grid-cols-6 lg:grid-cols-12">
           {months.map((m) => {
             const href = monthHref(m);
             const isNow = isCurrentYear && m.mes === currentMes;
@@ -139,7 +139,8 @@ export default function AnnualPanorama({
                   m.title ? ` — ${m.title}` : ''
                 }`}
                 className={[
-                  'flex flex-col items-center gap-1 rounded-xl border bg-white px-1 py-3 text-center shadow-sm transition',
+                  'flex flex-col items-center gap-1 rounded-xl border bg-white px-2 py-3 text-center shadow-sm transition',
+                  'min-w-[5.25rem] snap-start shrink-0 sm:min-w-0 sm:shrink sm:px-1',
                   isNow
                     ? 'border-slate-800 ring-1 ring-slate-800/20'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
@@ -149,7 +150,7 @@ export default function AnnualPanorama({
                   <PanoramaStatusGlyph status={m.status} />
                 </span>
                 <span className="text-xs font-semibold text-slate-800">{m.label}</span>
-                <span className="text-[10px] text-slate-500 line-clamp-1 px-0.5">
+                <span className="text-[11px] sm:text-[10px] text-slate-500 line-clamp-2 sm:line-clamp-1 px-0.5">
                   {m.title || panoramaStatusLabel(m.status)}
                 </span>
               </Link>

@@ -201,4 +201,45 @@
   .evocto-sidebar-scroll--client::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--color-accent) 55%, transparent);
   }
+
+  /* Mobile shell — safe areas + chrome offsets (lg = bottom nav breakpoint) */
+  .shell-header-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .above-mobile-bottom-nav {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
+
+  .fixed-footer-above-nav {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (min-width: 1024px) {
+    .above-mobile-bottom-nav {
+      bottom: 1.5rem;
+    }
+
+    .fixed-footer-above-nav {
+      bottom: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  /* Page-level back: shell already has ShellBackButton on mobile */
+  .page-back-btn {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .page-back-btn {
+      display: inline-flex;
+    }
+  }
 }

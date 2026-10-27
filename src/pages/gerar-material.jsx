@@ -329,7 +329,7 @@ export default function GerarMaterialPage() {
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 pb-28 space-y-6">
       <div className="flex items-start gap-3">
-        <Button variant="ghost" size="icon" onClick={backToHub} aria-label="Voltar">
+        <Button variant="ghost" size="icon" className="page-back-btn" onClick={backToHub} aria-label="Voltar">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
@@ -476,7 +476,7 @@ export default function GerarMaterialPage() {
         </Alert>
       ) : null}
 
-      <div className="fixed bottom-0 inset-x-0 z-20 border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="fixed inset-x-0 z-20 fixed-footer-above-nav border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="max-w-3xl mx-auto px-4 py-3 flex flex-wrap justify-end gap-2">
           <Button type="button" variant="outline" onClick={backToHub}>
             Cancelar

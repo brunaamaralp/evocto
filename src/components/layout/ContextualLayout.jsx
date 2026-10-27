@@ -110,6 +110,8 @@ export default function ContextualLayout({ user, children }) {
   const hasCampaignContext = Boolean(context.briefingId);
   const isBrainstormPage =
     currentPage === 'client-brainstorm' || currentPage === 'brainstorm';
+  /** Workspace tem nav própria — evita dual chrome com bottom nav */
+  const isImmersivePage = isBrainstormPage || currentPage === 'delivery-workspace';
 
   useEffect(() => {
     let cancelled = false;
@@ -174,7 +176,7 @@ export default function ContextualLayout({ user, children }) {
       />
 
       <motion.div
-        className={`evocto-main-panel${isBrainstormPage ? ' evocto-main-panel--no-bottom-nav' : ''}`}
+        className={`evocto-main-panel${isImmersivePage ? ' evocto-main-panel--no-bottom-nav' : ''}`}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
@@ -182,6 +184,7 @@ export default function ContextualLayout({ user, children }) {
         <ModernHeader
           user={user}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          showMenuButton={isImmersivePage}
           context={context}
           contextClient={contextClient}
           contextCampaign={contextCampaign}
@@ -191,7 +194,7 @@ export default function ContextualLayout({ user, children }) {
           className={`flex-1 min-h-0 ${
             isBrainstormPage
               ? 'overflow-hidden p-0 pb-0 flex flex-col h-full'
-              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8'
+              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-8'
           } ${isClientShell ? CLIENT_CONTEXT.contentAccent : ''}`}
         >
           {children}
@@ -204,7 +207,7 @@ export default function ContextualLayout({ user, children }) {
         serviceId={context.serviceId}
         currentPage={currentPage}
         onOpenMenu={() => setSidebarOpen(true)}
-        hidden={isBrainstormPage || sidebarOpen}
+        hidden={isImmersivePage || sidebarOpen}
       />
 
       {sidebarOpen && (

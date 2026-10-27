@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useCallback } from 'react';
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import {
   addDaysYmd,
   formatYmdBr,
@@ -6,7 +6,8 @@ import {
   todayYmd,
 } from '@/lib/businessDaysCore';
 
-const DAY_PX = 28;
+const DAY_PX_DESKTOP = 28;
+const DAY_PX_MOBILE = 20;
 const ROW_H = 40;
 
 /**
@@ -19,6 +20,15 @@ const ROW_H = 40;
 export default function StageGantt({ rows = [], onMove }) {
   const trackRef = useRef(null);
   const [drag, setDrag] = useState(null);
+  const [dayPx, setDayPx] = useState(DAY_PX_DESKTOP);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => setDayPx(mq.matches ? DAY_PX_MOBILE : DAY_PX_DESKTOP);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   const range = useMemo(() => {
     if (!rows.length) {
@@ -31,7 +41,6 @@ export default function StageGantt({ rows = [], onMove }) {
       if (r.planned_start < from) from = r.planned_start;
       if (r.planned_end > to) to = r.planned_end;
     }
-    // padding
     from = addDaysYmd(from, -3);
     to = addDaysYmd(to, 7);
     return { from, to };
@@ -43,9 +52,9 @@ export default function StageGantt({ rows = [], onMove }) {
   const xForYmd = useCallback(
     (ymd) => {
       const idx = days.indexOf(String(ymd).slice(0, 10));
-      return idx < 0 ? 0 : idx * DAY_PX;
+      return idx < 0 ? 0 : idx * dayPx;
     },
-    [days]
+    [days, dayPx]
   );
 
   const beginDrag = (e, row, mode) => {
@@ -54,9 +63,14 @@ export default function StageGantt({ rows = [], onMove }) {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
+    try {
+      e.currentTarget?.setPointerCapture?.(e.pointerId);
+    } catch {
+      /* ignore */
+    }
     setDrag({
       id: row.id,
-      mode, // 'move' | 'start' | 'end'
+      mode,
       originX: e.clientX - rect.left + track.scrollLeft,
       start: row.planned_start,
       end: row.planned_end,
@@ -67,7 +81,7 @@ export default function StageGantt({ rows = [], onMove }) {
     if (!drag || !trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left + trackRef.current.scrollLeft;
-    const deltaDays = Math.round((x - drag.originX) / DAY_PX);
+    const deltaDays = Math.round((x - drag.originX) / dayPx);
 
     let start = drag.start;
     let end = drag.end;
@@ -104,10 +118,11 @@ export default function StageGantt({ rows = [], onMove }) {
       className="stage-gantt border border-slate-200 rounded-lg overflow-hidden bg-white"
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
+      onPointerCancel={endDrag}
       onPointerLeave={endDrag}
     >
       <div className="flex">
-        <div className="w-44 shrink-0 border-r border-slate-200 bg-slate-50">
+        <div className="w-28 sm:w-44 shrink-0 border-r border-slate-200 bg-slate-50">
           <div className="h-8 border-b border-slate-200 px-2 flex items-center text-[11px] font-medium text-slate-500">
             Etapa
           </div>
@@ -131,9 +146,12 @@ export default function StageGantt({ rows = [], onMove }) {
           ))}
         </div>
 
-        <div className="flex-1 overflow-x-auto" ref={trackRef}>
-          <div style={{ width: days.length * DAY_PX, position: 'relative' }}>
-            {/* Faixas de semana (S1–S4) quando as etapas têm weekLabel */}
+        <div
+          className="flex-1 overflow-x-auto overscroll-x-contain"
+          ref={trackRef}
+          style={{ touchAction: drag ? 'none' : 'pan-x' }}
+        >
+          <div style={{ width: days.length * dayPx, position: 'relative' }}>
             {rows.some((r) => r.weekLabel && r.planned_start && r.planned_end) && (
               <div className="h-6 border-b border-slate-200 relative sticky top-0 bg-slate-50 z-20">
                 {rows.map((r) => {
@@ -143,8 +161,8 @@ export default function StageGantt({ rows = [], onMove }) {
                   const endIdx = days.indexOf(r.planned_end);
                   const width =
                     startIdx >= 0 && endIdx >= 0
-                      ? Math.max(DAY_PX, (endIdx - startIdx + 1) * DAY_PX)
-                      : DAY_PX;
+                      ? Math.max(dayPx, (endIdx - startIdx + 1) * dayPx)
+                      : dayPx;
                   return (
                     <div
                       key={`weekband-${r.id}`}
@@ -169,7 +187,7 @@ export default function StageGantt({ rows = [], onMove }) {
                     className={`shrink-0 text-center border-r border-slate-100 text-[9px] leading-8 ${
                       isToday ? 'bg-blue-50 text-blue-700 font-semibold' : weekend ? 'bg-slate-50 text-slate-400' : 'text-slate-500'
                     }`}
-                    style={{ width: DAY_PX }}
+                    style={{ width: dayPx }}
                     title={formatYmdBr(ymd)}
                   >
                     {d.getDate()}
@@ -183,13 +201,12 @@ export default function StageGantt({ rows = [], onMove }) {
               const start = isDragging && drag.previewStart ? drag.previewStart : r.planned_start;
               const end = isDragging && drag.previewEnd ? drag.previewEnd : r.planned_end;
               const left = xForYmd(start);
-              // Calendar span so weekends appear as continuous bar
               const startIdx = days.indexOf(start);
               const endIdx = days.indexOf(end);
               const calWidth =
                 startIdx >= 0 && endIdx >= startIdx
-                  ? (endIdx - startIdx + 1) * DAY_PX
-                  : DAY_PX;
+                  ? (endIdx - startIdx + 1) * dayPx
+                  : dayPx;
 
               return (
                 <div
@@ -197,7 +214,6 @@ export default function StageGantt({ rows = [], onMove }) {
                   className="relative border-b border-slate-100"
                   style={{ height: ROW_H }}
                 >
-                  {/* weekend stripes */}
                   {days.map((ymd, i) => {
                     const d = new Date(`${ymd}T12:00:00`);
                     if (d.getDay() !== 0 && d.getDay() !== 6) return null;
@@ -205,18 +221,18 @@ export default function StageGantt({ rows = [], onMove }) {
                       <div
                         key={`w-${ymd}`}
                         className="absolute top-0 bottom-0 bg-slate-50/80 pointer-events-none"
-                        style={{ left: i * DAY_PX, width: DAY_PX }}
+                        style={{ left: i * dayPx, width: dayPx }}
                       />
                     );
                   })}
                   {days.includes(today) ? (
                     <div
                       className="absolute top-0 bottom-0 w-px bg-blue-400 pointer-events-none z-[1]"
-                      style={{ left: xForYmd(today) + DAY_PX / 2 }}
+                      style={{ left: xForYmd(today) + dayPx / 2 }}
                     />
                   ) : null}
                   <div
-                    className={`absolute top-2 h-6 rounded-md bg-slate-700 text-white text-[10px] flex items-center select-none ${
+                    className={`absolute top-2 h-6 rounded-md bg-slate-700 text-white text-[10px] flex items-center select-none touch-none ${
                       isDragging ? 'opacity-90 ring-2 ring-blue-400' : 'hover:bg-slate-800'
                     }`}
                     style={{ left, width: calWidth, cursor: 'grab' }}
@@ -224,12 +240,12 @@ export default function StageGantt({ rows = [], onMove }) {
                     title={`${formatYmdBr(start)} → ${formatYmdBr(end)}`}
                   >
                     <span
-                      className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize rounded-l-md bg-slate-500/50"
+                      className="absolute left-0 top-0 bottom-0 w-2.5 sm:w-1.5 cursor-ew-resize rounded-l-md bg-slate-500/50"
                       onPointerDown={(e) => beginDrag(e, r, 'start')}
                     />
                     <span className="px-2 truncate pointer-events-none">{r.name}</span>
                     <span
-                      className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize rounded-r-md bg-slate-500/50"
+                      className="absolute right-0 top-0 bottom-0 w-2.5 sm:w-1.5 cursor-ew-resize rounded-r-md bg-slate-500/50"
                       onPointerDown={(e) => beginDrag(e, r, 'end')}
                     />
                   </div>

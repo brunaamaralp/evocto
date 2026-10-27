@@ -1,62 +1,89 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { resolveContextualBackUrl } from '@/lib/shellNavigation';
 
 const NavigationContext = createContext();
+
+function locationKey(location) {
+  return `${location.pathname}${location.search || ''}`;
+}
 
 export const NavigationProvider = ({ children }) => {
   const [navigationHistory, setNavigationHistory] = useState([]);
   const [currentContext, setCurrentContext] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Adicionar ao histórico
-    setNavigationHistory(prev => {
-      const newHistory = [...prev, location.pathname];
-      // Manter apenas os últimos 10 itens
-      return newHistory.slice(-10);
+    const key = locationKey(location);
+    setNavigationHistory((prev) => {
+      if (prev[prev.length - 1] === key) return prev;
+      return [...prev, key].slice(-10);
     });
 
-    // Detectar contexto atual baseado na URL
     const urlParams = new URLSearchParams(location.search);
-    const clientId = urlParams.get('clientId');
-    const serviceId = urlParams.get('serviceId');
-    
     setCurrentContext({
-      clientId,
-      serviceId,
-      pathname: location.pathname
+      clientId: urlParams.get('clientId'),
+      serviceId: urlParams.get('serviceId'),
+      pathname: location.pathname,
+      search: location.search,
     });
   }, [location]);
 
-  const goBack = () => {
-    if (navigationHistory.length > 1) {
-      window.history.back();
-    }
-  };
+  const canGoBack = navigationHistory.length > 1;
 
-  const getContextualBackUrl = () => {
-    const urlParams = new URLSearchParams(location.search);
-    const clientId = urlParams.get('clientId');
-    const serviceId = urlParams.get('serviceId');
+  const getContextualBackUrl = useCallback(() => {
+    return resolveContextualBackUrl({
+      pathname: location.pathname,
+      search: location.search,
+    });
+  }, [location.pathname, location.search]);
 
-    // Lógica para determinar para onde voltar baseado no contexto
-    if (location.pathname.includes('/client') && clientId) {
-      return '/clients';
-    }
-    if (location.pathname.includes('/service') && serviceId) {
-      return '/services-overview';
-    }
-    
-    return '/dashboard';
-  };
+  const fallbackUrl = useMemo(
+    () =>
+      resolveContextualBackUrl({
+        pathname: location.pathname,
+        search: location.search,
+      }),
+    [location.pathname, location.search]
+  );
 
-  return (
-    <NavigationContext.Provider value={{
+  /** true quando o botão deve ficar clicável */
+  const canNavigateBack = canGoBack || Boolean(fallbackUrl);
+
+  const goBack = useCallback(() => {
+    if (canGoBack) {
+      navigate(-1);
+      return;
+    }
+    if (fallbackUrl) {
+      navigate(fallbackUrl);
+    }
+  }, [canGoBack, fallbackUrl, navigate]);
+
+  const value = useMemo(
+    () => ({
       navigationHistory,
       currentContext,
+      canGoBack,
+      canNavigateBack,
       goBack,
-      getContextualBackUrl
-    }}>
+      getContextualBackUrl,
+      fallbackUrl,
+    }),
+    [
+      navigationHistory,
+      currentContext,
+      canGoBack,
+      canNavigateBack,
+      goBack,
+      getContextualBackUrl,
+      fallbackUrl,
+    ]
+  );
+
+  return (
+    <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
   );

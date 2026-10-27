@@ -72,7 +72,7 @@ export default function ClientAcessosPage() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0 -ml-1.5"
+            className="page-back-btn h-8 w-8 shrink-0 -ml-1.5"
             asChild
           >
             <Link

@@ -67,7 +67,7 @@ export default function FeedbackWidget() {
       <button
         aria-label="Enviar feedback"
         onClick={() => setOpen(true)}
-        className="fixed z-40 bottom-6 right-6 rounded-full bg-slate-900 text-white shadow-lg hover:opacity-90 transition px-4 h-11 flex items-center gap-2"
+        className="fixed z-40 right-6 above-mobile-bottom-nav rounded-full bg-slate-900 text-white shadow-lg hover:opacity-90 transition px-4 h-11 flex items-center gap-2"
       >
         <MessageCircle className="w-4 h-4" />
         Feedback

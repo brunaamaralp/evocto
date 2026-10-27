@@ -168,7 +168,7 @@ export default function PublicBriefingPage() {
 
         <BriefingInicialFormFields form={form} onChange={setForm} errors={errors} />
 
-        <div className="fixed bottom-0 inset-x-0 z-20 border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="fixed bottom-0 inset-x-0 z-20 border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 pb-[env(safe-area-inset-bottom,0px)]">
           <div className="max-w-3xl mx-auto px-4 py-3 flex flex-wrap justify-end gap-2">
             <Button
               type="button"

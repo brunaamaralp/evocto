@@ -171,11 +171,108 @@ const ApprovalFilters = ({ filters, onFiltersChange }) => {
   );
 };
 
-// Tabela de aprovações
+function ApprovalRowActions({ approval, onAction, actionBusyId }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="touch-target h-11 w-11 p-0">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {approval.href ? (
+          <DropdownMenuItem
+            disabled={actionBusyId === approval.id}
+            onClick={() => onAction('view', approval)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Visualizar
+          </DropdownMenuItem>
+        ) : null}
+        {approval.status === 'pending' && (
+          <>
+            <DropdownMenuItem
+              disabled={actionBusyId === approval.id}
+              onClick={() => onAction('resend', approval)}
+            >
+              {actionBusyId === approval.id ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Reenviar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={actionBusyId === approval.id}
+              onClick={() => onAction('revoke', approval)}
+              className="text-red-600"
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Revogar
+            </DropdownMenuItem>
+          </>
+        )}
+        <DropdownMenuItem
+          disabled={actionBusyId === approval.id}
+          onClick={() => onAction('download', approval)}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Baixar PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// Tabela de aprovações (+ cards no mobile)
 const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
   return (
     <div className="bg-white rounded-2xl border border-[#FFD4C8] overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
+      <div className="md:hidden divide-y divide-gray-100">
+        {approvals.map((approval) => {
+          const statusConfig = APPROVAL_STATUS[approval.status] || APPROVAL_STATUS.pending;
+          const StatusIcon = statusConfig.icon;
+          const daysLeft = approval.expiresAt
+            ? Math.ceil((new Date(approval.expiresAt) - new Date()) / (1000 * 60 * 60 * 24))
+            : null;
+          return (
+            <div key={approval.id} className="p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#18162A] truncate">
+                    {approval.title || 'Sem título'}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {String(approval.contentType || '').replace('_', ' ')}
+                  </p>
+                </div>
+                <ApprovalRowActions
+                  approval={approval}
+                  onAction={onAction}
+                  actionBusyId={actionBusyId}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#7A7595]">
+                <Badge className={`${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {statusConfig.label}
+                </Badge>
+                <span className="truncate">{approval.approverName}</span>
+                <span>
+                  {format(new Date(approval.created_date), 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+                {daysLeft !== null ? (
+                  <span className={daysLeft <= 1 ? 'text-red-600 font-medium' : ''}>
+                    {daysLeft > 0 ? `${daysLeft}d` : 'Expirado'}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-[#EEF4FA]">
             <tr>
@@ -247,54 +344,11 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {approval.href ? (
-                          <DropdownMenuItem
-                            disabled={actionBusyId === approval.id}
-                            onClick={() => onAction('view', approval)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Visualizar
-                          </DropdownMenuItem>
-                        ) : null}
-                        {approval.status === 'pending' && (
-                          <>
-                            <DropdownMenuItem
-                              disabled={actionBusyId === approval.id}
-                              onClick={() => onAction('resend', approval)}
-                            >
-                              {actionBusyId === approval.id ? (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              ) : (
-                                <Send className="h-4 w-4 mr-2" />
-                              )}
-                              Reenviar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              disabled={actionBusyId === approval.id}
-                              onClick={() => onAction('revoke', approval)}
-                              className="text-red-600"
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Revogar
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuItem
-                          disabled={actionBusyId === approval.id}
-                          onClick={() => onAction('download', approval)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Baixar PDF
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ApprovalRowActions
+                      approval={approval}
+                      onAction={onAction}
+                      actionBusyId={actionBusyId}
+                    />
                   </td>
                 </tr>
               );

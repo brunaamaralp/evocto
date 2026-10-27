@@ -246,7 +246,7 @@ export default function ClientDocumentsPage() {
     try {
       setUploading(true);
 
-      const uploaded = await UploadFile({ file });
+      const uploaded = await UploadFile({ file, agencyId });
       const fileUrl = uploaded.file_url || uploaded.url;
       if (!fileUrl) throw new Error('URL do arquivo n�o retornada');
 
@@ -259,6 +259,7 @@ export default function ClientDocumentsPage() {
         description: metadata.description || '',
         fileName: file.name,
         fileUrl,
+        fileId: uploaded.fileId || null,
         fileType: file.type || 'application/octet-stream',
         fileSize: file.size || 0,
         version: '1.0',
@@ -289,10 +290,27 @@ export default function ClientDocumentsPage() {
 
   const handleDownloadDocument = async (document) => {
     try {
-      // Criar link para download
+      let url = document.fileUrl || document.file_url || null;
+      const fileId = document.fileId || null;
+      if (fileId || url) {
+        try {
+          const { CreateFileSignedUrl } = await import('@/api/integrations');
+          const signed = await CreateFileSignedUrl({
+            fileId,
+            file_uri: url,
+          });
+          url = signed.signed_url || signed.url || url;
+        } catch (signedErr) {
+          console.warn('[client-documents] signed URL fallback', signedErr);
+        }
+      }
+      if (!url) throw new Error('URL do arquivo indisponível');
+
       const link = window.document.createElement('a');
-      link.href = document.fileUrl;
-      link.download = document.fileName;
+      link.href = url;
+      link.download = document.fileName || 'documento';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.click();
       
       toast.success('Download iniciado');
@@ -362,7 +380,7 @@ export default function ClientDocumentsPage() {
               asChild
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 -ml-1.5"
+              className="page-back-btn h-8 w-8 shrink-0 -ml-1.5"
             >
               <Link
                 to={createPageUrl(`client-detail?clientId=${clientId}`)}

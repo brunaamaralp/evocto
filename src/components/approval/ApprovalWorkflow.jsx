@@ -95,7 +95,7 @@ const ApprovalCard = ({ approval, onResend, _onRevoke }) => {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-slate-500">Aprovador:</span>
               <p className="font-medium">{approval.approverName}</p>
@@ -243,7 +243,7 @@ const CreateApprovalForm = ({ contentType, contentId, onCreated, onCancel }) => 
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="approverName">Nome do Aprovador *</Label>
               <Input

@@ -205,7 +205,7 @@ export default function ClientServicesPage() {
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 -ml-1.5">
+              <Button asChild variant="ghost" size="icon" className="page-back-btn h-8 w-8 shrink-0 -ml-1.5">
                 <Link to={clientHref} aria-label="Voltar ao cliente">
                   <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
                 </Link>

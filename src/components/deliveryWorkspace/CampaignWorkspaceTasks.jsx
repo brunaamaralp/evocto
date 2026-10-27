@@ -272,14 +272,14 @@ function TaskCard({ task, busyId, onAdvance, onComplete }) {
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 px-2 text-[11px]"
+              className="touch-target h-11 px-3 text-xs"
               disabled={busy}
               onClick={() => onAdvance(task)}
             >
               {busy ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <ChevronRight className="h-3 w-3" />
+                <ChevronRight className="h-3.5 w-3.5" />
               )}
               Avançar
             </Button>
@@ -287,14 +287,14 @@ function TaskCard({ task, busyId, onAdvance, onComplete }) {
           <Button
             type="button"
             size="sm"
-            className="h-7 px-2 text-[11px] bg-emerald-600 hover:bg-emerald-700"
+            className="touch-target h-11 px-3 text-xs bg-emerald-600 hover:bg-emerald-700"
             disabled={busy}
             onClick={() => onComplete(task)}
           >
             {busy ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Check className="h-3 w-3" />
+              <Check className="h-3.5 w-3.5" />
             )}
             Concluir
           </Button>
@@ -323,6 +323,9 @@ export default function CampaignWorkspaceTasks({
   const [busyId, setBusyId] = useState(null);
   const [localOverrides, setLocalOverrides] = useState({});
   const [showCreate, setShowCreate] = useState(false);
+  const [mobileColumn, setMobileColumn] = useState(
+    () => CAMPAIGN_KANBAN_COLUMNS[0]?.id || 'planejamento'
+  );
 
   const canCreate = Boolean(clientId && serviceId && agencyId);
 
@@ -445,7 +448,7 @@ export default function CampaignWorkspaceTasks({
             </p>
           ) : null}
           {canCreate ? (
-            <Button size="sm" onClick={() => setShowCreate(true)}>
+            <Button className="touch-target" onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4 mr-1" />
               Nova tarefa
             </Button>
@@ -461,47 +464,111 @@ export default function CampaignWorkspaceTasks({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 overflow-x-auto">
-          {CAMPAIGN_KANBAN_COLUMNS.map((col) => (
-            <div
-              key={col.id}
-              className="min-w-[160px] rounded-xl bg-slate-50 border border-slate-200 p-2"
-            >
-              <div className="flex items-center justify-between px-1 mb-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  {col.label}
-                </h3>
-                <span className="text-[10px] text-slate-400 tabular-nums">
-                  {byColumn[col.id].length}
-                </span>
-              </div>
-              <ul className="space-y-2 min-h-[80px]">
-                {byColumn[col.id].map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    busyId={busyId}
-                    onAdvance={handleAdvance}
-                    onComplete={handleComplete}
-                  />
-                ))}
-              </ul>
-              {canCreate ? (
-                <CampaignQuickAdd
-                  columnId={col.id}
-                  agencyId={agencyId}
-                  userId={user?.id}
-                  clientId={clientId}
-                  serviceId={serviceId}
-                  cycleId={cycleId}
-                  briefingId={briefingId}
-                  disabled={Boolean(busyId)}
-                  onCreated={handleQuickCreated}
-                />
-              ) : null}
+        <>
+          {/* Mobile / tablet: uma coluna por vez */}
+          <div className="lg:hidden space-y-3">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              {CAMPAIGN_KANBAN_COLUMNS.map((col) => {
+                const count = byColumn[col.id].length;
+                const active = mobileColumn === col.id;
+                return (
+                  <Button
+                    key={col.id}
+                    type="button"
+                    variant={active ? 'default' : 'outline'}
+                    size="sm"
+                    className="shrink-0 touch-target h-11 text-xs"
+                    onClick={() => setMobileColumn(col.id)}
+                  >
+                    {col.label} ({count})
+                  </Button>
+                );
+              })}
             </div>
-          ))}
-        </div>
+            {CAMPAIGN_KANBAN_COLUMNS.filter((c) => c.id === mobileColumn).map((col) => (
+              <div
+                key={col.id}
+                className="rounded-xl bg-slate-50 border border-slate-200 p-3"
+              >
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    {col.label}
+                  </h3>
+                  <span className="text-[10px] text-slate-400 tabular-nums">
+                    {byColumn[col.id].length}
+                  </span>
+                </div>
+                <ul className="space-y-2 min-h-[80px]">
+                  {byColumn[col.id].map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      busyId={busyId}
+                      onAdvance={handleAdvance}
+                      onComplete={handleComplete}
+                    />
+                  ))}
+                </ul>
+                {canCreate ? (
+                  <CampaignQuickAdd
+                    columnId={col.id}
+                    agencyId={agencyId}
+                    userId={user?.id}
+                    clientId={clientId}
+                    serviceId={serviceId}
+                    cycleId={cycleId}
+                    briefingId={briefingId}
+                    disabled={Boolean(busyId)}
+                    onCreated={handleQuickCreated}
+                  />
+                ) : null}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: 5 colunas */}
+          <div className="hidden lg:grid lg:grid-cols-5 gap-3">
+            {CAMPAIGN_KANBAN_COLUMNS.map((col) => (
+              <div
+                key={col.id}
+                className="min-w-0 rounded-xl bg-slate-50 border border-slate-200 p-2"
+              >
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    {col.label}
+                  </h3>
+                  <span className="text-[10px] text-slate-400 tabular-nums">
+                    {byColumn[col.id].length}
+                  </span>
+                </div>
+                <ul className="space-y-2 min-h-[80px]">
+                  {byColumn[col.id].map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      busyId={busyId}
+                      onAdvance={handleAdvance}
+                      onComplete={handleComplete}
+                    />
+                  ))}
+                </ul>
+                {canCreate ? (
+                  <CampaignQuickAdd
+                    columnId={col.id}
+                    agencyId={agencyId}
+                    userId={user?.id}
+                    clientId={clientId}
+                    serviceId={serviceId}
+                    cycleId={cycleId}
+                    briefingId={briefingId}
+                    disabled={Boolean(busyId)}
+                    onCreated={handleQuickCreated}
+                  />
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <TaskCreateModal

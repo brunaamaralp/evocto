@@ -18,6 +18,7 @@ import InviteClientModal from '@/components/client/InviteClientModal';
 import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
 import ClientBriefingStatusCard from '@/components/client/ClientBriefingStatusCard';
 import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
+import ClientInfoCenterSummary from '@/components/client/hub/ClientInfoCenterSummary';
 import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
 import ServiceOperationHeader from '@/components/client/hub/ServiceOperationHeader';
 import ServiceUnitsPanel from '@/components/client/hub/ServiceUnitsPanel';
@@ -104,6 +105,10 @@ export default function ClientDetailPage() {
     cycles,
     briefs,
     tasks,
+    documents,
+    learnings,
+    accesses,
+    generalNotes,
     loading,
     error,
     reload,
@@ -564,6 +569,15 @@ export default function ClientDetailPage() {
 
       <ClientBriefingStatusCard clientId={clientId} briefs={briefs} />
 
+      <ClientInfoCenterSummary
+        clientId={clientId}
+        client={client}
+        documents={documents}
+        accesses={accesses}
+        generalNotes={generalNotes}
+        learnings={learnings}
+      />
+
       {hasService ? (
         <ServiceLensSwitcher
           services={activeServices}
@@ -744,6 +758,24 @@ export default function ClientDetailPage() {
             className="text-sm text-[#7A7595] hover:text-primary hover:underline"
           >
             Tarefas
+          </Link>
+          <Link
+            to={createPageUrl(`client-documents?clientId=${clientId}`)}
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+          >
+            Documentos{counts.documents > 0 ? ` (${counts.documents})` : ''}
+          </Link>
+          <Link
+            to={createPageUrl(`client-acessos?clientId=${clientId}`)}
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+          >
+            Acessos{Array.isArray(accesses) && accesses.length > 0 ? ` (${accesses.length})` : ''}
+          </Link>
+          <Link
+            to={createPageUrl(`client-learnings?clientId=${clientId}`)}
+            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+          >
+            Aprendizados{counts.learnings > 0 ? ` (${counts.learnings})` : ''}
           </Link>
           <Link
             to={createPageUrl(`client-financeiro?clientId=${clientId}`)}

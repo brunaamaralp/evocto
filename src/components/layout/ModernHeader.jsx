@@ -29,6 +29,7 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import GlobalSearch, { GlobalSearchTrigger } from '@/components/search/GlobalSearch';
 import OperationBreadcrumb from '@/components/client/hub/OperationBreadcrumb';
 import RecentClientsSwitcher from '@/components/navigation/RecentClientsSwitcher';
+import ShellBackButton from '@/components/navigation/ShellBackButton';
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
@@ -46,6 +47,7 @@ export default function ModernHeader({
   contextClient,
   contextCampaign,
   onMenuClick,
+  showMenuButton = false,
 }) {
   const location = useLocation();
   const { user, agencyId, logout, isAdmin, isOwner } = useSession();
@@ -84,6 +86,10 @@ export default function ModernHeader({
       })
     : null;
 
+  const mobileTitle = isClientContext
+    ? contextClient?.name || 'Cliente'
+    : null;
+
   useEffect(() => {
     const uid = user?.id || user?.data?.id;
     if (!agencyId || !uid) return;
@@ -114,34 +120,33 @@ export default function ModernHeader({
   }, [agencyId, user?.id, user?.data?.id]);
 
   return (
-    <header className="border-b bg-white/80 border-[#E8E5F5]/80">
+    <header className="shell-header-safe border-b bg-white/80 border-[#E8E5F5]/80">
       <div className="px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between min-h-14 sm:min-h-16 items-center gap-2 sm:gap-3 py-2 sm:py-0">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden rounded-full h-9 w-9 p-0 shrink-0"
-              onClick={onMenuClick}
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
+            <ShellBackButton />
+            {showMenuButton ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden touch-target rounded-full h-11 w-11 p-0 shrink-0"
+                onClick={onMenuClick}
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            ) : null}
 
             {isClientContext ? (
               <div className="min-w-0 flex-1 flex items-center gap-2">
+                <p className="md:hidden min-w-0 flex-1 text-sm font-semibold text-[#18162A] truncate">
+                  {mobileTitle}
+                </p>
                 <RecentClientsSwitcher
                   agencyId={agencyId}
                   currentClientId={context.clientId}
                   currentClientName={contextClient?.name}
-                  className="shrink-0 hidden sm:inline-flex"
-                />
-                <RecentClientsSwitcher
-                  agencyId={agencyId}
-                  currentClientId={context.clientId}
-                  currentClientName={contextClient?.name}
-                  compact
-                  className="shrink-0 sm:hidden"
+                  className="shrink-0 hidden lg:inline-flex"
                 />
                 <div className="min-w-0 flex-1 hidden md:block">
                   <OperationBreadcrumb crumbs={clientCrumbs} />
@@ -157,18 +162,13 @@ export default function ModernHeader({
             )}
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {!isClientContext ? (
-              <div className="md:hidden">
-                <RecentClientsSwitcher agencyId={agencyId} compact />
-              </div>
-            ) : null}
+          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+                  className="touch-target h-11 w-11 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
                   aria-label="Criar"
                   title="Criar"
                 >
@@ -219,7 +219,7 @@ export default function ModernHeader({
                 asChild
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+                className="hidden sm:inline-flex touch-target h-11 w-11 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
               >
                 <Link
                   to={createPageUrl('clients')}
@@ -231,19 +231,26 @@ export default function ModernHeader({
               </Button>
             ) : null}
 
-            <TopbarTimerWidget />
+            <div className="hidden md:block">
+              <TopbarTimerWidget />
+            </div>
 
             <NotificationBell />
 
-            <div className={isClientContext ? '' : 'md:hidden'}>
+            <div className={isClientContext ? 'hidden md:block' : 'hidden md:block lg:hidden'}>
               <GlobalSearchTrigger compact />
             </div>
+            {!isClientContext ? (
+              <div className="md:hidden">
+                <GlobalSearchTrigger compact />
+              </div>
+            ) : null}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 pl-1 h-auto py-1.5 rounded-full hover:bg-black/5 shrink-0"
+                  className="flex items-center gap-2 pl-1 h-11 min-h-[44px] py-1.5 rounded-full hover:bg-black/5 shrink-0"
                   aria-label="Menu da conta"
                 >
                   <div className={`h-9 w-9 rounded-full flex items-center justify-center ${GLOBAL_SHELL.avatarBg}`}>
@@ -263,6 +270,17 @@ export default function ModernHeader({
                   <p className="text-xs text-[#7A7595] truncate">{user?.email || ''}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {isClientContext ? (
+                  <>
+                    <DropdownMenuItem asChild className="sm:hidden">
+                      <Link to={createPageUrl('clients')} className="flex items-center cursor-pointer">
+                        <X className="h-4 w-4 mr-2" />
+                        {CLIENT_CONTEXT.exitLabel}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="sm:hidden" />
+                  </>
+                ) : null}
                 <DropdownMenuItem asChild>
                   <Link to={createPageUrl('my-account')} className="flex items-center cursor-pointer">
                     <User className="h-4 w-4 mr-2" />

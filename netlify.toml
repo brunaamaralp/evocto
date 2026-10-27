@@ -135,6 +135,30 @@
   force = true
 
 [[redirects]]
+  from = "/api/agency-info"
+  to = "/.netlify/functions/agency-info"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/agency-info/"
+  to = "/.netlify/functions/agency-info"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/agency-accesses"
+  to = "/.netlify/functions/agency-accesses"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/agency-accesses/"
+  to = "/.netlify/functions/agency-accesses"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/approval-workflow"
   to = "/.netlify/functions/approval-workflow"
   status = 200

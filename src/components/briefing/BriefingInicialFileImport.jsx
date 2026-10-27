@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUp, Loader2, X } from 'lucide-react';
@@ -12,17 +12,25 @@ import { friendlyError } from '@/lib/errorMessages';
 
 /**
  * Upload de PDF/DOCX/TXT → extrai DNA → aplica no formulário para revisão.
+ * Um clique escolhe o arquivo e já dispara a leitura.
  */
 export default function BriefingInicialFileImport({
   form,
   onApply,
   clientName = '',
   disabled = false,
+  autoFocus = false,
 }) {
   const inputRef = useRef(null);
+  const rootRef = useRef(null);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState(null);
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [autoFocus]);
 
   const clearFile = () => {
     setFile(null);
@@ -30,25 +38,21 @@ export default function BriefingInicialFileImport({
     if (inputRef.current) inputRef.current.value = '';
   };
 
-  const handlePick = (e) => {
-    const next = e.target.files?.[0] || null;
-    setFile(next);
-    setHint(null);
-  };
-
-  const handleExtract = async () => {
-    if (!file || loading || disabled) return;
+  const runExtract = async (selected) => {
+    if (!selected || loading || disabled) return;
     setLoading(true);
     setHint(null);
     try {
-      const result = await extractBriefingInicialFromFile(file, { clientName });
+      const result = await extractBriefingInicialFromFile(selected, {
+        clientName,
+      });
       const merged = mergeBriefingInicialFromExtract(
         form,
         result.form || { empresa: result.empresa },
         clientName
       );
       onApply?.(merged, {
-        filename: file.name,
+        filename: selected.name,
         filled: result.filled,
         avisos: result.avisos || [],
       });
@@ -62,7 +66,7 @@ export default function BriefingInicialFileImport({
         setHint(result.avisos.slice(0, 3).join(' · '));
       } else {
         setHint(
-          `Importado de “${file.name}”. Confira os campos abaixo antes de salvar.`
+          `Importado de “${selected.name}”. Confira os campos abaixo antes de salvar.`
         );
       }
     } catch (err) {
@@ -72,19 +76,38 @@ export default function BriefingInicialFileImport({
     }
   };
 
+  const handlePick = async (e) => {
+    const next = e.target.files?.[0] || null;
+    if (!next) return;
+    setFile(next);
+    await runExtract(next);
+  };
+
   return (
-    <div className="rounded-2xl border border-dashed border-[#D4CFE8] bg-[#F8F6FC] px-4 py-4 space-y-3">
+    <section
+      ref={rootRef}
+      id="briefing-file-import"
+      aria-labelledby="briefing-file-import-title"
+      className={`rounded-2xl border-2 border-dashed px-4 py-5 space-y-4 transition-colors ${
+        autoFocus
+          ? 'border-[#C02807]/40 bg-[#FFF7F4] ring-2 ring-[#C02807]/20'
+          : 'border-[#C02807]/35 bg-[#FFF9F7]'
+      }`}
+    >
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 rounded-lg bg-white border border-[#E8E4F4] p-2">
-          <FileUp className="w-4 h-4 text-[#5B5680]" />
+        <div className="mt-0.5 rounded-xl bg-white border border-[#F0D5CC] p-2.5 shadow-sm">
+          <FileUp className="w-5 h-5 text-[#C02807]" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-[#18162A]">
-            Importar de arquivo
+          <p
+            id="briefing-file-import-title"
+            className="text-base font-semibold text-[#18162A]"
+          >
+            Importar briefing de arquivo
           </p>
-          <p className="text-xs text-[#7A7595] mt-0.5">
-            PDF, DOCX ou TXT — o sistema lê e preenche o formulário para você
-            revisar antes de salvar.
+          <p className="text-sm text-[#7A7595] mt-1">
+            Envie um PDF, DOCX ou TXT. O sistema lê o conteúdo, preenche o
+            formulário e você revisa antes de salvar.
           </p>
         </div>
       </div>
@@ -100,15 +123,24 @@ export default function BriefingInicialFileImport({
         />
         <Button
           type="button"
-          variant="outline"
-          size="sm"
+          className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
           disabled={disabled || loading}
           onClick={() => inputRef.current?.click()}
         >
-          Escolher arquivo
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Lendo arquivo…
+            </>
+          ) : (
+            <>
+              <FileUp className="w-4 h-4 mr-2" />
+              Escolher PDF, DOCX ou TXT
+            </>
+          )}
         </Button>
-        {file ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-[#5B5680] max-w-[220px]">
+        {file && !loading ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-[#5B5680] max-w-[260px]">
             <span className="truncate" title={file.name}>
               {file.name}
             </span>
@@ -123,22 +155,6 @@ export default function BriefingInicialFileImport({
             </button>
           </span>
         ) : null}
-        <Button
-          type="button"
-          size="sm"
-          className="bg-[#18162A] hover:bg-[#2A2740] text-white"
-          disabled={!file || loading || disabled}
-          onClick={handleExtract}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-              Lendo…
-            </>
-          ) : (
-            'Ler e preencher'
-          )}
-        </Button>
       </div>
 
       {hint ? (
@@ -147,7 +163,12 @@ export default function BriefingInicialFileImport({
             {hint}
           </AlertDescription>
         </Alert>
-      ) : null}
-    </div>
+      ) : (
+        <p className="text-xs text-[#9A94B0]">
+          Depois da leitura, confira os campos da empresa abaixo e clique em
+          salvar.
+        </p>
+      )}
+    </section>
   );
 }

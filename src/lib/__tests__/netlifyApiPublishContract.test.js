@@ -10,6 +10,8 @@ const ROOT = resolve(process.cwd());
 const REQUIRED = [
   'client-portal',
   'client-accesses',
+  'agency-info',
+  'agency-accesses',
   'approval-workflow',
   'public-briefing',
   'material-deliveries',
@@ -46,11 +48,21 @@ describe('vite api-dev routes', () => {
   it.each([
     'client-portal',
     'client-accesses',
+    'agency-info',
+    'agency-accesses',
     'approval-workflow',
     'public-briefing',
     'material-deliveries',
     'extract-briefing-inicial',
   ])('proxies /api/%s in npm run dev', (name) => {
     expect(plugin).toContain(`'/api/${name}'`);
+  });
+
+  it('loads handlers via runtime file URL (avoids @/ alias in vite.config bundle)', () => {
+    expect(plugin).toContain('pathToFileURL');
+    expect(plugin).toContain('loadRouteHandler');
+    // No live static import() of handlers (comments may mention the anti-pattern).
+    const withoutBlockComments = plugin.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(withoutBlockComments).not.toMatch(/import\(['"]\.\/lib\/server\//);
   });
 });

@@ -625,25 +625,8 @@ export default function BrainstormPage() {
 
       <style>{`
         .brainstorm-mobile-toggles { display: none; }
+        /* Tablet + mobile: um painel por vez (evita rail 200px apertada) */
         @media (max-width: 1024px) {
-          .brainstorm-grid {
-            grid-template-columns: 200px 1fr !important;
-          }
-          .brainstorm-grid.left-collapsed {
-            grid-template-columns: 48px 1fr !important;
-          }
-          .brainstorm-right { display: none !important; }
-          .brainstorm-grid.panel-right {
-            grid-template-columns: 1fr !important;
-          }
-          .brainstorm-grid.panel-right .brainstorm-left,
-          .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
-          .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
-          .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
-          .brainstorm-grid.panel-center .brainstorm-left { display: none !important; }
-          .brainstorm-mobile-toggles { display: flex !important; }
-        }
-        @media (max-width: 768px) {
           .brainstorm-grid {
             grid-template-columns: 1fr !important;
           }
@@ -652,7 +635,11 @@ export default function BrainstormPage() {
           .brainstorm-grid.panel-left .brainstorm-center { display: none !important; }
           .brainstorm-grid.panel-right .brainstorm-right { display: flex !important; }
           .brainstorm-grid.panel-right .brainstorm-center { display: none !important; }
+          .brainstorm-grid.panel-right .brainstorm-left { display: none !important; }
           .brainstorm-grid.panel-center .brainstorm-center { display: flex !important; }
+          .brainstorm-grid.panel-center .brainstorm-left,
+          .brainstorm-grid.panel-center .brainstorm-right { display: none !important; }
+          .brainstorm-mobile-toggles { display: flex !important; }
         }
       `}</style>
     </div>
@@ -681,22 +668,26 @@ const styles = {
   },
   title: { margin: 0, fontSize: 16, fontWeight: 700 },
   subtitle: { margin: '1px 0 0', fontSize: 11, color: '#666' },
-  mobileToggles: { gap: 6 },
+  mobileToggles: { gap: 8, alignItems: 'center' },
   toggle: {
-    padding: '0.35rem 0.65rem',
-    borderRadius: 6,
+    minHeight: 44,
+    minWidth: 44,
+    padding: '0.5rem 0.85rem',
+    borderRadius: 8,
     border: '1px solid #ccc',
     background: '#fff',
-    fontSize: 12,
+    fontSize: 13,
     cursor: 'pointer',
   },
   toggleActive: {
-    padding: '0.35rem 0.65rem',
-    borderRadius: 6,
+    minHeight: 44,
+    minWidth: 44,
+    padding: '0.5rem 0.85rem',
+    borderRadius: 8,
     border: '1px solid #007bff',
     background: '#e3f2fd',
     color: '#007bff',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
   },

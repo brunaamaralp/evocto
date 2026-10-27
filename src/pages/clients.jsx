@@ -171,10 +171,22 @@ export default function ClientsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
         {filteredClients.map((client, index) => {
           const pastel = getCardPastel(index);
+          const hubHref = createPageUrl(`client-detail?clientId=${client.id}`);
+          const openClient = () => navigate(hubHref);
           return (
             <Card
               key={client.id}
-              className={`hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent ${pastel.bg}`}
+              role="link"
+              tabIndex={0}
+              aria-label={`Abrir cliente ${client.name}`}
+              onClick={openClient}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openClient();
+                }
+              }}
+              className={`cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/40 ${pastel.bg}`}
             >
               <CardHeader>
                 <div className="flex justify-between items-start gap-2">
@@ -195,8 +207,12 @@ export default function ClientsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Link to={createPageUrl(`client-detail?clientId=${client.id}`)}>
+                  <div
+                    className="flex items-center gap-1 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <Link to={hubHref}>
                       <Button variant="outline" size="sm" className="gap-1 bg-white/80 border-white/60">
                         <Eye className="w-4 h-4" />
                         Ver

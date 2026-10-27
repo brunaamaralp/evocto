@@ -46,10 +46,16 @@ export async function uploadFilesToAttachmentRecords(files, meta = {}) {
     const f = list[i];
     meta.onProgress?.(Math.round(((i) / Math.max(list.length, 1)) * 90) + 5);
     try {
-      const uploaded = await UploadPrivateFile({ file: f });
+      const uploaded = await UploadPrivateFile({
+        file: f,
+        agencyId: meta.agencyId,
+      });
       const fileUrl = uploaded?.file_url || uploaded?.url || uploaded?.file_uri;
       if (!fileUrl) throw new Error('URL do arquivo não retornada');
-      records.push(buildAttachmentRecord(f, fileUrl, meta));
+      records.push({
+        ...buildAttachmentRecord(f, fileUrl, meta),
+        fileId: uploaded?.fileId || null,
+      });
     } catch (err) {
       console.error('[taskAttachmentsUpload]', f?.name, err);
       failures.push({ name: f?.name || 'arquivo', error: err });
@@ -95,7 +101,10 @@ export async function mirrorAttachmentsAsClientDocuments(task, records, uploaded
  */
 export async function appendFilesToTaskAttachments(task, files, meta = {}) {
   if (!task?.id) throw new Error('Tarefa inválida');
-  const { records, failures } = await uploadFilesToAttachmentRecords(files, meta);
+  const { records, failures } = await uploadFilesToAttachmentRecords(files, {
+    ...meta,
+    agencyId: meta.agencyId || task.agencyId,
+  });
   if (!records.length) {
     return { task, added: [], failures };
   }

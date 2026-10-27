@@ -4,21 +4,39 @@
  *
  * Importante: o middleware NÃO pode ser `async` — o Connect do Vite não espera
  * a Promise e o `server.proxy` captura /api antes do handler terminar.
+ *
+ * Handlers são carregados em runtime via file URL dinâmica — NÃO use
+ * `import('./lib/server/...')` estático aqui. O bundler do vite.config segue
+ * esses imports, puxa o grafo de `src/` e quebra em aliases `@/api` (não
+ * resolvidos na avaliação do config).
  */
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { loadEnv } from 'vite';
 
-const ROUTES = {
-  '/api/invite-client': () => import('./lib/server/inviteClientHandler.js'),
-  '/api/team-members': () => import('./lib/server/teamMembersHandler.js'),
-  '/api/generate-material': () => import('./lib/server/generateMaterialHandler.js'),
-  '/api/material-deliveries': () => import('./lib/server/materialDeliveriesHandler.js'),
-  '/api/client-portal': () => import('./lib/server/clientPortalHandler.js'),
-  '/api/client-accesses': () => import('./lib/server/clientAccessesHandler.js'),
-  '/api/approval-workflow': () => import('./lib/server/approvalWorkflowHandler.js'),
-  '/api/public-briefing': () => import('./lib/server/publicBriefingHandler.js'),
-  '/api/extract-briefing-inicial': () =>
-    import('./lib/server/extractBriefingInicialHandler.js'),
+/** route → filename under lib/server/ */
+const ROUTE_FILES = {
+  '/api/invite-client': 'inviteClientHandler.js',
+  '/api/team-members': 'teamMembersHandler.js',
+  '/api/generate-material': 'generateMaterialHandler.js',
+  '/api/material-deliveries': 'materialDeliveriesHandler.js',
+  '/api/client-portal': 'clientPortalHandler.js',
+  '/api/client-accesses': 'clientAccessesHandler.js',
+  '/api/agency-info': 'agencyInfoHandler.js',
+  '/api/agency-accesses': 'agencyAccessesHandler.js',
+  '/api/approval-workflow': 'approvalWorkflowHandler.js',
+  '/api/public-briefing': 'publicBriefingHandler.js',
+  '/api/extract-briefing-inicial': 'extractBriefingInicialHandler.js',
 };
+
+async function loadRouteHandler(pathname) {
+  const file = ROUTE_FILES[pathname];
+  if (!file) return null;
+  const abs = path.resolve(process.cwd(), 'lib', 'server', file);
+  // Variable URL prevents esbuild from bundling handlers into vite.config.
+  const href = pathToFileURL(abs).href;
+  return import(href);
+}
 
 /** Handlers that accept GET (besides POST/OPTIONS). */
 const GET_ALLOWED = new Set([
@@ -26,6 +44,8 @@ const GET_ALLOWED = new Set([
   '/api/material-deliveries',
   '/api/client-portal',
   '/api/client-accesses',
+  '/api/agency-info',
+  '/api/agency-accesses',
   '/api/approval-workflow',
   '/api/public-briefing',
 ]);
@@ -100,8 +120,7 @@ function attachApiMiddleware(middlewares) {
   middlewares.use((req, res, next) => {
     const rawPath = String(req.url || '').split('?')[0];
     const pathname = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
-    const loader = ROUTES[pathname];
-    if (!loader) {
+    if (!ROUTE_FILES[pathname]) {
       next();
       return;
     }
@@ -140,7 +159,11 @@ function attachApiMiddleware(middlewares) {
         };
         const fakeRes = buildFakeRes();
 
-        const mod = await loader();
+        const mod = await loadRouteHandler(pathname);
+        if (!mod?.default) {
+          sendJson(res, 500, {}, { success: false, error: 'handler_missing' });
+          return;
+        }
         await mod.default(fakeReq, fakeRes);
 
         if (!fakeRes.finished) {

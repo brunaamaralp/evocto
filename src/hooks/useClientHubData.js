@@ -9,6 +9,7 @@ import { ClientDocument } from '@/api/entities';
 import { LearningEntry } from '@/api/entities';
 import { EvolutionEvent } from '@/api/entities';
 import { FinancialKPI } from '@/api/entities';
+import { listClientAccesses } from '@/lib/clientAccessesApi';
 import { createPageUrl } from '@/utils';
 import {
   getTaskBriefIds,
@@ -398,6 +399,8 @@ export default function useClientHubData(clientId, agencyId) {
   const [learnings, setLearnings] = useState([]);
   const [evolutionEvents, setEvolutionEvents] = useState([]);
   const [kpis, setKpis] = useState([]);
+  const [accesses, setAccesses] = useState([]);
+  const [generalNotes, setGeneralNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -415,11 +418,15 @@ export default function useClientHubData(clientId, agencyId) {
       const clientData = await Client.get(clientId);
       if (!clientData) {
         setClient(null);
+        setAccesses([]);
+        setGeneralNotes('');
         setError('Cliente não encontrado');
         return;
       }
       if (clientData.agencyId !== agencyId) {
         setClient(null);
+        setAccesses([]);
+        setGeneralNotes('');
         setError('Cliente não encontrado ou sem permissão de acesso');
         return;
       }
@@ -436,6 +443,7 @@ export default function useClientHubData(clientId, agencyId) {
         learningsByClient,
         evolutionData,
         kpisData,
+        accessesPayload,
       ] = await Promise.all([
         safeFilter(Service, { agencyId, clientId, is_template: false }),
         safeFilter(CyclePlan, { agencyId, clientId }),
@@ -449,6 +457,10 @@ export default function useClientHubData(clientId, agencyId) {
         safeFilter(LearningEntry, { agencyId, clientId }, '-created_date'),
         safeFilter(EvolutionEvent, { agencyId, clientId }, '-date'),
         safeFilter(FinancialKPI, { agencyId, clientId }),
+        listClientAccesses(clientId).catch((err) => {
+          console.warn('[useClientHubData] accesses', err?.code || err?.message || err);
+          return { accesses: [], generalNotes: '' };
+        }),
       ]);
 
       setClient(clientData);
@@ -461,6 +473,8 @@ export default function useClientHubData(clientId, agencyId) {
       setLearnings(dedupeById([...learningsByProject, ...learningsByClient]));
       setEvolutionEvents(evolutionData);
       setKpis(kpisData);
+      setAccesses(Array.isArray(accessesPayload?.accesses) ? accessesPayload.accesses : []);
+      setGeneralNotes(String(accessesPayload?.generalNotes || ''));
     } catch (err) {
       console.error('[useClientHubData]', err);
       setError(err.message || 'Erro ao carregar cliente');
@@ -523,6 +537,8 @@ export default function useClientHubData(clientId, agencyId) {
     learnings,
     evolutionEvents,
     kpis,
+    accesses,
+    generalNotes,
     loading,
     error,
     reload,

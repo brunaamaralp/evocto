@@ -104,7 +104,7 @@ export default function PlanejamentoPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-4 px-1 pb-10 sm:px-0">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon" className="h-8 w-8 -ml-1.5">
+        <Button asChild variant="ghost" size="icon" className="page-back-btn h-8 w-8 -ml-1.5">
           <Link
             to={createPageUrl(`client-detail?clientId=${clientId}`)}
             aria-label="Voltar ao hub"

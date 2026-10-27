@@ -65,7 +65,7 @@ export default function MobileBottomNav({
           const Icon = ICONS[item.id] || LayoutDashboard;
           const isMore = item.action === 'more';
           const className = cn(
-            'flex flex-col items-center justify-center gap-0.5 min-w-0 h-full text-[10px] font-medium transition-colors',
+            'flex flex-col items-center justify-center gap-0.5 min-w-0 h-full min-h-[44px] text-[11px] font-medium transition-colors',
             item.isActive ? activeClass : idleClass
           );
 

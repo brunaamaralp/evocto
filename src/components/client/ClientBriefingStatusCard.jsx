@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, FileText, PenLine } from 'lucide-react';
+import { CheckCircle2, Circle, FileText, FileUp, PenLine } from 'lucide-react';
 import {
   buildBriefingInicialHref,
   resolveBriefingInicialStatus,
@@ -26,6 +26,12 @@ export default function ClientBriefingStatusCard({
   const href = createPageUrl(
     buildBriefingInicialHref(clientId, { briefingId: brief?.id })
   );
+  const importHref = createPageUrl(
+    buildBriefingInicialHref(clientId, {
+      briefingId: brief?.id,
+      importFile: true,
+    })
+  );
   const isDraft = status === 'draft';
   const cta = isReady ? 'Editar briefing' : isDraft ? 'Continuar briefing' : 'Preencher briefing';
 
@@ -43,12 +49,20 @@ export default function ClientBriefingStatusCard({
             <p className="text-xs text-slate-500">{label}</p>
           </div>
         </div>
-        <Button asChild size="sm" variant={isReady ? 'outline' : 'default'} className="shrink-0 gap-1.5">
-          <Link to={href}>
-            {isReady ? <PenLine className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
-            {cta}
-          </Link>
-        </Button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button asChild size="sm" variant="outline" className="gap-1.5">
+            <Link to={importHref}>
+              <FileUp className="h-3.5 w-3.5" />
+              Importar arquivo
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant={isReady ? 'outline' : 'default'} className="gap-1.5">
+            <Link to={href}>
+              {isReady ? <PenLine className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+              {cta}
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -72,23 +86,33 @@ export default function ClientBriefingStatusCard({
             <span className="text-xs text-[#7A7595]">· {label}</span>
           </div>
           <p className="text-sm text-[#7A7595]">
-            {isReady ? 'Preenchido. Edite quando mudar.' : 'Preencha ou continue no editor.'}
+            {isReady
+              ? 'Preenchido. Edite ou importe um arquivo quando mudar.'
+              : 'Preencha manualmente ou importe PDF, DOCX ou TXT.'}
           </p>
         </div>
-        <Button
-          asChild
-          className={
-            isReady
-              ? 'w-full shrink-0 sm:w-auto'
-              : 'w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto'
-          }
-          variant={isReady ? 'outline' : 'default'}
-        >
-          <Link to={href} className="inline-flex items-center gap-1.5">
-            {isReady ? <PenLine className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-            {cta}
-          </Link>
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
+            <Link to={importHref} className="inline-flex items-center gap-1.5">
+              <FileUp className="h-4 w-4" />
+              Importar arquivo
+            </Link>
+          </Button>
+          <Button
+            asChild
+            className={
+              isReady
+                ? 'w-full sm:w-auto'
+                : 'w-full bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto'
+            }
+            variant={isReady ? 'outline' : 'default'}
+          >
+            <Link to={href} className="inline-flex items-center gap-1.5">
+              {isReady ? <PenLine className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+              {cta}
+            </Link>
+          </Button>
+        </div>
       </div>
     </section>
   );

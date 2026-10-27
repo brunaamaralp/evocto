@@ -9,6 +9,7 @@ import {
   Role,
 } from '@/api/appwriteClient';
 import { buildStorageUploadPermissions } from '@/lib/storageUploadPermissions';
+import { extractAppwriteFileId } from '@/lib/appwriteFileId';
 
 const stubMode = import.meta.env.VITE_INTEGRATION_STUBS || 'mock';
 
@@ -84,12 +85,20 @@ export const UploadPrivateFile = UploadFile;
 /**
  * View URL da sessão atual — não é URL assinada de longa duração.
  * Acesso continua sujeito às permissões do arquivo.
+ * Aceita fileId cru ou file_uri/fileUrl de Storage (…/files/{id}/view).
  */
-export async function CreateFileSignedUrl({ fileId } = {}) {
-  if (!fileId) throw new Error('fileId obrigatório');
+export async function CreateFileSignedUrl({
+  fileId,
+  file_uri,
+  fileUrl,
+  file_url,
+} = {}) {
+  const id = extractAppwriteFileId(fileId || file_uri || fileUrl || file_url);
+  if (!id) throw new Error('fileId obrigatório');
   const storage = getStorage();
-  const url = storage.getFileView({ bucketId: BUCKET_ID, fileId });
-  return { url: typeof url === 'string' ? url : url?.href || String(url) };
+  const view = storage.getFileView({ bucketId: BUCKET_ID, fileId: id });
+  const url = typeof view === 'string' ? view : view?.href || String(view);
+  return { url, signed_url: url, fileId: id };
 }
 
 export const InvokeLLM = stub('InvokeLLM');

@@ -46,6 +46,8 @@ import client from "./client";
 
 import library from "./library";
 
+import central from "./central";
+
 import today from "./today";
 
 import servicesOverview from "./services-overview";
@@ -299,6 +301,8 @@ const PAGES = {
     client: client,
     
     library: library,
+
+    central: central,
     
     today: today,
     
@@ -586,6 +590,8 @@ function PagesContent() {
                 <Route path="/client" element={createElement(client)} />
                 
                 <Route path="/library" element={createElement(library)} />
+
+                <Route path="/central" element={createElement(central)} />
                 
                 <Route path="/today" element={createElement(today)} />
                 

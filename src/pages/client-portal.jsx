@@ -847,44 +847,56 @@ export default function ClientPortalPage() {
       >
         <div className="overflow-x-auto -mx-1 px-1">
           <TabsList className="inline-flex w-max min-w-full gap-1 h-auto">
-            <TabsTrigger value="overview" className="shrink-0 gap-2">
-              <ClipboardList className="w-4 h-4" />
-              <span className="hidden sm:inline">Visão geral</span>
+            <TabsTrigger value="overview" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <ClipboardList className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">
+                <span className="sm:hidden">Geral</span>
+                <span className="hidden sm:inline">Visão geral</span>
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="months" className="shrink-0 gap-2">
-              <Layers className="w-4 h-4" />
-              <span className="hidden sm:inline">Conteúdo do mês</span>
+            <TabsTrigger value="months" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <Layers className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">
+                <span className="sm:hidden">Mês</span>
+                <span className="hidden sm:inline">Conteúdo do mês</span>
+              </span>
               {stats.sharedMonths > 0 ? (
-                <Badge variant="secondary" className="ml-1">
+                <Badge variant="secondary" className="ml-0.5">
                   {stats.sharedMonths}
                 </Badge>
               ) : null}
             </TabsTrigger>
-            <TabsTrigger value="plan" className="shrink-0 gap-2">
-              <CalendarRange className="w-4 h-4" />
-              <span className="hidden sm:inline">Planejamento</span>
+            <TabsTrigger value="plan" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <CalendarRange className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">
+                <span className="sm:hidden">Plano</span>
+                <span className="hidden sm:inline">Planejamento</span>
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="shrink-0 gap-2">
-              <Megaphone className="w-4 h-4" />
-              <span className="hidden sm:inline">Campanhas</span>
+            <TabsTrigger value="campaigns" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <Megaphone className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">Campanhas</span>
               {stats.sharedCampaigns > 0 ? (
-                <Badge variant="secondary" className="ml-1">
+                <Badge variant="secondary" className="ml-0.5">
                   {stats.sharedCampaigns}
                 </Badge>
               ) : null}
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="shrink-0 gap-2">
-              <CheckCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Aprovações</span>
+            <TabsTrigger value="approvals" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">
+                <span className="sm:hidden">Aprov.</span>
+                <span className="hidden sm:inline">Aprovações</span>
+              </span>
               {stats.pendingApprovals > 0 ? (
-                <Badge variant="secondary" className="ml-1">
+                <Badge variant="secondary" className="ml-0.5">
                   {stats.pendingApprovals}
                 </Badge>
               ) : null}
             </TabsTrigger>
-            <TabsTrigger value="help" className="shrink-0 gap-2">
-              <HelpCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Ajuda</span>
+            <TabsTrigger value="help" className="shrink-0 gap-1.5 touch-target h-11 px-3">
+              <HelpCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm">Ajuda</span>
             </TabsTrigger>
           </TabsList>
         </div>

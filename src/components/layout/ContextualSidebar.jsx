@@ -13,6 +13,7 @@ import {
   Briefcase,
   CheckSquare,
   BookOpen,
+  Library,
   FolderOpen,
   ArrowLeft,
   ChevronLeft,
@@ -350,6 +351,13 @@ export default function ContextualSidebar({
         icon: Wallet,
         href: createPageUrl('financeiro'),
         isActive: currentPage === 'financeiro',
+      },
+      {
+        type: 'link',
+        label: 'Central',
+        icon: Library,
+        href: createPageUrl('central'),
+        isActive: currentPage === 'central',
       },
       {
         type: 'link',

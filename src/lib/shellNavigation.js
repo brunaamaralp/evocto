@@ -21,6 +21,7 @@ export const SHELL_PAGE_LABELS = {
   financeiro: 'Financeiro',
   'minha-empresa': 'Minha empresa',
   library: 'Biblioteca',
+  central: 'Central',
   'custom-reports': 'Relatórios',
   services: 'Templates',
   settings: 'Configurações',
@@ -226,4 +227,90 @@ export function buildShellClientBreadcrumbs({
   }
 
   return crumbs;
+}
+
+/** Páginas raiz do shell: sem fallback contextual quando não há histórico. */
+export const SHELL_BACK_ROOT_PAGES = new Set([
+  'dashboard',
+  'clients',
+  'client-portal',
+]);
+
+/** Páginas do hub do cliente (pai = lista de clientes). */
+const HUB_PAGE_KEYS = new Set(['client-detail', 'client']);
+
+/**
+ * Páginas profundas no contexto do cliente → voltam ao Hub.
+ * Inclui workspace, planejamento, tarefas do cliente, etc.
+ */
+const CLIENT_CHILD_PAGE_KEYS = new Set([
+  'delivery-workspace',
+  'client-campaign',
+  'client-unit',
+  'client-tasks',
+  'client-documents',
+  'client-acessos',
+  'client-financeiro',
+  'client-learnings',
+  'client-evolution',
+  'client-services',
+  'client-settings',
+  'planejamento',
+  'briefing-campanha-anual',
+  'brainstorm',
+  'client-brainstorm',
+  'briefing-inicial',
+  'briefing-campanha',
+  'briefing-editor',
+  'client-briefing',
+  'insights-editor',
+  'scope-editor',
+]);
+
+function getPageKeyFromPathname(pathname = '') {
+  const segment = pathname.split('/').filter(Boolean).pop() || '';
+  return segment.toLowerCase();
+}
+
+/**
+ * Resolve URL pai contextual para o botão Voltar (quando não há histórico SPA).
+ * Retorna null nas raízes do shell (botão deve ficar disabled).
+ *
+ * @param {{ pathname?: string, search?: string }} location
+ * @returns {string | null}
+ */
+export function resolveContextualBackUrl(location = {}) {
+  const pathname = location.pathname || '';
+  const search = location.search || '';
+  const pageKey = getPageKeyFromPathname(pathname);
+  const params = new URLSearchParams(
+    search.startsWith('?') ? search.slice(1) : search
+  );
+  const clientId = params.get('clientId');
+
+  // Portal do cliente: tabs → home do portal
+  if (pageKey === 'client-portal') {
+    const hasTab = Boolean(params.get('tab'));
+    if (hasTab) return createPageUrl('client-portal');
+    return null;
+  }
+
+  if (SHELL_BACK_ROOT_PAGES.has(pageKey)) {
+    return null;
+  }
+
+  if (HUB_PAGE_KEYS.has(pageKey) && clientId) {
+    return createPageUrl('clients');
+  }
+
+  if (clientId && (CLIENT_CHILD_PAGE_KEYS.has(pageKey) || pageKey.startsWith('client-'))) {
+    return createPageUrl(`client-detail?clientId=${clientId}`);
+  }
+
+  // Workspace / serviço com serviceId mas sem clientId na URL
+  if (pageKey === 'delivery-workspace' || pageKey.includes('service')) {
+    return createPageUrl('dashboard');
+  }
+
+  return createPageUrl('dashboard');
 }

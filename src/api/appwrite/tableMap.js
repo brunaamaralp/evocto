@@ -32,6 +32,10 @@ export const TABLE_MAP = {
   GenerateMaterialJob: 'generate_material_jobs',
   /** Credenciais/acessos por cliente (server-only API) */
   ClientAccess: 'client_accesses',
+  /** Credenciais da agência (server-only API) */
+  AgencyAccess: 'agency_accesses',
+  /** Central de Informações da Agência (itens não-secretos, server-only API) */
+  AgencyInfoItem: 'agency_info_items',
 };
 
 export const PHASE1_TABLES = Object.values(TABLE_MAP);
@@ -174,6 +178,15 @@ export const TABLE_COLUMNS = {
     'notes',
     'createdBy',
   ],
+  agency_accesses: [
+    'agencyId',
+    'platform',
+    'url',
+    'username',
+    'encryptedPassword',
+    'notes',
+    'createdBy',
+  ],
   learning_entries: [
     'agencyId',
     'clientId',
@@ -209,6 +222,19 @@ export const TABLE_COLUMNS = {
     'status',
     'convertedClientId',
   ],
+  agency_info_items: [
+    'agencyId',
+    'type',
+    'title',
+    'category',
+    'status',
+    'pinned',
+    'favorite',
+    'externalUrl',
+    'fileId',
+    'createdBy',
+    'updatedBy',
+  ],
 };
 
 export const BOOLEAN_COLUMNS = new Set([
@@ -222,6 +248,8 @@ export const BOOLEAN_COLUMNS = new Set([
   'reviewed',
   'is_current',
   'clientVisible',
+  'pinned',
+  'favorite',
 ]);
 
 export const DATETIME_COLUMNS = new Set([

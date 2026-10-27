@@ -1,30 +1,34 @@
 import { useState, useCallback } from 'react';
 import { ClientDocument } from '@/api/entities';
+import { UploadFile } from '@/api/integrations';
 import { useSession } from '@/components/auth/SessionManager';
 import { toast } from 'sonner';
 
 /**
- * Hook para gerenciamento de arquivos do cliente
+ * Hook para gerenciamento de arquivos do cliente (Appwrite Storage real).
  */
 export function useClientFileManagement() {
-  const { agency, user } = useSession();
+  const { agency, agencyId: sessionAgencyId, user, userId } = useSession();
+  const agencyId = sessionAgencyId || agency?.id || null;
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  /**
-   * Carrega arquivos do cliente
-   */
   const loadFiles = useCallback(async (clientId, serviceId = null) => {
+    if (!agencyId || !clientId) {
+      setFiles([]);
+      return [];
+    }
+
     setLoading(true);
     setError(null);
 
     try {
       const filters = {
-        agencyId: agency.id,
-        clientId: clientId,
-        visibility: { $in: ['client', 'public'] }
+        agencyId,
+        clientId,
+        visibility: { $in: ['client', 'public'] },
       };
 
       if (serviceId) {
@@ -41,54 +45,70 @@ export function useClientFileManagement() {
     } finally {
       setLoading(false);
     }
-  }, [agency]);
+  }, [agencyId]);
 
-  /**
-   * Upload de arquivo
-   */
   const uploadFile = useCallback(async (file, metadata = {}) => {
     setUploading(true);
     setError(null);
 
     try {
-      // Validar arquivo
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (!agencyId) {
+        throw new Error('Agência não identificada');
+      }
+      if (!metadata.clientId) {
+        throw new Error('Cliente obrigatório para o upload');
+      }
+
+      const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('Arquivo muito grande. Tamanho máximo: 10MB');
       }
 
-      // Gerar hash do arquivo para evitar duplicatas
       const fileHash = await generateFileHash(file);
-      
-      // Verificar se arquivo já existe
-      const existingFile = files.find(f => f.fileHash === fileHash);
+
+      const existingFile = files.find((f) => f.fileHash === fileHash);
       if (existingFile) {
         throw new Error('Este arquivo já foi enviado anteriormente');
       }
 
-      // Upload do arquivo
-      const uploadResult = await uploadFileToStorage(file);
-      
-      // Criar registro do documento
+      const uploadResult = await UploadFile({ file, agencyId });
+      const fileUrl = uploadResult.file_url || uploadResult.url;
+      if (!fileUrl) {
+        throw new Error('URL do arquivo não retornada');
+      }
+
+      const title =
+        metadata.title ||
+        String(file.name || 'arquivo').replace(/\.[^/.]+$/, '');
+      const group = metadata.group || metadata.category || 'other';
+
       const newDocument = await ClientDocument.create({
-        agencyId: agency.id,
+        agencyId,
         clientId: metadata.clientId,
-        serviceId: metadata.serviceId,
+        serviceId: metadata.serviceId || null,
+        title,
+        group,
+        category: group,
+        description: metadata.description || '',
         fileName: file.name,
         fileSize: file.size,
-        fileType: file.type,
-        fileHash: fileHash,
-        fileUrl: uploadResult.url,
-        category: metadata.category || 'other',
-        description: metadata.description || '',
+        fileType: file.type || 'application/octet-stream',
+        fileHash,
+        fileUrl,
+        fileId: uploadResult.fileId || null,
         tags: metadata.tags || [],
         visibility: metadata.visibility || 'client',
-        uploadedBy: user.email,
+        status: metadata.status || 'approved',
+        version: '1.0',
+        uploadedBy: user?.email || userId || null,
         uploadedAt: new Date().toISOString(),
-        status: 'active'
+        metadata: {
+          uploaded_manually: true,
+          file_size: file.size,
+        },
       });
 
-      setFiles(prev => [newDocument, ...prev]);
+      setFiles((prev) => [newDocument, ...prev]);
       toast.success('Arquivo enviado com sucesso!');
       return newDocument;
     } catch (err) {
@@ -99,21 +119,18 @@ export function useClientFileManagement() {
     } finally {
       setUploading(false);
     }
-  }, [agency, user, files]);
+  }, [agencyId, user, userId, files]);
 
-  /**
-   * Atualiza metadados do arquivo
-   */
   const updateFileMetadata = useCallback(async (fileId, updates) => {
     try {
       const updatedFile = await ClientDocument.update(fileId, {
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
 
-      setFiles(prev => prev.map(file => 
-        file.id === fileId ? updatedFile : file
-      ));
+      setFiles((prev) =>
+        prev.map((file) => (file.id === fileId ? updatedFile : file))
+      );
 
       toast.success('Arquivo atualizado com sucesso!');
       return updatedFile;
@@ -125,14 +142,11 @@ export function useClientFileManagement() {
     }
   }, []);
 
-  /**
-   * Remove arquivo
-   */
   const deleteFile = useCallback(async (fileId) => {
     try {
       await ClientDocument.delete(fileId);
-      
-      setFiles(prev => prev.filter(file => file.id !== fileId));
+
+      setFiles((prev) => prev.filter((file) => file.id !== fileId));
       toast.success('Arquivo removido com sucesso!');
       return true;
     } catch (err) {
@@ -143,25 +157,22 @@ export function useClientFileManagement() {
     }
   }, []);
 
-  /**
-   * Download de arquivo
-   */
   const downloadFile = useCallback(async (fileId) => {
     try {
-      const file = files.find(f => f.id === fileId);
+      const file = files.find((f) => f.id === fileId);
       if (!file) throw new Error('Arquivo não encontrado');
+      if (!file.fileUrl) throw new Error('URL do arquivo indisponível');
 
-      // Registrar download
       await ClientDocument.update(fileId, {
         downloadCount: (file.downloadCount || 0) + 1,
-        lastDownloadedAt: new Date().toISOString()
-      });
+        lastDownloadedAt: new Date().toISOString(),
+      }).catch(() => null);
 
-      // Iniciar download
       const link = document.createElement('a');
       link.href = file.fileUrl;
-      link.download = file.fileName;
+      link.download = file.fileName || 'arquivo';
       link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -176,37 +187,34 @@ export function useClientFileManagement() {
     }
   }, [files]);
 
-  /**
-   * Filtra arquivos por categoria
-   */
   const filterFilesByCategory = useCallback((category) => {
     if (category === 'all') return files;
-    return files.filter(file => file.category === category);
-  }, [files]);
-
-  /**
-   * Busca arquivos por nome ou descrição
-   */
-  const searchFiles = useCallback((searchTerm) => {
-    if (!searchTerm.trim()) return files;
-    
-    const term = searchTerm.toLowerCase();
-    return files.filter(file => 
-      file.fileName.toLowerCase().includes(term) ||
-      file.description.toLowerCase().includes(term) ||
-      (file.tags && file.tags.some(tag => tag.toLowerCase().includes(term)))
+    return files.filter(
+      (file) => file.category === category || file.group === category
     );
   }, [files]);
 
-  /**
-   * Obtém estatísticas de arquivos
-   */
+  const searchFiles = useCallback((searchTerm) => {
+    if (!searchTerm.trim()) return files;
+
+    const term = searchTerm.toLowerCase();
+    return files.filter(
+      (file) =>
+        file.fileName?.toLowerCase().includes(term) ||
+        file.title?.toLowerCase().includes(term) ||
+        file.description?.toLowerCase().includes(term) ||
+        (file.tags && file.tags.some((tag) => tag.toLowerCase().includes(term)))
+    );
+  }, [files]);
+
   const getFileStats = useCallback(() => {
     const total = files.length;
     const totalSize = files.reduce((sum, file) => sum + (file.fileSize || 0), 0);
-    const categories = [...new Set(files.map(file => file.category))];
-    const recentUploads = files.filter(file => {
-      const uploadDate = new Date(file.uploadedAt);
+    const categories = [
+      ...new Set(files.map((file) => file.category || file.group).filter(Boolean)),
+    ];
+    const recentUploads = files.filter((file) => {
+      const uploadDate = new Date(file.uploadedAt || file.created_date);
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       return uploadDate > weekAgo;
     }).length;
@@ -216,33 +224,9 @@ export function useClientFileManagement() {
       totalSize,
       categories: categories.length,
       recentUploads,
-      avgFileSize: total > 0 ? Math.round(totalSize / total) : 0
+      avgFileSize: total > 0 ? Math.round(totalSize / total) : 0,
     };
   }, [files]);
-
-  /**
-   * Gera hash do arquivo
-   */
-  const generateFileHash = async (file) => {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  /**
-   * Upload para storage (mock - implementar com serviço real)
-   */
-  const uploadFileToStorage = async (file) => {
-    // Simular upload
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Em implementação real, usar serviço de storage (S3, MinIO, etc.)
-    return {
-      url: URL.createObjectURL(file),
-      key: `uploads/${Date.now()}-${file.name}`
-    };
-  };
 
   return {
     files,
@@ -256,7 +240,13 @@ export function useClientFileManagement() {
     downloadFile,
     filterFilesByCategory,
     searchFiles,
-    getFileStats
+    getFileStats,
   };
 }
 
+async function generateFileHash(file) {
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}

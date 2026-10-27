@@ -15,8 +15,8 @@ import {
   Clock, User, Folder, Archive, Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { UploadFile } from '@/api/integrations';
-import { saveDocumentAutomatically } from '@/api/functions';
+import { UploadFile, CreateFileSignedUrl } from '@/api/integrations';
+import { extractAppwriteFileId } from '@/lib/appwriteFileId';
 
 const DOCUMENT_GROUPS = {
   diagnostic: { label: 'Diagnósticos', icon: FileText, color: 'blue' },
@@ -35,7 +35,8 @@ const VISIBILITY_CONFIG = {
 };
 
 export default function ClientDocumentsTab({ clientId, serviceId, deliverables = [] }) {
-  const { user } = useSession();
+  const { user, userId, agencyId: sessionAgencyId, agency } = useSession();
+  const agencyId = sessionAgencyId || agency?.id || user?.agencyId || null;
   const [documents, setDocuments] = useState([]);
   const [filteredDocuments, setFilteredDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,15 +47,16 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
   const [_selectedDeliverable, _setSelectedDeliverable] = useState(null);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const loadDocuments = useCallback(async () => {
-    if (!clientId || !user?.data?.agencyId) return;
+    if (!clientId || !agencyId) return;
 
     try {
       setLoading(true);
       
       const filters = {
-        agencyId: user.data.agencyId,
+        agencyId,
         clientId: clientId
       };
 
@@ -71,7 +73,7 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
     } finally {
       setLoading(false);
     }
-  }, [clientId, serviceId, user?.data?.agencyId]);
+  }, [clientId, serviceId, agencyId]);
 
   const filterDocuments = useCallback(() => {
     let filtered = [...documents];
@@ -129,42 +131,51 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
         toast.error('Selecione pelo menos um arquivo');
         return;
       }
+      if (!agencyId || !clientId) {
+        toast.error('Cliente ou agência não identificados');
+        return;
+      }
 
       const file = files[0];
-      
-      // Upload do arquivo
-      const _uploadResult = await UploadFile({ file });
-      
-      // Salvar documento automaticamente
-      const saveResult = await saveDocumentAutomatically({
+      setUploading(true);
+
+      const uploaded = await UploadFile({ file, agencyId });
+      const fileUrl = uploaded.file_url || uploaded.url;
+      if (!fileUrl) throw new Error('URL do arquivo não retornada');
+
+      await ClientDocument.create({
+        agencyId,
         clientId,
-        serviceId,
+        serviceId: serviceId || null,
         deliverable_id: metadata.deliverableId || null,
         group: metadata.group || 'other',
-        title: metadata.title || file.name,
+        title: metadata.title || file.name.replace(/\.[^/.]+$/, ''),
         description: metadata.description || '',
         fileName: file.name,
-        fileBlob: file,
-        fileType: file.type,
+        fileUrl,
+        fileId: uploaded.fileId || null,
+        fileType: file.type || 'application/octet-stream',
+        fileSize: file.size || 0,
+        version: '1.0',
         visibility: metadata.visibility || 'internal',
+        status: 'approved',
         tags: metadata.tags || [],
         metadata: {
           uploaded_manually: true,
-          file_size: file.size
-        }
+          file_size: file.size,
+        },
+        uploadedBy: user?.email || userId || 'Sistema',
+        uploadedAt: new Date().toISOString(),
       });
 
-      if (saveResult.data?.success) {
-        toast.success('Documento enviado com sucesso!');
-        setUploadModalOpen(false);
-        loadDocuments();
-      } else {
-        throw new Error('Falha ao salvar documento');
-      }
-      
+      toast.success('Documento enviado com sucesso!');
+      setUploadModalOpen(false);
+      await loadDocuments();
     } catch (error) {
       console.error('Erro no upload:', error);
-      toast.error('Erro ao enviar documento');
+      toast.error(error?.message || 'Erro ao enviar documento');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -185,22 +196,25 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
 
   const handleDownload = async (document) => {
     try {
-      // Criar signed URL para download seguro
-      const { createFileSignedUrl } = await import('@/api/functions/createFileSignedUrl');
-      const signedUrl = await createFileSignedUrl({
-        file_uri: document.fileUrl,
-        expires_in: 300 // 5 minutos
-      });
-      
-      if (signedUrl.data?.signed_url) {
-        window.open(signedUrl.data.signed_url, '_blank');
-      } else {
-        throw new Error('Não foi possível gerar link de download');
+      const fileId =
+        document.fileId ||
+        extractAppwriteFileId(document.fileUrl || document.file_url);
+      let url = document.fileUrl || document.file_url || null;
+
+      if (fileId) {
+        try {
+          const signed = await CreateFileSignedUrl({ fileId, file_uri: url });
+          url = signed.signed_url || signed.url || url;
+        } catch (signedErr) {
+          console.warn('[ClientDocumentsTab] signed URL fallback', signedErr);
+        }
       }
-      
+
+      if (!url) throw new Error('URL do arquivo indisponível');
+      window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Erro no download:', error);
-      toast.error('Erro ao baixar documento');
+      toast.error(error?.message || 'Erro ao baixar documento');
     }
   };
 
@@ -441,6 +455,7 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
         onClose={() => setUploadModalOpen(false)}
         onUpload={handleUpload}
         deliverables={deliverables}
+        uploading={uploading}
       />
 
       {/* Modal de Histórico */}
@@ -454,7 +469,7 @@ export default function ClientDocumentsTab({ clientId, serviceId, deliverables =
   );
 }
 
-const UploadModal = ({ isOpen, onClose, onUpload, deliverables }) => {
+const UploadModal = ({ isOpen, onClose, onUpload, deliverables, uploading = false }) => {
   const [files, setFiles] = useState(null);
   const [metadata, setMetadata] = useState({
     title: '',
@@ -467,6 +482,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, deliverables }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (uploading) return;
     if (!files || files.length === 0) {
       toast.error('Selecione um arquivo');
       return;
@@ -594,12 +610,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, deliverables }) => {
           )}
 
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={uploading}>
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={uploading}>
               <Upload className="w-4 h-4 mr-2" />
-              Enviar
+              {uploading ? 'Enviando…' : 'Enviar'}
             </Button>
           </div>
         </form>

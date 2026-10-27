@@ -20,6 +20,7 @@ import { Agency, Client } from '@/api/entities';
 import { toast } from 'sonner';
 import NotificationsBell from '@/components/client_portal/NotificationsBell';
 import HelpSupport from '@/components/client_portal/HelpSupport';
+import ShellBackButton from '@/components/navigation/ShellBackButton';
 
 export function ClientLayout({ children }) {
   const { user, logout } = useSession();
@@ -110,7 +111,7 @@ export function ClientLayout({ children }) {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header 
-        className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50"
+        className="shell-header-safe bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50"
         style={{
           background: agency?.primaryColor ? 
             `linear-gradient(135deg, ${agency.primaryColor}15 0%, white 100%)` : 
@@ -120,7 +121,8 @@ export function ClientLayout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo e Branding da Agência */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
+              <ShellBackButton />
               <Link to={createPageUrl('client-portal')} className="flex items-center group">
                 {agency?.logoUrl ? (
                   <img

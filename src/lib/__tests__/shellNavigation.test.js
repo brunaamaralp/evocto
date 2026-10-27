@@ -8,6 +8,7 @@ import {
   getMobileBottomNavItems,
   readSidebarCollapsed,
   writeSidebarCollapsed,
+  resolveContextualBackUrl,
 } from '../shellNavigation';
 
 describe('shellNavigation', () => {
@@ -22,6 +23,7 @@ describe('shellNavigation', () => {
   it('labels known pages', () => {
     expect(getShellPageLabel('client-tasks')).toBe('Tarefas');
     expect(getShellPageLabel('planejamento')).toBe('Panorama');
+    expect(getShellPageLabel('central')).toBe('Central');
     expect(getShellPageLabel('unknown-page')).toBeNull();
   });
 
@@ -95,5 +97,51 @@ describe('shellNavigation', () => {
     expect(client.map((i) => i.id)).toEqual(['hub', 'tasks', 'plan', 'more']);
     expect(client.find((i) => i.id === 'tasks').isActive).toBe(true);
     expect(client.find((i) => i.id === 'tasks').href).toContain('clientId=c1');
+  });
+
+  it('resolves contextual back urls for shell hierarchy', () => {
+    expect(
+      resolveContextualBackUrl({ pathname: '/dashboard', search: '' })
+    ).toBeNull();
+    expect(
+      resolveContextualBackUrl({ pathname: '/clients', search: '' })
+    ).toBeNull();
+    expect(
+      resolveContextualBackUrl({ pathname: '/client-portal', search: '' })
+    ).toBeNull();
+    expect(
+      resolveContextualBackUrl({
+        pathname: '/client-portal',
+        search: '?tab=campaigns',
+      })
+    ).toBe('/client-portal');
+
+    expect(
+      resolveContextualBackUrl({
+        pathname: '/client-detail',
+        search: '?clientId=c1',
+      })
+    ).toBe('/clients');
+
+    expect(
+      resolveContextualBackUrl({
+        pathname: '/delivery-workspace',
+        search: '?clientId=c1&briefingId=b1',
+      })
+    ).toBe('/client-detail?clientId=c1');
+
+    expect(
+      resolveContextualBackUrl({
+        pathname: '/planejamento',
+        search: '?clientId=c1',
+      })
+    ).toBe('/client-detail?clientId=c1');
+
+    expect(
+      resolveContextualBackUrl({
+        pathname: '/tasks-manager',
+        search: '',
+      })
+    ).toBe('/dashboard');
   });
 });

@@ -117,6 +117,7 @@ const KNOWN_APP_SEGMENTS = new Set([
   'jobs-monitor',
   'learnings-manager',
   'library',
+  'central',
   'login',
   'mapping-wizard',
   'mensalidades',
