@@ -130,14 +130,26 @@ export function useTaskSanitization(options: TaskSanitizationOptions = {}) {
   const sanitizeTaskData = useCallback((taskData: any): any => {
     if (!taskData || typeof taskData !== 'object') return {};
 
+    const titleRaw =
+      taskData.title || taskData.titulo || taskData.título || taskData.name || '';
+    const descriptionRaw =
+      taskData.description ||
+      taskData.descricao ||
+      taskData.descrição ||
+      '';
+    const hoursRaw =
+      taskData.estimatedHours ??
+      taskData.estimated_hours ??
+      taskData.horas_estimadas;
+
     return {
       ...taskData,
-      title: sanitizeString(taskData.title || '', maxLength.title),
-      description: sanitizeString(taskData.description || '', maxLength.description),
-      priority: sanitizePriority(taskData.priority),
+      title: sanitizeString(titleRaw, maxLength.title),
+      description: sanitizeString(descriptionRaw, maxLength.description),
+      priority: sanitizePriority(taskData.priority || taskData.prioridade),
       type: sanitizeTaskType(taskData.type),
       status: sanitizeStatus(taskData.status),
-      estimatedHours: sanitizeNumber(taskData.estimatedHours, 0, 1000),
+      estimatedHours: sanitizeNumber(hoursRaw, 0, 1000),
       progress: sanitizeNumber(taskData.progress, 0, 100),
       checklist: sanitizeChecklist(taskData.checklist || []),
       // Manter campos não sanitizáveis

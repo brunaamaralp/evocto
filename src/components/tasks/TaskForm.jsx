@@ -450,7 +450,10 @@ Responda em pt-BR com um título claro e uma descrição objetiva.
         response_json_schema: schema
       });
 
-      const { title, description } = res || {};
+      const title =
+        res?.title || res?.titulo || res?.título || res?.name || '';
+      const description =
+        res?.description || res?.descricao || res?.descrição || '';
       if (title || description) {
         setFormData((prev) => ({
           ...prev,

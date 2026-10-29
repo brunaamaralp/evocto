@@ -5,6 +5,7 @@
  */
 
 import { getBestAIProvider } from '@/config/aiConfig';
+import { normalizeAiTaskFields } from '@/lib/normalizeAiTaskFields';
 
 export class AITaskGenerator {
   constructor() {
@@ -176,55 +177,38 @@ Retorne um JSON com as tarefas geradas seguindo o schema fornecido.`;
    * Cria tarefa do sistema baseada na resposta da IA
    */
   async createTaskFromAI(aiTask, briefingData, _index) {
-    const taskData = {
-      title: aiTask.title,
-      description: aiTask.description,
-      priority: aiTask.priority || 'medium',
+    const n = normalizeAiTaskFields(aiTask);
+    if (!n.title) {
+      throw new Error('Tarefa da IA sem título utilizável');
+    }
+
+    return {
+      ...n,
       status: 'todo',
-      phase: aiTask.phase || 'Execução',
-      estimatedHours: aiTask.estimatedHours || 4,
-      dependencies: aiTask.dependencies || [],
-      kpiImpact: aiTask.kpiImpact || 'medium',
-      learningPotential: aiTask.learningPotential || false,
-      clientApprovalRequired: aiTask.clientApprovalRequired || false,
-      
-      // Metadados do briefing
       briefingId: briefingData.id,
       serviceId: briefingData.servico_instancia_id,
       clientId: briefingData.cliente_id,
       agencyId: briefingData.agencyId,
-      
-      // Metadados da IA
       aiGenerated: true,
       aiProvider: this.llm.constructor.name,
       generatedAt: new Date().toISOString(),
-      aiConfidence: this.calculateConfidence(aiTask)
+      aiConfidence: this.calculateConfidence(n),
     };
-
-    return taskData;
   }
 
   /**
    * Calcula confiança da IA baseada na qualidade da tarefa
    */
   calculateConfidence(aiTask) {
-    let confidence = 50; // Base
-    
-    // Título claro e específico
-    if (aiTask.title && aiTask.title.length > 10) confidence += 10;
-    
-    // Descrição detalhada
-    if (aiTask.description && aiTask.description.length > 50) confidence += 15;
-    
-    // Prioridade definida
-    if (aiTask.priority) confidence += 10;
-    
-    // Fase definida
-    if (aiTask.phase) confidence += 10;
-    
-    // Estimativa de horas
-    if (aiTask.estimatedHours && aiTask.estimatedHours > 0) confidence += 5;
-    
+    const n = normalizeAiTaskFields(aiTask);
+    let confidence = 50;
+
+    if (n.title.length > 10) confidence += 10;
+    if (n.description.length > 50) confidence += 15;
+    if (n.priority) confidence += 10;
+    if (n.phase) confidence += 10;
+    if (n.estimatedHours > 0) confidence += 5;
+
     return Math.min(confidence, 100);
   }
 

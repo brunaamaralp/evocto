@@ -210,7 +210,8 @@ export class BriefingService {
           action: 'ADD_TASK',
           task_id: null,
           task_template_key: null,
-          payload: task,
+          // Nested shape esperado por TaskAdjustment.createNewTask / validateAction
+          payload: { task },
           reason: 'Tarefa gerada por IA baseada no briefing',
           created_by: briefing.preenchido_por_user_id,
           status: 'active'

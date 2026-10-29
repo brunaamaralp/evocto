@@ -6,6 +6,7 @@
  */
 
 import { randomUUID } from '@/components/debug/CryptoShim';
+import { resolveAddTaskPayload } from '@/lib/normalizeAiTaskFields';
 
 export class TaskAdjustment {
   constructor(data = {}) {
@@ -98,8 +99,10 @@ export class TaskAdjustment {
         break;
 
       case 'ADD_TASK':
-        if (!this.payload.task) {
-          errors.push('ADD_TASK requer payload.task');
+        if (!resolveAddTaskPayload(this.payload)) {
+          errors.push(
+            'ADD_TASK requer payload.task (ou payload flat com title/titulo)'
+          );
         }
         break;
 
@@ -209,13 +212,19 @@ export class TaskAdjustment {
       throw new Error('createNewTask só pode ser chamado para ação ADD_TASK');
     }
 
+    const task =
+      resolveAddTaskPayload(this.payload) ||
+      (this.payload?.task && typeof this.payload.task === 'object'
+        ? this.payload.task
+        : {});
+
     return {
       id: randomUUID(),
-      ...this.payload.task,
+      ...task,
       created_by: 'ai_system',
       created_at: this.created_at,
       adjustment_reason: this.reason,
-      is_adjustment: true
+      is_adjustment: true,
     };
   }
 
