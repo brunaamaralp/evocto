@@ -86,7 +86,11 @@ const ERROR_MAP = {
   no_fields_extracted: 'Não encontramos dados de briefing neste arquivo.',
   ia_parse_failed: 'A IA não retornou dados válidos. Tente novamente.',
   ia_failed: 'Falha ao ler o briefing. Tente novamente em instantes.',
+  api_unavailable:
+    'O serviço de importação não respondeu. Recarregue a página ou tente de novo em instantes.',
   file_read_failed: 'Não foi possível ler o arquivo selecionado.',
+  handler_no_response:
+    'O serviço de importação não concluiu a leitura. Tente um arquivo menor (TXT/DOCX) ou tente de novo.',
   job_in_progress: 'Já existe uma geração em andamento para este cliente. Aguarde.',
   job_not_found: 'Geração não encontrada. Inicie novamente.',
   not_found: 'Venda não encontrada.',

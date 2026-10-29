@@ -41,6 +41,7 @@ export default function BriefingInicialPage() {
   const [errors, setErrors] = useState({});
   const [done, setDone] = useState(false);
   const [imported, setImported] = useState(false);
+  const [importMeta, setImportMeta] = useState(null);
 
   const backToHub = () => {
     navigate(`${createPageUrl('client-detail')}?clientId=${clientId}`);
@@ -208,13 +209,27 @@ export default function BriefingInicialPage() {
         clientName={client?.name || ''}
         disabled={saving || done}
         autoFocus={wantImport}
-        onApply={(next) => {
+        onApply={(next, meta) => {
           setForm(next);
           setErrors({});
           setDone(false);
           setImported(true);
+          setImportMeta(meta || null);
         }}
       />
+
+      {imported && importMeta ? (
+        <Alert className="border-emerald-200 bg-emerald-50 text-emerald-950">
+          <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+          <AlertDescription>
+            {importMeta.filled
+              ? `Importação aplicada: ${importMeta.filled} campo(s) preenchidos${
+                  importMeta.filename ? ` a partir de “${importMeta.filename}”` : ''
+                }. Revise o DNA abaixo e salve.`
+              : 'Arquivo lido. Revise a análise e complete o DNA abaixo antes de salvar.'}
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       <div className="relative flex items-center gap-3 py-1" aria-hidden>
         <div className="h-px flex-1 bg-[#E8E4F4]" />

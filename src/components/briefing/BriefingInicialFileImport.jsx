@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileUp, Loader2, Upload } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  FileUp,
+  Loader2,
+  Upload,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { friendlyError } from '@/lib/errorMessages';
 import {
   EXTRACT_BRIEFING_ACCEPT,
   extractBriefingInicialFromFile,
@@ -31,6 +38,7 @@ const LOADING_STEPS = [
   'Lendo o documento…',
   'Identificando o nicho…',
   'Estruturando o DNA da marca…',
+  'Preenchendo o formulário…',
 ];
 
 /**
@@ -49,11 +57,13 @@ export default function BriefingInicialFileImport({
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [elapsedSec, setElapsedSec] = useState(0);
   const [errorHint, setErrorHint] = useState(null);
   const [analise, setAnalise] = useState(null);
   const [avisos, setAvisos] = useState([]);
   const [appliedLabels, setAppliedLabels] = useState([]);
   const [dragOver, setDragOver] = useState(false);
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error
 
   formRef.current = form;
 
@@ -65,21 +75,34 @@ export default function BriefingInicialFileImport({
   useEffect(() => {
     if (!loading) {
       setLoadingStep(0);
+      setElapsedSec(0);
       return undefined;
     }
-    const id = setInterval(() => {
+    const stepId = setInterval(() => {
       setLoadingStep((s) => (s + 1) % LOADING_STEPS.length);
     }, 2200);
-    return () => clearInterval(id);
+    const tickId = setInterval(() => {
+      setElapsedSec((s) => s + 1);
+    }, 1000);
+    return () => {
+      clearInterval(stepId);
+      clearInterval(tickId);
+    };
   }, [loading]);
 
   const runExtract = async (selected) => {
     if (!selected || loading || disabled) return;
     setLoading(true);
+    setStatus('loading');
     setErrorHint(null);
     setAnalise(null);
     setAvisos([]);
     setAppliedLabels([]);
+    toast.message('Importando briefing…', {
+      description: 'Isso pode levar até cerca de 1 minuto.',
+      duration: 4000,
+    });
+
     try {
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
@@ -103,6 +126,7 @@ export default function BriefingInicialFileImport({
         .map((k) => FIELD_LABELS[k] || k)
         .filter(Boolean);
       setAppliedLabels(labels);
+      setStatus('success');
 
       onApply?.(merged, {
         filename: selected.name,
@@ -113,27 +137,32 @@ export default function BriefingInicialFileImport({
         analiseMarkdown: result.analise_markdown || '',
       });
 
-      toast.success(
-        labels.length
-          ? `Pronto. ${labels.length} campo(s) preenchido(s) — revise e salve.`
-          : 'Documento lido. Revise a análise e o formulário.'
-      );
+      const successMsg = labels.length
+        ? `Pronto. ${labels.length} campo(s) preenchido(s) — revise e salve.`
+        : 'Documento lido. Revise a análise e complete o que faltar no formulário.';
+      toast.success(successMsg, { duration: 6000 });
 
       requestAnimationFrame(() => {
         document
-          .getElementById('narrativa-analise-heading')
+          .getElementById('empresa-form-heading')
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     } catch (err) {
+      const rawMsg = String(err?.body?.message || err?.message || '').trim();
       const msg =
-        err?.body?.message ||
-        err?.message ||
-        'Não foi possível ler o arquivo.';
+        rawMsg.length > 12 && /\s/.test(rawMsg)
+          ? rawMsg
+          : friendlyError(err?.code || rawMsg || err, 'action');
       setErrorHint(msg);
+      setStatus('error');
       if (err?.body?.analise) setAnalise(err.body.analise);
-      toast.error(msg);
+      toast.error(msg, {
+        description: 'Você ainda pode preencher o DNA manualmente abaixo.',
+        duration: 8000,
+      });
     } finally {
       setLoading(false);
+      if (inputRef.current) inputRef.current.value = '';
     }
   };
 
@@ -160,12 +189,17 @@ export default function BriefingInicialFileImport({
     <div className="space-y-4" ref={rootRef} id="briefing-file-import">
       <section
         aria-labelledby="briefing-file-import-title"
+        aria-busy={loading}
         className={`rounded-2xl border px-4 py-5 transition-colors ${
           dragOver
             ? 'border-[#B80015] bg-[#FFF7F4]'
-            : hasResult
-              ? 'border-[#E8E4F4] bg-white'
-              : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
+            : status === 'error'
+              ? 'border-red-200 bg-white'
+              : status === 'success'
+                ? 'border-[#C8E6C9] bg-white'
+                : hasResult
+                  ? 'border-[#E8E4F4] bg-white'
+                  : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
         }`}
         onDragEnter={(e) => {
           e.preventDefault();
@@ -195,7 +229,10 @@ export default function BriefingInicialFileImport({
                 preenche o formulário para você revisar.
               </p>
               {file && !loading ? (
-                <p className="mt-1 truncate text-xs text-[#5B5680]" title={file.name}>
+                <p
+                  className="mt-1 truncate text-xs text-[#5B5680]"
+                  title={file.name}
+                >
                   {file.name}
                 </p>
               ) : null}
@@ -225,7 +262,9 @@ export default function BriefingInicialFileImport({
               ) : (
                 <>
                   <FileUp className="mr-2 h-4 w-4" />
-                  {hasResult ? 'Trocar arquivo' : 'Escolher arquivo'}
+                  {hasResult || status === 'error'
+                    ? 'Trocar arquivo'
+                    : 'Escolher arquivo'}
                 </>
               )}
             </Button>
@@ -233,26 +272,65 @@ export default function BriefingInicialFileImport({
         </div>
 
         {loading ? (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#F8F6FC] px-3 py-2.5 text-sm text-[#5B5680]">
-            <Loader2 className="h-4 w-4 animate-spin text-[#B80015]" aria-hidden />
-            <span>{LOADING_STEPS[loadingStep]}</span>
-            <span className="text-xs text-[#9A94B0]">· até ~1 min</span>
+          <div
+            role="status"
+            className="mt-4 rounded-xl border border-[#E8E4F4] bg-[#F8F6FC] px-3 py-3 text-sm text-[#5B5680]"
+          >
+            <div className="flex items-center gap-2">
+              <Loader2
+                className="h-4 w-4 shrink-0 animate-spin text-[#B80015]"
+                aria-hidden
+              />
+              <span className="font-medium text-[#1A1210]">
+                {LOADING_STEPS[loadingStep]}
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-[#9A94B0]">
+              {elapsedSec}s decorridos · em geral termina em menos de 1 min.
+              Não feche esta página.
+            </p>
           </div>
         ) : null}
 
-        {errorHint ? (
-          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            {errorHint}
-          </p>
+        {errorHint && !loading ? (
+          <div
+            role="alert"
+            className="mt-3 flex gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-900"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <div>
+              <p className="font-medium">Não foi possível importar</p>
+              <p className="mt-0.5 text-red-800">{errorHint}</p>
+              <p className="mt-1.5 text-xs text-red-700/90">
+                Tente TXT/DOCX, um PDF com texto selecionável, ou preencha o
+                DNA manualmente abaixo.
+              </p>
+            </div>
+          </div>
         ) : null}
 
-        {appliedLabels.length > 0 && !loading ? (
-          <p className="mt-3 text-xs text-[#5B5680]">
-            Preenchido no formulário:{' '}
-            <span className="font-medium text-[#1A1210]">
-              {appliedLabels.join(' · ')}
-            </span>
-          </p>
+        {status === 'success' && !loading ? (
+          <div
+            role="status"
+            className="mt-3 flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-950"
+          >
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <div>
+              <p className="font-medium">
+                {appliedLabels.length
+                  ? `${appliedLabels.length} campo(s) aplicados ao formulário`
+                  : 'Análise pronta — revise o formulário'}
+              </p>
+              {appliedLabels.length > 0 ? (
+                <p className="mt-1 text-xs text-emerald-900/80">
+                  {appliedLabels.join(' · ')}
+                </p>
+              ) : null}
+              <p className="mt-1.5 text-xs text-emerald-900/80">
+                Role até o DNA, ajuste o que precisar e salve o briefing.
+              </p>
+            </div>
+          </div>
         ) : null}
       </section>
 
