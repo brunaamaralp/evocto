@@ -12,18 +12,34 @@ const SIZES = {
 
 /**
  * Isotipo Narrativa (aspas).
- * @param {boolean} mark — versao enquadrada para chips/avatar
+ * Por padrão usa aspas táteis sem fundo (integra no canvas da página).
+ * @param {boolean} mark — SVG vetorial enquadrado (chips / sidebar)
+ * @param {'aspas'|'svg'|'cereja'|'azulClaro'|'azulJeans'} [variant]
  */
 export default function NarrativaIsotipo({
   size = 'md',
   className = '',
   alt = `${BRAND.displayName || BRAND.name} isotipo`,
   mark = false,
+  variant = 'aspas',
 }) {
   const px = typeof size === 'number' ? size : SIZES[size] || SIZES.md;
+
+  const src = mark
+    ? BRAND.mark
+    : variant === 'svg'
+      ? BRAND.mark
+      : variant === 'cereja'
+        ? BRAND.isotipoCereja
+        : variant === 'azulClaro'
+          ? BRAND.isotipoAzulClaro
+          : variant === 'azulJeans'
+            ? BRAND.isotipoAzulJeans
+            : BRAND.isotipoAspas || BRAND.mascot;
+
   return (
     <img
-      src={mark ? BRAND.mark : BRAND.mascot}
+      src={src}
       alt={alt}
       width={px}
       height={mark ? px : undefined}

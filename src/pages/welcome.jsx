@@ -121,19 +121,31 @@ export default function WelcomePage() {
       </header>
 
       <main>
-        {/* Hero — 1 headline, 1 frase, CTAs, 1 âncora visual (logo só no header) */}
-        <section className="relative overflow-hidden">
+        {/* Hero — composição única: tipografia + aspas táteis no plano (sem card/fundo) */}
+        <section className="relative overflow-hidden bg-[var(--color-canvas,#F1EDE7)]">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(184,0,21,0.07),transparent_45%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(184,0,21,0.06),transparent_48%),radial-gradient(ellipse_at_88%_20%,rgba(143,169,190,0.18),transparent_42%)]"
           />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 sm:gap-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
-            <div className="space-y-6 sm:space-y-8">
+          {/* Aspas como plano visual — transparentes, sem caixa */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-6 top-6 w-[42vw] max-w-[22rem] opacity-[0.92] sm:-right-4 sm:top-10 sm:max-w-[26rem] lg:right-[4%] lg:top-1/2 lg:w-[38%] lg:max-w-[28rem] lg:-translate-y-[46%]"
+          >
+            <NarrativaIsotipo
+              size={480}
+              className="w-full select-none drop-shadow-[0_18px_40px_rgba(26,18,16,0.08)]"
+              alt=""
+            />
+          </div>
+
+          <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
+            <div className="max-w-xl space-y-6 sm:space-y-8 lg:max-w-[32rem]">
               <div className="space-y-4 sm:space-y-5">
-                <h1 className="max-w-xl text-[1.75rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.1] lg:text-[3.25rem]">
+                <h1 className="text-[1.75rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.1] lg:text-[3.25rem]">
                   {HERO.title}
                 </h1>
-                <p className="max-w-lg text-base leading-relaxed text-[var(--color-sidebar-text,#6B635C)] sm:text-lg">
+                <p className="text-base leading-relaxed text-[var(--color-text-secondary,#6B635C)] sm:text-lg">
                   {HERO.subtitle}
                 </p>
               </div>
@@ -162,18 +174,10 @@ export default function WelcomePage() {
               </div>
 
               {!isAuthenticated && (
-                <p className="text-center text-xs text-[var(--color-sidebar-text,#6B635C)] sm:text-left sm:text-sm">
+                <p className="text-center text-xs text-[var(--color-text-secondary,#6B635C)] sm:text-left sm:text-sm">
                   {trialMarketing.heroHint}
                 </p>
               )}
-            </div>
-
-            <div className="flex justify-center lg:justify-end">
-              <NarrativaIsotipo
-                size="xl"
-                className="w-[6.75rem] sm:w-[11rem] lg:w-[15rem]"
-                alt={`${BRAND.name} — isotipo`}
-              />
             </div>
           </div>
         </section>

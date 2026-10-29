@@ -8,14 +8,17 @@ export const BRAND = {
   wordmarkOnDark: '/brand/logo-wordmark-on-dark.svg',
   /** Isotipo aspas — sidebar colapsado / avatar de marca */
   logoMark: '/brand/logo-mark.svg',
-  /** Variantes tateis do isotipo */
+  /** Variantes tateis do isotipo (PNGs com fundo de cor — só para usos enquadrados) */
   isotipoCereja: '/brand/isotipo-cereja.png',
   isotipoAzulClaro: '/brand/isotipo-azul-claro.png',
   isotipoAzulJeans: '/brand/isotipo-azul-jeans.png',
-  mascot: '/brand/isotipo-azul-claro.png',
+  /** Aspas táteis sem fundo — uso padrão em UI / landing */
+  isotipoAspas: '/brand/isotipo-aspas.png',
+  mascot: '/brand/isotipo-aspas.png',
   mark: '/brand/logo-mark.svg',
-  head: '/brand/isotipo-cereja.png',
-  favicon: '/icons/favicon.ico',
+  head: '/brand/isotipo-aspas.png',
+  favicon: '/icons/favicon.svg',
+  faviconIco: '/icons/favicon.ico',
   icon192: '/icons/icon-192.png',
   icon512: '/icons/icon-512.png',
   themeColor: '#B80015',
