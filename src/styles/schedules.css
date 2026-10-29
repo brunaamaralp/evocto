@@ -15,8 +15,8 @@
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: var(--v100, #FCE8E3);
-  color: var(--color-text-primary, #18162a);
+  background: var(--v100, #F6E4E6);
+  color: var(--color-text-primary, #1A1210);
 }
 
 .btn-icon:disabled {
@@ -50,7 +50,7 @@
 
 .schedules-divider {
   border: none;
-  border-top: 1px dashed var(--border-light, #e8e5f5);
+  border-top: 1px dashed var(--border-light, #E4DDD4);
   margin: 32px 0;
   width: 100%;
 }

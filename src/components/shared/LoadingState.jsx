@@ -23,7 +23,7 @@ export default function LoadingState({
     <div className={`flex items-center justify-center p-8 ${className}`}>
       <div className="text-center">
         <Loader2 className={`${sizeClasses[size]} animate-spin mx-auto mb-3 text-primary`} />
-        <p className="text-[#7A7595] text-sm">{message}</p>
+        <p className="text-[#6B635C] text-sm">{message}</p>
       </div>
     </div>
   );

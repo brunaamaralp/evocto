@@ -56,11 +56,11 @@ export default function BriefingInicialFormFields({
       <div>
         <h2
           id="empresa-form-heading"
-          className="text-base font-semibold text-[#18162A]"
+          className="text-base font-semibold text-[#1A1210]"
         >
           DNA da empresa
         </h2>
-        <p className="mt-0.5 text-sm text-[#7A7595]">
+        <p className="mt-0.5 text-sm text-[#6B635C]">
           {imported
             ? 'Revise e ajuste o que a leitura preencheu. Depois salve o briefing.'
             : 'Público, tom, formato e produtos — base para planejar depois.'}
@@ -123,7 +123,7 @@ export default function BriefingInicialFormFields({
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-[#18162A]">
+          <p className="mb-2 text-sm font-medium text-[#1A1210]">
             Formato mensal
           </p>
           <div className="grid gap-3 sm:grid-cols-3">

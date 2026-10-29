@@ -60,7 +60,7 @@
           background: var(--color-agenda-today-bg);
           box-shadow:
             0 0 0 1px color-mix(in srgb, var(--color-primary) 12%, transparent),
-            0 8px 24px rgba(192, 40, 7, 0.12);
+            0 8px 24px rgba(184, 0, 21, 0.12);
         }
         .day-col-head {
           display: flex;
@@ -112,14 +112,14 @@
         }
         .day-empty {
           text-align: center;
-          color: #FF9A7A;
+          color: #E87A55;
           font-size: 13px;
           padding-top: 4px;
           flex: 1;
         }
         .aula-card {
           background: var(--color-bg-primary);
-          border: 0.5px solid #FF9A7A;
+          border: 0.5px solid #E87A55;
           border-radius: 9px;
           padding: 10px 11px;
           margin-bottom: 0;
@@ -130,7 +130,7 @@
         }
         .aula-card:hover {
           border-color: var(--color-primary);
-          box-shadow: 0 2px 8px rgba(192, 40, 7, 0.10);
+          box-shadow: 0 2px 8px rgba(184, 0, 21, 0.10);
           transform: translateY(-1px);
         }
         .aula-card--attended {

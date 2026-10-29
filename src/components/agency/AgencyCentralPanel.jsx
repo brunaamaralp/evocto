@@ -86,15 +86,15 @@ function TypeTile({ type, count, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[4.75rem] flex-col justify-between rounded-2xl border px-2.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35 sm:min-h-[5.25rem] sm:px-3.5 sm:py-3 ${
+      className={`flex min-h-[4.75rem] flex-col justify-between rounded-2xl border px-2.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/35 sm:min-h-[5.25rem] sm:px-3.5 sm:py-3 ${
         active
-          ? 'border-[#C02807]/40 bg-[#FFF5F2]'
-          : 'border-[#E8E5F5] bg-white hover:border-[#d0d7e2] hover:bg-[#EEF4FA]/60'
+          ? 'border-[#B80015]/40 bg-[#FFF5F2]'
+          : 'border-[#E4DDD4] bg-white hover:border-[#d0d7e2] hover:bg-[#F1EDE7]/60'
       }`}
     >
       <span
         className={`flex h-7 w-7 items-center justify-center rounded-xl sm:h-8 sm:w-8 ${
-          active ? 'bg-[#FFE8E0] text-[#C02807]' : 'bg-[#EEF4FA] text-[#555]'
+          active ? 'bg-[#FFE8E0] text-[#B80015]' : 'bg-[#F1EDE7] text-[#555]'
         }`}
       >
         <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden />
@@ -118,12 +118,12 @@ function ItemCard({ item, onEdit, onArchive, onOpen }) {
       <CardContent className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EEF4FA] text-[#555]">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F1EDE7] text-[#555]">
               <Icon className="h-4 w-4" aria-hidden />
             </span>
             <div className="min-w-0">
-              <h3 className="truncate font-semibold text-[#18162A]">{item.title}</h3>
-              <p className="mt-0.5 text-xs text-[#7A7595]">
+              <h3 className="truncate font-semibold text-[#1A1210]">{item.title}</h3>
+              <p className="mt-0.5 text-xs text-[#6B635C]">
                 {typeLabel}
                 {item.category ? ` · ${categoryLabel(item.category)}` : ''}
               </p>
@@ -139,7 +139,7 @@ function ItemCard({ item, onEdit, onArchive, onOpen }) {
                 onClick={() => onOpen(item)}
                 aria-label={`Abrir ${item.title}`}
               >
-                <ExternalLink className="h-4 w-4 text-[#7A7595]" />
+                <ExternalLink className="h-4 w-4 text-[#6B635C]" />
               </Button>
             ) : null}
             {(item.type === 'document' && (item.fileUrl || item.externalUrl)) ? (
@@ -151,7 +151,7 @@ function ItemCard({ item, onEdit, onArchive, onOpen }) {
                 onClick={() => onOpen(item)}
                 aria-label={`Abrir ${item.title}`}
               >
-                <ExternalLink className="h-4 w-4 text-[#7A7595]" />
+                <ExternalLink className="h-4 w-4 text-[#6B635C]" />
               </Button>
             ) : null}
             <Button
@@ -162,7 +162,7 @@ function ItemCard({ item, onEdit, onArchive, onOpen }) {
               onClick={() => onEdit(item)}
               aria-label={`Editar ${item.title}`}
             >
-              <Pencil className="h-4 w-4 text-[#7A7595]" />
+              <Pencil className="h-4 w-4 text-[#6B635C]" />
             </Button>
             <Button
               type="button"
@@ -172,15 +172,15 @@ function ItemCard({ item, onEdit, onArchive, onOpen }) {
               onClick={() => onArchive(item)}
               aria-label={`Arquivar ${item.title}`}
             >
-              <Trash2 className="h-4 w-4 text-[#7A7595]" />
+              <Trash2 className="h-4 w-4 text-[#6B635C]" />
             </Button>
           </div>
         </div>
 
         {item.summary ? (
-          <p className="line-clamp-2 text-sm text-[#7A7595]">{item.summary}</p>
+          <p className="line-clamp-2 text-sm text-[#6B635C]">{item.summary}</p>
         ) : item.body && item.type === 'note' ? (
-          <p className="line-clamp-3 whitespace-pre-wrap text-sm text-[#7A7595]">{item.body}</p>
+          <p className="line-clamp-3 whitespace-pre-wrap text-sm text-[#6B635C]">{item.body}</p>
         ) : null}
 
         {item.fileName ? (
@@ -397,7 +397,7 @@ export default function AgencyCentralPanel() {
                 if (e.key === 'Enter') applySearch();
               }}
               placeholder="Buscar…"
-              className="h-10 rounded-xl border-transparent bg-[#EEF4FA] pl-9"
+              className="h-10 rounded-xl border-transparent bg-[#F1EDE7] pl-9"
               aria-label="Buscar por título ou categoria"
             />
           </div>
@@ -444,7 +444,7 @@ export default function AgencyCentralPanel() {
       </div>
 
       {typeFilter !== 'all' ? (
-        <p className="text-xs text-[#7A7595]">
+        <p className="text-xs text-[#6B635C]">
           Filtrando por {TYPE_META[typeFilter]?.label?.toLowerCase()}
           {' · '}
           <button
@@ -458,7 +458,7 @@ export default function AgencyCentralPanel() {
       ) : null}
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-[#7A7595]">
+        <div className="flex items-center justify-center py-16 text-[#6B635C]">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Carregando…
         </div>
@@ -599,7 +599,7 @@ export default function AgencyCentralPanel() {
                     }}
                   />
                   {form.fileName && !form.file ? (
-                    <p className="text-xs text-[#7A7595]">
+                    <p className="text-xs text-[#6B635C]">
                       Arquivo atual: {form.fileName}
                     </p>
                   ) : null}

@@ -167,11 +167,11 @@ export default function AgencyOnboarding() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#EEF4FA] to-[#FCE8E3] p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#F1EDE7] to-[#F6E4E6] p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#C02807] to-[#FF643D] rounded-full mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#B80015] to-[#DD4E28] rounded-full mb-6">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">

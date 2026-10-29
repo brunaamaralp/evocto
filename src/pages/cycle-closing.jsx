@@ -42,7 +42,7 @@ const FileUploadCard = ({ title, description, files, onFilesChange }) => {
   };
 
   return (
-    <Card className="rounded-2xl border-dashed border-2 border-[#FFD4C8] hover:border-[#C02807] transition-colors shadow-sm">
+    <Card className="rounded-2xl border-dashed border-2 border-[#FFE8E4] hover:border-[#B80015] transition-colors shadow-sm">
       <CardContent className="pt-6">
         <div className="text-center">
           <Upload className="mx-auto h-8 w-8 text-slate-400 mb-4" />
@@ -252,8 +252,8 @@ export default function CycleClosing() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Fechamento de Ciclo</h1>
-          <p className="text-[#7A7595] mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Fechamento de Ciclo</h1>
+          <p className="text-[#6B635C] mt-1">
             Colete resultados e aprendizados para {client?.name} - {service?.name}
           </p>
           <div className="flex items-center gap-3 mt-3">
@@ -453,8 +453,8 @@ export default function CycleClosing() {
               {learnings.length > 0 && (
                 <div className="space-y-3">
                   {learnings.map((learning) => (
-                    <div key={learning.id} className="p-3 bg-[#EEF4FA] rounded-2xl">
-                      <h4 className="font-medium text-sm text-[#18162A]">{learning.title}</h4>
+                    <div key={learning.id} className="p-3 bg-[#F1EDE7] rounded-2xl">
+                      <h4 className="font-medium text-sm text-[#1A1210]">{learning.title}</h4>
                       <p className="text-xs text-slate-600 mt-1">{learning.description}</p>
                     </div>
                   ))}

@@ -116,8 +116,8 @@ export default function ClientLearningsPanel({
                     <Icon className={`w-5 h-5 ${pastel.text}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-[#18162A]">{value}</p>
-                    <p className="text-sm text-[#7A7595]">{label}</p>
+                    <p className="text-2xl font-bold text-[#1A1210]">{value}</p>
+                    <p className="text-sm text-[#6B635C]">{label}</p>
                   </div>
                 </div>
               </CardContent>
@@ -140,7 +140,7 @@ export default function ClientLearningsPanel({
         <select
           value={confidenceFilter}
           onChange={(e) => setConfidenceFilter(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#C02807] focus:border-[#C02807]"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#B80015] focus:border-[#B80015]"
         >
           <option value="all">Todas Confianças</option>
           <option value="high">Alta (≥80%)</option>
@@ -151,7 +151,7 @@ export default function ClientLearningsPanel({
         <select
           value={reviewedFilter}
           onChange={(e) => setReviewedFilter(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#C02807] focus:border-[#C02807]"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#B80015] focus:border-[#B80015]"
         >
           <option value="all">Todos Status</option>
           <option value="reviewed">Revisados</option>

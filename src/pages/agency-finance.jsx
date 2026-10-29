@@ -481,7 +481,7 @@ export default function AgencyFinancePage() {
             </button>
           </div>
           <Button variant="outline" size="sm" onClick={() => load({ soft: true })} disabled={refreshing}>
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin text-[#C02807]" /> : <RefreshCw className="h-4 w-4" />}
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin text-[#B80015]" /> : <RefreshCw className="h-4 w-4" />}
             Atualizar
           </Button>
         </div>
@@ -504,7 +504,7 @@ export default function AgencyFinancePage() {
 
       {loading ? (
         <div className="af-loading">
-          <Loader2 className="h-5 w-5 animate-spin text-[#C02807]" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#B80015]" />
           Carregando…
         </div>
       ) : (

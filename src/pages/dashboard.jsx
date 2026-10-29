@@ -396,16 +396,16 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
   const meta = (
     <>
       <div className="min-w-0 flex-1 text-left">
-        <p className="truncate text-sm font-medium text-[#18162A]">{item.title}</p>
+        <p className="truncate text-sm font-medium text-[#1A1210]">{item.title}</p>
         {secondaryLine ? (
-          <p className="mt-0.5 truncate text-xs text-[#7A7595]">{secondaryLine}</p>
+          <p className="mt-0.5 truncate text-xs text-[#6B635C]">{secondaryLine}</p>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {isAgenda && item.dueLabel ? (
           <span
             className={`text-[11px] font-medium tabular-nums ${
-              item.dueLabel === 'Hoje' ? 'text-[#C02807]' : 'text-[#7A7595]'
+              item.dueLabel === 'Hoje' ? 'text-[#B80015]' : 'text-[#6B635C]'
             }`}
           >
             {item.dueLabel}
@@ -425,7 +425,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
     variant === 'attention' && isOverdue
       ? 'border-l-[#c0392b]'
       : variant === 'attention'
-        ? 'border-l-[#C02807]'
+        ? 'border-l-[#B80015]'
         : isAgenda
           ? 'border-l-transparent'
           : 'border-l-transparent';
@@ -453,7 +453,7 @@ function ItemRow({ item, showKindBadge = false, onComplete, completingId, varian
           type="button"
           variant="ghost"
           size="icon"
-          className="mr-1 h-8 w-8 shrink-0 text-[#7A7595] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
+          className="mr-1 h-8 w-8 shrink-0 text-[#6B635C] hover:bg-[#eef7ee] hover:text-[#1a7f37]"
           disabled={isCompleting}
           title="Marcar como concluída"
           aria-label={`Marcar "${item.title}" como concluída`}
@@ -484,11 +484,11 @@ function CampaignProgressBar({ completed, total }) {
         aria-label={`Progresso: ${pct}%`}
       >
         <div
-          className="h-full rounded-full bg-[#C02807] transition-[width] duration-300"
+          className="h-full rounded-full bg-[#B80015] transition-[width] duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="shrink-0 text-xs tabular-nums text-[#7A7595]">
+      <span className="shrink-0 text-xs tabular-nums text-[#6B635C]">
         {completed}/{total}
       </span>
     </div>
@@ -499,7 +499,7 @@ function financeToneClass(tone) {
   if (tone === 'danger') return 'text-[#c0392b]';
   if (tone === 'warning') return 'text-[#b45309]';
   if (tone === 'ok') return 'text-[#2e7d32]';
-  return 'text-[#7A7595]';
+  return 'text-[#6B635C]';
 }
 
 function PortfolioSection({ portfolio }) {
@@ -511,27 +511,27 @@ function PortfolioSection({ portfolio }) {
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2
           id="portfolio-heading"
-          className="text-sm font-semibold tracking-tight text-[#18162A]"
+          className="text-sm font-semibold tracking-tight text-[#1A1210]"
         >
           Carteira
           {portfolio.totalClients ? (
-            <span className="ml-1.5 font-normal text-[#7A7595]">
+            <span className="ml-1.5 font-normal text-[#6B635C]">
               {portfolio.totalClients}
             </span>
           ) : null}
         </h2>
         <Link
           to={createPageUrl('clients')}
-          className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
+          className="shrink-0 text-sm font-medium text-[#B80015] hover:underline"
         >
           {portfolio.truncated ? 'Ver todos' : 'Clientes'}
         </Link>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[#E8E5F5]">
+      <div className="overflow-x-auto rounded-xl border border-[#E4DDD4]">
         <table className="w-full min-w-[36rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-[#F0EEF7] bg-[#FAFAFB] text-xs text-[#7A7595]">
+            <tr className="border-b border-[#F0EEF7] bg-[#FAFAFB] text-xs text-[#6B635C]">
               <th className="px-3.5 py-2.5 font-medium">Cliente</th>
               <th className="px-3.5 py-2.5 font-medium">Campanhas</th>
               <th className="px-3.5 py-2.5 font-medium">Tarefas</th>
@@ -547,15 +547,15 @@ function PortfolioSection({ portfolio }) {
                 <td className="px-3.5 py-2.5">
                   <Link
                     to={row.href}
-                    className="font-medium text-[#18162A] hover:text-[#C02807]"
+                    className="font-medium text-[#1A1210] hover:text-[#B80015]"
                   >
                     {row.name}
                   </Link>
                 </td>
-                <td className="px-3.5 py-2.5 tabular-nums text-[#7A7595]">
+                <td className="px-3.5 py-2.5 tabular-nums text-[#6B635C]">
                   {row.campaignsActive > 0 ? row.campaignsActive : '—'}
                 </td>
-                <td className="px-3.5 py-2.5 text-[#7A7595]">
+                <td className="px-3.5 py-2.5 text-[#6B635C]">
                   {row.openTasks > 0 ? (
                     <span className="tabular-nums">
                       {row.openTasks}
@@ -807,12 +807,12 @@ export default function DashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="max-w-md text-center">
           <AlertCircle className="mx-auto mb-4 h-10 w-10 text-[#c0392b]" aria-hidden />
-          <h2 className="mb-2 text-xl font-semibold text-[#18162A]">Organização não encontrada</h2>
-          <p className="mb-5 text-sm text-[#7A7595]">
+          <h2 className="mb-2 text-xl font-semibold text-[#1A1210]">Organização não encontrada</h2>
+          <p className="mb-5 text-sm text-[#6B635C]">
             Sua conta não está vinculada a uma agência. Crie uma conta de agência ou peça um convite ao administrador.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button asChild className="bg-[#C02807] hover:bg-[#8A1C05]">
+            <Button asChild className="bg-[#B80015] hover:bg-[#8A0010]">
               <Link to="/create-account">Criar agência</Link>
             </Button>
             <Button asChild variant="outline">
@@ -890,10 +890,10 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-5xl space-y-8 sm:space-y-10">
       <header className="flex flex-col gap-4 border-b border-[#F0EEF7] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#18162A] sm:text-[1.65rem]">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#1A1210] sm:text-[1.65rem]">
             {greeting}
           </h1>
-          <p className="text-sm text-[#7A7595]">{todayLabel}</p>
+          <p className="text-sm text-[#6B635C]">{todayLabel}</p>
           <div className="pt-1">
             <AgencyOperationalPhaseIndicator
               cycle={operationalCycle}
@@ -907,7 +907,7 @@ export default function DashboardPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full shrink-0 border-[#E8E5F5] sm:w-auto"
+              className="w-full shrink-0 border-[#E4DDD4] sm:w-auto"
               onClick={() => {
                 setCreateKind('meeting');
                 setCreateOpen(true);
@@ -918,7 +918,7 @@ export default function DashboardPage() {
             </Button>
             <Button
               type="button"
-              className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto"
+              className="w-full shrink-0 bg-[#B80015] hover:bg-[#8A0010] sm:w-auto"
               onClick={() => {
                 setCreateKind('task');
                 setCreateOpen(true);
@@ -929,7 +929,7 @@ export default function DashboardPage() {
             </Button>
           </div>
         ) : (
-          <Button asChild className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto">
+          <Button asChild className="w-full shrink-0 bg-[#B80015] hover:bg-[#8A0010] sm:w-auto">
             <Link to={nextSetupStep?.href || createPageUrl('clients')}>
               <Plus className="mr-1.5 h-4 w-4" />
               {nextSetupStep?.cta || 'Começar'}
@@ -945,22 +945,22 @@ export default function DashboardPage() {
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2
                   id="attention-heading"
-                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#1A1210]"
                 >
                   <AlertCircle className="h-4 w-4 text-[#c0392b]" aria-hidden />
                   Precisa de atenção
-                  <span className="font-medium tabular-nums text-[#7A7595]">
+                  <span className="font-medium tabular-nums text-[#6B635C]">
                     · {attentionCount}
                   </span>
                 </h2>
                 <Link
                   to={buildTasksManagerHref({ preset: 'agency_overdue' })}
-                  className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
+                  className="shrink-0 text-sm font-medium text-[#B80015] hover:underline"
                 >
                   Ver todas
                 </Link>
               </div>
-              <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+              <ul className="overflow-hidden rounded-xl border border-[#E4DDD4]">
                 {attentionQueue.map((item) => (
                   <ItemRow
                     key={item.id}
@@ -980,23 +980,23 @@ export default function DashboardPage() {
               <div className="flex items-baseline justify-between gap-3">
                 <h2
                   id="work-agenda-heading"
-                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+                  className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#1A1210]"
                 >
-                  <CalendarDays className="h-4 w-4 text-[#C02807]" aria-hidden />
+                  <CalendarDays className="h-4 w-4 text-[#B80015]" aria-hidden />
                   Agenda
                   {agendaTodayTotal > 0 ? (
-                    <span className="font-medium tabular-nums text-[#7A7595]">
+                    <span className="font-medium tabular-nums text-[#6B635C]">
                       · hoje {agendaTodayTotal}
                     </span>
                   ) : agendaUpcomingTotal > 0 ? (
-                    <span className="font-medium tabular-nums text-[#7A7595]">
+                    <span className="font-medium tabular-nums text-[#6B635C]">
                       · {agendaUpcomingTotal}
                     </span>
                   ) : null}
                 </h2>
                 <Link
                   to={buildTasksManagerHref({ preset: 'this_week' })}
-                  className="shrink-0 text-sm font-medium text-[#C02807] hover:underline"
+                  className="shrink-0 text-sm font-medium text-[#B80015] hover:underline"
                 >
                   Ver todas
                 </Link>
@@ -1004,13 +1004,13 @@ export default function DashboardPage() {
 
               {agendaToday.length > 0 ? (
                 <div>
-                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">
+                  <h3 className="mb-2 text-xs font-medium text-[#6B635C]">
                     Hoje
                     {agendaTodayTotal > agendaToday.length
                       ? ` · ${agendaTodayTotal}`
                       : ''}
                   </h3>
-                  <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                  <ul className="overflow-hidden rounded-xl border border-[#E4DDD4]">
                     {agendaToday.map((item) => (
                       <ItemRow
                         key={item.id}
@@ -1026,13 +1026,13 @@ export default function DashboardPage() {
 
               {agendaUpcoming.length > 0 ? (
                 <div>
-                  <h3 className="mb-2 text-xs font-medium text-[#7A7595]">
+                  <h3 className="mb-2 text-xs font-medium text-[#6B635C]">
                     Em seguida
                     {agendaUpcomingTotal > agendaUpcoming.length
                       ? ` · ${agendaUpcomingTotal}`
                       : ''}
                   </h3>
-                  <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                  <ul className="overflow-hidden rounded-xl border border-[#E4DDD4]">
                     {agendaUpcoming.map((item) => (
                       <ItemRow
                         key={item.id}
@@ -1051,18 +1051,18 @@ export default function DashboardPage() {
       ) : hasCampaigns ? (
         <section
           aria-labelledby="work-empty-heading"
-          className="rounded-xl border border-[#E8E5F5] px-5 py-6 sm:px-6"
+          className="rounded-xl border border-[#E4DDD4] px-5 py-6 sm:px-6"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 space-y-1">
               <h2
                 id="work-empty-heading"
-                className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#18162A]"
+                className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#1A1210]"
               >
-                <ClipboardList className="h-4 w-4 text-[#7A7595]" aria-hidden />
+                <ClipboardList className="h-4 w-4 text-[#6B635C]" aria-hidden />
                 Nada urgente na operação
               </h2>
-              <p className="text-sm text-[#7A7595]">
+              <p className="text-sm text-[#6B635C]">
                 Sem atrasadas, bloqueios ou prazos nesta semana. Crie uma tarefa ou revise a lista.
               </p>
             </div>
@@ -1070,7 +1070,7 @@ export default function DashboardPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full shrink-0 border-[#E8E5F5] sm:w-auto"
+                className="w-full shrink-0 border-[#E4DDD4] sm:w-auto"
                 onClick={() => {
                   setCreateKind('task');
                   setCreateOpen(true);
@@ -1079,7 +1079,7 @@ export default function DashboardPage() {
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova tarefa
               </Button>
-              <Button asChild className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto">
+              <Button asChild className="w-full shrink-0 bg-[#B80015] hover:bg-[#8A0010] sm:w-auto">
                 <Link to={buildTasksManagerHref({ preset: 'this_week' })}>
                   Ver tarefas
                   <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -1096,14 +1096,14 @@ export default function DashboardPage() {
         <div className="mb-4 flex items-baseline justify-between gap-3">
           <h2
             id="campaigns-heading"
-            className="text-sm font-semibold tracking-tight text-[#18162A]"
+            className="text-sm font-semibold tracking-tight text-[#1A1210]"
           >
             {hasCampaigns ? 'Em andamento' : 'Clientes'}
           </h2>
           {hasCampaigns ? (
             <Link
               to={createPageUrl('clients')}
-              className="text-sm font-medium text-[#C02807] hover:underline"
+              className="text-sm font-medium text-[#B80015] hover:underline"
             >
               {focusCampaigns.truncated ? 'Ver todas' : 'Clientes'}
             </Link>
@@ -1113,10 +1113,10 @@ export default function DashboardPage() {
         {!hasCampaigns ? (
           <div className="space-y-8">
             <div className="mx-auto max-w-lg text-center sm:text-left">
-              <h3 className="mb-2 text-lg font-semibold text-[#18162A]">
+              <h3 className="mb-2 text-lg font-semibold text-[#1A1210]">
                 Comece pelo seu primeiro cliente
               </h3>
-              <p className="text-sm leading-relaxed text-[#7A7595]">
+              <p className="text-sm leading-relaxed text-[#6B635C]">
                 Siga os passos abaixo. Em poucos minutos você já tem cliente, entrega e tarefas na home.
               </p>
             </div>
@@ -1125,13 +1125,13 @@ export default function DashboardPage() {
               {setupSteps.map((step, index) => (
                 <li
                   key={step.id}
-                  className="flex gap-4 rounded-xl border border-[#E8E5F5] p-4"
+                  className="flex gap-4 rounded-xl border border-[#E4DDD4] p-4"
                 >
                   <div
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       step.done
                         ? 'bg-[#e8f5e9] text-[#2e7d32]'
-                        : 'bg-[#FAFAFB] text-[#7A7595] ring-1 ring-[#E8E5F5]'
+                        : 'bg-[#FAFAFB] text-[#6B635C] ring-1 ring-[#E4DDD4]'
                     }`}
                     aria-hidden
                   >
@@ -1140,18 +1140,18 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-sm font-semibold ${
-                        step.done ? 'text-[#7A7595] line-through' : 'text-[#18162A]'
+                        step.done ? 'text-[#6B635C] line-through' : 'text-[#1A1210]'
                       }`}
                     >
                       {step.title}
                     </p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-[#7A7595]">
+                    <p className="mt-0.5 text-xs leading-relaxed text-[#6B635C]">
                       {step.description}
                     </p>
                     {!step.done ? (
                       <Link
                         to={step.href}
-                        className="mt-2 inline-flex items-center text-sm font-medium text-[#C02807] hover:underline"
+                        className="mt-2 inline-flex items-center text-sm font-medium text-[#B80015] hover:underline"
                       >
                         {step.cta}
                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -1164,7 +1164,7 @@ export default function DashboardPage() {
 
             {clientsWithoutService.length > 0 ? (
               <div>
-                <p className="mb-3 text-sm font-medium text-[#18162A]">
+                <p className="mb-3 text-sm font-medium text-[#1A1210]">
                   Clientes sem entrega definida
                 </p>
                 <ul className="space-y-1">
@@ -1174,10 +1174,10 @@ export default function DashboardPage() {
                         to={client.href}
                         className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                       >
-                        <span className="truncate text-sm font-medium text-[#18162A]">
+                        <span className="truncate text-sm font-medium text-[#1A1210]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#C02807]">
+                        <span className="shrink-0 text-sm font-medium text-[#B80015]">
                           Definir entrega
                         </span>
                       </Link>
@@ -1187,7 +1187,7 @@ export default function DashboardPage() {
               </div>
             ) : clientsWithoutCampaigns.length > 0 ? (
               <div>
-                <p className="mb-3 text-sm font-medium text-[#18162A]">
+                <p className="mb-3 text-sm font-medium text-[#1A1210]">
                   Clientes prontos para campanha
                 </p>
                 <ul className="space-y-1">
@@ -1197,10 +1197,10 @@ export default function DashboardPage() {
                         to={client.href}
                         className="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                       >
-                        <span className="truncate text-sm font-medium text-[#18162A]">
+                        <span className="truncate text-sm font-medium text-[#1A1210]">
                           {client.name}
                         </span>
-                        <span className="shrink-0 text-sm font-medium text-[#C02807]">
+                        <span className="shrink-0 text-sm font-medium text-[#B80015]">
                           Criar campanha
                         </span>
                       </Link>
@@ -1217,7 +1217,7 @@ export default function DashboardPage() {
                 <h3 className="mb-2 text-xs font-medium text-[#c0392b]">
                   Entregas com atraso
                 </h3>
-                <ul className="overflow-hidden rounded-xl border border-[#E8E5F5]">
+                <ul className="overflow-hidden rounded-xl border border-[#E4DDD4]">
                   {campaignBlockers.map((item) => (
                     <li
                       key={item.id}
@@ -1228,10 +1228,10 @@ export default function DashboardPage() {
                         className="flex items-center justify-between gap-3 border-l-2 border-l-[#c0392b] px-3 py-2.5 transition-colors hover:bg-[#FAFAFB]"
                         title={item.definition}
                       >
-                        <span className="min-w-0 truncate text-sm font-medium text-[#18162A]">
+                        <span className="min-w-0 truncate text-sm font-medium text-[#1A1210]">
                           {item.title}
                           {item.clientName ? (
-                            <span className="font-normal text-[#7A7595]">
+                            <span className="font-normal text-[#6B635C]">
                               {' '}
                               · {item.clientName}
                             </span>
@@ -1257,15 +1257,15 @@ export default function DashboardPage() {
                   <li key={`${campaign.clientId}-${campaign.id}`}>
                     <Link
                       to={campaign.href}
-                      className="block h-full rounded-xl border border-[#E8E5F5] p-4 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
+                      className="block h-full rounded-xl border border-[#E4DDD4] p-4 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/35"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-[#18162A]">
+                          <p className="truncate text-sm font-semibold text-[#1A1210]">
                             {campaign.name}
                           </p>
                           {subtitle ? (
-                            <p className="mt-0.5 truncate text-xs text-[#7A7595]">{subtitle}</p>
+                            <p className="mt-0.5 truncate text-xs text-[#6B635C]">{subtitle}</p>
                           ) : null}
                           {overdue > 0 ? (
                             <p className="mt-1 text-xs font-medium text-[#c0392b]">
@@ -1294,7 +1294,7 @@ export default function DashboardPage() {
       >
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#B80015] hover:underline"
           onClick={() => {
             setCreateKind('task');
             setCreateOpen(true);
@@ -1305,14 +1305,14 @@ export default function DashboardPage() {
         </button>
         <Link
           to={createPageUrl('clients')}
-          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#B80015] hover:underline"
         >
           <FolderOpen className="h-3.5 w-3.5" aria-hidden />
           Clientes
         </Link>
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#B80015] hover:underline"
           onClick={() => openGlobalSearch()}
         >
           <Search className="h-3.5 w-3.5" aria-hidden />
@@ -1320,7 +1320,7 @@ export default function DashboardPage() {
         </button>
         <Link
           to={createPageUrl('approval-dashboard')}
-          className="inline-flex items-center gap-1.5 font-medium text-[#C02807] hover:underline"
+          className="inline-flex items-center gap-1.5 font-medium text-[#B80015] hover:underline"
         >
           <ClipboardList className="h-3.5 w-3.5" aria-hidden />
           Aprovações

@@ -202,8 +202,8 @@ export default function ClientEvolutionPanel({
                     <Icon className={`w-5 h-5 ${pastel.text}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-[#18162A]">{value}</p>
-                    <p className="text-sm text-[#7A7595]">{label}</p>
+                    <p className="text-2xl font-bold text-[#1A1210]">{value}</p>
+                    <p className="text-sm text-[#6B635C]">{label}</p>
                   </div>
                 </div>
               </CardContent>

@@ -122,8 +122,8 @@ export default function ClientsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C02807] mx-auto mb-4"></div>
-          <p className="text-[#7A7595]">Carregando clientes...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B80015] mx-auto mb-4"></div>
+          <p className="text-[#6B635C]">Carregando clientes...</p>
         </div>
       </div>
     );
@@ -133,7 +133,7 @@ export default function ClientsPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Clientes</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Clientes</h1>
         </div>
         <Button onClick={handleCreateClient}>
           <Plus className="w-4 h-4 mr-2" />
@@ -144,12 +144,12 @@ export default function ClientsPage() {
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px] max-w-md">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A7595] w-4 h-4" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B635C] w-4 h-4" />
             <Input
               placeholder="Buscar clientes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-full bg-[#EEF4FA] border-transparent"
+              className="pl-10 rounded-full bg-[#F1EDE7] border-transparent"
             />
           </div>
         </div>
@@ -186,17 +186,17 @@ export default function ClientsPage() {
                   openClient();
                 }
               }}
-              className={`cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/40 ${pastel.bg}`}
+              className={`cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-shadow border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/40 ${pastel.bg}`}
             >
               <CardHeader>
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Building className="w-4 h-4 text-[#7A7595] shrink-0" />
+                      <Building className="w-4 h-4 text-[#6B635C] shrink-0" />
                       <span className="truncate">{client.name}</span>
                     </CardTitle>
                     {client.legal_name && client.legal_name !== client.name && (
-                      <p className="text-sm text-[#7A7595] mt-1 truncate">{client.legal_name}</p>
+                      <p className="text-sm text-[#6B635C] mt-1 truncate">{client.legal_name}</p>
                     )}
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {getStatusBadge(client.status)}
@@ -253,12 +253,12 @@ export default function ClientsPage() {
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-12 rounded-2xl bg-[#EEF4FA]">
-          <Users className="w-12 h-12 text-[#FF9A7A] mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-[#18162A] mb-2">
+        <div className="text-center py-12 rounded-2xl bg-[#F1EDE7]">
+          <Users className="w-12 h-12 text-[#E87A55] mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-[#1A1210] mb-2">
             Nenhum cliente encontrado
           </h3>
-          <p className="text-[#7A7595] mb-4">
+          <p className="text-[#6B635C] mb-4">
             {searchTerm || statusFilter !== 'all'
               ? 'Tente ajustar os filtros de busca'
               : 'Adicione seu primeiro cliente para começar'}

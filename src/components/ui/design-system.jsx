@@ -3,28 +3,28 @@
 export const designTokens = {
   colors: {
     primary: {
-      50: '#EEF4FA',
-      100: '#FCE8E3',
-      200: '#FFD4C8',
-      300: '#FF9A7A',
-      400: '#FF643D',
-      500: '#C02807', // Burnt Grape
-      600: '#8A1C05',
+      50: '#F1EDE7',
+      100: '#F6E4E6',
+      200: '#FFE8E4',
+      300: '#E87A55',
+      400: '#DD4E28',
+      500: '#B80015', // Cereja
+      600: '#8A0010',
       700: '#6B1504',
       800: '#4A0E03',
-      900: '#1A0D0B'
+      900: '#16070A'
     },
     secondary: {
-      50: '#F8FAFC',
-      100: '#F1F5F9',
-      200: '#E2E8F0',
-      300: '#CBD5E1',
-      400: '#94A3B8',
-      500: '#64748B',
-      600: '#475569',
-      700: '#334155',
-      800: '#1E293B',
-      900: '#0F172A'
+      50: '#E8EEF3',
+      100: '#E4ECF2',
+      200: '#C9D6E2', // Azul claro
+      300: '#8FA9BE', // Azul jeans
+      400: '#7A96AD',
+      500: '#5F7F98',
+      600: '#4A657A',
+      700: '#3A4F60',
+      800: '#2A3A47',
+      900: '#1A252E'
     },
     success: {
       50: '#D0F7EC',
@@ -37,9 +37,9 @@ export const designTokens = {
       600: '#7A5A10'
     },
     error: {
-      50: '#FDEBEC',
-      500: '#E24B4A',
-      600: '#8A2A2A'
+      50: '#F6E4E6',
+      500: '#8B1538', // distinto da Cereja
+      600: '#6A102A'
     }
   },
   typography: {
@@ -101,10 +101,10 @@ export const designTokens = {
 
 export const Card = ({ children, className = '', variant = 'default', ...props }) => {
   const variants = {
-    default: 'bg-white shadow-[var(--shadow-card)] border border-[#E8E5F5]/60',
-    elevated: 'bg-white shadow-[var(--shadow-elevated)] border border-[#E8E5F5]/40',
-    outlined: 'bg-white border-2 border-[#FFD4C8]',
-    ghost: 'bg-[#EEF4FA] border border-[#FCE8E3]'
+    default: 'bg-white shadow-[var(--shadow-card)] border border-[#E4DDD4]/60',
+    elevated: 'bg-white shadow-[var(--shadow-elevated)] border border-[#E4DDD4]/40',
+    outlined: 'bg-white border-2 border-[#FFE8E4]',
+    ghost: 'bg-[#F1EDE7] border border-[#F6E4E6]'
   };
   
   return (
@@ -148,7 +148,7 @@ export const StatusBadge = ({ status, children, size = 'base' }) => {
     success: 'bg-[var(--color-success-surface)] text-[var(--color-accent-dark)] border-[color-mix(in_srgb,var(--color-accent)_35%,white)]',
     warning: 'bg-[#FFF8E6] text-[#7A5A10] border-[#F0DC9A]',
     error: 'bg-[color-mix(in_srgb,var(--color-danger)_12%,white)] text-[#8A2A2A] border-[color-mix(in_srgb,var(--color-danger)_35%,white)]',
-    info: 'bg-[var(--color-primary-surface)] text-[var(--color-primary-dark)] border-[#FFD4C8]',
+    info: 'bg-[var(--color-primary-surface)] text-[var(--color-primary-dark)] border-[#FFE8E4]',
     neutral: 'bg-[#F1F1F3] text-[#4A4A55] border-[#D0D0D6]'
   };
   

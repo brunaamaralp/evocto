@@ -113,18 +113,18 @@ export default function CreateServiceUnitModal({
       aria-labelledby="create-unit-title"
     >
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white shadow-lg sm:rounded-2xl">
-        <div className="flex items-start justify-between gap-3 border-b border-[#E8E5F5] px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-[#E4DDD4] px-5 py-4">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#C02807]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#B80015]">
               {getServiceDisplayName(service)}
             </p>
             <h2
               id="create-unit-title"
-              className="mt-1 text-lg font-semibold text-[#18162A]"
+              className="mt-1 text-lg font-semibold text-[#1A1210]"
             >
               {isApprovalMode ? 'Enviar para aprovação' : ctaText}
             </h2>
-            <p className="mt-1 text-sm text-[#7A7595]">
+            <p className="mt-1 text-sm text-[#6B635C]">
               {isApprovalMode
                 ? 'Anexe o conteúdo (1 ou mais arquivos — carrossel) e envie para o cliente.'
                 : 'As etapas do template serão aplicadas automaticamente.'}
@@ -144,13 +144,13 @@ export default function CreateServiceUnitModal({
 
         <form onSubmit={(e) => handleSubmit(e)} className="space-y-4 px-5 py-5">
           {isContentService ? (
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#EEF4FA] p-1">
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#F1EDE7] p-1">
               <button
                 type="button"
                 className={`rounded-md px-3 py-2 text-left text-sm transition-colors ${
                   !isApprovalMode
-                    ? 'bg-white font-medium text-[#18162A] shadow-sm'
-                    : 'text-[#7A7595] hover:text-[#18162A]'
+                    ? 'bg-white font-medium text-[#1A1210] shadow-sm'
+                    : 'text-[#6B635C] hover:text-[#1A1210]'
                 }`}
                 onClick={() => {
                   setMode(UNIT_CREATION_MODES.FULL);
@@ -164,8 +164,8 @@ export default function CreateServiceUnitModal({
                 type="button"
                 className={`rounded-md px-3 py-2 text-left text-sm transition-colors ${
                   isApprovalMode
-                    ? 'bg-white font-medium text-[#18162A] shadow-sm'
-                    : 'text-[#7A7595] hover:text-[#18162A]'
+                    ? 'bg-white font-medium text-[#1A1210] shadow-sm'
+                    : 'text-[#6B635C] hover:text-[#1A1210]'
                 }`}
                 onClick={() => setMode(UNIT_CREATION_MODES.READY_FOR_APPROVAL)}
                 disabled={saving}
@@ -198,7 +198,7 @@ export default function CreateServiceUnitModal({
               <div className="flex items-center justify-between gap-2">
                 <Label>Anexos</Label>
                 {files.length >= 2 ? (
-                  <span className="text-xs text-[#7A7595]">
+                  <span className="text-xs text-[#6B635C]">
                     Carrossel ({files.length} slides)
                   </span>
                 ) : null}
@@ -217,16 +217,16 @@ export default function CreateServiceUnitModal({
                 onDragLeave={() => setDragOver(false)}
                 className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
                   dragOver
-                    ? 'border-[#C02807] bg-[#C02807]/5'
-                    : 'border-[#E8E5F5] hover:border-[#bbb]'
+                    ? 'border-[#B80015] bg-[#B80015]/5'
+                    : 'border-[#E4DDD4] hover:border-[#bbb]'
                 }`}
               >
                 <Upload className="mx-auto mb-2 h-7 w-7 text-[#888]" aria-hidden />
-                <p className="text-sm text-[#7A7595]">
+                <p className="text-sm text-[#6B635C]">
                   Arraste arquivos ou{' '}
                   <button
                     type="button"
-                    className="font-medium text-[#C02807] underline-offset-2 hover:underline"
+                    className="font-medium text-[#B80015] underline-offset-2 hover:underline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={saving}
                   >
@@ -258,9 +258,9 @@ export default function CreateServiceUnitModal({
                     return (
                       <li
                         key={fileKey(file, index)}
-                        className="flex items-center gap-2 rounded-lg border border-[#E8E5F5] bg-[#EEF4FA]/50 px-2 py-1.5"
+                        className="flex items-center gap-2 rounded-lg border border-[#E4DDD4] bg-[#F1EDE7]/50 px-2 py-1.5"
                       >
-                        <Icon className="h-4 w-4 shrink-0 text-[#7A7595]" aria-hidden />
+                        <Icon className="h-4 w-4 shrink-0 text-[#6B635C]" aria-hidden />
                         <span className="min-w-0 flex-1 truncate text-sm text-[#222]">
                           {index + 1}. {file.name}
                         </span>
@@ -306,7 +306,7 @@ export default function CreateServiceUnitModal({
               ) : null}
 
               {saving && uploadProgress > 0 ? (
-                <p className="text-xs text-[#7A7595]">
+                <p className="text-xs text-[#6B635C]">
                   Enviando anexos… {Math.min(100, Math.round(uploadProgress))}%
                 </p>
               ) : null}
@@ -345,7 +345,7 @@ export default function CreateServiceUnitModal({
             ) : null}
             <Button
               type="submit"
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
               disabled={!canSubmit}
             >
               {saving ? (

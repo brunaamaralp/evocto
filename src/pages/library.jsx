@@ -66,8 +66,8 @@ export default function LibraryPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Biblioteca</h1>
-          <p className="text-[#7A7595] mt-1">Conhecimento e aprendizados da agência</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Biblioteca</h1>
+          <p className="text-[#6B635C] mt-1">Conhecimento e aprendizados da agência</p>
         </div>
         
         <Button>
@@ -80,14 +80,14 @@ export default function LibraryPage() {
         <Card className={`border-transparent ${pastel.bg}`}>
           <CardContent className="p-6 text-center">
             <div className={`text-2xl font-bold ${pastel.text}`}>{learnings.length}</div>
-            <div className="text-sm text-[#7A7595]">Aprendizados</div>
+            <div className="text-sm text-[#6B635C]">Aprendizados</div>
           </CardContent>
         </Card>
         
         <Card className="border-transparent bg-[#EAF2FB]">
           <CardContent className="p-6 text-center">
             <div className="text-2xl font-bold text-[#2E5A7A]">{playbooks.length}</div>
-            <div className="text-sm text-[#7A7595]">Playbooks</div>
+            <div className="text-sm text-[#6B635C]">Playbooks</div>
           </CardContent>
         </Card>
         
@@ -96,18 +96,18 @@ export default function LibraryPage() {
             <div className="text-2xl font-bold text-[#5A3A7A]">
               {learnings.filter(l => l.reviewed).length}
             </div>
-            <div className="text-sm text-[#7A7595]">Revisados</div>
+            <div className="text-sm text-[#6B635C]">Revisados</div>
           </CardContent>
         </Card>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7595]" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B635C]" />
         <Input
           placeholder="Buscar na biblioteca..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 rounded-full bg-[#EEF4FA] border-transparent"
+          className="pl-10 rounded-full bg-[#F1EDE7] border-transparent"
         />
       </div>
 
@@ -152,14 +152,14 @@ export default function LibraryPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <h3 className="font-semibold text-[#18162A] mb-2 line-clamp-2">
+                      <h3 className="font-semibold text-[#1A1210] mb-2 line-clamp-2">
                         {learning.title}
                       </h3>
-                      <p className="text-sm text-[#7A7595] mb-3 line-clamp-3">
+                      <p className="text-sm text-[#6B635C] mb-3 line-clamp-3">
                         {learning.description}
                       </p>
                       
-                      <div className="flex items-center justify-between text-xs text-[#7A7595]">
+                      <div className="flex items-center justify-between text-xs text-[#6B635C]">
                         <span>{learning.sourceType}</span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -226,14 +226,14 @@ export default function LibraryPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <h3 className="font-semibold text-[#18162A] mb-2 line-clamp-2">
+                      <h3 className="font-semibold text-[#1A1210] mb-2 line-clamp-2">
                         {playbook.title}
                       </h3>
-                      <p className="text-sm text-[#7A7595] mb-3 line-clamp-3">
+                      <p className="text-sm text-[#6B635C] mb-3 line-clamp-3">
                         {playbook.summary}
                       </p>
                       
-                      <div className="flex items-center justify-between text-xs text-[#7A7595] mb-2">
+                      <div className="flex items-center justify-between text-xs text-[#6B635C] mb-2">
                         <span className="flex items-center gap-1">
                           <Star className="w-3 h-3 text-[#E0B84A]" />
                           {Math.round(playbook.confidence * 100)}% confiança
@@ -242,7 +242,7 @@ export default function LibraryPage() {
                       </div>
                       
                       {playbook.applicability && (
-                        <div className="text-xs text-[#7A7595]">
+                        <div className="text-xs text-[#6B635C]">
                           <span>Aplicável: {playbook.applicability.market}</span>
                         </div>
                       )}

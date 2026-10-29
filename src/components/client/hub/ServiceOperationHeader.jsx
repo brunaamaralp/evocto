@@ -29,16 +29,16 @@ export default function ServiceOperationHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 space-y-0.5">
-        <h2 className="text-lg font-semibold tracking-tight text-[#18162A] sm:text-xl">
+        <h2 className="text-lg font-semibold tracking-tight text-[#1A1210] sm:text-xl">
           {title}
         </h2>
         {periodLabel ? (
-          <p className="text-sm text-[#7A7595]">{periodLabel}</p>
+          <p className="text-sm text-[#6B635C]">{periodLabel}</p>
         ) : null}
       </div>
       {showCta && ctaText ? (
         <Button
-          className="w-full shrink-0 bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto"
+          className="w-full shrink-0 bg-[#B80015] hover:bg-[#8A0010] sm:w-auto"
           onClick={onCreate}
         >
           <Plus className="mr-1.5 h-4 w-4" aria-hidden />

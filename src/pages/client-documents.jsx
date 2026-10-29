@@ -64,8 +64,8 @@ const STATUS_LABELS = {
 const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlighted = false }) => {
   const getFileIcon = (fileType) => {
     if (fileType?.includes('pdf')) return <File className="w-5 h-5 text-red-500" />;
-    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#C02807]" />;
-    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-[#C02807]" />;
+    if (fileType?.includes('image')) return <Image className="w-5 h-5 text-[#B80015]" />;
+    if (fileType?.includes('word') || fileType?.includes('doc')) return <FileText className="w-5 h-5 text-[#B80015]" />;
     if (fileType?.includes('excel') || fileType?.includes('sheet')) return <FileText className="w-5 h-5 text-green-600" />;
     return <File className="w-5 h-5 text-gray-500" />;
   };
@@ -81,7 +81,7 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlig
     <Card
       id={`document-${document.id}`}
       className={`rounded-2xl border-transparent shadow-sm hover:shadow-md transition-shadow ${
-        highlighted ? 'ring-2 ring-[#C02807] border-[#FFD4C8]' : ''
+        highlighted ? 'ring-2 ring-[#B80015] border-[#FFE8E4]' : ''
       }`}
     >
       <CardContent className="p-4">
@@ -89,7 +89,7 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlig
           <div className="flex items-start gap-3 flex-1">
             {getFileIcon(document.fileType)}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-[#18162A] truncate">
+              <h3 className="font-medium text-[#1A1210] truncate">
                 {document.title}
               </h3>
               <p className="text-sm text-gray-500 truncate">
@@ -108,32 +108,32 @@ const DocumentCard = ({ document, onView, onDownload, onEdit, _onDelete, highlig
 
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#7A7595]">Grupo:</span>
+            <span className="text-[#6B635C]">Grupo:</span>
             <Badge variant="secondary" className="text-xs">
               {DOCUMENT_GROUPS[document.group] || document.group}
             </Badge>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#7A7595]">Visibilidade:</span>
+            <span className="text-[#6B635C]">Visibilidade:</span>
             <span className="font-medium">
               {VISIBILITY_LABELS[document.visibility]}
             </span>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#7A7595]">Tamanho:</span>
+            <span className="text-[#6B635C]">Tamanho:</span>
             <span>{formatFileSize(document.fileSize)}</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#7A7595]">Criado em:</span>
+            <span className="text-[#6B635C]">Criado em:</span>
             <span>{new Date(document.created_date).toLocaleDateString('pt-BR')}</span>
           </div>
         </div>
 
         {document.description && (
-          <p className="text-sm text-[#7A7595] mb-4 line-clamp-2">
+          <p className="text-sm text-[#6B635C] mb-4 line-clamp-2">
             {document.description}
           </p>
         )}
@@ -386,14 +386,14 @@ export default function ClientDocumentsPage() {
                 to={createPageUrl(`client-detail?clientId=${clientId}`)}
                 aria-label="Voltar ao cliente"
               >
-                <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+                <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
               </Link>
             </Button>
             <div className="min-w-0">
-              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+              <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
                 Documentos
               </h1>
-              <p className="text-xs text-[#7A7595]">
+              <p className="text-xs text-[#6B635C]">
                 {stats.total || 0} documento{(stats.total || 0) === 1 ? '' : 's'}
               </p>
             </div>
@@ -427,8 +427,8 @@ export default function ClientDocumentsPage() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${pastel.tag}`}>
                     <Icon className={`w-5 h-5 ${pastel.text}`} />
                   </div>
-                  <div className="text-2xl font-bold text-[#18162A]">{value}</div>
-                  <div className="text-sm text-[#7A7595]">{label}</div>
+                  <div className="text-2xl font-bold text-[#1A1210]">{value}</div>
+                  <div className="text-sm text-[#6B635C]">{label}</div>
                 </CardContent>
               </Card>
             );
@@ -623,7 +623,7 @@ function DocumentUploadModal({ isOpen, onClose, onUpload, uploading }) {
               disabled={uploading}
             />
             {file && (
-              <p className="text-xs text-[#7A7595]">
+              <p className="text-xs text-[#6B635C]">
                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
               </p>
             )}

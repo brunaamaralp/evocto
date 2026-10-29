@@ -288,7 +288,7 @@ export default function TeamMemberManagement({
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5 text-[#18162A]"
+              className="gap-1.5 text-[#1A1210]"
               onClick={() => setEditingMember(member)}
             >
               <Pencil className="w-4 h-4" />
@@ -377,8 +377,8 @@ export default function TeamMemberManagement({
         <div className="flex items-center justify-between gap-3">
           {showTitle ? (
             <div>
-              <h2 className="text-lg font-semibold text-[#18162A]">Membros</h2>
-              <p className="text-sm text-[#7A7595]">Ativos e convites pendentes</p>
+              <h2 className="text-lg font-semibold text-[#1A1210]">Membros</h2>
+              <p className="text-sm text-[#6B635C]">Ativos e convites pendentes</p>
             </div>
           ) : (
             <div />
@@ -387,7 +387,7 @@ export default function TeamMemberManagement({
           {showInviteButton && canInvite && (
             <Button
               onClick={openInvite}
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
             >
               <Plus className="w-4 h-4 mr-2" />
               Adicionar membro
@@ -398,31 +398,31 @@ export default function TeamMemberManagement({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="border-[#E8E5F5] shadow-none">
+        <Card className="border-[#E4DDD4] shadow-none">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-[#7A7595]">Membros</p>
-            <p className="text-2xl font-bold text-[#18162A] mt-1">{members.length}</p>
+            <p className="text-xs font-medium text-[#6B635C]">Membros</p>
+            <p className="text-2xl font-bold text-[#1A1210] mt-1">{members.length}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#E8E5F5] shadow-none">
+        <Card className="border-[#E4DDD4] shadow-none">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-[#7A7595]">Convites enviados</p>
-            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.sent || 0}</p>
+            <p className="text-xs font-medium text-[#6B635C]">Convites enviados</p>
+            <p className="text-2xl font-bold text-[#1A1210] mt-1">{inviteStats.sent || 0}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#E8E5F5] shadow-none">
+        <Card className="border-[#E4DDD4] shadow-none">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-[#7A7595]">Aceitos</p>
-            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.accepted || 0}</p>
+            <p className="text-xs font-medium text-[#6B635C]">Aceitos</p>
+            <p className="text-2xl font-bold text-[#1A1210] mt-1">{inviteStats.accepted || 0}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#E8E5F5] shadow-none">
+        <Card className="border-[#E4DDD4] shadow-none">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-[#7A7595]">Expirados</p>
-            <p className="text-2xl font-bold text-[#18162A] mt-1">{inviteStats.expired || 0}</p>
+            <p className="text-xs font-medium text-[#6B635C]">Expirados</p>
+            <p className="text-2xl font-bold text-[#1A1210] mt-1">{inviteStats.expired || 0}</p>
           </CardContent>
         </Card>
       </div>
@@ -430,10 +430,10 @@ export default function TeamMemberManagement({
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="members" className="data-[state=active]:bg-[#C02807] data-[state=active]:text-white">
+          <TabsTrigger value="members" className="data-[state=active]:bg-[#B80015] data-[state=active]:text-white">
             Membros ({members.length})
           </TabsTrigger>
-          <TabsTrigger value="invites" className="data-[state=active]:bg-[#C02807] data-[state=active]:text-white">
+          <TabsTrigger value="invites" className="data-[state=active]:bg-[#B80015] data-[state=active]:text-white">
             Convites ({invites.length})
           </TabsTrigger>
         </TabsList>
@@ -450,7 +450,7 @@ export default function TeamMemberManagement({
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum membro ainda</h3>
               <p className="text-gray-600 mb-4">Comece convidando seu primeiro membro da equipe.</p>
               {canInvite && (
-                <Button onClick={openInvite} className="bg-[#C02807] hover:bg-[#8A1C05]">
+                <Button onClick={openInvite} className="bg-[#B80015] hover:bg-[#8A0010]">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar membro
                 </Button>
@@ -471,7 +471,7 @@ export default function TeamMemberManagement({
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum convite enviado</h3>
               <p className="text-gray-600 mb-4">Convide membros para sua equipe.</p>
               {canInvite && (
-                <Button onClick={openInvite} className="bg-[#C02807] hover:bg-[#8A1C05]">
+                <Button onClick={openInvite} className="bg-[#B80015] hover:bg-[#8A0010]">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar membro
                 </Button>

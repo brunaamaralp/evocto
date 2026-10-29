@@ -306,8 +306,8 @@
 }
 
 .kimono-loan-modal__tabs button.is-active {
-  border-color: var(--v500, #C02807);
-  background: rgba(192, 40, 7, 0.08);
+  border-color: var(--v500, #B80015);
+  background: rgba(184, 0, 21, 0.08);
   color: var(--v700, #4c2da8);
 }
 
@@ -339,7 +339,7 @@
 }
 
 .kimono-loan-modal__hit:hover {
-  background: rgba(192, 40, 7, 0.06);
+  background: rgba(184, 0, 21, 0.06);
 }
 
 .kimono-loan-modal__selected {

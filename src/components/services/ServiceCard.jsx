@@ -85,14 +85,14 @@ export default function ServiceCard({
     <Card className={`hover:shadow-[var(--shadow-elevated)] transition-shadow duration-200 ${
       isTemplate
         ? `${categoryColors?.card || ''} border-transparent`
-        : 'border-[#E8E5F5]/70 bg-white'
+        : 'border-[#E4DDD4]/70 bg-white'
     } flex flex-col h-full rounded-2xl`}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               {isTemplate ? (
-                <Badge variant="secondary" className="bg-[#FCE8E3] text-[#8A1C05]">
+                <Badge variant="secondary" className="bg-[#F6E4E6] text-[#8A0010]">
                   Template
                 </Badge>
               ) : (

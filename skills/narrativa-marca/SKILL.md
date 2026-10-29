@@ -21,17 +21,19 @@ Combine esta skill com as skills Anthropic `docx`, `pptx` ou `pdf` conforme o fo
 
 | Token | Hex | Uso |
 |-------|-----|-----|
-| `burnt grape` | `#C02807` | PRIMARY — logo, títulos, CTAs |
-| `orange rosé` | `#FF643D` | SECONDARY — acentos e hover |
-| `sky blue` | `#BBD9F4` | ACCENT — superfícies suaves, info |
-| `cloud` | `#FFFCFC` | NEUTRAL — fundos e texto em fundo escuro |
-| `preto` | `#1A0D0B` | Fundos profundos / sidebar |
+| `cereja` | `#B80015` | PRIMARY — logo, títulos, CTAs |
+| `laranja` | `#DD4E28` | SECONDARY — acentos e hover |
+| `azul claro` | `#C9D6E2` | Superfícies suaves, chips, info |
+| `azul jeans` | `#8FA9BE` | Estrutura / contexto / secundária |
+| `marfim` | `#F1EDE7` | Canvas / casca |
+| `off-white` | `#FFF8F0` | Paper / conteúdo |
+| `preto` | `#16070A` | Fundos profundos / sidebar |
 
 Regras:
 
-- Preferir **burnt grape + cloud** como base; orange rosé / sky blue só como acento
+- Preferir **cereja + off-white** como base; laranja / jeans / azul claro só como acento
 - Não introduzir roxo, azul-elétrico ou gradientes genéricos de SaaS
-- Contraste mínimo legível: texto burnt grape em cloud, ou cloud/branco em burnt grape/preto
+- Contraste mínimo legível: texto cereja em off-white, ou off-white em cereja/preto
 
 ## Tipografia
 

@@ -160,11 +160,11 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                 { key: 'password', label: 'Senha', value: credentials.password },
                 { key: 'loginUrl', label: 'Link de login', value: credentials.loginUrl },
               ].map((row) => (
-                <div key={row.key} className="rounded-xl border border-[#E8E5F5] bg-[#F8F7FC] px-3 py-2.5">
+                <div key={row.key} className="rounded-xl border border-[#E4DDD4] bg-[#F8F7FC] px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[11px] uppercase tracking-wide text-[#7A7595]">{row.label}</p>
-                      <p className="text-sm font-medium text-[#18162A] truncate font-mono">{row.value}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-[#6B635C]">{row.label}</p>
+                      <p className="text-sm font-medium text-[#1A1210] truncate font-mono">{row.value}</p>
                     </div>
                     <Button
                       type="button"
@@ -184,7 +184,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                   <Copy className="w-4 h-4 mr-2" />
                   Copiar tudo
                 </Button>
-                <Button type="button" className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]" onClick={handleClose}>
+                <Button type="button" className="flex-1 bg-[#B80015] hover:bg-[#8A0010]" onClick={handleClose}>
                   Concluir
                 </Button>
               </div>
@@ -194,7 +194,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
           <>
             <DialogHeader className="px-5 pt-5 pb-3 space-y-1">
               <DialogTitle className="text-lg flex items-center gap-2">
-                <Pencil className="w-5 h-5 text-[#C02807]" />
+                <Pencil className="w-5 h-5 text-[#B80015]" />
                 Editar membro
               </DialogTitle>
               <DialogDescription>
@@ -231,8 +231,8 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                 )}
               </div>
 
-              <div className="rounded-xl border border-[#E8E5F5] bg-[#F8F7FC] px-3 py-3 space-y-3">
-                <label className="flex items-center gap-2 text-sm text-[#18162A] cursor-pointer">
+              <div className="rounded-xl border border-[#E4DDD4] bg-[#F8F7FC] px-3 py-3 space-y-3">
+                <label className="flex items-center gap-2 text-sm text-[#1A1210] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={resetPassword}
@@ -243,7 +243,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                     }}
                     className="rounded border-[#C5C0D8]"
                   />
-                  <KeyRound className="w-4 h-4 text-[#7A7595]" />
+                  <KeyRound className="w-4 h-4 text-[#6B635C]" />
                   Redefinir senha
                 </label>
 
@@ -275,7 +275,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                         {errors.password}
                       </p>
                     ) : (
-                      <p className="text-xs text-[#7A7595]">
+                      <p className="text-xs text-[#6B635C]">
                         A senha antiga deixa de funcionar. Compartilhe a nova.
                       </p>
                     )}
@@ -290,7 +290,7 @@ export default function EditMemberModal({ isOpen, onClose, member, onSave }) {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]"
+                  className="flex-1 bg-[#B80015] hover:bg-[#8A0010]"
                 >
                   {loading ? 'Salvando...' : 'Salvar'}
                 </Button>

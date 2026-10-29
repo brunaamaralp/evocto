@@ -7,7 +7,7 @@ import {
 } from '@/lib/agencyOperationalCycle';
 import { getActivityKindLabel } from '@/constants/activityKinds';
 
-const BRAND = '#C02807';
+const BRAND = '#B80015';
 
 /**
  * @param {{ state: 'completed' | 'current' | 'upcoming' }} props
@@ -66,7 +66,7 @@ function OperationalCycleTimeline({ phases }) {
               <span
                 className={
                   isCurrent
-                    ? 'text-sm font-semibold text-[#18162A]'
+                    ? 'text-sm font-semibold text-[#1A1210]'
                     : item.state === 'completed'
                       ? 'text-sm text-[#888]'
                       : 'text-sm text-[#aaa]'
@@ -104,7 +104,7 @@ function OperationalCycleTimeline({ phases }) {
               <span
                 className={
                   isCurrent
-                    ? 'mt-2 max-w-[7.5rem] text-[11px] font-semibold leading-snug text-[#18162A]'
+                    ? 'mt-2 max-w-[7.5rem] text-[11px] font-semibold leading-snug text-[#1A1210]'
                     : item.state === 'completed'
                       ? 'mt-2 max-w-[7.5rem] text-[11px] leading-snug text-[#888]'
                       : 'mt-2 max-w-[7.5rem] text-[11px] leading-snug text-[#aaa]'
@@ -135,13 +135,13 @@ function PhaseFocusSummary({ phaseWork }) {
 
   if (phaseWork.emptyReason === 'no_focus_kinds') {
     return (
-      <p className="text-sm text-[#7A7595]">Sem foco definido nesta fase do mês.</p>
+      <p className="text-sm text-[#6B635C]">Sem foco definido nesta fase do mês.</p>
     );
   }
 
   if (phaseWork.emptyReason === 'no_classified_work') {
     return (
-      <p className="text-sm text-[#7A7595]">
+      <p className="text-sm text-[#6B635C]">
         Ainda não há atividades no foco desta fase.
       </p>
     );
@@ -163,9 +163,9 @@ function PhaseFocusSummary({ phaseWork }) {
   return (
     <div className="space-y-1" data-testid="agency-operational-phase-work">
       {focusLabels.length > 0 ? (
-        <p className="text-xs text-[#7A7595]">Foco: {focusLabels.join(' · ')}</p>
+        <p className="text-xs text-[#6B635C]">Foco: {focusLabels.join(' · ')}</p>
       ) : null}
-      <p className="text-sm text-[#7A7595]">{summary}</p>
+      <p className="text-sm text-[#6B635C]">{summary}</p>
     </div>
   );
 }
@@ -210,11 +210,11 @@ export default function AgencyOperationalPhaseIndicator({
     return (
       <div className="space-y-2 pt-1" data-testid="agency-operational-phase">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-xs leading-relaxed text-[#7A7595] sm:text-sm">
+          <p className="text-xs leading-relaxed text-[#6B635C] sm:text-sm">
             {compactBits.map((bit, i) => (
               <span key={`${bit}-${i}`}>
                 {i > 0 ? <span className="text-[#ccc]"> · </span> : null}
-                <span className={i === 1 ? 'font-semibold text-[#18162A]' : undefined}>
+                <span className={i === 1 ? 'font-semibold text-[#1A1210]' : undefined}>
                   {bit}
                 </span>
               </span>
@@ -224,7 +224,7 @@ export default function AgencyOperationalPhaseIndicator({
             <button
               type="button"
               onClick={() => setDetailsOpen((v) => !v)}
-              className="inline-flex items-center gap-0.5 text-xs font-medium text-[#C02807] hover:underline"
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-[#B80015] hover:underline"
               aria-expanded={detailsOpen}
             >
               {detailsOpen ? 'Ocultar' : 'O que é isso?'}
@@ -237,9 +237,9 @@ export default function AgencyOperationalPhaseIndicator({
           ) : null}
         </div>
         {detailsOpen ? (
-          <div className="rounded-xl border border-[#E8E5F5] bg-[#EEF4FA]/60 px-3 py-3 space-y-2">
+          <div className="rounded-xl border border-[#E4DDD4] bg-[#F1EDE7]/60 px-3 py-3 space-y-2">
             {periodLabel ? (
-              <p className="text-xs text-[#7A7595]" data-testid="agency-operational-period">
+              <p className="text-xs text-[#6B635C]" data-testid="agency-operational-period">
                 {periodLabel}
               </p>
             ) : null}
@@ -265,7 +265,7 @@ export default function AgencyOperationalPhaseIndicator({
           {contextLine}
         </p>
       ) : null}
-      <p className="text-base font-semibold tracking-tight text-[#18162A] sm:text-lg">
+      <p className="text-base font-semibold tracking-tight text-[#1A1210] sm:text-lg">
         {current.label}
       </p>
       {current.description ? (

@@ -9,7 +9,7 @@
 }
 
 .text-muted {
-  color: var(--text-muted, #7a7595);
+  color: var(--text-muted, #6B635C);
 }
 
 .btn-primary,
@@ -38,37 +38,37 @@
 
 .btn-primary {
   border: none;
-  background: var(--color-primary, #C02807);
+  background: var(--color-primary, #B80015);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(192, 40, 7, 0.22);
+  box-shadow: 0 2px 8px rgba(184, 0, 21, 0.22);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-primary, #C02807) 88%, #18162a);
+  background: color-mix(in srgb, var(--color-primary, #B80015) 88%, #1A1210);
 }
 
 .btn-secondary {
-  border: 0.5px solid var(--color-card-border, #e8e5f5);
-  background: var(--color-primary-surface, #FCE8E3);
-  color: var(--color-primary, #C02807);
+  border: 0.5px solid var(--color-card-border, #E4DDD4);
+  background: var(--color-primary-surface, #F6E4E6);
+  color: var(--color-primary, #B80015);
 }
 
 .btn-outline {
-  border: 1px solid var(--color-card-border, #e8e5f5);
+  border: 1px solid var(--color-card-border, #E4DDD4);
   background: var(--color-card-bg, #fff);
-  color: var(--color-primary, #C02807);
+  color: var(--color-primary, #B80015);
 }
 
 .btn-ghost {
   border: 1px solid transparent;
   background: transparent;
-  color: var(--color-primary, #C02807);
+  color: var(--color-primary, #B80015);
 }
 
 .btn-outline:hover:not(:disabled),
 .btn-ghost:hover:not(:disabled) {
-  background: var(--color-primary-surface, #FCE8E3);
-  border-color: color-mix(in srgb, var(--color-primary-light, #FF9A7A) 55%, var(--color-card-border, #e8e5f5));
+  background: var(--color-primary-surface, #F6E4E6);
+  border-color: color-mix(in srgb, var(--color-primary-light, #E87A55) 55%, var(--color-card-border, #E4DDD4));
 }
 
 .btn-sm {

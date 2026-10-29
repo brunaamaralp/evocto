@@ -1014,7 +1014,7 @@
   min-height: 0;
   overflow-y: auto;
   padding: 16px;
-  background: var(--inbox-thread-bg, rgba(192, 40, 7, 0.04));
+  background: var(--inbox-thread-bg, rgba(184, 0, 21, 0.04));
 }
 
 .profile-conversation-empty {

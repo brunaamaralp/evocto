@@ -9,8 +9,8 @@
 }
 
 .billing-status-badge--trial {
-  background: rgba(192, 40, 7, 0.12);
-  color: var(--color-primary, #C02807);
+  background: rgba(184, 0, 21, 0.12);
+  color: var(--color-primary, #B80015);
 }
 
 .billing-status-badge--active {

@@ -58,7 +58,7 @@ export default function RecentClientsSwitcher({
           variant="ghost"
           size="sm"
           className={cn(
-            'h-9 gap-1.5 rounded-full px-2.5 text-[#7A7595] hover:text-[#18162A] hover:bg-black/5 max-w-[200px]',
+            'h-9 gap-1.5 rounded-full px-2.5 text-[#6B635C] hover:text-[#1A1210] hover:bg-black/5 max-w-[200px]',
             compact && 'w-9 px-0 justify-center',
             className
           )}
@@ -68,7 +68,7 @@ export default function RecentClientsSwitcher({
           <Building2 className="h-4 w-4 shrink-0" />
           {!compact ? (
             <>
-              <span className="truncate text-sm font-medium text-[#18162A]">
+              <span className="truncate text-sm font-medium text-[#1A1210]">
                 {triggerLabel}
               </span>
               <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
@@ -81,7 +81,7 @@ export default function RecentClientsSwitcher({
         <DropdownMenuSeparator />
         {hasCurrent ? (
           <DropdownMenuItem disabled className="opacity-100">
-            <Building2 className="h-4 w-4 mr-2 text-[#C02807]" />
+            <Building2 className="h-4 w-4 mr-2 text-[#B80015]" />
             <div className="min-w-0 flex flex-col">
               <span className="truncate font-medium">
                 {currentClientName || 'Cliente atual'}
@@ -103,7 +103,7 @@ export default function RecentClientsSwitcher({
                 to={buildRecentClientHref(c.id)}
                 className="flex items-center cursor-pointer"
               >
-                <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C02807] text-[10px] font-bold text-white">
+                <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#B80015] text-[10px] font-bold text-white">
                   {(c.name || 'C')[0].toUpperCase()}
                 </span>
                 <div className="min-w-0 flex flex-col">

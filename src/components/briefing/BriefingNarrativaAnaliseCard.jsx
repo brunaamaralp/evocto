@@ -5,7 +5,7 @@ import { normalizeNarrativaAnalise } from '@/lib/extractBriefingInicialSchema';
 const ORIGEM_STYLE = {
   extraido: {
     label: 'No arquivo',
-    className: 'bg-[#EEF4FA] text-[#3A5A7A]',
+    className: 'bg-[#F1EDE7] text-[#3A5A7A]',
   },
   inferido: {
     label: 'Inferido',
@@ -13,7 +13,7 @@ const ORIGEM_STYLE = {
   },
   nao_identificavel: {
     label: 'Sem dado',
-    className: 'bg-[#F3F2F7] text-[#7A7595]',
+    className: 'bg-[#F3F2F7] text-[#6B635C]',
   },
 };
 
@@ -41,7 +41,7 @@ function FieldRow({ label, campo }) {
       </div>
       <p
         className={`text-sm leading-snug ${
-          missing ? 'text-[#9A94B0] italic' : 'text-[#18162A]'
+          missing ? 'text-[#9A94B0] italic' : 'text-[#1A1210]'
         }`}
       >
         {missing ? 'Não identificado no documento' : campo.valor}
@@ -66,9 +66,9 @@ function Section({ title, children, defaultOpen = true }) {
         className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left hover:bg-[#FAFAFB]"
         aria-expanded={open}
       >
-        <span className="text-sm font-semibold text-[#18162A]">{title}</span>
+        <span className="text-sm font-semibold text-[#1A1210]">{title}</span>
         <ChevronDown
-          className={`h-4 w-4 text-[#7A7595] transition-transform ${
+          className={`h-4 w-4 text-[#6B635C] transition-transform ${
             open ? 'rotate-180' : ''
           }`}
           aria-hidden
@@ -112,16 +112,16 @@ export default function BriefingNarrativaAnaliseCard({
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 rounded-lg border border-[#E8E4F4] bg-white p-2">
-          <Sparkles className="h-4 w-4 text-[#C02807]" aria-hidden />
+          <Sparkles className="h-4 w-4 text-[#B80015]" aria-hidden />
         </div>
         <div className="min-w-0 flex-1">
           <h2
             id="narrativa-analise-heading"
-            className="text-sm font-semibold text-[#18162A]"
+            className="text-sm font-semibold text-[#1A1210]"
           >
             Leitura do documento
           </h2>
-          <p className="mt-0.5 text-xs text-[#7A7595]">
+          <p className="mt-0.5 text-xs text-[#6B635C]">
             Confira o que veio do arquivo e o que foi inferido. Depois ajuste o
             formulário abaixo e salve.
             {inferredCount > 0
@@ -150,7 +150,7 @@ export default function BriefingNarrativaAnaliseCard({
           <Section title="2. Frentes de receita">
             {a.frentes_receita.map((f, i) => (
               <div key={`${f.nome}-${i}`} className="py-2.5 border-b border-[#F0EDF7] last:border-b-0">
-                <p className="text-sm font-medium text-[#18162A] mb-1">
+                <p className="text-sm font-medium text-[#1A1210] mb-1">
                   {f.nome || `Frente ${i + 1}`}
                 </p>
                 <FieldRow label="Objetivo" campo={f.objetivo} />

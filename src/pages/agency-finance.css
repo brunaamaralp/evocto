@@ -5,7 +5,7 @@
   margin: 0 auto;
   /* Horizontal padding comes from ContextualLayout main */
   padding: 0 0 3rem;
-  color: #18162A;
+  color: #1A1210;
 }
 
 .af-page--refreshing {
@@ -36,7 +36,7 @@
 }
 
 .af-muted {
-  color: #7A7595;
+  color: #6B635C;
   font-size: 0.875rem;
   margin: 0.25rem 0 0;
 }
@@ -45,7 +45,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid #E8E5F5;
+  border: 1px solid #E4DDD4;
   background: #fff;
   border-radius: 999px;
   padding: 0.2rem 0.55rem;
@@ -64,20 +64,20 @@
   border-radius: 999px;
   border: none;
   background: transparent;
-  color: #7A7595;
+  color: #6B635C;
   cursor: pointer;
 }
 
 .af-icon-btn:hover {
-  background: #EEF4FA;
-  color: #18162A;
+  background: #F1EDE7;
+  color: #1A1210;
 }
 
 .af-tabs {
   display: flex;
   gap: 0.25rem;
   overflow-x: auto;
-  border-bottom: 1px solid #E8E5F5;
+  border-bottom: 1px solid #E4DDD4;
   margin-bottom: 1.25rem;
   padding-bottom: 0;
 }
@@ -86,7 +86,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: #7A7595;
+  color: #6B635C;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.65rem 0.85rem;
@@ -96,12 +96,12 @@
 }
 
 .af-tab:hover {
-  color: #18162A;
+  color: #1A1210;
 }
 
 .af-tab--active {
-  color: #18162A;
-  border-bottom-color: #C02807;
+  color: #1A1210;
+  border-bottom-color: #B80015;
   font-weight: 600;
 }
 
@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #7A7595;
+  color: #6B635C;
   padding: 2rem 0;
 }
 
@@ -145,14 +145,14 @@
 
 .af-kpi {
   background: #fff;
-  border: 1px solid #E8E5F5;
+  border: 1px solid #E4DDD4;
   border-radius: 1rem;
   padding: 0.9rem 1rem;
 }
 
 .af-kpi__label {
   font-size: 0.75rem;
-  color: #7A7595;
+  color: #6B635C;
   font-weight: 500;
 }
 
@@ -165,7 +165,7 @@
 
 .af-kpi__hint {
   font-size: 0.72rem;
-  color: #7A7595;
+  color: #6B635C;
   margin-top: 0.15rem;
 }
 
@@ -176,14 +176,14 @@
 }
 
 .af-empty {
-  color: #7A7595;
+  color: #6B635C;
   font-size: 0.9rem;
   padding: 1.5rem 0;
 }
 
 .af-table-wrap {
   overflow-x: auto;
-  border: 1px solid #E8E5F5;
+  border: 1px solid #E4DDD4;
   border-radius: 1rem;
   background: #fff;
 }
@@ -197,17 +197,17 @@
 .af-table th {
   text-align: left;
   font-weight: 600;
-  color: #7A7595;
+  color: #6B635C;
   font-size: 0.75rem;
   padding: 0.7rem 0.85rem;
-  border-bottom: 1px solid #E8E5F5;
-  background: #EEF4FA;
+  border-bottom: 1px solid #E4DDD4;
+  background: #F1EDE7;
   white-space: nowrap;
 }
 
 .af-table td {
   padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #EEF4FA;
+  border-bottom: 1px solid #F1EDE7;
   vertical-align: middle;
 }
 
@@ -237,7 +237,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid #E8E5F5;
+  border: 1px solid #E4DDD4;
   border-radius: 1rem;
   background: #fff;
   overflow: hidden;
@@ -248,7 +248,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.65rem 0.85rem;
-  border-bottom: 1px solid #EEF4FA;
+  border-bottom: 1px solid #F1EDE7;
   font-size: 0.875rem;
 }
 

@@ -71,8 +71,8 @@
 }
 
 .agent-ia-status-badge--active {
-  background: var(--color-primary-surface, #FCE8E3);
-  color: var(--color-primary-dark, #8A1C05);
+  background: var(--color-primary-surface, #F6E4E6);
+  color: var(--color-primary-dark, #8A0010);
 }
 
 .agent-ia-status-badge--active-wa-offline {

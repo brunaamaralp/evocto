@@ -50,7 +50,7 @@ export default function ProjectSettings() {
     locale: 'pt-BR',
     branding: {
       logo_url: '',
-      primary_color: '#8A1C05',
+      primary_color: '#8A0010',
       company_name: ''
     },
     notifications: {
@@ -86,7 +86,7 @@ export default function ProjectSettings() {
         locale: settings.locale || 'pt-BR',
         branding: {
           logo_url: settings.branding?.logo_url || '',
-          primary_color: settings.branding?.primary_color || '#8A1C05',
+          primary_color: settings.branding?.primary_color || '#8A0010',
           company_name: settings.branding?.company_name || ''
         },
         notifications: {
@@ -303,7 +303,7 @@ export default function ProjectSettings() {
                         ...prev,
                         branding: { ...prev.branding, primary_color: e.target.value }
                       }))}
-                      placeholder="#8A1C05"
+                      placeholder="#8A0010"
                       className="flex-1"
                     />
                   </div>

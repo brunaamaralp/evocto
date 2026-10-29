@@ -80,7 +80,7 @@ export default function SettingsPage() {
     contactEmail: agency?.contactEmail || '',
     contactPhone: agency?.contactPhone || '',
     logoUrl: agency?.logoUrl || '',
-    primaryColor: agency?.primaryColor || '#C02807',
+    primaryColor: agency?.primaryColor || '#B80015',
     secondaryColor: agency?.secondaryColor || '#F1F5F9'
   });
   
@@ -115,7 +115,7 @@ export default function SettingsPage() {
         contactEmail: agency.contactEmail || '',
         contactPhone: agency.contactPhone || '',
         logoUrl: agency.logoUrl || '',
-        primaryColor: agency.primaryColor || '#C02807',
+        primaryColor: agency.primaryColor || '#B80015',
         secondaryColor: agency.secondaryColor || '#F1F5F9'
       });
       
@@ -178,7 +178,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Configurações</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Configurações</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
@@ -272,11 +272,11 @@ export default function SettingsPage() {
 
         {/* Aba Agência — preferir hub Minha empresa (P0.2) */}
         <TabsContent value="agency">
-          <div className="mb-4 rounded-xl border border-[#E8E5F5] bg-[#EEF4FA]/50 px-4 py-3 text-sm text-[#7A7595]">
+          <div className="mb-4 rounded-xl border border-[#E4DDD4] bg-[#F1EDE7]/50 px-4 py-3 text-sm text-[#6B635C]">
             Identidade, equipe e marca ficam em{' '}
             <Link
               to={createPageUrl('minha-empresa')}
-              className="font-medium text-[#C02807] hover:underline"
+              className="font-medium text-[#B80015] hover:underline"
             >
               Minha empresa
             </Link>
@@ -293,7 +293,7 @@ export default function SettingsPage() {
               {!canEditAgency ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                  <p className="text-[#7A7595]">Você não tem permissão para editar essas configurações.</p>
+                  <p className="text-[#6B635C]">Você não tem permissão para editar essas configurações.</p>
                 </div>
               ) : (
                 <>
@@ -403,7 +403,7 @@ export default function SettingsPage() {
               {!canEditAgency ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                  <p className="text-[#7A7595]">Você não tem permissão para editar essas configurações.</p>
+                  <p className="text-[#6B635C]">Você não tem permissão para editar essas configurações.</p>
                 </div>
               ) : (
                 <>
@@ -551,7 +551,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="email">Notificações por Email</Label>
-                    <p className="text-sm text-[#7A7595]">Receber notificações por email</p>
+                    <p className="text-sm text-[#6B635C]">Receber notificações por email</p>
                   </div>
                   <Switch
                     id="email"
@@ -563,7 +563,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="push">Notificações Push</Label>
-                    <p className="text-sm text-[#7A7595]">Receber notificações push no navegador</p>
+                    <p className="text-sm text-[#6B635C]">Receber notificações push no navegador</p>
                   </div>
                   <Switch
                     id="push"
@@ -575,7 +575,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="sms">Notificações SMS</Label>
-                    <p className="text-sm text-[#7A7595]">Receber notificações por SMS</p>
+                    <p className="text-sm text-[#6B635C]">Receber notificações por SMS</p>
                   </div>
                   <Switch
                     id="sms"
@@ -587,7 +587,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="digest">Digest Diário</Label>
-                    <p className="text-sm text-[#7A7595]">Receber resumo diário das atividades</p>
+                    <p className="text-sm text-[#6B635C]">Receber resumo diário das atividades</p>
                   </div>
                   <Switch
                     id="digest"

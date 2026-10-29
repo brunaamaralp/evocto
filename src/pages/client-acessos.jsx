@@ -79,17 +79,17 @@ export default function ClientAcessosPage() {
               to={createPageUrl(`client-detail?clientId=${clientId}`)}
               aria-label="Voltar ao cliente"
             >
-              <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+              <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
             </Link>
           </Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-[#C02807] shrink-0" />
-              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight truncate">
+              <KeyRound className="h-5 w-5 text-[#B80015] shrink-0" />
+              <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight truncate">
                 Acessos e informações
               </h1>
             </div>
-            <p className="text-xs text-[#7A7595] truncate">{client.name}</p>
+            <p className="text-xs text-[#6B635C] truncate">{client.name}</p>
           </div>
         </div>
       </div>

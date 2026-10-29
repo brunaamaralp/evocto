@@ -280,15 +280,15 @@ export default function GerarMaterialPage() {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-4">
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-        <h1 className="text-xl font-semibold text-[#18162A]">Material pronto</h1>
-        <p className="text-sm text-[#7A7595]">
+        <h1 className="text-xl font-semibold text-[#1A1210]">Material pronto</h1>
+        <p className="text-sm text-[#6B635C]">
           {job.fileName || 'Arquivo'} gerado para {client?.name}. Também está em
           Documentos do cliente.
           {leadId ? ' O lead do Comercial foi atualizado para Proposta.' : ''}
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           {job.fileUrl ? (
-            <Button asChild className="bg-[#C02807] hover:bg-[#8A1C05] text-white">
+            <Button asChild className="bg-[#B80015] hover:bg-[#8A0010] text-white">
               <a href={job.fileUrl} target="_blank" rel="noopener noreferrer">
                 <Download className="w-4 h-4 mr-2" />
                 Baixar
@@ -333,16 +333,16 @@ export default function GerarMaterialPage() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
+          <div className="flex items-center gap-2 text-[#6B635C] text-sm mb-1">
             <Sparkles className="w-3.5 h-3.5" />
             {leadId
               ? 'CRM Comercial · Geração de proposta'
               : 'Claude Skills · Proposta ou apresentação'}
           </div>
-          <h1 className="text-2xl font-semibold text-[#18162A]">
+          <h1 className="text-2xl font-semibold text-[#1A1210]">
             Gerar material — {client?.name || 'Cliente'}
           </h1>
-          <p className="text-[#7A7595] mt-1">
+          <p className="text-[#6B635C] mt-1">
             {leadId
               ? 'Contexto do lead preenchido automaticamente. Gerar não fecha o deal — só marca Proposta.'
               : 'Usa o briefing inicial e os campos abaixo. O arquivo é salvo nos documentos do cliente.'}
@@ -366,13 +366,13 @@ export default function GerarMaterialPage() {
                 onClick={() => setTipo(opt.id)}
                 className={`text-left rounded-lg border-2 p-4 transition-all ${
                   selected
-                    ? 'border-[#C02807] bg-[#F5F1FF]'
+                    ? 'border-[#B80015] bg-[#F5F1FF]'
                     : 'border-[#E8E4F4] hover:border-[#C4B5FD]'
                 }`}
               >
-                <Icon className="w-5 h-5 mb-2 text-[#C02807]" />
-                <div className="font-medium text-[#18162A]">{opt.label}</div>
-                <p className="text-sm text-[#7A7595] mt-1">{opt.description}</p>
+                <Icon className="w-5 h-5 mb-2 text-[#B80015]" />
+                <div className="font-medium text-[#1A1210]">{opt.label}</div>
+                <p className="text-sm text-[#6B635C] mt-1">{opt.description}</p>
               </button>
             );
           })}
@@ -383,13 +383,13 @@ export default function GerarMaterialPage() {
         <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
           <div>
             <CardTitle className="text-base">Contexto (schema v{GENERATE_MATERIAL_SCHEMA_VERSION})</CardTitle>
-            <p className="text-sm text-[#7A7595] mt-1">
+            <p className="text-sm text-[#6B635C] mt-1">
               Campos do contrato; DNA do briefing entra automaticamente no servidor.
             </p>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-xs uppercase tracking-wide text-[#7A7595]">Completude</div>
-            <div className="text-lg font-semibold text-[#18162A]">{previewQuality.score}%</div>
+            <div className="text-xs uppercase tracking-wide text-[#6B635C]">Completude</div>
+            <div className="text-lg font-semibold text-[#1A1210]">{previewQuality.score}%</div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -404,7 +404,7 @@ export default function GerarMaterialPage() {
                 <Label htmlFor={key}>
                   {field.label}
                   {recommended ? (
-                    <span className="ml-1 text-xs font-normal text-[#7A7595]">
+                    <span className="ml-1 text-xs font-normal text-[#6B635C]">
                       (recomendado)
                     </span>
                   ) : null}
@@ -430,7 +430,7 @@ export default function GerarMaterialPage() {
                 {err ? (
                   <p className="text-xs text-red-600">{err}</p>
                 ) : (
-                  <p className="text-xs text-[#7A7595]">{field.description}</p>
+                  <p className="text-xs text-[#6B635C]">{field.description}</p>
                 )}
               </div>
             );
@@ -483,7 +483,7 @@ export default function GerarMaterialPage() {
           </Button>
           <Button
             type="button"
-            className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
+            className="bg-[#B80015] hover:bg-[#8A0010] text-white"
             onClick={handleGenerate}
             disabled={phase === 'generating' || !user}
           >

@@ -36,7 +36,7 @@ export default function ClientExecutionPanel({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-base gap-2">
           <span className="flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-[#7A7595]" />
+            <Settings2 className="w-5 h-5 text-[#6B635C]" />
             Serviços e ciclos
           </span>
           <Button asChild variant="ghost" size="sm" className="gap-1">
@@ -46,7 +46,7 @@ export default function ClientExecutionPanel({
             </Link>
           </Button>
         </CardTitle>
-        <p className="text-xs text-[#7A7595] font-normal">
+        <p className="text-xs text-[#6B635C] font-normal">
           Infraestrutura por trás das campanhas
         </p>
       </CardHeader>

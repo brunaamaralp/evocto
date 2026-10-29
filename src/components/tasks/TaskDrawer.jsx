@@ -1335,7 +1335,7 @@ export default function TaskDrawer() {
               </div>
 
               <div className="border-t pt-4 space-y-2">
-                <h3 className="text-sm font-semibold text-[#18162A]">Descrição</h3>
+                <h3 className="text-sm font-semibold text-[#1A1210]">Descrição</h3>
                 {editingDesc || (descDraft && descDraft.length > 0) ? (
                   <Textarea
                     ref={descRef}
@@ -1375,7 +1375,7 @@ export default function TaskDrawer() {
               <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[#18162A]">Anexos</h3>
+                    <h3 className="text-sm font-semibold text-[#1A1210]">Anexos</h3>
                     {(() => {
                       const atts = task.attachments || [];
                       const imageCount = atts.filter((a) => isImageAttachment(a)).length;
@@ -1727,7 +1727,7 @@ export default function TaskDrawer() {
                             key={c.id}
                             className={`rounded-md border p-3 ${
                               c.type === "system"
-                                ? "bg-[var(--color-primary-surface)]/60 border-[#FFD4C8]"
+                                ? "bg-[var(--color-primary-surface)]/60 border-[#FFE8E4]"
                                 : ""
                             }`}
                           >

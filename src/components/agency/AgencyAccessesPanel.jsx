@@ -79,9 +79,9 @@ function AccessCard({
       <CardContent className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate font-semibold text-[#18162A]">{access.platform}</h3>
+            <h3 className="truncate font-semibold text-[#1A1210]">{access.platform}</h3>
             {access.username ? (
-              <p className="mt-0.5 truncate text-sm text-[#7A7595]">{access.username}</p>
+              <p className="mt-0.5 truncate text-sm text-[#6B635C]">{access.username}</p>
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -93,7 +93,7 @@ function AccessCard({
               onClick={() => onEdit(access)}
               aria-label={`Editar ${access.platform}`}
             >
-              <Pencil className="h-4 w-4 text-[#7A7595]" />
+              <Pencil className="h-4 w-4 text-[#6B635C]" />
             </Button>
             <Button
               type="button"
@@ -103,7 +103,7 @@ function AccessCard({
               onClick={() => onDelete(access)}
               aria-label={`Excluir ${access.platform}`}
             >
-              <Trash2 className="h-4 w-4 text-[#C02807]" />
+              <Trash2 className="h-4 w-4 text-[#B80015]" />
             </Button>
           </div>
         </div>
@@ -113,16 +113,16 @@ function AccessCard({
             href={access.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex max-w-full items-center gap-1.5 truncate text-sm text-[#C02807] hover:underline"
+            className="inline-flex max-w-full items-center gap-1.5 truncate text-sm text-[#B80015] hover:underline"
           >
             <ExternalLink className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{access.url}</span>
           </a>
         ) : null}
 
-        <div className="space-y-1.5 rounded-xl bg-[#EEF4FA] px-3 py-2.5">
+        <div className="space-y-1.5 rounded-xl bg-[#F1EDE7] px-3 py-2.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-[#7A7595]">
+            <span className="text-xs font-medium uppercase tracking-wide text-[#6B635C]">
               Senha
             </span>
             <div className="flex items-center gap-1">
@@ -163,11 +163,11 @@ function AccessCard({
                   </Button>
                 </>
               ) : (
-                <span className="text-xs text-[#7A7595]">Não cadastrada</span>
+                <span className="text-xs text-[#6B635C]">Não cadastrada</span>
               )}
             </div>
           </div>
-          <p className="min-h-[1.25rem] break-all font-mono text-sm text-[#18162A]">
+          <p className="min-h-[1.25rem] break-all font-mono text-sm text-[#1A1210]">
             {!access.hasPassword
               ? '—'
               : passwordVisible && isRevealed
@@ -177,7 +177,7 @@ function AccessCard({
         </div>
 
         {access.notes ? (
-          <p className="whitespace-pre-wrap text-sm text-[#7A7595]">{access.notes}</p>
+          <p className="whitespace-pre-wrap text-sm text-[#6B635C]">{access.notes}</p>
         ) : null}
       </CardContent>
     </Card>
@@ -342,7 +342,7 @@ export default function AgencyAccessesPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-[#7A7595]">
+      <div className="flex items-center justify-center py-16 text-[#6B635C]">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         Carregando acessos…
       </div>
@@ -353,8 +353,8 @@ export default function AgencyAccessesPanel() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold text-[#18162A]">Acessos da agência</h2>
-          <p className="mt-0.5 text-sm leading-relaxed text-[#7A7595]">
+          <h2 className="text-lg font-semibold text-[#1A1210]">Acessos da agência</h2>
+          <p className="mt-0.5 text-sm leading-relaxed text-[#6B635C]">
             Credenciais internas. Senhas ocultas por padrão; revelar/copiar gera
             auditoria. Não aparecem nos clientes.
           </p>
@@ -429,7 +429,7 @@ export default function AgencyAccessesPanel() {
         <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-[#C02807]" />
+              <KeyRound className="h-5 w-5 text-[#B80015]" />
               {editing ? 'Editar acesso' : 'Novo acesso'}
             </DialogTitle>
           </DialogHeader>
@@ -441,7 +441,7 @@ export default function AgencyAccessesPanel() {
                 id="agency-access-platform"
                 value={form.platform}
                 onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))}
-                className="mt-1.5 rounded-xl border-transparent bg-[#EEF4FA]"
+                className="mt-1.5 rounded-xl border-transparent bg-[#F1EDE7]"
                 placeholder="Ex.: Notion, Figma, Conta de anúncios"
               />
             </div>
@@ -451,7 +451,7 @@ export default function AgencyAccessesPanel() {
                 id="agency-access-url"
                 value={form.url}
                 onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
-                className="mt-1.5 rounded-xl border-transparent bg-[#EEF4FA]"
+                className="mt-1.5 rounded-xl border-transparent bg-[#F1EDE7]"
                 placeholder="https://…"
               />
             </div>
@@ -461,7 +461,7 @@ export default function AgencyAccessesPanel() {
                 id="agency-access-username"
                 value={form.username}
                 onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
-                className="mt-1.5 rounded-xl border-transparent bg-[#EEF4FA]"
+                className="mt-1.5 rounded-xl border-transparent bg-[#F1EDE7]"
                 placeholder="login@agencia.com"
                 autoComplete="off"
               />
@@ -481,7 +481,7 @@ export default function AgencyAccessesPanel() {
                 />
               </div>
               {editing?.hasPassword ? (
-                <p className="mt-1 text-xs text-[#7A7595]">
+                <p className="mt-1 text-xs text-[#6B635C]">
                   Preencha apenas se quiser alterar a senha armazenada.
                 </p>
               ) : null}
@@ -492,7 +492,7 @@ export default function AgencyAccessesPanel() {
                 id="agency-access-notes"
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                className="mt-1.5 rounded-xl border-transparent bg-[#EEF4FA]"
+                className="mt-1.5 rounded-xl border-transparent bg-[#F1EDE7]"
                 rows={3}
                 placeholder="2FA, permissões, contexto…"
               />
@@ -527,7 +527,7 @@ export default function AgencyAccessesPanel() {
             <AlertDialogTitle>Excluir este acesso?</AlertDialogTitle>
             <AlertDialogDescription>
               O acesso a{' '}
-              <strong className="text-[#18162A]">
+              <strong className="text-[#1A1210]">
                 {deleteTarget?.platform || 'esta plataforma'}
               </strong>{' '}
               e a senha armazenada serão removidos de forma permanente.
@@ -536,7 +536,7 @@ export default function AgencyAccessesPanel() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
               disabled={deleting}
               onClick={(e) => {
                 e.preventDefault();

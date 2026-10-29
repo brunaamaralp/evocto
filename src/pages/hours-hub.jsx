@@ -142,7 +142,7 @@ export default function HoursHubPage() {
   };
 
   if (!isAuthenticated) {
-    return <div className="text-sm text-[#7A7595]">Faça login para ver o hub de horas.</div>;
+    return <div className="text-sm text-[#6B635C]">Faça login para ver o hub de horas.</div>;
   }
 
   if (loading) return <LoadingState message="Carregando horas…" />;
@@ -163,8 +163,8 @@ export default function HoursHubPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Horas</h1>
-            <p className="text-sm text-[#7A7595]">
+            <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Horas</h1>
+            <p className="text-sm text-[#6B635C]">
               {period.label} · {formatYmdBr(period.fromYmd)} → {formatYmdBr(period.toYmd)}
               {filterServiceId ? ` · filtro serviço` : ''}
             </p>
@@ -208,7 +208,7 @@ export default function HoursHubPage() {
             return (
               <Card key={s.label} className={`border-transparent ${cardPastel.bg}`}>
                 <CardHeader className="pb-1">
-                  <CardTitle className="text-xs font-medium text-[#7A7595]">{s.label}</CardTitle>
+                  <CardTitle className="text-xs font-medium text-[#6B635C]">{s.label}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className={`text-xl font-semibold ${cardPastel.text}`}>{value}</p>
@@ -224,15 +224,15 @@ export default function HoursHubPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {occupancyRows.length === 0 ? (
-              <p className="text-sm text-[#7A7595]">
+              <p className="text-sm text-[#6B635C]">
                 Nenhuma tarefa atribuída no período. Atribua responsáveis para ver a carga.
               </p>
             ) : (
               occupancyRows.map((row) => (
                 <div key={row.userId}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-[#18162A]">{row.label}</span>
-                    <span className="text-xs text-[#7A7595]">
+                    <span className="text-sm font-medium text-[#1A1210]">{row.label}</span>
+                    <span className="text-xs text-[#6B635C]">
                       {row.totalPlanned.toFixed(1)}h / {row.totalCapacity.toFixed(0)}h ·{' '}
                       {Math.round(row.load * 100)}%
                     </span>
@@ -245,8 +245,8 @@ export default function HoursHubPage() {
                           : d.load > 0.75
                             ? 'bg-[#E8955A]'
                             : d.load > 0
-                              ? 'bg-[#C02807]'
-                              : 'bg-[#FCE8E3]';
+                              ? 'bg-[#B80015]'
+                              : 'bg-[#F6E4E6]';
                       return (
                         <div
                           key={d.ymd}
@@ -259,7 +259,7 @@ export default function HoursHubPage() {
                               height: `${Math.max(4, Math.min(40, d.planned * 4))}px`,
                             }}
                           />
-                          <span className="text-[9px] text-[#7A7595]">
+                          <span className="text-[9px] text-[#6B635C]">
                             {new Date(`${d.ymd}T12:00:00`).getDate()}
                           </span>
                         </div>
@@ -278,17 +278,17 @@ export default function HoursHubPage() {
           </CardHeader>
           <CardContent>
             {byService.length === 0 ? (
-              <p className="text-sm text-[#7A7595]">Sem tarefas neste recorte.</p>
+              <p className="text-sm text-[#6B635C]">Sem tarefas neste recorte.</p>
             ) : (
-              <ul className="divide-y divide-[#E8E5F5]/70">
+              <ul className="divide-y divide-[#E4DDD4]/70">
                 {byService.map((row) => (
                   <li
                     key={row.serviceId}
                     className="flex flex-wrap items-center justify-between gap-2 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#18162A] truncate">{row.label}</p>
-                      <p className="text-xs text-[#7A7595]">
+                      <p className="text-sm font-medium text-[#1A1210] truncate">{row.label}</p>
+                      <p className="text-xs text-[#6B635C]">
                         {row.openCount} abertas · {row.actual.toFixed(1)}h / {row.estimated.toFixed(1)}h
                       </p>
                     </div>
@@ -313,7 +313,7 @@ export default function HoursHubPage() {
           </CardContent>
         </Card>
 
-        <p className="text-xs text-[#7A7595]">
+        <p className="text-xs text-[#6B635C]">
           Capacidade padrão: 8h/dia útil. Carga alocada por due date ou espalhada nas datas da
           etapa.
         </p>

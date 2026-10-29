@@ -54,20 +54,20 @@ function UnitCard({ unit }) {
     <li>
       <Link
         to={unit.href}
-        className="group block rounded-2xl border border-[#E8E5F5] bg-white px-4 py-3.5 transition-colors hover:border-[#E8E5F5] hover:bg-[#EEF4FA]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/40"
+        className="group block rounded-2xl border border-[#E4DDD4] bg-white px-4 py-3.5 transition-colors hover:border-[#E4DDD4] hover:bg-[#F1EDE7]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/40"
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="min-w-0 truncate text-[15px] font-medium text-[#18162A] group-hover:text-[#C02807]">
+          <p className="min-w-0 truncate text-[15px] font-medium text-[#1A1210] group-hover:text-[#B80015]">
             {unit.title}
           </p>
           {percent != null ? (
-            <span className="shrink-0 text-sm tabular-nums text-[#7A7595]">
+            <span className="shrink-0 text-sm tabular-nums text-[#6B635C]">
               {percent}%
             </span>
           ) : null}
         </div>
         {meta ? (
-          <p className="mt-1 truncate text-sm text-[#7A7595]">{meta}</p>
+          <p className="mt-1 truncate text-sm text-[#6B635C]">{meta}</p>
         ) : null}
       </Link>
     </li>
@@ -80,13 +80,13 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
   if (!singleProject.ready) {
     return (
       <div className="py-10 text-center">
-        <p className="text-sm font-medium text-[#18162A]">Operação ainda não iniciada</p>
-        <p className="mt-1 text-sm text-[#7A7595]">
+        <p className="text-sm font-medium text-[#1A1210]">Operação ainda não iniciada</p>
+        <p className="mt-1 text-sm text-[#6B635C]">
           As etapas aparecem aqui quando a operação começar.
         </p>
         {onStart ? (
           <Button
-            className="mt-5 bg-[#C02807] hover:bg-[#8A1C05]"
+            className="mt-5 bg-[#B80015] hover:bg-[#8A0010]"
             onClick={onStart}
             disabled={starting}
           >
@@ -103,7 +103,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm text-[#7A7595]">
+        <p className="text-sm text-[#6B635C]">
           {[
             singleProject.statusLabel,
             singleProject.progress?.total > 0
@@ -119,14 +119,14 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
         {singleProject.href ? (
           <Link
             to={singleProject.href}
-            className="text-sm font-medium text-[#C02807] hover:underline"
+            className="text-sm font-medium text-[#B80015] hover:underline"
           >
             Abrir etapas
           </Link>
         ) : null}
       </div>
 
-      <ul className="divide-y divide-[#E8E5F5] rounded-2xl border border-[#E8E5F5] bg-white">
+      <ul className="divide-y divide-[#E4DDD4] rounded-2xl border border-[#E4DDD4] bg-white">
         {steps.map((step, index) => {
           const isCurrent = !step.completed && index === firstOpenIndex;
           return (
@@ -141,13 +141,13 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
                   step.completed
                     ? 'text-[#888] line-through'
                     : isCurrent
-                      ? 'font-medium text-[#18162A]'
-                      : 'text-[#18162A]'
+                      ? 'font-medium text-[#1A1210]'
+                      : 'text-[#1A1210]'
                 }
               >
                 {step.title}
                 {isCurrent ? (
-                  <span className="ml-2 text-xs font-normal text-[#C02807]">
+                  <span className="ml-2 text-xs font-normal text-[#B80015]">
                     Em andamento
                   </span>
                 ) : null}
@@ -157,7 +157,7 @@ function SingleProjectView({ singleProject, onStart, starting = false }) {
                   step.completed
                     ? 'text-[#27ae60]'
                     : isCurrent
-                      ? 'text-[#C02807]'
+                      ? 'text-[#B80015]'
                       : 'text-[#ccc]'
                 }`}
                 aria-hidden
@@ -183,16 +183,16 @@ function EmptyUnits({ profile, onCreate }) {
 
   return (
     <div className="mx-auto max-w-sm py-10 text-center">
-      <h3 className="text-base font-medium text-[#18162A]">
+      <h3 className="text-base font-medium text-[#1A1210]">
         Nenhum {item} ainda
       </h3>
-      <p className="mt-1 text-sm text-[#7A7595]">
+      <p className="mt-1 text-sm text-[#6B635C]">
         {isCampaign
           ? 'Crie no Planejamento para começar a operar aqui.'
           : 'Crie o primeiro para começar a operar.'}
       </p>
       {showCta && onCreate ? (
-        <Button className="mt-5 bg-[#C02807] hover:bg-[#8A1C05]" onClick={onCreate}>
+        <Button className="mt-5 bg-[#B80015] hover:bg-[#8A0010]" onClick={onCreate}>
           <Plus className="mr-1.5 h-4 w-4" />
           {ctaText || capitalizeLabel(item)}
         </Button>
@@ -218,7 +218,7 @@ function MonthGroupHeader({
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="min-w-0">
         {group.periodLabel || group.cycleId ? (
-          <p className="text-sm font-medium text-[#7A7595]">
+          <p className="text-sm font-medium text-[#6B635C]">
             {group.periodLabel || 'Este mês'}
             <span className="ml-2 font-normal text-[#888]">
               {group.units.length}{' '}
@@ -249,7 +249,7 @@ function MonthGroupHeader({
               <Button
                 type="button"
                 size="sm"
-                className="h-8 text-xs bg-[#C02807] hover:bg-[#8A1C05]"
+                className="h-8 text-xs bg-[#B80015] hover:bg-[#8A0010]"
                 disabled={busy}
                 onClick={async () => {
                   await onShareMonth?.(group.cycleId);
@@ -268,7 +268,7 @@ function MonthGroupHeader({
               size="sm"
               variant={shared ? 'outline' : 'default'}
               className={`h-8 text-xs ${
-                shared ? '' : 'bg-[#C02807] hover:bg-[#8A1C05]'
+                shared ? '' : 'bg-[#B80015] hover:bg-[#8A0010]'
               }`}
               disabled={busy}
               onClick={() => {
@@ -328,7 +328,7 @@ export default function ServiceUnitsPanel({
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-[#7A7595]">
+      <p className="text-sm text-[#6B635C]">
         Em andamento · {lens.unitsCount} {noun}
       </p>
       <div className="space-y-6">

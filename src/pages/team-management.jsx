@@ -39,13 +39,13 @@ function TeamManagementPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">Equipe</h1>
-          <p className="text-sm text-[#7A7595] mt-1">Membros e convites da agência</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1A1210]">Equipe</h1>
+          <p className="text-sm text-[#6B635C] mt-1">Membros e convites da agência</p>
         </div>
         {canInvite && (
           <Button
             onClick={() => setShowInviteModal(true)}
-            className="bg-[#C02807] hover:bg-[#8A1C05] self-start sm:self-auto"
+            className="bg-[#B80015] hover:bg-[#8A0010] self-start sm:self-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar membro

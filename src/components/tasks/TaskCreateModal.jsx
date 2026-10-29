@@ -285,7 +285,7 @@ export default function TaskCreateModal({
 
             {/* Tarefa vs Reunião */}
             <div
-              className="flex rounded-xl border border-[#E8E5F5] bg-[#F8F7FB] p-0.5"
+              className="flex rounded-xl border border-[#E4DDD4] bg-[#F8F7FB] p-0.5"
               role="group"
               aria-label="Tipo de item"
             >
@@ -293,8 +293,8 @@ export default function TaskCreateModal({
                 type="button"
                 className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   !isMeeting
-                    ? "bg-white text-[#18162A] shadow-sm"
-                    : "text-[#7A7595] hover:text-[#18162A]"
+                    ? "bg-white text-[#1A1210] shadow-sm"
+                    : "text-[#6B635C] hover:text-[#1A1210]"
                 }`}
                 onClick={() => handleKindChange("task")}
               >
@@ -304,8 +304,8 @@ export default function TaskCreateModal({
                 type="button"
                 className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isMeeting
-                    ? "bg-white text-[#18162A] shadow-sm"
-                    : "text-[#7A7595] hover:text-[#18162A]"
+                    ? "bg-white text-[#1A1210] shadow-sm"
+                    : "text-[#6B635C] hover:text-[#1A1210]"
                 }`}
                 onClick={() => handleKindChange("meeting")}
               >
@@ -482,7 +482,7 @@ export default function TaskCreateModal({
             <div className="border rounded-lg p-3 space-y-3">
               <button
                 type="button"
-                className="text-sm font-medium text-[#C02807] hover:underline"
+                className="text-sm font-medium text-[#B80015] hover:underline"
                 onClick={() => setShowMoreOptions((v) => !v)}
                 aria-expanded={showMoreOptions}
               >

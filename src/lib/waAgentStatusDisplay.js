@@ -24,7 +24,7 @@ export function waAgentStatusVisual(status) {
     return { Icon: QrCode, accent: '#25D366', bg: 'rgba(37, 211, 102, 0.08)' };
   }
   if (k === 'connecting' || k === 'syncing') {
-    return { Icon: RefreshCw, accent: 'var(--color-primary)', bg: 'rgba(192, 40, 7, 0.08)' };
+    return { Icon: RefreshCw, accent: 'var(--color-primary)', bg: 'rgba(184, 0, 21, 0.08)' };
   }
   if (k === 'disconnected') return { Icon: Unplug, accent: 'var(--text-secondary)', bg: 'var(--surface)' };
   return { Icon: HelpCircle, accent: 'var(--text-secondary)', bg: 'var(--surface)' };

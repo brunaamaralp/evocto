@@ -53,11 +53,11 @@ export default function SecretPasswordField({
           readOnly={readOnly}
           disabled={disabled}
           autoComplete="off"
-          className={cn('pr-10 rounded-xl bg-[#EEF4FA] border-transparent', inputClassName)}
+          className={cn('pr-10 rounded-xl bg-[#F1EDE7] border-transparent', inputClassName)}
         />
         <button
           type="button"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7595] hover:text-[#18162A] disabled:opacity-40"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B635C] hover:text-[#1A1210] disabled:opacity-40"
           onClick={() => setVisible((v) => !v)}
           disabled={disabled || (!hasValue && readOnly)}
           aria-label={visible ? 'Ocultar senha' : 'Mostrar senha'}

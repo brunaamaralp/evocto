@@ -19,7 +19,7 @@ const DesignSystemAudit = () => {
           component: "globals.css + CSS Variables",
           status: "excellent",
           details: [
-            "Paleta Narrativa: burnt grape (#C02807) e orange rose (#FF643D)",
+            "Paleta Narrativa: burnt grape (#B80015) e orange rose (#DD4E28)",
             "Variáveis CSS bem estruturadas",
             "Gradientes da marca consistentes",
             "Cores funcionais limitadas (sucesso, aviso, erro)"

@@ -33,9 +33,9 @@ const CyclePlanSkeleton = () => (
 
     {/* Form Skeleton */}
     <div className="space-y-4">
-      <div className="h-32 bg-[#FCE8E3] rounded-2xl animate-pulse"></div>
-      <div className="h-24 bg-[#EEF4FA] rounded-2xl animate-pulse"></div>
-      <div className="h-48 bg-[#FCE8E3] rounded-2xl animate-pulse"></div>
+      <div className="h-32 bg-[#F6E4E6] rounded-2xl animate-pulse"></div>
+      <div className="h-24 bg-[#F1EDE7] rounded-2xl animate-pulse"></div>
+      <div className="h-48 bg-[#F6E4E6] rounded-2xl animate-pulse"></div>
     </div>
   </div>
 );
@@ -273,15 +273,15 @@ export default function CyclePlanPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="rounded-2xl border-transparent shadow-sm bg-[#EEF4FA]">
+            <Card className="rounded-2xl border-transparent shadow-sm bg-[#F1EDE7]">
                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                         <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`services/${service.id}`))}>
                             <ArrowLeft className="w-4 h-4 mr-2"/>
                             Voltar para {service.name}
                         </Button>
-                        <CardTitle className="mt-2 text-2xl font-bold tracking-tight text-[#18162A]">Plano de {cyclePlan.cyclePeriod}</CardTitle>
-                        <CardDescription className="text-[#7A7595]">{client.name}</CardDescription>
+                        <CardTitle className="mt-2 text-2xl font-bold tracking-tight text-[#1A1210]">Plano de {cyclePlan.cyclePeriod}</CardTitle>
+                        <CardDescription className="text-[#6B635C]">{client.name}</CardDescription>
                     </div>
                     {isApprovalActive ? (
                         <Button asChild className="w-full sm:w-auto shrink-0">
@@ -394,8 +394,8 @@ export default function CyclePlanPage() {
                                         </div>
                                     ))}
                                     
-                                    <div className="mt-6 p-4 bg-[#FCE8E3] border border-[#FFD4C8] rounded-2xl">
-                                        <h4 className="font-medium text-[#8A1C05] mb-2">📋 Integração com o Plano</h4>
+                                    <div className="mt-6 p-4 bg-[#F6E4E6] border border-[#FFE8E4] rounded-2xl">
+                                        <h4 className="font-medium text-[#8A0010] mb-2">📋 Integração com o Plano</h4>
                                         <p className="text-sm text-[#5A3A7A]">
                                             Estes entregáveis servem como referência para o planejamento do ciclo. 
                                             A IA já considera esta lista ao sugerir prioridades e ajustes estratégicos.
@@ -461,7 +461,7 @@ export default function CyclePlanPage() {
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="font-semibold">Status Atual:</h4>
-                                    <p className="text-lg font-medium text-[#C02807]">{getStatusLabel(cyclePlan.status)}</p>
+                                    <p className="text-lg font-medium text-[#B80015]">{getStatusLabel(cyclePlan.status)}</p>
                                 </div>
                                 {cyclePlan.approvalData && (
                                     <div className="space-y-2">
@@ -469,7 +469,7 @@ export default function CyclePlanPage() {
                                         {cyclePlan.approvalData.public_share_token && (
                                             <p className="text-sm text-gray-700">
                                                 Link de Aprovação: 
-                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#C02807] hover:underline">
+                                                <a href={approvalUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#B80015] hover:underline">
                                                     Abrir Link <ExternalLink className="inline-block w-4 h-4 ml-1" />
                                                 </a>
                                             </p>

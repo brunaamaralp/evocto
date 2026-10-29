@@ -148,9 +148,9 @@ export default function ContractedServiceSetup({
       aria-labelledby="contracted-service-title"
     >
       <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-lg sm:rounded-2xl">
-        <div className="flex items-start justify-between gap-3 border-b border-[#E8E5F5] px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-[#E4DDD4] px-5 py-4">
           <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2 text-[#C02807]">
+            <div className="mb-1 flex items-center gap-2 text-[#B80015]">
               <Briefcase className="h-4 w-4" aria-hidden />
               <span className="text-xs font-semibold uppercase tracking-wide">
                 Contrato
@@ -158,11 +158,11 @@ export default function ContractedServiceSetup({
             </div>
             <h2
               id="contracted-service-title"
-              className="text-lg font-semibold text-[#18162A]"
+              className="text-lg font-semibold text-[#1A1210]"
             >
               Qual serviço foi contratado?
             </h2>
-            <p className="mt-1 text-sm text-[#7A7595]">
+            <p className="mt-1 text-sm text-[#6B635C]">
               Defina o serviço de {clientName} antes de campanhas e tarefas.
             </p>
           </div>
@@ -181,7 +181,7 @@ export default function ContractedServiceSetup({
 
         <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
           {loading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#7A7595]">
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#6B635C]">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               Carregando templates…
             </div>
@@ -233,7 +233,7 @@ export default function ContractedServiceSetup({
               </div>
 
               {selectedTemplate?.deliverables?.length ? (
-                <p className="text-xs text-[#7A7595]">
+                <p className="text-xs text-[#6B635C]">
                   {selectedTemplate.deliverables.length} fase
                   {selectedTemplate.deliverables.length === 1 ? '' : 's'} neste
                   template
@@ -262,7 +262,7 @@ export default function ContractedServiceSetup({
             </Button>
             <Button
               type="submit"
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
               disabled={saving || loading || !templateId}
             >
               {saving ? (

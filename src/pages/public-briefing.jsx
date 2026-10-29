@@ -153,14 +153,14 @@ export default function PublicBriefingPage() {
     <div className="min-h-screen bg-[#F8F6FC] py-8 px-4 pb-28">
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
+          <div className="flex items-center gap-2 text-[#6B635C] text-sm mb-1">
             <Lock className="w-3.5 h-3.5" />
             Link seguro · Briefing inicial
           </div>
-          <h1 className="text-2xl font-semibold text-[#18162A]">
+          <h1 className="text-2xl font-semibold text-[#1A1210]">
             {ctx?.clientName || 'Cliente'}
           </h1>
-          <p className="text-[#7A7595] mt-1">
+          <p className="text-[#6B635C] mt-1">
             Dados da empresa (público, tom, produtos). Leva poucos minutos — o
             planejamento vem depois, com a equipe.
           </p>
@@ -181,7 +181,7 @@ export default function PublicBriefingPage() {
             </Button>
             <Button
               type="button"
-              className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
+              className="bg-[#B80015] hover:bg-[#8A0010] text-white"
               onClick={handleSubmit}
               disabled={!canSubmit}
             >

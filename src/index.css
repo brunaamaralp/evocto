@@ -7,41 +7,44 @@
 
 @layer base {
   :root {
-    /* Narrativa — Burnt Grape / Orange Rosé / Sky / Cloud */
-    --background: 0 100% 99%;
+    /* Narrativa — Cereja / Laranja / Jeans / Marfim / Off-white */
+    --background: 32 100% 97%;
     --foreground: 12 22% 8%;
-    --card: 0 100% 99%;
+    --card: 32 100% 97%;
     --card-foreground: 12 22% 8%;
-    --popover: 0 100% 99%;
+    --popover: 32 100% 97%;
     --popover-foreground: 12 22% 8%;
-    /* Primary #C02807 */
-    --primary: 11 93% 39%;
-    --primary-foreground: 0 100% 99%;
-    --secondary: 210 70% 94%;
+    /* Primary Cereja #B80015 */
+    --primary: 353 100% 36%;
+    --primary-foreground: 32 100% 97%;
+    /* Secondary Azul claro */
+    --secondary: 209 30% 84%;
     --secondary-foreground: 12 40% 20%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 12 8% 42%;
-    --accent: 12 100% 62%;
+    --muted: 36 26% 93%;
+    --muted-foreground: 24 8% 39%;
+    /* Accent Laranja #DD4E28 */
+    --accent: 13 74% 51%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 59%;
+    /* Danger distinto da Cereja */
+    --destructive: 342 73% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 30% 90%;
-    --input: 210 30% 90%;
-    --ring: 11 93% 39%;
-    --chart-1: 11 93% 39%;
-    --chart-2: 12 100% 62%;
-    --chart-3: 210 70% 84%;
+    --border: 33 20% 86%;
+    --input: 33 20% 86%;
+    --ring: 353 100% 36%;
+    --chart-1: 353 100% 36%;
+    --chart-2: 13 74% 51%;
+    --chart-3: 207 27% 65%;
     --chart-4: 158 58% 40%;
     --chart-5: 32 80% 50%;
     --radius: 1rem;
-    --sidebar-background: 12 40% 7%;
-    --sidebar-foreground: 12 10% 70%;
-    --sidebar-primary: 11 93% 39%;
-    --sidebar-primary-foreground: 0 100% 99%;
-    --sidebar-accent: 12 30% 14%;
+    --sidebar-background: 348 56% 5%;
+    --sidebar-foreground: 12 10% 75%;
+    --sidebar-primary: 353 100% 36%;
+    --sidebar-primary-foreground: 32 100% 97%;
+    --sidebar-accent: 348 40% 12%;
     --sidebar-accent-foreground: 12 40% 90%;
-    --sidebar-border: 12 20% 14%;
-    --sidebar-ring: 11 93% 39%;
+    --sidebar-border: 348 20% 12%;
+    --sidebar-ring: 353 100% 36%;
   }
   .dark {
     --background: 12 40% 7%;

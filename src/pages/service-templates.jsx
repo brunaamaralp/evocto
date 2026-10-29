@@ -197,7 +197,7 @@ export default function ServiceTemplatesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">
             Templates de Serviço
           </h1>
         </div>
@@ -229,7 +229,7 @@ export default function ServiceTemplatesPage() {
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="bg-[#C02807] hover:bg-[#8A1C05]"
+            className="bg-[#B80015] hover:bg-[#8A0010]"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Template
@@ -269,7 +269,7 @@ export default function ServiceTemplatesPage() {
         {filteredTemplates.map((template) => {
           const colors = getCategoryColor(template.category);
           return (
-          <Card key={template.id} className={`rounded-2xl border border-[#E8E5F5] hover:shadow-[var(--shadow-elevated)] transition-shadow ${colors.card}`}>
+          <Card key={template.id} className={`rounded-2xl border border-[#E4DDD4] hover:shadow-[var(--shadow-elevated)] transition-shadow ${colors.card}`}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -305,11 +305,11 @@ export default function ServiceTemplatesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-[#7A7595] text-sm">
+              <p className="text-[#6B635C] text-sm">
                 {template.description || 'Sem descrição'}
               </p>
               <div className="mt-4 flex justify-between items-center">
-                <div className="text-xs text-[#7A7595]">
+                <div className="text-xs text-[#6B635C]">
                   {template.deliverables?.length || 0} entregáveis
                 </div>
                 <Badge variant={template.is_active ? "default" : "secondary"}>

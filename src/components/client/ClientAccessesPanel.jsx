@@ -81,9 +81,9 @@ function AccessCard({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="font-semibold text-[#18162A] truncate">{access.platform}</h3>
+            <h3 className="font-semibold text-[#1A1210] truncate">{access.platform}</h3>
             {access.username ? (
-              <p className="text-sm text-[#7A7595] truncate mt-0.5">{access.username}</p>
+              <p className="text-sm text-[#6B635C] truncate mt-0.5">{access.username}</p>
             ) : null}
           </div>
           <div className="flex items-center gap-1 shrink-0">
@@ -95,7 +95,7 @@ function AccessCard({
               onClick={() => onEdit(access)}
               aria-label={`Editar ${access.platform}`}
             >
-              <Pencil className="h-4 w-4 text-[#7A7595]" />
+              <Pencil className="h-4 w-4 text-[#6B635C]" />
             </Button>
             <Button
               type="button"
@@ -105,7 +105,7 @@ function AccessCard({
               onClick={() => onDelete(access)}
               aria-label={`Excluir ${access.platform}`}
             >
-              <Trash2 className="h-4 w-4 text-[#C02807]" />
+              <Trash2 className="h-4 w-4 text-[#B80015]" />
             </Button>
           </div>
         </div>
@@ -115,16 +115,16 @@ function AccessCard({
             href={access.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-[#C02807] hover:underline truncate max-w-full"
+            className="inline-flex items-center gap-1.5 text-sm text-[#B80015] hover:underline truncate max-w-full"
           >
             <ExternalLink className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{access.url}</span>
           </a>
         ) : null}
 
-        <div className="rounded-xl bg-[#EEF4FA] px-3 py-2.5 space-y-1.5">
+        <div className="rounded-xl bg-[#F1EDE7] px-3 py-2.5 space-y-1.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-medium text-[#7A7595] uppercase tracking-wide">
+            <span className="text-xs font-medium text-[#6B635C] uppercase tracking-wide">
               Senha
             </span>
             <div className="flex items-center gap-1">
@@ -165,11 +165,11 @@ function AccessCard({
                   </Button>
                 </>
               ) : (
-                <span className="text-xs text-[#7A7595]">Não cadastrada</span>
+                <span className="text-xs text-[#6B635C]">Não cadastrada</span>
               )}
             </div>
           </div>
-          <p className="font-mono text-sm text-[#18162A] break-all min-h-[1.25rem]">
+          <p className="font-mono text-sm text-[#1A1210] break-all min-h-[1.25rem]">
             {!access.hasPassword
               ? '—'
               : passwordVisible && isRevealed
@@ -179,7 +179,7 @@ function AccessCard({
         </div>
 
         {access.notes ? (
-          <p className="text-sm text-[#7A7595] whitespace-pre-wrap">{access.notes}</p>
+          <p className="text-sm text-[#6B635C] whitespace-pre-wrap">{access.notes}</p>
         ) : null}
       </CardContent>
     </Card>
@@ -369,7 +369,7 @@ export default function ClientAccessesPanel({ clientId }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-[#7A7595]">
+      <div className="flex items-center justify-center py-16 text-[#6B635C]">
         <Loader2 className="h-5 w-5 animate-spin mr-2" />
         Carregando acessos…
       </div>
@@ -381,8 +381,8 @@ export default function ClientAccessesPanel({ clientId }) {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-[#18162A]">Acessos e credenciais</h2>
-            <p className="text-sm text-[#7A7595]">
+            <h2 className="text-lg font-semibold text-[#1A1210]">Acessos e credenciais</h2>
+            <p className="text-sm text-[#6B635C]">
               Plataformas e logins vinculados a este cliente. Senhas ficam ocultas por padrão.
             </p>
           </div>
@@ -434,10 +434,10 @@ export default function ClientAccessesPanel({ clientId }) {
       <section>
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold text-[#18162A]">
+            <CardTitle className="text-lg font-semibold text-[#1A1210]">
               Informações gerais
             </CardTitle>
-            <p className="text-sm text-[#7A7595] font-normal">
+            <p className="text-sm text-[#6B635C] font-normal">
               Contatos importantes, orientações de comunicação e particularidades do negócio.
             </p>
           </CardHeader>
@@ -447,7 +447,7 @@ export default function ClientAccessesPanel({ clientId }) {
               onChange={(e) => setNotesDraft(e.target.value)}
               rows={8}
               placeholder="Ex.: contato principal, horários preferidos, restrições de comunicação…"
-              className="rounded-xl bg-[#EEF4FA] border-transparent resize-y min-h-[160px]"
+              className="rounded-xl bg-[#F1EDE7] border-transparent resize-y min-h-[160px]"
             />
             <div className="flex justify-end">
               <Button
@@ -483,7 +483,7 @@ export default function ClientAccessesPanel({ clientId }) {
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-[#C02807]" />
+              <KeyRound className="h-5 w-5 text-[#B80015]" />
               {editing ? 'Editar acesso' : 'Novo acesso'}
             </DialogTitle>
           </DialogHeader>
@@ -495,7 +495,7 @@ export default function ClientAccessesPanel({ clientId }) {
                 id="access-platform"
                 value={form.platform}
                 onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))}
-                className="mt-1.5 rounded-xl bg-[#EEF4FA] border-transparent"
+                className="mt-1.5 rounded-xl bg-[#F1EDE7] border-transparent"
                 placeholder="Ex.: Instagram, Meta Ads, WordPress"
               />
             </div>
@@ -505,7 +505,7 @@ export default function ClientAccessesPanel({ clientId }) {
                 id="access-url"
                 value={form.url}
                 onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
-                className="mt-1.5 rounded-xl bg-[#EEF4FA] border-transparent"
+                className="mt-1.5 rounded-xl bg-[#F1EDE7] border-transparent"
                 placeholder="https://…"
               />
             </div>
@@ -515,7 +515,7 @@ export default function ClientAccessesPanel({ clientId }) {
                 id="access-username"
                 value={form.username}
                 onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
-                className="mt-1.5 rounded-xl bg-[#EEF4FA] border-transparent"
+                className="mt-1.5 rounded-xl bg-[#F1EDE7] border-transparent"
                 placeholder="login@exemplo.com"
                 autoComplete="off"
               />
@@ -535,7 +535,7 @@ export default function ClientAccessesPanel({ clientId }) {
                 />
               </div>
               {editing?.hasPassword ? (
-                <p className="text-xs text-[#7A7595] mt-1">
+                <p className="text-xs text-[#6B635C] mt-1">
                   Preencha apenas se quiser alterar a senha armazenada.
                 </p>
               ) : null}
@@ -546,7 +546,7 @@ export default function ClientAccessesPanel({ clientId }) {
                 id="access-notes"
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                className="mt-1.5 rounded-xl bg-[#EEF4FA] border-transparent"
+                className="mt-1.5 rounded-xl bg-[#F1EDE7] border-transparent"
                 rows={3}
                 placeholder="Permissões, 2FA, contexto…"
               />
@@ -581,14 +581,14 @@ export default function ClientAccessesPanel({ clientId }) {
             <AlertDialogTitle>Excluir este acesso?</AlertDialogTitle>
             <AlertDialogDescription>
               O acesso a{' '}
-              <strong className="text-[#18162A]">{deleteTarget?.platform || 'esta plataforma'}</strong>{' '}
+              <strong className="text-[#1A1210]">{deleteTarget?.platform || 'esta plataforma'}</strong>{' '}
               e a senha armazenada serão removidos de forma permanente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
               disabled={deleting}
               onClick={(e) => {
                 e.preventDefault();

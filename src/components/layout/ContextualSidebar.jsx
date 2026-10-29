@@ -1,5 +1,5 @@
 /**
- * Soft UI rail: Narrativa dark brand — Sky (cliente) vs Burnt Grape (global).
+ * Soft UI rail: Narrativa dark brand — Jeans (cliente) vs Cereja (global).
  * Hierarquia cliente: Operação (hub/lente) → Planejamento → Cliente.
  * serviceId no hub é lente, não troca para shell de serviço.
  */
@@ -414,7 +414,7 @@ export default function ContextualSidebar({
               </Link>
               <div className={`flex items-center min-w-0 ${collapsed ? '' : 'space-x-3'}`}>
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${theme.logoBg || 'bg-[#C02807]'}`}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${theme.logoBg || 'bg-[#B80015]'}`}
                 >
                   <span className="text-white font-bold text-sm">
                     {client?.name?.[0] || 'C'}

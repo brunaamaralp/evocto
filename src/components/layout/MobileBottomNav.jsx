@@ -46,15 +46,15 @@ export default function MobileBottomNav({
   if (hidden) return null;
 
   const isClient = mode === 'client' && Boolean(clientId);
-  /** Cliente: Sky (highlight); global: Burnt Grape — ambos da identidade Narrativa */
-  const activeClass = isClient ? 'text-[#2B6A9E]' : 'text-[#C02807]';
+  /** Cliente: Jeans; global: Cereja — ambos da identidade Narrativa */
+  const activeClass = isClient ? 'text-[#8FA9BE]' : 'text-[#B80015]';
   const idleClass = isClient
-    ? 'text-[#7A7595] hover:text-[#1A0D0B]'
-    : 'text-[#7A7595] hover:text-[#18162A]';
+    ? 'text-[#6B635C] hover:text-[#16070A]'
+    : 'text-[#6B635C] hover:text-[#1A1210]';
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 inset-x-0 z-30 border-t border-[#E8E5F5] bg-white/95 backdrop-blur-md"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-30 border-t border-[#E4DDD4] bg-white/95 backdrop-blur-md"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       aria-label="Navegação principal"
     >

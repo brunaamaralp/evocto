@@ -32,22 +32,22 @@ function CampaignRow({ campaign }) {
   const { progress } = campaign;
 
   return (
-    <li className="rounded-2xl border border-[#E8E5F5] bg-white p-5 transition-colors hover:border-[#E8E5F5]">
+    <li className="rounded-2xl border border-[#E4DDD4] bg-white p-5 transition-colors hover:border-[#E4DDD4]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Link
             to={campaign.href}
-            className="block truncate text-base font-semibold text-[#18162A] hover:text-[#C02807]"
+            className="block truncate text-base font-semibold text-[#1A1210] hover:text-[#B80015]"
           >
             {campaign.name}
           </Link>
-          <p className="mt-1 text-sm text-[#7A7595]">{progressScopeLabel(campaign.progressScope)}</p>
+          <p className="mt-1 text-sm text-[#6B635C]">{progressScopeLabel(campaign.progressScope)}</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-xl font-bold tabular-nums text-[#18162A]">
+          <p className="text-xl font-bold tabular-nums text-[#1A1210]">
             {progress.percentComplete}%
           </p>
-          <p className="text-xs text-[#7A7595]">
+          <p className="text-xs text-[#6B635C]">
             {progress.completed}/{progress.total} concluídas
           </p>
         </div>
@@ -57,7 +57,7 @@ function CampaignRow({ campaign }) {
         <Progress value={progress.percentComplete} className="mt-4 h-1.5" />
       ) : null}
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#7A7595]">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6B635C]">
         <span>
           {progress.pending} pendente{progress.pending === 1 ? '' : 's'}
         </span>
@@ -72,7 +72,7 @@ function CampaignRow({ campaign }) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Button asChild size="sm" className="bg-[#C02807] hover:bg-[#8A1C05]">
+        <Button asChild size="sm" className="bg-[#B80015] hover:bg-[#8A0010]">
           <Link to={campaign.href}>
             Abrir campanha
             <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -80,13 +80,13 @@ function CampaignRow({ campaign }) {
         </Button>
         <Link
           to={campaign.tasksHref}
-          className="text-sm font-medium text-[#7A7595] hover:text-[#18162A]"
+          className="text-sm font-medium text-[#6B635C] hover:text-[#1A1210]"
         >
           Tarefas
         </Link>
         <Link
           to={campaign.briefingHref || campaign.href}
-          className="text-sm font-medium text-[#7A7595] hover:text-[#18162A]"
+          className="text-sm font-medium text-[#6B635C] hover:text-[#1A1210]"
         >
           Ideia
         </Link>
@@ -109,7 +109,7 @@ export default function ClientActiveCampaignsPanel({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2
           id="campaigns-panel-heading"
-          className="text-sm font-semibold uppercase tracking-wide text-[#7A7595]"
+          className="text-sm font-semibold uppercase tracking-wide text-[#6B635C]"
         >
           Campanhas em andamento
           {campaigns.length > 0 ? ` · ${campaigns.length}` : ''}
@@ -119,14 +119,14 @@ export default function ClientActiveCampaignsPanel({
             <button
               type="button"
               onClick={onCreateCampaign}
-              className="text-sm font-medium text-[#C02807] hover:underline"
+              className="text-sm font-medium text-[#B80015] hover:underline"
             >
               + Nova campanha
             </button>
           ) : (
             <Link
               to={newBriefHref}
-              className="text-sm font-medium text-[#C02807] hover:underline"
+              className="text-sm font-medium text-[#B80015] hover:underline"
             >
               + Nova campanha
             </Link>
@@ -136,23 +136,23 @@ export default function ClientActiveCampaignsPanel({
 
       {groups.length === 0 ? (
         <div className="mx-auto max-w-sm py-12 text-center">
-          <h3 className="mb-2 text-lg font-semibold text-[#18162A]">
+          <h3 className="mb-2 text-lg font-semibold text-[#1A1210]">
             Nenhuma campanha ativa
           </h3>
-          <p className="mb-6 text-sm leading-relaxed text-[#7A7595]">
+          <p className="mb-6 text-sm leading-relaxed text-[#6B635C]">
             Crie a campanha do mês para começar a operar neste cliente.
           </p>
           {showCreateCta ? (
             onCreateCampaign ? (
               <Button
-                className="bg-[#C02807] hover:bg-[#8A1C05]"
+                className="bg-[#B80015] hover:bg-[#8A0010]"
                 onClick={onCreateCampaign}
               >
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova campanha
               </Button>
             ) : (
-              <Button asChild className="bg-[#C02807] hover:bg-[#8A1C05]">
+              <Button asChild className="bg-[#B80015] hover:bg-[#8A0010]">
                 <Link to={newBriefHref}>
                   <Plus className="mr-1.5 h-4 w-4" />
                   Nova campanha
@@ -166,16 +166,16 @@ export default function ClientActiveCampaignsPanel({
           {groups.map((group) => (
             <section key={group.cycleId || group.campaigns[0]?.id || 'none'} className="space-y-3">
               {group.cycleTitle ? (
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E8E5F5] pb-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E4DDD4] pb-2">
                   <div className="min-w-0">
-                    <p className="truncate text-[15px] font-semibold text-[#18162A]">
+                    <p className="truncate text-[15px] font-semibold text-[#1A1210]">
                       {group.cycleTitle}
                       {group.cyclePeriod &&
                       group.cyclePeriod !== group.cycleTitle
                         ? ` · ${group.cyclePeriod}`
                         : ''}
                     </p>
-                    <p className="text-xs text-[#7A7595]">
+                    <p className="text-xs text-[#6B635C]">
                       {group.campaigns.length} campanha
                       {group.campaigns.length === 1 ? '' : 's'}
                     </p>
@@ -183,7 +183,7 @@ export default function ClientActiveCampaignsPanel({
                   {group.cycleHref ? (
                     <Link
                       to={group.cycleHref}
-                      className="shrink-0 text-sm font-medium text-[#7A7595] hover:text-[#18162A]"
+                      className="shrink-0 text-sm font-medium text-[#6B635C] hover:text-[#1A1210]"
                       title="Abrir workspace do serviço (não da campanha)"
                     >
                       Serviço

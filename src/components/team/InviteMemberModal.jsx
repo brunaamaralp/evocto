@@ -170,11 +170,11 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                 { key: 'password', label: 'Senha', value: credentials.password },
                 { key: 'loginUrl', label: 'Link de login', value: credentials.loginUrl },
               ].map((row) => (
-                <div key={row.key} className="rounded-xl border border-[#E8E5F5] bg-[#F8F7FC] px-3 py-2.5">
+                <div key={row.key} className="rounded-xl border border-[#E4DDD4] bg-[#F8F7FC] px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[11px] uppercase tracking-wide text-[#7A7595]">{row.label}</p>
-                      <p className="text-sm font-medium text-[#18162A] truncate font-mono">{row.value}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-[#6B635C]">{row.label}</p>
+                      <p className="text-sm font-medium text-[#1A1210] truncate font-mono">{row.value}</p>
                     </div>
                     <Button
                       type="button"
@@ -194,7 +194,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                   <Copy className="w-4 h-4 mr-2" />
                   Copiar tudo
                 </Button>
-                <Button type="button" className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]" onClick={handleClose}>
+                <Button type="button" className="flex-1 bg-[#B80015] hover:bg-[#8A0010]" onClick={handleClose}>
                   Concluir
                 </Button>
               </div>
@@ -204,7 +204,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
           <>
             <DialogHeader className="px-5 pt-5 pb-3 space-y-1">
               <DialogTitle className="text-lg flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#C02807]" />
+                <UserPlus className="w-5 h-5 text-[#B80015]" />
                 Adicionar membro
               </DialogTitle>
               <DialogDescription>
@@ -213,14 +213,14 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
-              <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#EEF4FA] p-1">
+              <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#F1EDE7] p-1">
                 <button
                   type="button"
                   onClick={() => setField('method', 'password')}
                   className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     form.method === 'password'
-                      ? 'bg-white text-[#18162A] shadow-sm'
-                      : 'text-[#7A7595] hover:text-[#18162A]'
+                      ? 'bg-white text-[#1A1210] shadow-sm'
+                      : 'text-[#6B635C] hover:text-[#1A1210]'
                   }`}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
@@ -231,8 +231,8 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                   onClick={() => setField('method', 'email')}
                   className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     form.method === 'email'
-                      ? 'bg-white text-[#18162A] shadow-sm'
-                      : 'text-[#7A7595] hover:text-[#18162A]'
+                      ? 'bg-white text-[#1A1210] shadow-sm'
+                      : 'text-[#6B635C] hover:text-[#1A1210]'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -282,7 +282,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                       <SelectItem key={role.value} value={role.value}>
                         <div className="flex flex-col items-start py-0.5">
                           <span className="font-medium">{role.label}</span>
-                          <span className="text-xs text-[#7A7595]">{role.hint}</span>
+                          <span className="text-xs text-[#6B635C]">{role.hint}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -322,13 +322,13 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                       {errors.password}
                     </p>
                   ) : (
-                    <p className="text-xs text-[#7A7595]">
+                    <p className="text-xs text-[#6B635C]">
                       Você copia e envia no WhatsApp ou outro canal. Sem e-mail automático.
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-[#7A7595] rounded-xl bg-[#F8F7FC] border border-[#E8E5F5] px-3 py-2">
+                <p className="text-xs text-[#6B635C] rounded-xl bg-[#F8F7FC] border border-[#E4DDD4] px-3 py-2">
                   A pessoa recebe um link por e-mail (válido por 7 dias) para entrar na equipe.
                 </p>
               )}
@@ -340,7 +340,7 @@ export default function InviteMemberModal({ isOpen, onClose, onInvite }) {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-[#C02807] hover:bg-[#8A1C05]"
+                  className="flex-1 bg-[#B80015] hover:bg-[#8A0010]"
                 >
                   {loading ? (
                     'Salvando...'

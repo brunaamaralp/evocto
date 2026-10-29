@@ -159,7 +159,7 @@ export class NotificationService {
         <p>${notification.context}</p>
         <p>
           <a href="${baseUrl}${notification.href}" 
-             style="background: #8A1C05; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+             style="background: #8A0010; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             Abrir no EvolvIA
           </a>
         </p>

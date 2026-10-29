@@ -413,7 +413,7 @@
 }
 
 .nova-venda-type-picker__option:hover {
-  border-color: rgba(192, 40, 7, 0.35);
+  border-color: rgba(184, 0, 21, 0.35);
   background: var(--v50);
 }
 
@@ -969,7 +969,7 @@
 
 @keyframes sales-card-flash {
   0% { transform: scale(1); box-shadow: none; }
-  40% { transform: scale(1.03); box-shadow: 0 4px 14px rgba(192, 40, 7, 0.2); border-color: var(--v500); }
+  40% { transform: scale(1.03); box-shadow: 0 4px 14px rgba(184, 0, 21, 0.2); border-color: var(--v500); }
   100% { transform: scale(1); }
 }
 

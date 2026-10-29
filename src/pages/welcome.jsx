@@ -84,8 +84,8 @@ export default function WelcomePage() {
   }, [isAuthenticated, user?.id, sessionStatus, appHome, navigate]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#18162A)]">
-      <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E8E5F5)] bg-white/90 backdrop-blur-sm">
+    <div className="min-h-screen bg-[var(--color-content-bg,#fff)] text-[var(--color-text-heading,#1A1210)]">
+      <header className="sticky top-0 z-50 border-b border-[var(--color-border,#E4DDD4)] bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
           <Link to="/" className="flex min-w-0 items-center shrink" aria-label={BRAND.name}>
             <NarrativaBrandLockup
@@ -104,7 +104,7 @@ export default function WelcomePage() {
                   variant="ghost"
                   asChild
                   size="sm"
-                  className="text-[var(--color-sidebar-text,#7A7595)] px-2.5 sm:px-4"
+                  className="text-[var(--color-sidebar-text,#6B635C)] px-2.5 sm:px-4"
                 >
                   <Link to="/login">Entrar</Link>
                 </Button>
@@ -125,7 +125,7 @@ export default function WelcomePage() {
         <section className="relative overflow-hidden">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(192,40,7,0.07),transparent_45%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,201,138,0.08),transparent_50%),radial-gradient(ellipse_at_90%_10%,rgba(184,0,21,0.07),transparent_45%)]"
           />
           <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 sm:gap-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
             <div className="space-y-6 sm:space-y-8">
@@ -133,7 +133,7 @@ export default function WelcomePage() {
                 <h1 className="max-w-xl text-[1.75rem] font-bold leading-[1.15] tracking-tight sm:text-4xl sm:leading-[1.1] lg:text-[3.25rem]">
                   {HERO.title}
                 </h1>
-                <p className="max-w-lg text-base leading-relaxed text-[var(--color-sidebar-text,#7A7595)] sm:text-lg">
+                <p className="max-w-lg text-base leading-relaxed text-[var(--color-sidebar-text,#6B635C)] sm:text-lg">
                   {HERO.subtitle}
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default function WelcomePage() {
               </div>
 
               {!isAuthenticated && (
-                <p className="text-center text-xs text-[var(--color-sidebar-text,#7A7595)] sm:text-left sm:text-sm">
+                <p className="text-center text-xs text-[var(--color-sidebar-text,#6B635C)] sm:text-left sm:text-sm">
                   {trialMarketing.heroHint}
                 </p>
               )}
@@ -179,13 +179,13 @@ export default function WelcomePage() {
         </section>
 
         {/* Como funciona */}
-        <section className="border-t border-[var(--color-border,#E8E5F5)] bg-[#F5F5F7] py-20">
+        <section className="border-t border-[var(--color-border,#E4DDD4)] bg-[#F5F5F7] py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 Do briefing à aprovação, em um fluxo
               </h2>
-              <p className="mt-3 text-lg text-[var(--color-sidebar-text,#7A7595)]">
+              <p className="mt-3 text-lg text-[var(--color-sidebar-text,#6B635C)]">
                 Três etapas que o time e o cliente acompanham juntos — sem e-mail infinito.
               </p>
             </div>
@@ -196,16 +196,16 @@ export default function WelcomePage() {
                 return (
                   <li key={step.title} className="relative">
                     <div className="mb-4 flex items-center gap-3">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-text-heading,#18162A)] text-sm font-semibold text-white">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-text-heading,#1A1210)] text-sm font-semibold text-white">
                         {index + 1}
                       </span>
                       <Icon
-                        className="h-5 w-5 text-[var(--color-primary,#C02807)]"
+                        className="h-5 w-5 text-[var(--color-primary,#B80015)]"
                         aria-hidden
                       />
                     </div>
                     <h3 className="text-xl font-semibold">{step.title}</h3>
-                    <p className="mt-2 text-[var(--color-sidebar-text,#7A7595)] leading-relaxed">
+                    <p className="mt-2 text-[var(--color-sidebar-text,#6B635C)] leading-relaxed">
                       {step.description}
                     </p>
                   </li>
@@ -222,7 +222,7 @@ export default function WelcomePage() {
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 3 pilares para organizar a operação
               </h2>
-              <p className="mt-3 text-lg text-[var(--color-sidebar-text,#7A7595)]">
+              <p className="mt-3 text-lg text-[var(--color-sidebar-text,#6B635C)]">
                 Problemas reais de agência e time in-house — e como o {BRAND.name} responde.
               </p>
             </div>
@@ -231,11 +231,11 @@ export default function WelcomePage() {
               {PILLARS.map((pillar) => (
                 <article
                   key={pillar.heading}
-                  className="grid gap-6 border-t border-[var(--color-border,#E8E5F5)] pt-10 md:grid-cols-2 md:gap-12"
+                  className="grid gap-6 border-t border-[var(--color-border,#E4DDD4)] pt-10 md:grid-cols-2 md:gap-12"
                 >
                   <div>
                     <h3 className="text-xl font-semibold">{pillar.heading}</h3>
-                    <p className="mt-3 leading-relaxed text-[var(--color-sidebar-text,#7A7595)]">
+                    <p className="mt-3 leading-relaxed text-[var(--color-sidebar-text,#6B635C)]">
                       {pillar.problem}
                     </p>
                   </div>
@@ -243,7 +243,7 @@ export default function WelcomePage() {
                     <p className="text-sm font-medium text-[var(--color-accent-dark,#085041)]">
                       Com {BRAND.name}
                     </p>
-                    <p className="mt-2 leading-relaxed text-[var(--color-text-heading,#18162A)]">
+                    <p className="mt-2 leading-relaxed text-[var(--color-text-heading,#1A1210)]">
                       {pillar.solution}
                     </p>
                   </div>
@@ -254,7 +254,7 @@ export default function WelcomePage() {
         </section>
 
         {/* Ganhos — lista aberta, sem cards */}
-        <section className="border-t border-[var(--color-border,#E8E5F5)] py-20">
+        <section className="border-t border-[var(--color-border,#E4DDD4)] py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <h2 className="mb-10 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
               O que sua agência ganha
@@ -263,7 +263,7 @@ export default function WelcomePage() {
               {GAINS.map((gain) => (
                 <li key={gain.title}>
                   <h3 className="text-lg font-semibold">{gain.title}</h3>
-                  <p className="mt-2 text-[var(--color-sidebar-text,#7A7595)] leading-relaxed">
+                  <p className="mt-2 text-[var(--color-sidebar-text,#6B635C)] leading-relaxed">
                     {gain.description}
                   </p>
                 </li>
@@ -273,7 +273,7 @@ export default function WelcomePage() {
         </section>
 
         {/* CTA final */}
-        <section className="bg-[var(--color-sidebar-bg,#1A0D0B)] py-20 text-white">
+        <section className="bg-[var(--color-sidebar-bg,#16070A)] py-20 text-white">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Seu time para de apagar incêndios
@@ -284,7 +284,7 @@ export default function WelcomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
                 size="lg"
-                className="bg-white px-8 text-[var(--color-primary,#C02807)] hover:bg-white/90"
+                className="bg-white px-8 text-[var(--color-primary,#B80015)] hover:bg-white/90"
                 asChild
               >
                 <Link to="/create-account">{trialMarketing.finalCta}</Link>
@@ -303,7 +303,7 @@ export default function WelcomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 bg-[var(--color-sidebar-bg,#1A0D0B)] py-10 text-center text-sm text-[var(--color-sidebar-text,#7A7595)]">
+      <footer className="border-t border-white/10 bg-[var(--color-sidebar-bg,#16070A)] py-10 text-center text-sm text-[var(--color-sidebar-text,#6B635C)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 sm:px-6 lg:px-8">
           <NarrativaBrandLockup variant="dark" height={28} />
           <p>Operação de marketing mais clara para times, agências e clientes</p>

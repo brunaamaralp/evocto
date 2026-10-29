@@ -328,7 +328,7 @@ export function SessionManager({ children, isPublicPage = false }) {
               setError(null);
               void bootstrapAuth({ force: true });
             }}
-            className="w-full bg-[#C02807] hover:bg-[#8A1C05] text-white font-semibold py-2 px-4 rounded-lg transition-all"
+            className="w-full bg-[#B80015] hover:bg-[#8A0010] text-white font-semibold py-2 px-4 rounded-lg transition-all"
           >
             Tentar de novo
           </button>

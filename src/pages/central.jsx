@@ -58,16 +58,16 @@ export default function CentralPage() {
     <div className="mx-auto max-w-5xl space-y-5 pb-24 sm:pb-8">
       <header className="space-y-1">
         <div className="flex items-center gap-2">
-          <Library className="h-5 w-5 shrink-0 text-[#C02807]" aria-hidden />
-          <h1 className="text-xl font-bold tracking-tight text-[#18162A] sm:text-2xl">
+          <Library className="h-5 w-5 shrink-0 text-[#B80015]" aria-hidden />
+          <h1 className="text-xl font-bold tracking-tight text-[#1A1210] sm:text-2xl">
             Central
           </h1>
         </div>
-        <p className="text-sm leading-relaxed text-[#7A7595]">{headerCopy}</p>
+        <p className="text-sm leading-relaxed text-[#6B635C]">{headerCopy}</p>
       </header>
 
       <Tabs value={activeTab} onValueChange={setTab} className="space-y-5">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-[#EEF4FA] p-1">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-[#F1EDE7] p-1">
           <TabsTrigger
             value="biblioteca"
             className="rounded-xl px-3 py-2.5 text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm"

@@ -147,7 +147,7 @@ export function TaskTypeBadge({ type, size = 'default', className = '' }) {
     analise_financeira: { label: 'Análise Financ.', color: 'bg-[#E6F7F0] text-[#085041] border-[#A8E0CB]' },
     relatorio_financeiro: { label: 'Relatório Financ.', color: 'bg-[#D0F7EC] text-[#085041] border-[#A8E0CB]' },
     reuniao_alinhamento: { label: 'Reunião', color: getStagePastel('in_progress').badge },
-    planejamento_estrategico: { label: 'Planejamento', color: 'bg-[#FCE8E3] text-[#8A1C05] border-[#FFD4C8]' },
+    planejamento_estrategico: { label: 'Planejamento', color: 'bg-[#F6E4E6] text-[#8A0010] border-[#FFE8E4]' },
     implementacao: { label: 'Implementação', color: getStagePastel('blocked').badge },
     treinamento: { label: 'Treinamento', color: 'bg-[#FFF8E6] text-[#7A5A10] border-[#F0DC9A]' },
     administrativo: { label: 'Admin.', color: getStagePastel('cancelled').badge },

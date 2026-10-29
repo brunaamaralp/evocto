@@ -79,7 +79,7 @@ export class Phase3Config {
             name: 'narrativa Marketplace',
             shortName: 'narrativa',
             description: 'Marketplace de serviços de consultoria',
-            themeColor: '#C02807',
+            themeColor: '#B80015',
             backgroundColor: '#ffffff',
             display: 'standalone',
             orientation: 'portrait',

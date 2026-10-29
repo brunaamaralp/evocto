@@ -2,9 +2,9 @@
 export const BRAND = {
   name: 'narrativa',
   displayName: 'Narrativa',
-  /** Wordmark para fundos claros (burnt grape) */
+  /** Wordmark para fundos claros (cereja) */
   wordmark: '/brand/logo-wordmark.svg',
-  /** Wordmark claro (cloud) para sidebar, rodape e fundos escuros */
+  /** Wordmark claro (off-white) para sidebar, rodape e fundos escuros */
   wordmarkOnDark: '/brand/logo-wordmark-on-dark.svg',
   /** Isotipo aspas — sidebar colapsado / avatar de marca */
   logoMark: '/brand/logo-mark.svg',
@@ -18,11 +18,18 @@ export const BRAND = {
   favicon: '/icons/favicon.ico',
   icon192: '/icons/icon-192.png',
   icon512: '/icons/icon-512.png',
-  themeColor: '#C02807',
+  themeColor: '#B80015',
   colors: {
-    burntGrape: '#C02807',
-    orangeRose: '#FF643D',
-    skyBlue: '#BBD9F4',
-    cloud: '#FFFCFC',
+    cereja: '#B80015',
+    laranja: '#DD4E28',
+    azulClaro: '#C9D6E2',
+    azulJeans: '#8FA9BE',
+    marfim: '#F1EDE7',
+    offWhite: '#FFF8F0',
+    /** Aliases legados (transição) */
+    burntGrape: '#B80015',
+    orangeRose: '#DD4E28',
+    skyBlue: '#C9D6E2',
+    cloud: '#FFF8F0',
   },
 };

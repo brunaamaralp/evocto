@@ -103,13 +103,13 @@ export default function ClientLearningsPage() {
             }
             aria-label="Voltar ao cliente"
           >
-            <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+            <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+            <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
               Aprendizados
             </h1>
-            <p className="text-xs text-[#7A7595]">{subtitle}</p>
+            <p className="text-xs text-[#6B635C]">{subtitle}</p>
           </div>
         </div>
 

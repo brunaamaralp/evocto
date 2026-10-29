@@ -557,7 +557,7 @@ export default function ClientDetailPage() {
       </div>
 
       {!hasService ? (
-        <section className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA] px-4 py-4">
+        <section className="rounded-2xl border border-[#E4DDD4] bg-[#F1EDE7] px-4 py-4">
           <p className="text-sm font-medium text-[#111]">
             Qual serviço foi contratado?
           </p>
@@ -599,7 +599,7 @@ export default function ClientDetailPage() {
           />
 
           {selectedService && !isKnownServiceProfile(selectedProfile) ? (
-            <div className="rounded-2xl border border-[#E8E5F5] px-3 py-3 text-sm text-[#7A7595]">
+            <div className="rounded-2xl border border-[#E4DDD4] px-3 py-3 text-sm text-[#6B635C]">
               <p className="font-medium text-[#111]">Configuração do serviço incompleta</p>
               <p className="mt-0.5">
                 Template operacional não reconhecido.{' '}
@@ -658,7 +658,7 @@ export default function ClientDetailPage() {
       {needsOnboarding ? (
         <section
           aria-labelledby="setup-heading"
-          className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA]/50 p-4 sm:p-5"
+          className="rounded-2xl border border-[#E4DDD4] bg-[#F1EDE7]/50 p-4 sm:p-5"
         >
           <h2 id="setup-heading" className="text-sm font-medium text-[#111]">
             Configuração inicial ({completedSteps}/{setupChecklist.length})
@@ -667,7 +667,7 @@ export default function ClientDetailPage() {
             {setupChecklist.map((step) => (
               <li
                 key={step.id}
-                className="flex flex-col gap-2 rounded-lg border border-[#E8E5F5] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-lg border border-[#E4DDD4] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-start gap-2.5">
                   {step.completed ? (
@@ -699,7 +699,7 @@ export default function ClientDetailPage() {
           </ul>
         </section>
       ) : onlyInvitePending ? (
-        <div className="flex flex-col gap-2 border-t border-[#E8E5F5] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t border-[#E4DDD4] pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[#666]">
             Portal ainda não convidado
           </p>
@@ -719,7 +719,7 @@ export default function ClientDetailPage() {
 
       <section
         aria-labelledby="more-heading"
-        className="border-t border-[#E8E5F5] pt-6"
+        className="border-t border-[#E4DDD4] pt-6"
       >
         <h2 id="more-heading" className="mb-2 text-sm text-[#666]">
           Mais neste cliente
@@ -729,20 +729,20 @@ export default function ClientDetailPage() {
             <button
               type="button"
               onClick={() => setServiceSetupOpen(true)}
-              className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+              className="text-sm text-[#6B635C] hover:text-primary hover:underline"
             >
               Adicionar serviço
             </button>
           ) : null}
           <Link
             to={buildAnnualPlanHref(clientId)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Panorama
           </Link>
           <Link
             to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Brainstorm
           </Link>
@@ -755,37 +755,37 @@ export default function ClientDetailPage() {
                   })
                 : `client-tasks?clientId=${clientId}`
             )}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Tarefas
           </Link>
           <Link
             to={createPageUrl(`client-documents?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Documentos{counts.documents > 0 ? ` (${counts.documents})` : ''}
           </Link>
           <Link
             to={createPageUrl(`client-acessos?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Acessos{Array.isArray(accesses) && accesses.length > 0 ? ` (${accesses.length})` : ''}
           </Link>
           <Link
             to={createPageUrl(`client-learnings?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Aprendizados{counts.learnings > 0 ? ` (${counts.learnings})` : ''}
           </Link>
           <Link
             to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             Financeiro
           </Link>
           <Link
             to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
-            className="text-sm text-[#7A7595] hover:text-primary hover:underline"
+            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
           >
             KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
           </Link>

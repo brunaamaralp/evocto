@@ -34,8 +34,8 @@ function emptyAgencyForm() {
   return {
     agencyName: '',
     logoUrl: '',
-    primaryColor: '#C02807',
-    secondaryColor: '#EEF4FA',
+    primaryColor: '#B80015',
+    secondaryColor: '#F1EDE7',
     contactEmail: '',
     contactPhone: '',
   };
@@ -60,8 +60,8 @@ export default function MinhaEmpresaPage() {
     setAgencyData({
       agencyName: agency.agencyName || '',
       logoUrl: agency.logoUrl || '',
-      primaryColor: agency.primaryColor || '#C02807',
-      secondaryColor: agency.secondaryColor || '#EEF4FA',
+      primaryColor: agency.primaryColor || '#B80015',
+      secondaryColor: agency.secondaryColor || '#F1EDE7',
       contactEmail: agency.contactEmail || '',
       contactPhone: agency.contactPhone || '',
     });
@@ -136,7 +136,7 @@ export default function MinhaEmpresaPage() {
   if (!agencyId) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
-        <p className="text-sm text-[#7A7595]">Organização não encontrada.</p>
+        <p className="text-sm text-[#6B635C]">Organização não encontrada.</p>
       </div>
     );
   }
@@ -145,16 +145,16 @@ export default function MinhaEmpresaPage() {
     <div className="mx-auto max-w-4xl space-y-8 px-1 sm:px-0">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#18162A] sm:text-[1.5rem]">
+          <h1 className="text-[1.375rem] font-bold tracking-tight text-[#1A1210] sm:text-[1.5rem]">
             Minha empresa
           </h1>
-          <p className="text-sm text-[#7A7595]">
+          <p className="text-sm text-[#6B635C]">
             Identidade, equipe e marca da agência
             {agency?.agencyName ? ` · ${agency.agencyName}` : ''}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm" className="border-[#E8E5F5]">
+          <Button asChild variant="outline" size="sm" className="border-[#E4DDD4]">
             <Link to={createPageUrl('hours-hub')}>
               <Clock className="mr-1.5 h-4 w-4" />
               Horas
@@ -163,7 +163,7 @@ export default function MinhaEmpresaPage() {
           {canInvite && activeTab === 'equipe' ? (
             <Button
               size="sm"
-              className="bg-[#C02807] hover:bg-[#8A1C05]"
+              className="bg-[#B80015] hover:bg-[#8A0010]"
               onClick={() => setShowInviteModal(true)}
             >
               <Plus className="mr-1.5 h-4 w-4" />
@@ -175,7 +175,7 @@ export default function MinhaEmpresaPage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-[#EEF4FA] p-1 sm:grid sm:w-full sm:grid-cols-3">
+          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-[#F1EDE7] p-1 sm:grid sm:w-full sm:grid-cols-3">
             <TabsTrigger value="geral" className="gap-2 data-[state=active]:bg-white">
               <Building2 className="h-4 w-4 shrink-0" />
               Geral
@@ -192,7 +192,7 @@ export default function MinhaEmpresaPage() {
         </div>
 
         <TabsContent value="geral" className="mt-6 space-y-4">
-          <div className="rounded-xl border border-[#E8E5F5] bg-white p-5 space-y-4">
+          <div className="rounded-xl border border-[#E4DDD4] bg-white p-5 space-y-4">
             <div>
               <Label htmlFor="agencyName">Nome da agência</Label>
               <Input
@@ -236,7 +236,7 @@ export default function MinhaEmpresaPage() {
               </div>
             </div>
             {!canEdit ? (
-              <p className="flex items-center gap-2 text-xs text-[#7A7595]">
+              <p className="flex items-center gap-2 text-xs text-[#6B635C]">
                 <Shield className="h-3.5 w-3.5" />
                 Somente owner/admin podem editar estes dados.
               </p>
@@ -245,7 +245,7 @@ export default function MinhaEmpresaPage() {
                 <Button
                   onClick={handleSaveAgency}
                   disabled={saving}
-                  className="bg-[#C02807] hover:bg-[#8A1C05]"
+                  className="bg-[#B80015] hover:bg-[#8A0010]"
                 >
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -257,13 +257,13 @@ export default function MinhaEmpresaPage() {
               </div>
             )}
           </div>
-          <p className="text-xs text-[#7A7595]">
+          <p className="text-xs text-[#6B635C]">
             Preferências pessoais e integrações ficam em{' '}
-            <Link to={createPageUrl('settings')} className="font-medium text-[#C02807] hover:underline">
+            <Link to={createPageUrl('settings')} className="font-medium text-[#B80015] hover:underline">
               Configurações
             </Link>
             . Financeiro operacional em{' '}
-            <Link to={createPageUrl('financeiro')} className="font-medium text-[#C02807] hover:underline">
+            <Link to={createPageUrl('financeiro')} className="font-medium text-[#B80015] hover:underline">
               Financeiro
             </Link>
             .
@@ -280,7 +280,7 @@ export default function MinhaEmpresaPage() {
         </TabsContent>
 
         <TabsContent value="marca" className="mt-6 space-y-4">
-          <div className="rounded-xl border border-[#E8E5F5] bg-white p-5 space-y-4">
+          <div className="rounded-xl border border-[#E4DDD4] bg-white p-5 space-y-4">
             <div>
               <Label htmlFor="logoUrl">URL do logo</Label>
               <div className="mt-1.5 flex gap-2">
@@ -383,7 +383,7 @@ export default function MinhaEmpresaPage() {
                 <Button
                   onClick={handleSaveAgency}
                   disabled={saving}
-                  className="bg-[#C02807] hover:bg-[#8A1C05]"
+                  className="bg-[#B80015] hover:bg-[#8A0010]"
                 >
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -394,7 +394,7 @@ export default function MinhaEmpresaPage() {
                 </Button>
               </div>
             ) : (
-              <p className="flex items-center gap-2 text-xs text-[#7A7595]">
+              <p className="flex items-center gap-2 text-xs text-[#6B635C]">
                 <Shield className="h-3.5 w-3.5" />
                 Somente owner/admin podem editar a marca.
               </p>

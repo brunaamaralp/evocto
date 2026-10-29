@@ -25,11 +25,11 @@ export default function ServiceCategoryManager() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    color: '#8A1C05'
+    color: '#8A0010'
   });
 
   const colors = [
-    '#8A1C05', '#7c3aed', '#dc2626', '#059669', '#d97706', 
+    '#8A0010', '#7c3aed', '#dc2626', '#059669', '#d97706', 
     '#0891b2', '#be185d', '#4338ca', '#16a34a', '#ea580c'
   ];
 
@@ -123,7 +123,7 @@ export default function ServiceCategoryManager() {
     setFormData({
       name: category.name,
       description: category.description || '',
-      color: category.color || '#8A1C05'
+      color: category.color || '#8A0010'
     });
     setShowForm(true);
   };
@@ -134,7 +134,7 @@ export default function ServiceCategoryManager() {
     setFormData({
       name: '',
       description: '',
-      color: '#8A1C05'
+      color: '#8A0010'
     });
   };
 

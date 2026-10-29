@@ -376,18 +376,18 @@ export default function ClientTasksPage() {
             <div className="flex items-center gap-2 min-w-0">
               <Button asChild variant="ghost" size="icon" className="page-back-btn h-8 w-8 shrink-0 -ml-1.5">
                 <Link to={campaignHref} aria-label="Voltar à campanha">
-                  <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+                  <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
                 </Link>
               </Button>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+                <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
                   Tarefas
                 </h1>
                 {(campaignName || showCycleLabel) && (
-                  <p className="text-xs text-[#7A7595] truncate">
+                  <p className="text-xs text-[#6B635C] truncate">
                     <Link
                       to={campaignHref}
-                      className="hover:text-[#C02807] hover:underline"
+                      className="hover:text-[#B80015] hover:underline"
                     >
                       {campaignName}
                     </Link>
@@ -407,8 +407,8 @@ export default function ClientTasksPage() {
       ) : (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A] flex items-center gap-2 sm:gap-3">
-              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#C02807] flex-shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1210] flex items-center gap-2 sm:gap-3">
+              <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-[#B80015] flex-shrink-0" />
               <span className="truncate">Tarefas</span>
             </h1>
           </div>
@@ -432,7 +432,7 @@ export default function ClientTasksPage() {
               variant="ghost"
               size="sm"
               onClick={handleGenerateTasks}
-              className="hidden sm:flex text-[#7A7595]"
+              className="hidden sm:flex text-[#6B635C]"
               title="Gerar tarefas a partir do serviço"
             >
               <Target className="w-4 h-4 mr-2" />
@@ -445,7 +445,7 @@ export default function ClientTasksPage() {
       {!isCampaignScope && services.length > 1 && (
         <Card className="rounded-2xl border-transparent shadow-none bg-[#FAFAFC]">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-[#7A7595] mb-3">Serviço</p>
+            <p className="text-xs font-medium text-[#6B635C] mb-3">Serviço</p>
             <div className="flex gap-2 flex-wrap">
               {services.map((service) => (
                 <Button

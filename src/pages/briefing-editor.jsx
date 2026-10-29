@@ -311,7 +311,7 @@ function BriefingEditorPage() {
         </Alert>
         
         <div className="mt-6 space-y-4">
-          <div className="text-sm text-[#7A7595]">
+          <div className="text-sm text-[#6B635C]">
             <p><strong>URL atual:</strong> {window.location.href}</p>
             <p><strong>Parâmetros encontrados:</strong></p>
             <pre className="bg-gray-100 p-2 rounded text-xs">

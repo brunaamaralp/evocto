@@ -15,17 +15,17 @@ import {
 import { createPageUrl } from '@/utils';
 
 const LoadingState = () => (
-  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center">
+  <div className="min-h-screen bg-[#F1EDE7] flex items-center justify-center">
     <div className="text-center">
-      <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#C02807] mb-4" />
-      <h2 className="text-xl font-semibold text-[#18162A] mb-2">Carregando aprovação...</h2>
-      <p className="text-[#7A7595]">Verificando dados do planejamento</p>
+      <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#B80015] mb-4" />
+      <h2 className="text-xl font-semibold text-[#1A1210] mb-2">Carregando aprovação...</h2>
+      <p className="text-[#6B635C]">Verificando dados do planejamento</p>
     </div>
   </div>
 );
 
 const ErrorState = ({ error, token }) => (
-  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#F1EDE7] flex items-center justify-center p-6">
     <Card className="max-w-md w-full rounded-2xl border-transparent shadow-sm">
       <CardHeader className="text-center">
         <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
@@ -63,7 +63,7 @@ const ErrorState = ({ error, token }) => (
 );
 
 const ExpiredState = ({ token }) => (
-  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#F1EDE7] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <Clock className="w-12 h-12 mx-auto text-orange-500 mb-4" />
@@ -94,7 +94,7 @@ const ExpiredState = ({ token }) => (
 );
 
 const InvalidTokenState = ({ token }) => (
-  <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
+  <div className="min-h-screen bg-[#F1EDE7] flex items-center justify-center p-6">
     <Card className="max-w-md w-full">
       <CardHeader className="text-center">
         <XCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
@@ -279,7 +279,7 @@ export default function CycleApprovalPage() {
 
   if (approved || cyclePlan.status === 'approved') {
     return (
-      <div className="min-h-screen bg-[#EEF4FA] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#F1EDE7] flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4" />
@@ -313,7 +313,7 @@ export default function CycleApprovalPage() {
 
   // Renderizar tela de aprovação normal...
   return (
-    <div className="min-h-screen bg-[#EEF4FA] p-6">
+    <div className="min-h-screen bg-[#F1EDE7] p-6">
       <div className="max-w-4xl mx-auto">
         <Alert className="mb-4 border-amber-200 bg-amber-50">
           <AlertDescription className="text-amber-900 text-sm">
@@ -333,14 +333,14 @@ export default function CycleApprovalPage() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-2xl font-bold tracking-tight text-[#18162A]">
+                <CardTitle className="text-2xl font-bold tracking-tight text-[#1A1210]">
                   Aprovação de Planejamento
                 </CardTitle>
-                <p className="text-[#7A7595] mt-2">
+                <p className="text-[#6B635C] mt-2">
                   Revise e aprove o planejamento estratégico para {cyclePlan.cyclePeriod}
                 </p>
               </div>
-              <Badge className="bg-[#FCE8E3] text-[#8A1C05] border border-[#FFD4C8]">
+              <Badge className="bg-[#F6E4E6] text-[#8A0010] border border-[#FFE8E4]">
                 Aguardando Aprovação
               </Badge>
             </div>
@@ -370,13 +370,13 @@ export default function CycleApprovalPage() {
         {cyclePlan.planData && (
           <Card className="mb-6 rounded-2xl border-transparent shadow-sm">
             <CardHeader>
-              <CardTitle className="text-[#18162A]">Detalhes do Planejamento</CardTitle>
+              <CardTitle className="text-[#1A1210]">Detalhes do Planejamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {cyclePlan.planData.mudancaChave && (
                 <div>
-                  <h3 className="font-semibold text-[#18162A] mb-2">Mudança-Chave</h3>
-                  <p className="text-[#5A3A7A] bg-[#FCE8E3] border border-[#FFD4C8] p-3 rounded-2xl">
+                  <h3 className="font-semibold text-[#1A1210] mb-2">Mudança-Chave</h3>
+                  <p className="text-[#5A3A7A] bg-[#F6E4E6] border border-[#FFE8E4] p-3 rounded-2xl">
                     {cyclePlan.planData.mudancaChave}
                   </p>
                 </div>
@@ -384,10 +384,10 @@ export default function CycleApprovalPage() {
 
               {cyclePlan.planData.prioridades && cyclePlan.planData.prioridades.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-[#18162A] mb-3">Prioridades do Ciclo</h3>
+                  <h3 className="font-semibold text-[#1A1210] mb-3">Prioridades do Ciclo</h3>
                   <div className="space-y-2">
                     {cyclePlan.planData.prioridades.map((prioridade, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-[#EEF4FA] rounded-2xl">
+                      <div key={index} className="flex items-start gap-3 p-3 bg-[#F1EDE7] rounded-2xl">
                         <Badge variant="outline" className="mt-1 text-xs">
                           {index + 1}
                         </Badge>

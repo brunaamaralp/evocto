@@ -383,7 +383,7 @@ function EnhancedKanbanColumn({ column, tasks, users, onCardClick, _isDraggingOv
   const useVirtualization = tasks.length > 50; // Virtualize when many tasks
 
   return (
-    <div className={`flex-shrink-0 w-80 min-w-80 rounded-2xl p-4 ${column.color || 'bg-[#EEF4FA]'}`}>
+    <div className={`flex-shrink-0 w-80 min-w-80 rounded-2xl p-4 ${column.color || 'bg-[#F1EDE7]'}`}>
       {/* Enhanced Column Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -395,7 +395,7 @@ function EnhancedKanbanColumn({ column, tasks, users, onCardClick, _isDraggingOv
           >
             <MoreVertical className={`w-3 h-3 transition-transform ${collapsed ? 'rotate-90' : ''}`} />
           </Button>
-          <h3 className="font-semibold text-[#18162A] text-sm">{column.title}</h3>
+          <h3 className="font-semibold text-[#1A1210] text-sm">{column.title}</h3>
           <Badge variant="secondary" className="text-xs h-5 rounded-full">
             {tasks.length}
           </Badge>

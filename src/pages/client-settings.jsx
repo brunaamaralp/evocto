@@ -155,11 +155,11 @@ export default function ClientSettingsPage() {
                 to={createPageUrl(`client-detail?clientId=${clientId}`)}
                 aria-label="Voltar ao cliente"
               >
-                <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+                <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
               </Link>
             </Button>
             <div className="min-w-0">
-              <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+              <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
                 Configurações
               </h1>
             </div>

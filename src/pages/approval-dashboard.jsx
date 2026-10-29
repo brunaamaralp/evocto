@@ -90,17 +90,17 @@ const APPROVAL_STATUS = {
 
 // Card de estatísticas
 const StatsCard = ({ title, value, change, icon: Icon, trend }) => {
-  const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-[#7A7595]';
+  const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-[#6B635C]';
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : null;
 
   return (
-    <Card className="rounded-2xl border-transparent shadow-sm bg-[#EEF4FA]">
+    <Card className="rounded-2xl border-transparent shadow-sm bg-[#F1EDE7]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="text-sm font-medium text-[#7A7595]">{title}</div>
-        <Icon className="h-4 w-4 text-[#C02807]" />
+        <div className="text-sm font-medium text-[#6B635C]">{title}</div>
+        <Icon className="h-4 w-4 text-[#B80015]" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-[#18162A]">{value}</div>
+        <div className="text-2xl font-bold text-[#1A1210]">{value}</div>
         {change !== undefined && (
           <div className={`flex items-center text-sm ${trendColor} mt-1`}>
             {TrendIcon && <TrendIcon className="h-3 w-3 mr-1" />}
@@ -227,7 +227,7 @@ function ApprovalRowActions({ approval, onAction, actionBusyId }) {
 // Tabela de aprovações (+ cards no mobile)
 const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
   return (
-    <div className="bg-white rounded-2xl border border-[#FFD4C8] overflow-hidden shadow-sm">
+    <div className="bg-white rounded-2xl border border-[#FFE8E4] overflow-hidden shadow-sm">
       <div className="md:hidden divide-y divide-gray-100">
         {approvals.map((approval) => {
           const statusConfig = APPROVAL_STATUS[approval.status] || APPROVAL_STATUS.pending;
@@ -239,7 +239,7 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
             <div key={approval.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#18162A] truncate">
+                  <p className="text-sm font-medium text-[#1A1210] truncate">
                     {approval.title || 'Sem título'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
@@ -252,7 +252,7 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                   actionBusyId={actionBusyId}
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-[#7A7595]">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B635C]">
                 <Badge className={`${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
                   <StatusIcon className="w-3 h-3 mr-1" />
                   {statusConfig.label}
@@ -274,7 +274,7 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
 
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-[#EEF4FA]">
+          <thead className="bg-[#F1EDE7]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Conteúdo
@@ -304,10 +304,10 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                 Math.ceil((new Date(approval.expiresAt) - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
               return (
-                <tr key={approval.id} className="hover:bg-[#EEF4FA]">
+                <tr key={approval.id} className="hover:bg-[#F1EDE7]">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-[#18162A]">
+                      <div className="text-sm font-medium text-[#1A1210]">
                         {approval.title || 'Sem título'}
                       </div>
                       <div className="text-sm text-gray-500 capitalize">
@@ -317,7 +317,7 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-[#18162A]">
+                      <div className="text-sm font-medium text-[#1A1210]">
                         {approval.approverName}
                       </div>
                       <div className="text-sm text-gray-500">
@@ -331,12 +331,12 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
                       {statusConfig.label}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#18162A]">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1A1210]">
                     {format(new Date(approval.created_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {daysLeft !== null ? (
-                      <span className={daysLeft <= 1 ? 'text-red-600 font-medium' : 'text-[#7A7595]'}>
+                      <span className={daysLeft <= 1 ? 'text-red-600 font-medium' : 'text-[#6B635C]'}>
                         {daysLeft > 0 ? `${daysLeft} dia(s)` : 'Expirado'}
                       </span>
                     ) : (
@@ -360,8 +360,8 @@ const ApprovalsTable = ({ approvals, onAction, actionBusyId = null }) => {
       {approvals.length === 0 && (
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-[#18162A] mb-2">Nenhuma aprovação encontrada</h3>
-          <p className="text-[#7A7595] max-w-md mx-auto">
+          <h3 className="text-lg font-medium text-[#1A1210] mb-2">Nenhuma aprovação encontrada</h3>
+          <p className="text-[#6B635C] max-w-md mx-auto">
             Solicitações nascem no ciclo ou no conteúdo do cliente — abra o cliente para enviar uma aprovação.
           </p>
         </div>
@@ -535,8 +535,8 @@ export default function ApprovalDashboard() {
     return (
       <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-[#C02807] border-t-transparent rounded-full animate-spin" />
-            <span className="ml-3 text-[#7A7595]">Carregando dashboard...</span>
+            <div className="w-8 h-8 border-4 border-[#B80015] border-t-transparent rounded-full animate-spin" />
+            <span className="ml-3 text-[#6B635C]">Carregando dashboard...</span>
           </div>
       </div>
     );
@@ -548,7 +548,7 @@ export default function ApprovalDashboard() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18162A]">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1A1210]">
               Aprovações
             </h1>
           </div>

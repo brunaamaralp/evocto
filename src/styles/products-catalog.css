@@ -209,7 +209,7 @@
 }
 
 .products-table__row:hover td {
-  background: rgba(192, 40, 7, 0.03);
+  background: rgba(184, 0, 21, 0.03);
 }
 
 /* Página / formulário / importação de produtos */
@@ -350,7 +350,7 @@
 }
 
 .products-table tbody tr.products-table__row--variant td {
-  background: rgba(192, 40, 7, 0.03);
+  background: rgba(184, 0, 21, 0.03);
 }
 
 .products-status-chip {
@@ -663,7 +663,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(192, 40, 7, 0.04);
+  background: rgba(184, 0, 21, 0.04);
   border-bottom: 1px solid var(--border-light, var(--v100));
 }
 
@@ -1024,7 +1024,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(192, 40, 7, 0.12);
+  background: rgba(184, 0, 21, 0.12);
   z-index: 2;
   overflow: hidden;
 }
@@ -1082,7 +1082,7 @@
 }
 
 .product-import-icon-btn:hover {
-  background: rgba(192, 40, 7, 0.08);
+  background: rgba(184, 0, 21, 0.08);
   color: var(--petroleo);
 }
 
@@ -1116,9 +1116,9 @@
 }
 
 .product-import-dropzone {
-  border: 2px dashed rgba(192, 40, 7, 0.4);
+  border: 2px dashed rgba(184, 0, 21, 0.4);
   border-radius: 14px;
-  background: rgba(192, 40, 7, 0.04);
+  background: rgba(184, 0, 21, 0.04);
   padding: 44px 24px;
   text-align: center;
   cursor: pointer;
@@ -1128,14 +1128,14 @@
 .product-import-dropzone:hover {
   border-color: var(--petroleo);
   border-style: solid;
-  background: rgba(192, 40, 7, 0.08);
+  background: rgba(184, 0, 21, 0.08);
 }
 
 .product-import-dropzone--drag {
   border-width: 3px;
   border-style: solid;
   border-color: var(--petroleo);
-  background: rgba(192, 40, 7, 0.12);
+  background: rgba(184, 0, 21, 0.12);
 }
 
 .product-import-dropzone--error {
@@ -1150,7 +1150,7 @@
   height: 72px;
   margin: 0 auto 14px;
   border-radius: 50%;
-  background: rgba(192, 40, 7, 0.1);
+  background: rgba(184, 0, 21, 0.1);
   color: var(--petroleo);
 }
 
@@ -1191,7 +1191,7 @@
   gap: 10px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: rgba(192, 40, 7, 0.06);
+  background: rgba(184, 0, 21, 0.06);
   color: var(--text-primary);
   margin-bottom: 12px;
 }
@@ -1396,7 +1396,7 @@
 }
 
 .product-import-empty-icon {
-  color: rgba(192, 40, 7, 0.35);
+  color: rgba(184, 0, 21, 0.35);
   margin-bottom: 12px;
 }
 
@@ -1439,7 +1439,7 @@
 }
 
 .product-import-btn-ghost:hover {
-  background: rgba(192, 40, 7, 0.08);
+  background: rgba(184, 0, 21, 0.08);
   color: var(--petroleo);
 }
 
@@ -1716,7 +1716,7 @@
   border-bottom: none;
 }
 .navi-table tbody tr:hover td {
-  background: rgba(192, 40, 7, 0.03);
+  background: rgba(184, 0, 21, 0.03);
 }
 .navi-table .navi-num {
   text-align: right;

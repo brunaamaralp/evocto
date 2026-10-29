@@ -22,8 +22,8 @@ function LensChip({ service, selected, attentionCount = 0, onSelect }) {
       onClick={() => onSelect?.(String(service.id))}
       className={`inline-flex max-w-[11rem] shrink-0 items-center rounded-full border px-3.5 py-1.5 text-sm transition-colors sm:max-w-[14rem] ${
         selected
-          ? 'border-[#C02807] bg-[#C02807] text-white'
-          : 'border-[#E8E5F5] bg-white text-[#333] hover:border-[#bbb]'
+          ? 'border-[#B80015] bg-[#B80015] text-white'
+          : 'border-[#E4DDD4] bg-white text-[#333] hover:border-[#bbb]'
       }`}
     >
       <span className="truncate font-medium">{label}</span>
@@ -63,7 +63,7 @@ export default function ServiceLensSwitcher({
         <button
           type="button"
           onClick={onAddService}
-          className="inline-flex items-center gap-1 rounded-full border border-dashed border-[#E8E5F5] px-3 py-1.5 text-sm font-medium text-[#7A7595] hover:border-[#C02807] hover:text-[#C02807]"
+          className="inline-flex items-center gap-1 rounded-full border border-dashed border-[#E4DDD4] px-3 py-1.5 text-sm font-medium text-[#6B635C] hover:border-[#B80015] hover:text-[#B80015]"
           aria-label="Adicionar serviço"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden />
@@ -108,7 +108,7 @@ export default function ServiceLensSwitcher({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#E8E5F5] bg-white px-3 py-1.5 text-sm font-medium text-[#333] hover:border-[#bbb]"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#E4DDD4] bg-white px-3 py-1.5 text-sm font-medium text-[#333] hover:border-[#bbb]"
                 aria-label={`Mais serviços (${overflow.length})`}
               >
                 <MoreHorizontal className="h-3.5 w-3.5" aria-hidden />
@@ -155,7 +155,7 @@ export default function ServiceLensSwitcher({
           <button
             type="button"
             onClick={onAddService}
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-dashed border-[#E8E5F5] px-3 py-1.5 text-sm font-medium text-[#7A7595] hover:border-[#C02807] hover:text-[#C02807]"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-dashed border-[#E4DDD4] px-3 py-1.5 text-sm font-medium text-[#6B635C] hover:border-[#B80015] hover:text-[#B80015]"
             aria-label="Adicionar serviço"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden />

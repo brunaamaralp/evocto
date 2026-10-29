@@ -135,22 +135,22 @@ export default function ServiceDetailPage() {
       <div>
         
         {/* Header fixo */}
-        <div className="bg-[#EEF4FA] border-b border-[#FFD4C8] sticky top-0 z-10">
+        <div className="bg-[#F1EDE7] border-b border-[#FFE8E4] sticky top-0 z-10">
           <div className="max-w-7xl mx-auto py-4">
             
             {/* Breadcrumbs */}
-            <nav className="flex items-center space-x-2 text-sm text-[#7A7595] mb-4">
+            <nav className="flex items-center space-x-2 text-sm text-[#6B635C] mb-4">
               {getBreadcrumbs().map((crumb, index) => (
                 <React.Fragment key={index}>
                   {crumb.href ? (
                     <button 
                       onClick={() => window.location.href = crumb.href}
-                      className="hover:text-[#18162A] transition-colors"
+                      className="hover:text-[#1A1210] transition-colors"
                     >
                       {crumb.label}
                     </button>
                   ) : (
-                    <span className="text-[#18162A] font-medium">{crumb.label}</span>
+                    <span className="text-[#1A1210] font-medium">{crumb.label}</span>
                   )}
                   {index < getBreadcrumbs().length - 1 && (
                     <span className="text-gray-400">/</span>
@@ -174,7 +174,7 @@ export default function ServiceDetailPage() {
 
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
+                    <h1 className="text-2xl font-bold tracking-tight text-[#1A1210]">
                       {service.name}
                     </h1>
                     
@@ -182,7 +182,7 @@ export default function ServiceDetailPage() {
                       variant={service.is_template ? "secondary" : "default"}
                       className={service.is_template ? 
                         "bg-purple-100 text-purple-800 border-purple-300" : 
-                        "bg-[#FCE8E3] text-[#8A1C05] border-[#FFD4C8]"
+                        "bg-[#F6E4E6] text-[#8A0010] border-[#FFE8E4]"
                       }
                     >
                       {getServiceTypeLabel(service)}
@@ -197,7 +197,7 @@ export default function ServiceDetailPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-[#7A7595]">
+                  <div className="flex items-center gap-4 text-sm text-[#6B635C]">
                     
                     <div className="flex items-center gap-1">
                       <Target className="w-4 h-4" />
@@ -207,7 +207,7 @@ export default function ServiceDetailPage() {
                     {context.client && (
                       <button
                         onClick={handleViewClient}
-                        className="flex items-center gap-1 hover:text-[#C02807] transition-colors"
+                        className="flex items-center gap-1 hover:text-[#B80015] transition-colors"
                       >
                         <Users className="w-4 h-4" />
                         <span>{context.client.name}</span>
@@ -294,13 +294,13 @@ export default function ServiceDetailPage() {
               {/* Card de resumo */}
               <Card className="rounded-2xl border-transparent shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg text-[#18162A]">Resumo</CardTitle>
+                  <CardTitle className="text-lg text-[#1A1210]">Resumo</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   
                   {service.pricing && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#7A7595]">Valor Base</span>
+                      <span className="text-sm text-[#6B635C]">Valor Base</span>
                       <div className="flex items-center gap-1">
                         <DollarSign className="w-4 h-4 text-green-600" />
                         <span className="font-medium">
@@ -311,7 +311,7 @@ export default function ServiceDetailPage() {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#7A7595]">Entregáveis</span>
+                    <span className="text-sm text-[#6B635C]">Entregáveis</span>
                     <span className="font-medium">
                       {service.deliverables?.length || 0}
                     </span>
@@ -319,7 +319,7 @@ export default function ServiceDetailPage() {
 
                   {service.cycle_frequency && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#7A7595]">Frequência</span>
+                      <span className="text-sm text-[#6B635C]">Frequência</span>
                       <Badge variant="outline">
                         {service.cycle_frequency === 'monthly' ? 'Mensal' :
                          service.cycle_frequency === 'weekly' ? 'Semanal' :
@@ -331,7 +331,7 @@ export default function ServiceDetailPage() {
 
                   {service.created_date && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#7A7595]">Criado em</span>
+                      <span className="text-sm text-[#6B635C]">Criado em</span>
                       <span className="text-sm">
                         {new Date(service.created_date).toLocaleDateString('pt-BR')}
                       </span>
@@ -344,11 +344,11 @@ export default function ServiceDetailPage() {
               {service.is_template && service.template_metadata && (
                 <Card className="rounded-2xl border-transparent shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg text-[#18162A]">Estatísticas do Template</CardTitle>
+                    <CardTitle className="text-lg text-[#1A1210]">Estatísticas do Template</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#7A7595]">Uso Total</span>
+                      <span className="text-sm text-[#6B635C]">Uso Total</span>
                       <span className="font-medium">
                         {service.template_metadata.usage_count || 0}x
                       </span>
@@ -356,7 +356,7 @@ export default function ServiceDetailPage() {
 
                     {service.template_metadata.success_rate && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#7A7595]">Taxa de Sucesso</span>
+                        <span className="text-sm text-[#6B635C]">Taxa de Sucesso</span>
                         <span className="font-medium text-green-600">
                           {Math.round(service.template_metadata.success_rate * 100)}%
                         </span>
@@ -365,7 +365,7 @@ export default function ServiceDetailPage() {
 
                     {service.template_metadata.last_used && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#7A7595]">Último Uso</span>
+                        <span className="text-sm text-[#6B635C]">Último Uso</span>
                         <span className="text-sm">
                           {new Date(service.template_metadata.last_used).toLocaleDateString('pt-BR')}
                         </span>
@@ -378,7 +378,7 @@ export default function ServiceDetailPage() {
               {/* Ações rápidas */}
               <Card className="rounded-2xl border-transparent shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg text-[#18162A]">Ações Rápidas</CardTitle>
+                  <CardTitle className="text-lg text-[#1A1210]">Ações Rápidas</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {service.is_template ? (

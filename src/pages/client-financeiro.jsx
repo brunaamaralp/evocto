@@ -348,10 +348,10 @@ export default function ClientFinanceiroPage() {
             }}
             aria-label="Voltar ao cliente"
           >
-            <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+            <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+            <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
               Financeiro
             </h1>
           </div>
@@ -407,8 +407,8 @@ export default function ClientFinanceiroPage() {
                     <Icon className={`w-5 h-5 ${pastel.text}`} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xl font-bold text-[#18162A] truncate">{value}</p>
-                    <p className="text-sm text-[#7A7595]">{label}</p>
+                    <p className="text-xl font-bold text-[#1A1210] truncate">{value}</p>
+                    <p className="text-sm text-[#6B635C]">{label}</p>
                     <p className="text-xs text-[#9A95B0]">{hint}</p>
                   </div>
                 </div>
@@ -612,9 +612,9 @@ export default function ClientFinanceiroPage() {
         </section>
       ) : null}
 
-      <p className="text-sm text-[#7A7595] flex items-center gap-1.5">
+      <p className="text-sm text-[#6B635C] flex items-center gap-1.5">
         <ExternalLink className="w-3.5 h-3.5" />
-        <Link className="underline underline-offset-2 hover:text-[#18162A]" to={`/financeiro`}>
+        <Link className="underline underline-offset-2 hover:text-[#1A1210]" to={`/financeiro`}>
           Abrir financeiro da agência
         </Link>
       </p>

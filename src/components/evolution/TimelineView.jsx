@@ -65,26 +65,26 @@ export default function TimelineView({ events, learnings }) {
         return (
           <div key={item.id || index} className="relative flex items-start gap-4">
             {index < items.length - 1 && (
-              <div className="absolute left-6 top-12 w-px h-16 bg-gradient-to-b from-[#FFD4C8] to-slate-200" />
+              <div className="absolute left-6 top-12 w-px h-16 bg-gradient-to-b from-[#FFE8E4] to-slate-200" />
             )}
             
-            <div className="w-12 h-12 rounded-full bg-white border-4 border-[#FFD4C8] flex items-center justify-center flex-shrink-0 z-10">
-              <Icon className="w-5 h-5 text-[#C02807]" />
+            <div className="w-12 h-12 rounded-full bg-white border-4 border-[#FFE8E4] flex items-center justify-center flex-shrink-0 z-10">
+              <Icon className="w-5 h-5 text-[#B80015]" />
             </div>
             
             <Card className="flex-1 shadow-sm border-0 rounded-2xl">
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-2 gap-3">
-                  <h4 className="font-semibold text-[#18162A]">{item.title}</h4>
+                  <h4 className="font-semibold text-[#1A1210]">{item.title}</h4>
                   {date && (
-                    <span className="text-xs text-[#7A7595] shrink-0">
+                    <span className="text-xs text-[#6B635C] shrink-0">
                       {format(date, 'dd/MM/yyyy', { locale: ptBR })}
                     </span>
                   )}
                 </div>
                 
                 {item.description && (
-                  <p className="text-sm text-[#7A7595] mb-3">{item.description}</p>
+                  <p className="text-sm text-[#6B635C] mb-3">{item.description}</p>
                 )}
                 
                 <div className="flex flex-wrap gap-2">
@@ -109,7 +109,7 @@ export default function TimelineView({ events, learnings }) {
                 </div>
 
                 {metrics && (metrics.revenue != null || metrics.leads != null || metrics.cpl != null) && (
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#7A7595]">
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#6B635C]">
                     {metrics.month && <span>Mês: {metrics.month}</span>}
                     {metrics.revenue != null && <span>Receita: {Number(metrics.revenue).toLocaleString('pt-BR')}</span>}
                     {metrics.leads != null && <span>Leads: {metrics.leads}</span>}

@@ -286,7 +286,7 @@ export default function BriefingFormSimples({
           </Button>
         )}
       </div>
-      <p className="text-xs text-[#7A7595]">
+      <p className="text-xs text-[#6B635C]">
         Salva o briefing no ciclo do mês do cliente (reutiliza se já existir) e gera as tarefas desta campanha.
       </p>
 

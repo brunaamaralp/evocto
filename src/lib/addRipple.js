@@ -12,7 +12,7 @@ export function addRipple(btn, e) {
   ripple.style.cssText = `
     position: absolute;
     border-radius: 50%;
-    background: rgba(192, 40, 7, 0.12);
+    background: rgba(184, 0, 21, 0.12);
     width: ${size}px;
     height: ${size}px;
     left: ${e.clientX - rect.left - size / 2}px;

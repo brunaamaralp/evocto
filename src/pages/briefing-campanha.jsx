@@ -165,7 +165,7 @@ export default function BriefingCampanhaPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C02807]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#B80015]" />
       </div>
     );
   }
@@ -211,10 +211,10 @@ export default function BriefingCampanhaPage() {
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardContent className="pt-8 pb-8 text-center space-y-4">
             <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto" />
-            <h1 className="text-2xl font-bold tracking-tight text-[#18162A]">
+            <h1 className="text-2xl font-bold tracking-tight text-[#1A1210]">
               Campanha criada
             </h1>
-            <p className="text-[#7A7595]">
+            <p className="text-[#6B635C]">
               <strong>{savedBriefing.nome_campanha || savedBriefing.title}</strong> —{' '}
               {empresa?.nome || client?.name}
             </p>
@@ -271,13 +271,13 @@ export default function BriefingCampanhaPage() {
             onClick={backToClient}
             aria-label="Voltar ao cliente"
           >
-            <ArrowLeft className="w-4 h-4 text-[#7A7595]" />
+            <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-[#18162A] leading-tight">
+            <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
               Nova campanha
             </h1>
-            <p className="text-xs text-[#7A7595]">
+            <p className="text-xs text-[#6B635C]">
               Brainstorm, formulário ou texto — depois ciclo + tarefas
             </p>
           </div>
@@ -301,26 +301,26 @@ export default function BriefingCampanhaPage() {
             }
           >
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
+              <CardTitle className="text-base flex items-center gap-2 text-[#1A1210]">
                 <Sparkles className="w-4 h-4 text-[#007bff]" />
                 Brainstorm com IA
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-[#7A7595]">
+            <CardContent className="text-sm text-[#6B635C]">
               Explore ideias com o agente e depois transforme em campanha.
             </CardContent>
           </Card>
           <Card
-            className="rounded-2xl border-transparent shadow-sm bg-[#FCE8E3] cursor-pointer hover:border-[#FFD4C8] hover:shadow-md transition-all"
+            className="rounded-2xl border-transparent shadow-sm bg-[#F6E4E6] cursor-pointer hover:border-[#FFE8E4] hover:shadow-md transition-all"
             onClick={() => setStep('form')}
           >
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
-                <Keyboard className="w-4 h-4 text-[#C02807]" />
+              <CardTitle className="text-base flex items-center gap-2 text-[#1A1210]">
+                <Keyboard className="w-4 h-4 text-[#B80015]" />
                 Formulário rápido
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-[#7A7595]">
+            <CardContent className="text-sm text-[#6B635C]">
               Preencha os 5 campos essenciais (~2 min).
             </CardContent>
           </Card>
@@ -329,12 +329,12 @@ export default function BriefingCampanhaPage() {
             onClick={() => setStep('texto')}
           >
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2 text-[#18162A]">
-                <FileText className="w-4 h-4 text-[#C02807]" />
+              <CardTitle className="text-base flex items-center gap-2 text-[#1A1210]">
+                <FileText className="w-4 h-4 text-[#B80015]" />
                 Descrever a mão
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-[#7A7595]">
+            <CardContent className="text-sm text-[#6B635C]">
               Cole notas da reunião; o parser detecta os campos.
             </CardContent>
           </Card>
@@ -359,7 +359,7 @@ export default function BriefingCampanhaPage() {
       {step === 'texto' && (
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-[#18162A]">Modo Texto Livre</CardTitle>
+            <CardTitle className="text-lg text-[#1A1210]">Modo Texto Livre</CardTitle>
           </CardHeader>
           <CardContent>
             <BriefingTextLivre
@@ -381,7 +381,7 @@ export default function BriefingCampanhaPage() {
       {step === 'review' && (
         <Card className="rounded-2xl border-transparent shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-[#18162A]">Revise e crie a campanha</CardTitle>
+            <CardTitle className="text-lg text-[#1A1210]">Revise e crie a campanha</CardTitle>
           </CardHeader>
           <CardContent>
             <BriefingReviewSimples

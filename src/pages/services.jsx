@@ -158,8 +158,8 @@ export default function ServicesPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Templates de Serviço</h1>
-          <p className="text-[#7A7595] mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Templates de Serviço</h1>
+          <p className="text-[#6B635C] mt-1">
             Escolha quais modelos a agência usa ou crie um novo. Serviços por cliente ficam no hub do cliente.
           </p>
         </div>

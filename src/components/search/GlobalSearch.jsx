@@ -55,7 +55,7 @@ export function GlobalSearchTrigger({ compact = false, className = '' }) {
         type="button"
         onClick={openGlobalSearch}
         className={cn(
-          'inline-flex h-9 w-9 items-center justify-center rounded-full text-[#7A7595] hover:bg-[#EEF4FA] hover:text-[#18162A] transition-colors',
+          'inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6B635C] hover:bg-[#F1EDE7] hover:text-[#1A1210] transition-colors',
           className
         )}
         aria-label="Abrir busca"
@@ -70,14 +70,14 @@ export function GlobalSearchTrigger({ compact = false, className = '' }) {
       type="button"
       onClick={openGlobalSearch}
       className={cn(
-        'flex w-full items-center gap-2 h-10 pl-3.5 pr-3 rounded-full bg-[#EEF4FA] border border-transparent text-sm text-left text-[#7A7595] hover:border-[#FF9A7A]/60 focus:outline-none focus:ring-2 focus:ring-[#C02807]/30 transition-shadow',
+        'flex w-full items-center gap-2 h-10 pl-3.5 pr-3 rounded-full bg-[#F1EDE7] border border-transparent text-sm text-left text-[#6B635C] hover:border-[#E87A55]/60 focus:outline-none focus:ring-2 focus:ring-[#B80015]/30 transition-shadow',
         className
       )}
       aria-label="Abrir busca global"
     >
       <Search className="h-4 w-4 shrink-0" />
       <span className="flex-1 truncate">Buscar cliente, tarefa, campanha…</span>
-      <kbd className="hidden sm:inline-flex h-6 items-center rounded-md border border-[#E8E5F5] bg-white px-1.5 text-[10px] font-medium text-[#7A7595]">
+      <kbd className="hidden sm:inline-flex h-6 items-center rounded-md border border-[#E4DDD4] bg-white px-1.5 text-[10px] font-medium text-[#6B635C]">
         {searchShortcutLabel()}
       </kbd>
     </button>

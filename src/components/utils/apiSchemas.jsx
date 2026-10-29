@@ -86,7 +86,7 @@ export const AgencySchema = {
     agencyName: validators.string(data?.agencyName),
     contactEmail: validators.email(data?.contactEmail),
     logoUrl: data?.logoUrl ? validators.url(data.logoUrl) : undefined,
-    primaryColor: validators.string(data?.primaryColor, '#8A1C05'),
+    primaryColor: validators.string(data?.primaryColor, '#8A0010'),
     secondaryColor: validators.string(data?.secondaryColor, '#F1F5F9'),
     policies: validators.object(data?.policies, {
       rcExpiryDays: validators.number(data?.policies?.rcExpiryDays, 7),

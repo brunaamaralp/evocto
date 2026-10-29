@@ -34,7 +34,7 @@
           margin-bottom: 18px;
           border-radius: var(--radius);
           border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
-          box-shadow: 0 8px 28px rgba(192, 40, 7, 0.08);
+          box-shadow: 0 8px 28px rgba(184, 0, 21, 0.08);
           overflow: hidden;
         }
         .dashboard-day-hero__briefing {
@@ -114,7 +114,7 @@
           background: color-mix(in srgb, var(--color-content-bg) 88%, var(--color-primary-surface));
           border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
           border-left: 3px solid var(--color-primary);
-          box-shadow: 0 2px 8px rgba(192, 40, 7, 0.06);
+          box-shadow: 0 2px 8px rgba(184, 0, 21, 0.06);
         }
         .dashboard-day-hero__priority-text {
           margin: 0;
@@ -141,7 +141,7 @@
         .dashboard-day-hero__priority-btn:hover {
           background: var(--color-primary-surface);
           border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
-          box-shadow: 0 2px 8px rgba(192, 40, 7, 0.1);
+          box-shadow: 0 2px 8px rgba(184, 0, 21, 0.1);
         }
         .dashboard-birthday-banner {
           display: flex;
@@ -286,7 +286,7 @@
         }
         .dashboard-hero-kpi--clickable:hover {
           border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
-          box-shadow: 0 4px 14px rgba(192, 40, 7, 0.1);
+          box-shadow: 0 4px 14px rgba(184, 0, 21, 0.1);
           transform: translateY(-1px);
         }
         .dashboard-hero-kpi--clickable:focus-visible {
@@ -471,7 +471,7 @@
           }
           .dashboard-retornos-chip:hover {
             border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
-            box-shadow: 0 4px 12px rgba(192, 40, 7, 0.12);
+            box-shadow: 0 4px 12px rgba(184, 0, 21, 0.12);
           }
         }
         .reception-dashboard-page-header {
@@ -598,7 +598,7 @@
         }
         .week-nav-pill__btn:hover:not(:disabled),
         .week-nav-pill__refresh:hover:not(:disabled) {
-          background: rgba(192, 40, 7, 0.1);
+          background: rgba(184, 0, 21, 0.1);
           color: var(--color-primary);
         }
         .week-nav-pill__btn:disabled,
@@ -719,7 +719,7 @@
         }
         .agenda-week-expand-btn:hover {
           border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
-          box-shadow: 0 4px 12px rgba(192, 40, 7, 0.1);
+          box-shadow: 0 4px 12px rgba(184, 0, 21, 0.1);
         }
         .reception-week-panel__title.navi-section-heading,
         .reception-week-panel__title {
@@ -1477,9 +1477,9 @@
           animation: fu-wa-spin 0.8s linear infinite;
         }
         .mk-btn:hover:not(:disabled) {
-          border-color: #FF9A7A;
-          color: #8A1C05;
-          background: #FCE8E3;
+          border-color: #E87A55;
+          color: #8A0010;
+          background: #F6E4E6;
         }
         .mk-btn:active:not(:disabled) {
           transform: scale(0.97);
@@ -2269,7 +2269,7 @@
         }
         .agenda-time-line {
           height: 1px;
-          background: rgba(192, 40, 7, 0.22);
+          background: rgba(184, 0, 21, 0.22);
           flex: 1 1 auto;
         }
         .reception-agenda-inner .agenda-experimental-cards .agenda-card.card {
@@ -2304,7 +2304,7 @@
           padding: 0;
         }
         .agenda-card-more-btn:hover {
-          border-color: rgba(192, 40, 7, 0.22);
+          border-color: rgba(184, 0, 21, 0.22);
           color: var(--v500);
         }
         .agenda-experimental-main {
@@ -2410,7 +2410,7 @@
           gap: 8px;
           margin-top: 10px;
           padding-top: 10px;
-          border-top: 1px solid rgba(192, 40, 7, 0.09);
+          border-top: 1px solid rgba(184, 0, 21, 0.09);
         }
         .agenda-card--attended {
           opacity: 0.5;
@@ -2438,17 +2438,17 @@
           left: 0;
           right: 0;
           height: 2px;
-          background: linear-gradient(90deg, var(--petroleo), rgba(192, 40, 7, 0.75));
+          background: linear-gradient(90deg, var(--petroleo), rgba(184, 0, 21, 0.75));
           opacity: 0.7;
           pointer-events: none;
           border-radius: 16px 16px 0 0;
         }
         .reception-agenda-inner .agenda-card.card:hover {
           transform: translateY(-2px);
-          border-color: rgba(192, 40, 7, 0.22);
+          border-color: rgba(184, 0, 21, 0.22);
           box-shadow:
             0 4px 14px rgba(0, 4, 53, 0.07),
-            0 16px 40px rgba(192, 40, 7, 0.12);
+            0 16px 40px rgba(184, 0, 21, 0.12);
         }
         @media (prefers-reduced-motion: reduce) {
           .reception-agenda-inner .agenda-card.card { transition: none; }
@@ -2487,7 +2487,7 @@
         .followup-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         .followup-action-btn:disabled:hover { border-color: var(--color-border); color: var(--color-text-secondary); }
         .reception-agenda-inner .agenda-card.card .border-t {
-          border-top: 1px solid rgba(192, 40, 7, 0.09);
+          border-top: 1px solid rgba(184, 0, 21, 0.09);
         }
         .reception-agenda-inner .followup-action-btn {
           border-radius: 10px;
@@ -2576,13 +2576,13 @@
           border: none; cursor: pointer;
           padding: 0;
           flex: 0 0 44px;
-          box-shadow: 0 4px 14px rgba(192, 40, 7, 0.28);
+          box-shadow: 0 4px 14px rgba(184, 0, 21, 0.28);
           transition: transform .12s ease, filter .12s ease, box-shadow .2s ease;
         }
         .edit-time-btn svg { display: block; color: #fff; stroke: currentColor; fill: none; }
         .edit-time-btn:hover { filter: brightness(0.96); }
         .edit-time-btn:active { transform: translateY(1px); }
-        .edit-time-btn:focus-visible { outline: 2px solid var(--focus-ring-color); box-shadow: 0 0 0 3px var(--focus-ring); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(192, 40, 7, 0.2); }
+        .edit-time-btn:focus-visible { outline: 2px solid var(--focus-ring-color); box-shadow: 0 0 0 3px var(--focus-ring); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(184, 0, 21, 0.2); }
         .agenda-mini-btn {
           width: 32px; height: 32px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;

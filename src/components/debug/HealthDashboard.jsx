@@ -222,7 +222,7 @@ export default function HealthDashboard() {
                   <Line 
                     type="monotone" 
                     dataKey="networkErrors" 
-                    stroke="#8A1C05" 
+                    stroke="#8A0010" 
                     name="Network Errors"
                     strokeWidth={2}
                   />

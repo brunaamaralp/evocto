@@ -154,7 +154,7 @@ export default function BriefingInicialFileImport({
         aria-labelledby="briefing-file-import-title"
         className={`rounded-2xl border px-4 py-5 transition-colors ${
           dragOver
-            ? 'border-[#C02807] bg-[#FFF7F4]'
+            ? 'border-[#B80015] bg-[#FFF7F4]'
             : hasResult
               ? 'border-[#E8E4F4] bg-white'
               : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
@@ -173,16 +173,16 @@ export default function BriefingInicialFileImport({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex items-start gap-3">
             <div className="mt-0.5 rounded-xl border border-[#E8E4F4] bg-white p-2.5">
-              <Upload className="h-4 w-4 text-[#C02807]" aria-hidden />
+              <Upload className="h-4 w-4 text-[#B80015]" aria-hidden />
             </div>
             <div className="min-w-0">
               <h2
                 id="briefing-file-import-title"
-                className="text-sm font-semibold text-[#18162A]"
+                className="text-sm font-semibold text-[#1A1210]"
               >
                 Importar de arquivo
               </h2>
-              <p className="mt-0.5 text-sm text-[#7A7595]">
+              <p className="mt-0.5 text-sm text-[#6B635C]">
                 PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo — a leitura
                 preenche o formulário para você revisar.
               </p>
@@ -205,7 +205,7 @@ export default function BriefingInicialFileImport({
             />
             <Button
               type="button"
-              className="w-full bg-[#C02807] hover:bg-[#8A1C05] text-white sm:w-auto"
+              className="w-full bg-[#B80015] hover:bg-[#8A0010] text-white sm:w-auto"
               disabled={disabled || loading}
               onClick={() => inputRef.current?.click()}
             >
@@ -226,7 +226,7 @@ export default function BriefingInicialFileImport({
 
         {loading ? (
           <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#F8F6FC] px-3 py-2.5 text-sm text-[#5B5680]">
-            <Loader2 className="h-4 w-4 animate-spin text-[#C02807]" aria-hidden />
+            <Loader2 className="h-4 w-4 animate-spin text-[#B80015]" aria-hidden />
             <span>{LOADING_STEPS[loadingStep]}</span>
             <span className="text-xs text-[#9A94B0]">· até ~1 min</span>
           </div>
@@ -241,7 +241,7 @@ export default function BriefingInicialFileImport({
         {appliedLabels.length > 0 && !loading ? (
           <p className="mt-3 text-xs text-[#5B5680]">
             Preenchido no formulário:{' '}
-            <span className="font-medium text-[#18162A]">
+            <span className="font-medium text-[#1A1210]">
               {appliedLabels.join(' · ')}
             </span>
           </p>

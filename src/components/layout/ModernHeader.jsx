@@ -120,7 +120,7 @@ export default function ModernHeader({
   }, [agencyId, user?.id, user?.data?.id]);
 
   return (
-    <header className="shell-header-safe border-b bg-white/80 border-[#E8E5F5]/80">
+    <header className="shell-header-safe border-b bg-white/80 border-[#E4DDD4]/80">
       <div className="px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between min-h-14 sm:min-h-16 items-center gap-2 sm:gap-3 py-2 sm:py-0">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
@@ -139,7 +139,7 @@ export default function ModernHeader({
 
             {isClientContext ? (
               <div className="min-w-0 flex-1 flex items-center gap-2">
-                <p className="md:hidden min-w-0 flex-1 text-sm font-semibold text-[#18162A] truncate">
+                <p className="md:hidden min-w-0 flex-1 text-sm font-semibold text-[#1A1210] truncate">
                   {mobileTitle}
                 </p>
                 <RecentClientsSwitcher
@@ -168,7 +168,7 @@ export default function ModernHeader({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="touch-target h-11 w-11 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+                  className="touch-target h-11 w-11 p-0 rounded-full text-[#6B635C] hover:text-[#1A1210] hover:bg-black/5"
                   aria-label="Criar"
                   title="Criar"
                 >
@@ -219,7 +219,7 @@ export default function ModernHeader({
                 asChild
                 variant="ghost"
                 size="sm"
-                className="hidden sm:inline-flex touch-target h-11 w-11 p-0 rounded-full text-[#7A7595] hover:text-[#18162A] hover:bg-black/5"
+                className="hidden sm:inline-flex touch-target h-11 w-11 p-0 rounded-full text-[#6B635C] hover:text-[#1A1210] hover:bg-black/5"
               >
                 <Link
                   to={createPageUrl('clients')}
@@ -256,18 +256,18 @@ export default function ModernHeader({
                   <div className={`h-9 w-9 rounded-full flex items-center justify-center ${GLOBAL_SHELL.avatarBg}`}>
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-[#18162A] hidden sm:inline max-w-[120px] truncate">
+                  <span className="text-sm font-medium text-[#1A1210] hidden sm:inline max-w-[120px] truncate">
                     {user?.full_name || user?.name || 'Usuário'}
                   </span>
-                  <ChevronDown className="h-4 w-4 text-[#7A7595] hidden sm:inline" />
+                  <ChevronDown className="h-4 w-4 text-[#6B635C] hidden sm:inline" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
-                  <p className="text-sm font-medium text-[#18162A] truncate">
+                  <p className="text-sm font-medium text-[#1A1210] truncate">
                     {user?.full_name || user?.name || 'Usuário'}
                   </p>
-                  <p className="text-xs text-[#7A7595] truncate">{user?.email || ''}</p>
+                  <p className="text-xs text-[#6B635C] truncate">{user?.email || ''}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {isClientContext ? (

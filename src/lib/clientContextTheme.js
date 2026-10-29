@@ -1,7 +1,7 @@
 /**
  * Tokens visuais do contexto de cliente vs. sistema global.
  * Ambos usam a identidade Narrativa; o modo cliente diferencia
- * com Sky Blue (highlight) em vez do Burnt Grape do shell global.
+ * com Azul jeans em vez da Cereja do shell global.
  */
 export const CLIENT_CONTEXT = {
   label: 'Contexto do cliente',
@@ -9,35 +9,35 @@ export const CLIENT_CONTEXT = {
   /** Fundo da casca da página */
   shellBg: 'evocto-shell--client',
   /** Faixa superior permanente */
-  topBar: 'bg-[#1A0D0B]',
-  /** Sidebar — mesma base quente da marca; ativo em Sky */
-  sidebarBg: 'bg-[#1A0D0B]',
-  sidebarText: 'text-[#FFD4C8]',
-  sidebarMuted: 'text-[#A89A96]',
+  topBar: 'bg-[#16070A]',
+  /** Sidebar — mesma base vinho; ativo em Jeans */
+  sidebarBg: 'bg-[#16070A]',
+  sidebarText: 'text-[#FFE8E4]',
+  sidebarMuted: 'text-[#C9B8B4]',
   sidebarBorder: 'border-white/5',
-  sidebarHover: 'hover:bg-white/5 hover:text-[#FCE8E3]',
-  sidebarActive: 'bg-[rgba(187,217,244,0.22)] text-[#E8F2FB] shadow-sm',
-  sidebarIconActive: 'text-[#BBD9F4]',
-  sidebarFooter: 'bg-[#1A0D0B]',
-  logoBg: 'bg-[#C02807]',
-  avatarBg: 'bg-[#C02807]',
+  sidebarHover: 'hover:bg-white/5 hover:text-[#FFF8F0]',
+  sidebarActive: 'bg-[rgba(143,169,190,0.28)] text-[#E8EEF3] shadow-sm',
+  sidebarIconActive: 'text-[#8FA9BE]',
+  sidebarFooter: 'bg-[#16070A]',
+  logoBg: 'bg-[#B80015]',
+  avatarBg: 'bg-[#B80015]',
   /** Chip / banner no header */
-  chip: 'bg-[#BBD9F4] text-[#1A0D0B]',
-  chipSoft: 'bg-[#E8F2FB] text-[#1A0D0B] border-[#BBD9F4]',
+  chip: 'bg-[#C9D6E2] text-[#16070A]',
+  chipSoft: 'bg-[#E8EEF3] text-[#16070A] border-[#8FA9BE]',
   /** Borda de destaque no conteúdo */
-  contentAccent: 'border-l-4 border-l-[#BBD9F4]',
+  contentAccent: 'border-l-4 border-l-[#8FA9BE]',
 };
 
 export const GLOBAL_SHELL = {
-  sidebarBg: 'bg-[#1A0D0B]',
-  sidebarText: 'text-[#FFD4C8]',
-  sidebarMuted: 'text-[#7A7595]',
+  sidebarBg: 'bg-[#16070A]',
+  sidebarText: 'text-[#FFE8E4]',
+  sidebarMuted: 'text-[#C9B8B4]',
   sidebarBorder: 'border-white/5',
-  sidebarHover: 'hover:bg-white/5 hover:text-[#FCE8E3]',
-  sidebarActive: 'bg-[rgba(192,40,7,0.28)] text-[#FCE8E3] shadow-sm',
-  sidebarIconActive: 'text-[#FF9A7A]',
-  logoBg: 'bg-[#C02807]',
-  avatarBg: 'bg-[#C02807]',
+  sidebarHover: 'hover:bg-white/5 hover:text-[#FFF8F0]',
+  sidebarActive: 'bg-[rgba(184,0,21,0.28)] text-[#FFE8E4] shadow-sm',
+  sidebarIconActive: 'text-[#DD4E28]',
+  logoBg: 'bg-[#B80015]',
+  avatarBg: 'bg-[#B80015]',
 };
 
 export function isClientContextPath(pathname = '', search = '') {

@@ -193,8 +193,8 @@ export default function CustomReportsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">Relatórios Customizados</h1>
-        <p className="text-[#7A7595] mt-1">
+        <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">Relatórios Customizados</h1>
+        <p className="text-[#6B635C] mt-1">
           Gere relatórios personalizados para seus clientes e serviços
         </p>
       </div>
@@ -206,8 +206,8 @@ export default function CustomReportsPage() {
               <Clock className="w-5 h-5 text-[#E8955A]" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-semibold text-[#18162A]">Hub de horas</h2>
-              <p className="text-sm text-[#7A7595] mt-0.5">
+              <h2 className="font-semibold text-[#1A1210]">Hub de horas</h2>
+              <p className="text-sm text-[#6B635C] mt-0.5">
                 Consulte tempo registrado da equipe, por período e por pessoa
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function CustomReportsPage() {
           <Card className={`border-transparent ${pastel.soft}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#7A7595]" />
+                <FileText className="w-5 h-5 text-[#6B635C]" />
                 Tipo de Relatório
               </CardTitle>
             </CardHeader>
@@ -241,17 +241,17 @@ export default function CustomReportsPage() {
                       onClick={() => setSelectedReportType(report.id)}
                       className={`p-4 rounded-2xl cursor-pointer transition-all border ${
                         isSelected
-                          ? `border-[#C02807] ring-2 ring-[#C02807]/20 ${cardPastel.bg}`
+                          ? `border-[#B80015] ring-2 ring-[#B80015]/20 ${cardPastel.bg}`
                           : `border-transparent hover:shadow-[var(--shadow-elevated)] ${cardPastel.bg}`
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <report.icon className={`w-5 h-5 mt-1 shrink-0 ${
-                          isSelected ? 'text-[#C02807]' : cardPastel.text
+                          isSelected ? 'text-[#B80015]' : cardPastel.text
                         }`} />
                         <div>
-                          <h3 className="font-medium text-[#18162A]">{report.name}</h3>
-                          <p className="text-sm text-[#7A7595] mt-1">{report.description}</p>
+                          <h3 className="font-medium text-[#1A1210]">{report.name}</h3>
+                          <p className="text-sm text-[#6B635C] mt-1">{report.description}</p>
                           <div className="flex gap-1 mt-2">
                             {report.formats.map(format => (
                               <Badge key={format} variant="outline" className="text-xs bg-white/60">
@@ -272,7 +272,7 @@ export default function CustomReportsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[#7A7595]" />
+                  <Settings className="w-5 h-5 text-[#6B635C]" />
                   Configurações
                 </CardTitle>
               </CardHeader>
@@ -376,7 +376,7 @@ export default function CustomReportsPage() {
           <Card className={`border-transparent ${pastel.bg}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-[#7A7595]" />
+                <Clock className="w-5 h-5 text-[#6B635C]" />
                 Relatórios Recentes
               </CardTitle>
             </CardHeader>
@@ -390,14 +390,14 @@ export default function CustomReportsPage() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-[#18162A]">
+                          <h4 className="text-sm font-medium text-[#1A1210]">
                             {report.typeName}
                           </h4>
-                          <p className="text-xs text-[#7A7595]">
+                          <p className="text-xs text-[#6B635C]">
                             {report.client}
                             {report.service && ` • ${report.service}`}
                           </p>
-                          <p className="text-xs text-[#7A7595] mt-1">
+                          <p className="text-xs text-[#6B635C] mt-1">
                             {new Date(report.generatedAt).toLocaleDateString('pt-BR')}
                           </p>
                         </div>

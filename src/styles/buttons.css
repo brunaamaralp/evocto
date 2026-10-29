@@ -249,7 +249,7 @@
   width: 36px;
   height: 20px;
   border-radius: 4px;
-  border: 1px solid var(--color-card-border, var(--border, #e8e5f5));
+  border: 1px solid var(--color-card-border, var(--border, #E4DDD4));
   background: var(--color-content-bg, #fff);
   cursor: pointer;
   padding: 0;

@@ -18,10 +18,10 @@ function Tile({ to, icon: Icon, title, subtitle, empty }) {
   return (
     <Link
       to={to}
-      className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl border border-[#E8E5F5] bg-white px-3.5 py-3 transition-colors hover:border-[#d0d7e2] hover:bg-[#EEF4FA]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
+      className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl border border-[#E4DDD4] bg-white px-3.5 py-3 transition-colors hover:border-[#d0d7e2] hover:bg-[#F1EDE7]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/35"
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FA] text-[#555]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F1EDE7] text-[#555]">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-[#ccc]" aria-hidden />
@@ -123,8 +123,8 @@ export default function ClientInfoCenterSummary({
       </div>
 
       {summary.recentDocuments.length > 0 ? (
-        <div className="rounded-2xl border border-[#E8E5F5] bg-white px-3.5 py-3">
-          <p className="text-xs font-medium text-[#7A7595]">Documentos recentes</p>
+        <div className="rounded-2xl border border-[#E4DDD4] bg-white px-3.5 py-3">
+          <p className="text-xs font-medium text-[#6B635C]">Documentos recentes</p>
           <ul className="mt-1.5 space-y-0.5">
             {summary.recentDocuments.map((doc) => (
               <li key={doc.id}>
@@ -132,9 +132,9 @@ export default function ClientInfoCenterSummary({
                   to={createPageUrl(
                     `client-documents?clientId=${clientId}&documentId=${doc.id}`
                   )}
-                  className="flex items-center justify-between gap-2 rounded-md px-1 py-1.5 text-sm transition-colors hover:bg-[#EEF4FA]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C02807]/35"
+                  className="flex items-center justify-between gap-2 rounded-md px-1 py-1.5 text-sm transition-colors hover:bg-[#F1EDE7]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/35"
                 >
-                  <span className="min-w-0 truncate font-medium text-[#18162A]">
+                  <span className="min-w-0 truncate font-medium text-[#1A1210]">
                     {doc.title}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#ccc]" aria-hidden />

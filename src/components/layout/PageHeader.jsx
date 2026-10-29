@@ -27,11 +27,11 @@ export default function PageHeader({
       {prefix}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#18162A]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1210]">
             {title}
           </h1>
           {subtitle ? (
-            <p className="text-sm text-[#7A7595] max-w-2xl">{subtitle}</p>
+            <p className="text-sm text-[#6B635C] max-w-2xl">{subtitle}</p>
           ) : null}
           {meta ? (
             <p
@@ -59,7 +59,7 @@ export default function PageHeader({
       ) : null}
 
       {toolbar ? (
-        <div className="rounded-2xl bg-[#EEF4FA]/80 border border-[#E8E5F5]/80 p-3 sm:p-4">
+        <div className="rounded-2xl bg-[#F1EDE7]/80 border border-[#E4DDD4]/80 p-3 sm:p-4">
           {toolbar}
         </div>
       ) : null}

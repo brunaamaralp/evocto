@@ -1,46 +1,52 @@
 :root {
-  /* Primária — Burnt Grape */
-  --color-primary: #C02807;
-  --color-primary-light: #FF643D;
-  --color-primary-surface: #FCE8E3;
-  --color-primary-dark: #8A1C05;
+  /* Primária — Cereja */
+  --color-primary: #B80015;
+  --color-primary-light: #DD4E28;
+  --color-primary-surface: #F6E4E6;
+  --color-primary-dark: #8A0010;
 
-  /* Accent — Orange Rosé */
-  --color-accent: #FF643D;
-  --color-accent-light: #FF9A7A;
-  --color-accent-surface: #FFE8E0;
-  --color-accent-dark: #C4451F;
+  /* Accent — Laranja */
+  --color-accent: #DD4E28;
+  --color-accent-light: #E87A55;
+  --color-accent-surface: #F8E4DC;
+  --color-accent-dark: #B53D1E;
 
-  /* Highlight — Sky Blue (pontual: badges, info, superfícies suaves) */
-  --color-highlight: #BBD9F4;
-  --color-highlight-surface: #E8F2FB;
+  /* Highlight — Azul claro (chips, info, superfícies suaves) */
+  --color-highlight: #C9D6E2;
+  --color-highlight-surface: #E8EEF3;
+
+  /* Secundária estrutural — Azul jeans */
+  --color-jeans: #8FA9BE;
+  --color-jeans-surface: #E4ECF2;
 
   --color-success: #2A9D6E;
   --color-success-surface: #D8F3E8;
-  --color-danger: #E24B4A;
+  /* Danger distinto da Cereja (marca) */
+  --color-danger: #8B1538;
   --color-warning: #C47A00;
   --color-text-heading: #1A1210;
-  --color-border: #E5ECF3;
+  --color-text-secondary: #6B635C;
+  --color-border: #E4DDD4;
   --color-white: #FFFFFF;
   --color-surface: var(--color-card-bg);
   --color-surface-canvas: var(--color-content-bg);
 
-  /* Sidebar / Topbar — profundo quente */
-  --color-sidebar-bg: #1A0D0B;
-  --color-topbar-bg: #1A0D0B;
-  --color-sidebar-text: #A89A96;
-  --color-sidebar-active-bg: rgba(192, 40, 7, 0.28);
-  --color-sidebar-active-text: #FFD4C8;
-  --color-sidebar-active-icon: #FF643D;
+  /* Sidebar / Topbar — vinho profundo derivado da Cereja */
+  --color-sidebar-bg: #16070A;
+  --color-topbar-bg: #16070A;
+  --color-sidebar-text: #C9B8B4;
+  --color-sidebar-active-bg: rgba(184, 0, 21, 0.28);
+  --color-sidebar-active-text: #FFE8E4;
+  --color-sidebar-active-icon: #DD4E28;
   --color-sidebar-section: #8A7A76;
   --color-sidebar-border: rgba(255, 255, 255, 0.06);
-  --color-sidebar-avatar-bg: #2E1A16;
-  --color-sidebar-avatar-text: #FFD4C8;
+  --color-sidebar-avatar-bg: #2A1014;
+  --color-sidebar-avatar-text: #FFE8E4;
 
-  /* Conteúdo — Cloud */
-  --color-content-bg: #FFFCFC;
-  --color-card-bg: #FFFCFC;
-  --color-card-border: #E5ECF3;
+  /* Conteúdo — Off-white */
+  --color-content-bg: #FFF8F0;
+  --color-card-bg: #FFF8F0;
+  --color-card-border: #E4DDD4;
 
   /* Tipografia — escala rem (base 16px) */
   --font-2xs:  0.625rem;   /* 10px */
@@ -86,9 +92,9 @@
   --ease-out:      cubic-bezier(0, 0, 0.2, 1);
   --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Soft UI shell — sky + cloud */
-  --color-canvas: #EEF4FA;
-  --color-canvas-client: #E8F2FB;
+  /* Soft UI shell — Marfim + Azul claro (cliente) */
+  --color-canvas: #F1EDE7;
+  --color-canvas-client: #E8EEF3;
   --radius-panel: 24px;
   --radius-card: 20px;
   --radius-pill: 9999px;
@@ -102,13 +108,13 @@
   --ff-body: var(--ff-ui);
   --font-sans: var(--ff-ui);
   /* Aliases de marca (CSS legado Navi → Evocto → Narrativa) */
-  --evocto-brand-img-bg-light: #FFFCFC;
-  --evocto-brand-img-bg-dark: #1A0D0B;
+  --evocto-brand-img-bg-light: #FFF8F0;
+  --evocto-brand-img-bg-dark: #16070A;
   --navi-brand-img-bg-light: var(--evocto-brand-img-bg-light);
   --navi-brand-img-bg-dark: var(--evocto-brand-img-bg-dark);
   --ink: var(--color-text-heading);
   --text-secondary: var(--color-text-secondary);
-  --text-muted: #7A6E6A;
+  --text-muted: #6B635C;
   --surface: var(--color-card-bg);
   --surface-hover: color-mix(in srgb, var(--color-primary-surface) 45%, var(--color-card-bg));
   --faint: color-mix(in srgb, var(--color-text-secondary) 72%, white);

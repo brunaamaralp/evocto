@@ -82,9 +82,9 @@ export default function LoginPage() {
 
   if (checkingSession || isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#EEF4FA] via-white to-[#FCE8E3] flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3 text-[#7A7595]">
-          <Loader2 className="h-8 w-8 animate-spin text-[#C02807]" />
+      <div className="min-h-screen bg-gradient-to-br from-[#F1EDE7] via-white to-[#F6E4E6] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 text-[#6B635C]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#B80015]" />
           <p className="text-sm">
             {isAuthenticated ? 'Abrindo seu painel...' : 'Verificando sessão...'}
           </p>
@@ -94,7 +94,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#EEF4FA] via-white to-[#FCE8E3] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#F1EDE7] via-white to-[#F6E4E6] flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-[var(--shadow-elevated)] border-transparent">
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center gap-3">
@@ -102,7 +102,7 @@ export default function LoginPage() {
             <NarrativaBrandLockup height={36} variant="auth" />
           </div>
           <div>
-            <CardTitle className="text-2xl text-[#18162A]">Entrar</CardTitle>
+            <CardTitle className="text-2xl text-[#1A1210]">Entrar</CardTitle>
             <p className="text-sm text-[#7A6E6A] mt-1">Acesse sua agência na narrativa</p>
           </div>
         </CardHeader>
@@ -118,12 +118,12 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7A7595]" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B635C]" />
                 <Input
                   id="email"
                   type="email"
                   autoComplete="email"
-                  className="pl-9 rounded-xl bg-[#EEF4FA] border-transparent focus-visible:ring-[#C02807]"
+                  className="pl-9 rounded-xl bg-[#F1EDE7] border-transparent focus-visible:ring-[#B80015]"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -133,18 +133,18 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7A7595]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B635C]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="pl-9 pr-10 rounded-xl bg-[#EEF4FA] border-transparent focus-visible:ring-[#C02807]"
+                  className="pl-9 pr-10 rounded-xl bg-[#F1EDE7] border-transparent focus-visible:ring-[#B80015]"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7595]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B635C]"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   aria-pressed={showPassword}
@@ -159,10 +159,10 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex justify-between text-sm">
-              <Link to="/create-account" className="text-[#C02807] hover:underline font-medium">
+              <Link to="/create-account" className="text-[#B80015] hover:underline font-medium">
                 Criar conta
               </Link>
-              <Link to="/password-reset" className="text-[#7A7595] hover:underline">
+              <Link to="/password-reset" className="text-[#6B635C] hover:underline">
                 Esqueci a senha
               </Link>
             </div>

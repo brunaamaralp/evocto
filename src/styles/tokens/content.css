@@ -4,31 +4,33 @@
  */
 
 :root {
-  --color-primary: #C02807;
-  --color-primary-light: #FF643D;
-  --color-primary-surface: #FCE8E3;
-  --color-primary-dark: #8A1C05;
-  --color-accent: #FF643D;
-  --color-accent-light: #FF9A7A;
-  --color-accent-surface: #FFE8E0;
-  --color-accent-dark: #C4451F;
-  --color-highlight: #BBD9F4;
-  --color-highlight-surface: #E8F2FB;
-  --color-content-bg: #FFFCFC;
-  --color-card-bg: #FFFCFC;
-  --color-card-border: #E5ECF3;
+  --color-primary: #B80015;
+  --color-primary-light: #DD4E28;
+  --color-primary-surface: #F6E4E6;
+  --color-primary-dark: #8A0010;
+  --color-accent: #DD4E28;
+  --color-accent-light: #E87A55;
+  --color-accent-surface: #F8E4DC;
+  --color-accent-dark: #B53D1E;
+  --color-highlight: #C9D6E2;
+  --color-highlight-surface: #E8EEF3;
+  --color-jeans: #8FA9BE;
+  --color-jeans-surface: #E4ECF2;
+  --color-content-bg: #FFF8F0;
+  --color-card-bg: #FFF8F0;
+  --color-card-border: #E4DDD4;
   --color-text-primary: #1A1210;
   --color-text-heading: var(--color-text-primary);
-  --color-text-secondary: #7A6E6A;
-  --color-danger: #E24B4A;
+  --color-text-secondary: #6B635C;
+  --color-danger: #8B1538;
   --color-warning: #C47A00;
   --color-border: var(--color-card-border);
   --color-white: #FFFFFF;
   --color-surface: var(--color-card-bg);
   --color-surface-canvas: var(--color-content-bg);
-  --color-badge-primary-text: #8A1C05;
+  --color-badge-primary-text: #8A0010;
   --color-status-positive-text: #1F6B4A;
-  --color-agenda-today-bg: #F5F9FC;
+  --color-agenda-today-bg: #F1EDE7;
 }
 
 .navi-main-stack .main-content {
@@ -76,12 +78,12 @@
 .navi-main-stack .main-content .btn-primary {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(192, 40, 7, 0.22);
+  box-shadow: 0 2px 8px rgba(184, 0, 21, 0.22);
 }
 
 .navi-main-stack .main-content .btn-primary:hover {
   background: color-mix(in srgb, var(--color-primary) 88%, #1A1210);
-  box-shadow: 0 4px 14px rgba(192, 40, 7, 0.28);
+  box-shadow: 0 4px 14px rgba(184, 0, 21, 0.28);
 }
 
 /* Botões secundários */

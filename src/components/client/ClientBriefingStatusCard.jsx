@@ -72,7 +72,7 @@ export default function ClientBriefingStatusCard({
   return (
     <section
       aria-labelledby="briefing-status-heading"
-      className="rounded-2xl border border-[#E8E5F5] bg-[#EEF4FA] px-4 py-4"
+      className="rounded-2xl border border-[#E4DDD4] bg-[#F1EDE7] px-4 py-4"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
@@ -80,14 +80,14 @@ export default function ClientBriefingStatusCard({
             {isReady ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden />
             ) : (
-              <FileText className="h-4 w-4 text-[#7A7595]" aria-hidden />
+              <FileText className="h-4 w-4 text-[#6B635C]" aria-hidden />
             )}
-            <h2 id="briefing-status-heading" className="text-sm font-medium text-[#18162A]">
+            <h2 id="briefing-status-heading" className="text-sm font-medium text-[#1A1210]">
               Briefing inicial
             </h2>
-            <span className="text-xs text-[#7A7595]">· {label}</span>
+            <span className="text-xs text-[#6B635C]">· {label}</span>
           </div>
-          <p className="text-sm text-[#7A7595]">
+          <p className="text-sm text-[#6B635C]">
             {isReady
               ? 'Preenchido. Edite quando a marca mudar.'
               : 'Importe um PDF/DOCX/TXT ou preencha o formulário.'}
@@ -107,7 +107,7 @@ export default function ClientBriefingStatusCard({
             className={
               isReady
                 ? 'w-full sm:w-auto'
-                : 'w-full bg-[#C02807] hover:bg-[#8A1C05] sm:w-auto'
+                : 'w-full bg-[#B80015] hover:bg-[#8A0010] sm:w-auto'
             }
             variant={isReady ? 'outline' : 'default'}
           >

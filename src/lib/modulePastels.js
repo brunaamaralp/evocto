@@ -126,11 +126,11 @@ export const STAGE_ALIASES = {
 
 export const MODULE_PASTELS = {
   dashboard: {
-    bg: 'bg-[#FCE8E3]',
-    soft: 'bg-[#EEF4FA]',
-    text: 'text-[#8A1C05]',
-    accent: 'bg-[#C02807]',
-    border: 'border-[#FFD4C8]',
+    bg: 'bg-[#F6E4E6]',
+    soft: 'bg-[#F1EDE7]',
+    text: 'text-[#8A0010]',
+    accent: 'bg-[#B80015]',
+    border: 'border-[#FFE8E4]',
   },
   clients: {
     bg: 'bg-[#EAF2FB]',

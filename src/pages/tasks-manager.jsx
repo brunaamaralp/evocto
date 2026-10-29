@@ -163,15 +163,15 @@ function QuickAddTask({
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
-          className="text-[10px] text-[#7A7595] underline-offset-2 hover:underline"
+          className="text-[10px] text-[#6B635C] underline-offset-2 hover:underline"
           onClick={() => setShowMore((v) => !v)}
         >
           {showMore ? 'Menos' : 'Responsável / prazo'}
         </button>
         {saving ? (
-          <p className="text-[10px] text-[#7A7595]">Salvando…</p>
+          <p className="text-[10px] text-[#6B635C]">Salvando…</p>
         ) : (
-          <p className="text-[10px] text-[#7A7595]">
+          <p className="text-[10px] text-[#6B635C]">
             Enter · Shift+Enter abre
           </p>
         )}
@@ -304,7 +304,7 @@ function TaskColumn({
       <div className={`h-full rounded-2xl ${compact ? 'p-2.5' : 'p-4'} ${column.color}`}>
         <div className={compact ? 'pb-2' : 'pb-3'}>
           <div className="flex items-center justify-between mb-1">
-            <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold text-[#18162A]`}>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold text-[#1A1210]`}>
               {column.title}
             </span>
             <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
@@ -312,7 +312,7 @@ function TaskColumn({
             </Badge>
           </div>
           {!compact ? (
-            <p className="text-xs text-[#7A7595]">{column.description}</p>
+            <p className="text-xs text-[#6B635C]">{column.description}</p>
           ) : null}
         </div>
         
@@ -355,7 +355,7 @@ function TaskColumn({
                 {provided.placeholder}
                 
                 {tasks.length === 0 && (
-                  <div className={`text-center ${compact ? 'py-3' : 'py-6'} text-[#7A7595]`}>
+                  <div className={`text-center ${compact ? 'py-3' : 'py-6'} text-[#6B635C]`}>
                     <p className="text-sm">Nenhuma tarefa aqui</p>
                     {!compact ? (
                       <p className="text-xs mt-1">Arraste um card ou use o quick-add</p>
@@ -771,12 +771,12 @@ export default function TasksManagerPage() {
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#18162A]">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1210]">
             {TASK_SCOPE_LABELS.agency.pageTitle}
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <div className="flex rounded-xl border border-[#E8E5F5] bg-white p-0.5">
+          <div className="flex rounded-xl border border-[#E4DDD4] bg-white p-0.5">
             <Button
               variant={viewMode === 'kanban' ? 'default' : 'ghost'}
               size="sm"
@@ -841,7 +841,7 @@ export default function TasksManagerPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-end">
           {totalTasks > 0 ? (
-            <span className="text-xs text-[#7A7595] tabular-nums">
+            <span className="text-xs text-[#6B635C] tabular-nums">
               {totalTasks} tarefa{totalTasks !== 1 ? 's' : ''}
             </span>
           ) : null}
@@ -1048,7 +1048,7 @@ export default function TasksManagerPage() {
 
       {/* Quadro Kanban ou Calendário semanal */}
       {viewMode === 'week' ? (
-        <div className="rounded-2xl p-4 bg-[#EEF4FA]/50">
+        <div className="rounded-2xl p-4 bg-[#F1EDE7]/50">
           <TaskCalendarView
             tasks={filteredTasks.map((task) => {
               const assigneeId = getTaskAssigneeId(task);
@@ -1074,7 +1074,7 @@ export default function TasksManagerPage() {
           />
         </div>
       ) : (
-      <div className="rounded-2xl p-4 bg-[#EEF4FA]/50">
+      <div className="rounded-2xl p-4 bg-[#F1EDE7]/50">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Mobile: uma coluna por vez (evita só scroll horizontal) */}
           <div className="lg:hidden space-y-3">

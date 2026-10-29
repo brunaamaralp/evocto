@@ -40,7 +40,7 @@ input[type='month']:focus,
 input[type='datetime-local']:focus,
 input.navi-typable-date:focus {
   border-color: var(--v500);
-  box-shadow: 0 0 0 3px rgba(192, 40, 7, 0.08);
+  box-shadow: 0 0 0 3px rgba(184, 0, 21, 0.08);
 }
 
 input[type='date']:disabled,
