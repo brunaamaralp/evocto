@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useId, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
   AlertCircle,
@@ -7,9 +7,9 @@ import {
   FileUp,
   Loader2,
   Upload,
-  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAccount } from '@/api/appwriteClient';
 import { friendlyError } from '@/lib/errorMessages';
 import {
   EXTRACT_BRIEFING_ACCEPT,
@@ -36,69 +36,7 @@ const FIELD_LABELS = {
   produtos_linhas: 'Produtos / frentes',
 };
 
-const LOADING_STEPS = [
-  'Lendo o documento…',
-  'Identificando o nicho…',
-  'Estruturando o DNA da marca…',
-  'Preenchendo o formulário…',
-];
-
-function StatusBar({ status, loadingStep, elapsedSec, errorHint, successText, onDismiss }) {
-  if (typeof document === 'undefined') return null;
-  if (status === 'idle') return null;
-
-  const tone =
-    status === 'error'
-      ? 'border-red-300 bg-red-600 text-white'
-      : status === 'success'
-        ? 'border-emerald-300 bg-emerald-700 text-white'
-        : 'border-[#B80015]/bg-[#1A1210] text-white';
-
-  const body =
-    status === 'loading'
-      ? `${LOADING_STEPS[loadingStep]} (${elapsedSec}s)`
-      : status === 'error'
-        ? errorHint || 'Falha na importação'
-        : successText || 'Importação concluída';
-
-  return createPortal(
-    <div
-      role={status === 'error' ? 'alert' : 'status'}
-      className={`fixed inset-x-0 top-0 z-[100] border-b px-4 py-3 shadow-lg ${tone}`}
-    >
-      <div className="mx-auto flex max-w-3xl items-start gap-3">
-        {status === 'loading' ? (
-          <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" aria-hidden />
-        ) : status === 'error' ? (
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-        ) : (
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">
-            {status === 'loading'
-              ? 'Importando briefing…'
-              : status === 'error'
-                ? 'Importação falhou'
-                : 'Importação ok'}
-          </p>
-          <p className="mt-0.5 text-sm opacity-95 break-words">{body}</p>
-        </div>
-        {status !== 'loading' && onDismiss ? (
-          <button
-            type="button"
-            className="rounded-md p-1 hover:bg-white/15"
-            aria-label="Fechar"
-            onClick={onDismiss}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        ) : null}
-      </div>
-    </div>,
-    document.body
-  );
-}
+const UI_VERSION = 'Import UI v8';
 
 /**
  * Upload → motor Narrativa → preenche formulário para revisão.
@@ -110,70 +48,44 @@ export default function BriefingInicialFileImport({
   disabled = false,
   autoFocus = false,
 }) {
+  const inputId = useId();
   const inputRef = useRef(null);
   const rootRef = useRef(null);
   const formRef = useRef(form);
+  const busyRef = useRef(false);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [errorHint, setErrorHint] = useState(null);
   const [analise, setAnalise] = useState(null);
   const [avisos, setAvisos] = useState([]);
   const [appliedLabels, setAppliedLabels] = useState([]);
   const [dragOver, setDragOver] = useState(false);
-  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [status, setStatus] = useState('idle');
   const [successText, setSuccessText] = useState('');
+  const [logs, setLogs] = useState([]);
 
   formRef.current = form;
+
+  const log = (line) => {
+    const stamp = new Date().toLocaleTimeString('pt-BR');
+    const entry = `${stamp} · ${line}`;
+    console.info('[BriefingImport]', line);
+    setLogs((prev) => [...prev.slice(-12), entry]);
+  };
 
   useEffect(() => {
     if (!autoFocus) return;
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [autoFocus]);
 
-  // PWA: se o SW estiver com bundle antigo, desregistra e recarrega 1x
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    const key = 'briefing_import_sw_bust_v7';
-    if (sessionStorage.getItem(key)) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        if (cancelled || !regs.length) return;
-        sessionStorage.setItem(key, '1');
-        await Promise.all(regs.map((r) => r.unregister()));
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((k) => caches.delete(k)));
-        }
-        window.location.reload();
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   useEffect(() => {
     if (!loading) {
-      setLoadingStep(0);
       setElapsedSec(0);
       return undefined;
     }
-    const stepId = setInterval(() => {
-      setLoadingStep((s) => (s + 1) % LOADING_STEPS.length);
-    }, 2200);
-    const tickId = setInterval(() => {
-      setElapsedSec((s) => s + 1);
-    }, 1000);
-    return () => {
-      clearInterval(stepId);
-      clearInterval(tickId);
-    };
+    const tickId = setInterval(() => setElapsedSec((s) => s + 1), 1000);
+    return () => clearInterval(tickId);
   }, [loading]);
 
   const fail = (err) => {
@@ -182,27 +94,23 @@ export default function BriefingInicialFileImport({
       rawMsg.length > 12 && /\s/.test(rawMsg)
         ? rawMsg
         : friendlyError(err?.code || rawMsg || err, 'action');
-    console.error('[BriefingImport]', err?.code || err?.name || 'error', err);
-    setErrorHint(msg);
-    setStatus('error');
+    log(`ERRO: ${msg}`);
+    flushSync(() => {
+      setErrorHint(msg);
+      setStatus('error');
+      setLoading(false);
+    });
     if (err?.body?.analise) setAnalise(err.body.analise);
     try {
-      toast.error(msg, {
-        description: 'Você ainda pode preencher o DNA manualmente abaixo.',
-        duration: 10000,
-      });
-    } catch {
-      /* toast opcional */
-    }
-    // Feedback impossível de ignorar (PWA/toast às vezes falham)
-    try {
-      window.alert(`Importação falhou:\n\n${msg}`);
+      toast.error(msg, { duration: 12000 });
     } catch {
       /* ignore */
     }
   };
 
   const runExtract = async (selected) => {
+    log(`Arquivo recebido: ${selected?.name || '(vazio)'} (${selected?.size || 0} bytes)`);
+
     if (!selected) {
       fail({ message: 'Nenhum arquivo foi selecionado.' });
       return;
@@ -210,34 +118,44 @@ export default function BriefingInicialFileImport({
     if (disabled) {
       fail({
         message:
-          'A importação está desabilitada neste momento (briefing já concluído ou salvando).',
+          'A importação está desabilitada (briefing concluído ou salvando).',
       });
       return;
     }
-    if (loading) return;
+    if (busyRef.current) {
+      log('Ignorado: já há uma importação em andamento');
+      fail({ message: 'Já há uma importação em andamento. Aguarde.' });
+      return;
+    }
 
-    setFile(selected);
-    setLoading(true);
-    setStatus('loading');
-    setErrorHint(null);
-    setAnalise(null);
-    setAvisos([]);
-    setAppliedLabels([]);
-    setSuccessText('');
+    busyRef.current = true;
+    flushSync(() => {
+      setFile(selected);
+      setLoading(true);
+      setStatus('loading');
+      setErrorHint(null);
+      setAnalise(null);
+      setAvisos([]);
+      setAppliedLabels([]);
+      setSuccessText('');
+    });
+    log('UI: status=loading');
 
     try {
-      toast.message('Importando briefing…', {
-        description: 'Isso pode levar até cerca de 1 minuto.',
-        duration: 5000,
-      });
+      toast.message('Importando briefing…', { duration: 6000 });
     } catch {
       /* ignore */
     }
 
     try {
+      log('Chamando API de extração…');
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
       });
+      log(
+        `API ok · filled_keys=${(result.filled_keys || []).join(',') || '(nenhuma)'}`
+      );
+
       const filledKeys = result.filled_keys || [];
       const { form: merged, filledKeys: appliedKeys } =
         mergeBriefingInicialFromExtract(
@@ -251,17 +169,22 @@ export default function BriefingInicialFileImport({
           { filledKeys }
         );
 
-      setAnalise(result.analise || null);
-      setAvisos(result.avisos || []);
       const labels = appliedKeys
         .map((k) => FIELD_LABELS[k] || k)
         .filter(Boolean);
-      setAppliedLabels(labels);
-      setStatus('success');
       const successMsg = labels.length
         ? `${labels.length} campo(s) preenchidos. Revise o DNA e salve.`
         : 'Documento lido. Revise a análise e complete o formulário.';
-      setSuccessText(successMsg);
+
+      flushSync(() => {
+        setAnalise(result.analise || null);
+        setAvisos(result.avisos || []);
+        setAppliedLabels(labels);
+        setStatus('success');
+        setSuccessText(successMsg);
+        setLoading(false);
+      });
+      log(`SUCESSO: ${successMsg}`);
 
       onApply?.(merged, {
         filename: selected.name,
@@ -273,58 +196,138 @@ export default function BriefingInicialFileImport({
       });
 
       try {
-        toast.success(successMsg, { duration: 8000 });
+        toast.success(successMsg, { duration: 10000 });
       } catch {
         /* ignore */
       }
 
-      requestAnimationFrame(() => {
-        document
-          .getElementById('empresa-form-heading')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
+      document
+        .getElementById('empresa-form-heading')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       fail(err);
     } finally {
+      busyRef.current = false;
       setLoading(false);
       if (inputRef.current) inputRef.current.value = '';
     }
   };
 
-  const acceptFile = async (next) => {
-    if (!next) {
-      fail({ message: 'Nenhum arquivo foi selecionado.' });
-      return;
-    }
-    await runExtract(next);
-  };
-
   const handlePick = async (e) => {
     const next = e.target.files?.[0] || null;
-    await acceptFile(next);
+    log(`onChange do input: ${next ? next.name : 'sem arquivo'}`);
+    await runExtract(next);
   };
 
   const onDrop = async (e) => {
     e.preventDefault();
     setDragOver(false);
-    if (disabled || loading) return;
-    await acceptFile(e.dataTransfer.files?.[0] || null);
+    const next = e.dataTransfer.files?.[0] || null;
+    log(`drop: ${next ? next.name : 'sem arquivo'}`);
+    await runExtract(next);
+  };
+
+  const testApi = async () => {
+    log('Diagnóstico: testando sessão + endpoint…');
+    flushSync(() => {
+      setStatus('loading');
+      setLoading(true);
+      setErrorHint(null);
+    });
+    try {
+      let jwt = '';
+      try {
+        const res = await getAccount().createJWT();
+        jwt = res?.jwt || '';
+        log(jwt ? `JWT ok (${jwt.slice(0, 12)}…)` : 'JWT vazio');
+      } catch (err) {
+        log(`JWT falhou: ${err?.message || err}`);
+        throw Object.assign(new Error('session_required'), {
+          code: 'session_required',
+          message: `Falha ao criar JWT: ${err?.message || err}`,
+        });
+      }
+      if (!jwt) {
+        throw Object.assign(new Error('session_required'), {
+          code: 'session_required',
+        });
+      }
+
+      const res = await fetch('/.netlify/functions/extract-briefing-inicial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({
+          filename: 'diag.txt',
+          mimeType: 'text/plain',
+          contentBase64: btoa('diagnostico de importacao de briefing inicial'),
+          clientName: clientName || 'Diagnostico',
+        }),
+      });
+      const text = await res.text();
+      log(`HTTP ${res.status}: ${text.slice(0, 180)}`);
+      if (!res.ok) {
+        let msg = `Endpoint respondeu ${res.status}`;
+        try {
+          const body = JSON.parse(text);
+          msg = body.message || body.error || msg;
+        } catch {
+          /* ignore */
+        }
+        throw Object.assign(new Error(msg), { status: res.status });
+      }
+      flushSync(() => {
+        setStatus('success');
+        setSuccessText('Diagnóstico OK — endpoint e sessão funcionam.');
+        setLoading(false);
+      });
+      toast.success('Diagnóstico OK');
+    } catch (err) {
+      fail(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const hasResult = Boolean(analise) || appliedLabels.length > 0;
+  const statusTone =
+    status === 'error'
+      ? 'border-red-400 bg-red-100 text-red-950'
+      : status === 'success'
+        ? 'border-emerald-400 bg-emerald-100 text-emerald-950'
+        : status === 'loading'
+          ? 'border-amber-400 bg-amber-100 text-amber-950'
+          : 'border-[#E8E4F4] bg-[#F8F6FC] text-[#5B5680]';
 
   return (
     <div className="space-y-4" ref={rootRef} id="briefing-file-import">
-      <StatusBar
-        status={status}
-        loadingStep={loadingStep}
-        elapsedSec={elapsedSec}
-        errorHint={errorHint}
-        successText={successText}
-        onDismiss={() => {
-          if (status !== 'loading') setStatus('idle');
-        }}
-      />
+      {/* Status sempre visível no fluxo da página (não depende de portal/toast) */}
+      <div
+        role={status === 'error' ? 'alert' : 'status'}
+        className={`rounded-xl border-2 px-4 py-3 ${statusTone}`}
+        data-import-status={status}
+      >
+        <p className="text-sm font-bold">
+          {status === 'loading'
+            ? `Importando… ${elapsedSec}s`
+            : status === 'error'
+              ? 'Importação falhou'
+              : status === 'success'
+                ? 'Importação ok'
+                : 'Aguardando arquivo'}
+        </p>
+        <p className="mt-1 text-sm break-words">
+          {status === 'loading'
+            ? 'Lendo o documento e montando o DNA. Não feche a página.'
+            : status === 'error'
+              ? errorHint || 'Erro desconhecido'
+              : status === 'success'
+                ? successText
+                : 'Escolha um PDF, DOCX ou TXT para começar.'}
+        </p>
+      </div>
 
       <section
         aria-labelledby="briefing-file-import-title"
@@ -336,9 +339,7 @@ export default function BriefingInicialFileImport({
               ? 'border-red-300 bg-red-50'
               : status === 'success'
                 ? 'border-emerald-300 bg-emerald-50'
-                : hasResult
-                  ? 'border-[#E8E4F4] bg-white'
-                  : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
+                : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
         }`}
         onDragEnter={(e) => {
           e.preventDefault();
@@ -364,46 +365,33 @@ export default function BriefingInicialFileImport({
                 Importar de arquivo
               </h2>
               <p className="mt-0.5 text-sm text-[#6B635C]">
-                PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo — a leitura
-                preenche o formulário para você revisar.
+                PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo.
               </p>
-              <p className="mt-2 rounded-md bg-[#B80015] px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
-                Import UI v7 — {typeof window !== 'undefined' ? window.location.host : ''}
+              <p className="mt-2 inline-block rounded-md bg-[#B80015] px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                {UI_VERSION}
               </p>
               {file ? (
-                <p
-                  className="mt-1 truncate text-xs font-medium text-[#5B5680]"
-                  title={file.name}
-                >
+                <p className="mt-1 truncate text-xs font-medium text-[#5B5680]">
                   Arquivo: {file.name}
                 </p>
               ) : null}
             </div>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
             <input
+              id={inputId}
               ref={inputRef}
               type="file"
               accept={EXTRACT_BRIEFING_ACCEPT}
               className="sr-only"
               onChange={handlePick}
-              disabled={disabled || loading}
             />
-            <Button
-              type="button"
-              className="w-full bg-[#B80015] hover:bg-[#8A0010] text-white sm:w-auto"
-              disabled={disabled || loading}
-              onClick={() => {
-                if (disabled) {
-                  fail({
-                    message:
-                      'A importação está desabilitada (briefing concluído ou salvando).',
-                  });
-                  return;
-                }
-                inputRef.current?.click();
-              }}
+            <label
+              htmlFor={inputId}
+              className={`inline-flex cursor-pointer items-center justify-center rounded-md bg-[#B80015] px-4 py-2 text-sm font-medium text-white hover:bg-[#8A0010] ${
+                loading ? 'pointer-events-none opacity-70' : ''
+              }`}
             >
               {loading ? (
                 <>
@@ -418,62 +406,42 @@ export default function BriefingInicialFileImport({
                     : 'Escolher arquivo'}
                 </>
               )}
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              onClick={testApi}
+            >
+              Testar API de importação
             </Button>
           </div>
         </div>
 
-        {loading ? (
-          <div
-            role="status"
-            className="mt-4 rounded-xl border border-[#E8E4F4] bg-[#F8F6FC] px-3 py-3 text-sm text-[#5B5680]"
-          >
-            <div className="flex items-center gap-2">
-              <Loader2
-                className="h-4 w-4 shrink-0 animate-spin text-[#B80015]"
-                aria-hidden
-              />
-              <span className="font-medium text-[#1A1210]">
-                {LOADING_STEPS[loadingStep]}
-              </span>
-            </div>
-            <p className="mt-1.5 text-xs text-[#9A94B0]">
-              {elapsedSec}s decorridos · não feche esta página.
-            </p>
-          </div>
-        ) : null}
-
-        {errorHint && !loading ? (
-          <div
-            role="alert"
-            className="mt-3 flex gap-2 rounded-xl border border-red-300 bg-red-100 px-3 py-3 text-sm text-red-950"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <div>
-              <p className="font-semibold">Não foi possível importar</p>
-              <p className="mt-0.5">{errorHint}</p>
-              <p className="mt-1.5 text-xs text-red-900/80">
-                Tente TXT/DOCX ou um PDF com texto selecionável. Ou preencha o
-                DNA manualmente.
-              </p>
-            </div>
-          </div>
-        ) : null}
-
-        {status === 'success' && !loading ? (
-          <div
-            role="status"
-            className="mt-3 flex gap-2 rounded-xl border border-emerald-300 bg-emerald-100 px-3 py-3 text-sm text-emerald-950"
-          >
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <div>
-              <p className="font-semibold">{successText}</p>
-              {appliedLabels.length > 0 ? (
-                <p className="mt-1 text-xs">{appliedLabels.join(' · ')}</p>
-              ) : null}
-            </div>
-          </div>
+        {appliedLabels.length > 0 && status === 'success' ? (
+          <p className="mt-3 text-xs text-[#5B5680]">
+            Campos: <span className="font-medium">{appliedLabels.join(' · ')}</span>
+          </p>
         ) : null}
       </section>
+
+      <div className="rounded-xl border border-[#E8E4F4] bg-white px-3 py-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9A94B0]">
+          Log da importação
+        </p>
+        {logs.length === 0 ? (
+          <p className="mt-1 text-xs text-[#9A94B0]">
+            Os passos aparecem aqui ao escolher o arquivo ou testar a API.
+          </p>
+        ) : (
+          <ul className="mt-1 max-h-40 space-y-0.5 overflow-y-auto font-mono text-[11px] text-[#1A1210]">
+            {logs.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <BriefingNarrativaAnaliseCard analise={analise} avisos={avisos} />
     </div>

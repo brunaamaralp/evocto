@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@/lib/appwrite', () => ({
-  createSessionJwt: vi.fn(async () => 'test-jwt'),
+vi.mock('@/api/appwriteClient', () => ({
+  getAccount: () => ({
+    createJWT: vi.fn(async () => ({ jwt: 'test-jwt' })),
+  }),
 }));
 
 vi.mock('@/lib/authInterceptor', () => ({
@@ -45,7 +47,6 @@ describe('extractBriefingInicialFromFile', () => {
       headers: { get: () => 'text/html' },
       text: async () => '<!doctype html><html><body>app</body></html>',
     };
-    // Tenta /api e depois /.netlify/functions — ambos HTML
     authedFetch.mockResolvedValue(htmlRes);
 
     await expect(
@@ -54,7 +55,7 @@ describe('extractBriefingInicialFromFile', () => {
     expect(authedFetch).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back to Netlify function path when /api is unavailable', async () => {
+  it('falls back to /api when functions path is unavailable', async () => {
     const htmlRes = {
       ok: true,
       status: 200,

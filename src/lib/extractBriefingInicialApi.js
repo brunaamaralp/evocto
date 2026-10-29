@@ -1,4 +1,4 @@
-import { createSessionJwt } from '@/lib/appwrite';
+import { getAccount } from '@/api/appwriteClient';
 import { authedFetch } from '@/lib/authInterceptor';
 import { friendlyError } from '@/lib/errorMessages';
 import {
@@ -9,15 +9,37 @@ import {
 /** Cliente aborta um pouco após o timeout da function Netlify (26s). */
 const CLIENT_TIMEOUT_MS = 55_000;
 
+async function createJwtForExtract() {
+  try {
+    const res = await Promise.race([
+      getAccount().createJWT(),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('jwt_timeout')), 10000);
+      }),
+    ]);
+    return res?.jwt || '';
+  } catch (err) {
+    const code =
+      String(err?.message || '').includes('jwt_timeout')
+        ? 'session_required'
+        : 'session_required';
+    const e = new Error(
+      code === 'session_required'
+        ? 'Sessão expirada ou JWT indisponível. Faça login novamente.'
+        : String(err?.message || err)
+    );
+    e.code = 'session_required';
+    e.cause = err;
+    throw e;
+  }
+}
+
 async function authHeaders(extra = {}) {
-  const jwt = await Promise.race([
-    createSessionJwt(),
-    new Promise((resolve) => {
-      setTimeout(() => resolve(''), 8000);
-    }),
-  ]);
+  const jwt = await createJwtForExtract();
   if (!jwt) {
-    const err = new Error('session_required');
+    const err = new Error(
+      'Sessão expirada ou JWT indisponível. Faça login novamente.'
+    );
     err.code = 'session_required';
     throw err;
   }
