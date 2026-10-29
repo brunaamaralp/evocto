@@ -8,6 +8,7 @@ import {
   extractBriefingInicialFromFile,
 } from '@/lib/extractBriefingInicialApi';
 import { mergeBriefingInicialFromExtract } from '@/lib/extractBriefingInicialSchema';
+import BriefingNarrativaAnaliseCard from '@/components/briefing/BriefingNarrativaAnaliseCard';
 
 const FIELD_LABELS = {
   nome: 'Nome',
@@ -20,7 +21,7 @@ const FIELD_LABELS = {
 };
 
 /**
- * Upload de PDF/DOCX/TXT → extrai DNA → aplica no formulário para revisão.
+ * Upload de PDF/DOCX/TXT → motor Narrativa → preenche formulário para revisão.
  */
 export default function BriefingInicialFileImport({
   form,
@@ -36,6 +37,8 @@ export default function BriefingInicialFileImport({
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState(null);
   const [errorHint, setErrorHint] = useState(null);
+  const [analiseMarkdown, setAnaliseMarkdown] = useState('');
+  const [avisos, setAvisos] = useState([]);
 
   formRef.current = form;
 
@@ -48,6 +51,8 @@ export default function BriefingInicialFileImport({
     setFile(null);
     setHint(null);
     setErrorHint(null);
+    setAnaliseMarkdown('');
+    setAvisos([]);
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -56,6 +61,8 @@ export default function BriefingInicialFileImport({
     setLoading(true);
     setHint(null);
     setErrorHint(null);
+    setAnaliseMarkdown('');
+    setAvisos([]);
     try {
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
@@ -64,16 +71,25 @@ export default function BriefingInicialFileImport({
       const { form: merged, filledKeys: appliedKeys } =
         mergeBriefingInicialFromExtract(
           formRef.current,
-          result.form || { empresa: result.empresa },
+          {
+            ...(result.form || { empresa: result.empresa }),
+            analise: result.analise,
+            empresa: result.empresa || result.form?.empresa,
+          },
           clientName,
           { filledKeys }
         );
+
+      setAnaliseMarkdown(result.analise_markdown || '');
+      setAvisos(result.avisos || []);
 
       onApply?.(merged, {
         filename: selected.name,
         filled: appliedKeys.length,
         filledKeys: appliedKeys,
         avisos: result.avisos || [],
+        analise: result.analise,
+        analiseMarkdown: result.analise_markdown || '',
       });
 
       const labels = appliedKeys
@@ -81,23 +97,19 @@ export default function BriefingInicialFileImport({
         .filter(Boolean);
       toast.success(
         labels.length
-          ? `Preenchemos: ${labels.join(', ')}. Revise e salve.`
-          : 'Arquivo lido. Revise o formulário e salve.'
+          ? `Análise Narrativa pronta. Preenchemos: ${labels.join(', ')}. Revise e salve.`
+          : 'Arquivo lido. Revise a análise e o formulário.'
       );
 
-      const avisoTxt =
-        Array.isArray(result.avisos) && result.avisos.length
-          ? ` · ${result.avisos.slice(0, 2).join(' · ')}`
-          : '';
       setHint(
         labels.length
-          ? `Campos atualizados: ${labels.join(', ')}${avisoTxt}`
-          : `Importado de “${selected.name}”. Confira os campos abaixo.`
+          ? `Campos atualizados: ${labels.join(', ')}. Valores com [Inferido] foram deduzidos — confira.`
+          : `Importado de “${selected.name}”. Confira a análise e o formulário.`
       );
 
       requestAnimationFrame(() => {
         document
-          .querySelector('[data-section="empresa"]')
+          .getElementById('narrativa-analise-heading')
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     } catch (err) {
@@ -106,6 +118,9 @@ export default function BriefingInicialFileImport({
         err?.message ||
         'Não foi possível ler o arquivo.';
       setErrorHint(msg);
+      if (err?.body?.analise_markdown) {
+        setAnaliseMarkdown(err.body.analise_markdown);
+      }
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -142,8 +157,9 @@ export default function BriefingInicialFileImport({
             Importar briefing de arquivo
           </p>
           <p className="text-sm text-[#7A7595] mt-1">
-            O sistema lê o documento e responde aos campos do formulário
-            (público, tom, produtos…). Você revisa e salva.
+            Motor Narrativa: identifica o nicho, extrai o explícito, infere
+            lacunas com justificativa e preenche o DNA da marca para você
+            revisar.
           </p>
         </div>
       </div>
@@ -211,6 +227,11 @@ export default function BriefingInicialFileImport({
           pode falhar.
         </p>
       )}
+
+      <BriefingNarrativaAnaliseCard
+        markdown={analiseMarkdown}
+        avisos={avisos}
+      />
     </section>
   );
 }

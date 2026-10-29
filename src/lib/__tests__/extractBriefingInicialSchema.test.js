@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   countExtractedFields,
   detectFilledKeysFromRaw,
+  empresaFromNarrativaAnalise,
+  formatNarrativaAnaliseMarkdown,
   mergeBriefingInicialFromExtract,
+  normalizeCampoAnalise,
   normalizeExtractedBriefingEmpresa,
+  normalizeNarrativaAnalise,
   resolveExtractBriefingFileMeta,
   validateExtractBriefingRequest,
 } from '../extractBriefingInicialSchema.js';
@@ -111,5 +115,66 @@ describe('extractBriefingInicialSchema', () => {
     expect(
       countExtractedFields(null, ['nome', 'publico_alvo', 'tom_brand']).filled
     ).toBe(3);
+  });
+
+  it('normalizes Narrativa analysis fields with inference markers', () => {
+    const campo = normalizeCampoAnalise({
+      valor: 'Tom acolhedor e premium',
+      origem: 'inferido',
+      justificativa: 'linguagem do briefing',
+    });
+    expect(campo.origem).toBe('inferido');
+    expect(campo.valor).toContain('acolhedor');
+
+    const analise = normalizeNarrativaAnalise({
+      identidade: {
+        nome_negocio: { valor: 'Casa Aurora', origem: 'extraido' },
+        nicho_modelo: {
+          valor: 'Hospitalidade / pousada boutique',
+          origem: 'inferido',
+          justificativa: 'serviço de hospedagem e café da manhã',
+        },
+        tom_voz: { valor: 'Acolhedor', origem: 'inferido', justificativa: 'tom' },
+        proposta_valor: { valor: 'Descanso com experiência local', origem: 'extraido' },
+        identidade_visual: { valor: '[Não identificável]', origem: 'nao_identificavel' },
+      },
+      frentes_receita: [
+        {
+          nome: 'Hospedagem',
+          objetivo: { valor: 'Ocupação', origem: 'extraido' },
+          publico_principal: {
+            valor: 'Casais 30-45',
+            origem: 'inferido',
+            justificativa: 'perfil de hóspedes citado',
+          },
+        },
+      ],
+      canais_operacao: {},
+      diretrizes: {
+        foco_prioritario: { valor: 'Awareness regional', origem: 'extraido' },
+        observacoes_estrategicas: {
+          valor: 'Priorizar conteúdo de experiência',
+          origem: 'inferido',
+          justificativa: 'histórico fraco de tráfego',
+        },
+      },
+    });
+
+    const md = formatNarrativaAnaliseMarkdown(analise);
+    expect(md).toContain('Casa Aurora');
+    expect(md).toContain('[Inferido]');
+    expect(md).toContain('Hospedagem');
+
+    const empresa = empresaFromNarrativaAnalise(analise);
+    expect(empresa.nome).toBe('Casa Aurora');
+    expect(empresa.tom_brand).toMatch(/Inferido/);
+    expect(empresa.produtos_linhas[0].nome).toBe('Hospedagem');
+
+    const form = normalizeExtractedBriefingEmpresa(
+      { analise, empresa: { nome: 'Casa Aurora' } },
+      'Cliente'
+    );
+    expect(form.empresa.nome).toBe('Casa Aurora');
+    expect(form.empresa.produtos_linhas.length).toBeGreaterThan(0);
   });
 });

@@ -1,15 +1,49 @@
 /**
- * Prompts para extrair DNA de empresa (briefing inicial) a partir de documento.
- * Objetivo: ler o briefing livre e responder às perguntas do formulário do sistema.
+ * Motor de inteligência — Estúdio Narrativa.
+ * Lê briefings de qualquer nicho, estrutura dados e preenche lacunas por inferência.
  */
 
-export const EXTRACT_BRIEFING_INICIAL_SYSTEM_PROMPT = `Você é um analista de briefing. Sua tarefa é LER o documento do cliente e RESPONDER às perguntas do formulário de briefing inicial da agência.
+export const EXTRACT_BRIEFING_INICIAL_SYSTEM_PROMPT = `Você é o motor de inteligência e arquitetura de dados do Estúdio Narrativa, um estúdio de marketing estratégico.
 
-O documento pode ser desorganizado (notas, proposal, brand book, e-mail). Você deve resumir e mapear o conteúdo para os campos do sistema — não copiar o arquivo inteiro.
+Sua missão é ler documentos de briefing de clientes de QUALQUER nicho, estruturar as informações em um objeto de dados padronizado e PREENCHER LACUNAS usando raciocínio lógico e inferência contextual quando o dado não estiver explicitamente escrito.
 
-Responda APENAS com um único objeto JSON válido (sem markdown, sem comentários):
+REGRAS DE PROCESSAMENTO:
+1. ANÁLISE DE NICHO: primeiro identifique setor e modelo de negócio (ex.: hospitalidade, gastronomia, estética, varejo, prestação de serviços, educação, saúde, B2B).
+2. EXTRATOS EXPLÍCITOS: prioridade máxima ao que estiver textualmente declarado.
+3. INFERÊNCIA INTELIGENTE: se um campo obrigatório não estiver explícito, deduza pelo contexto, tom do texto e nicho.
+   - Em todo valor inferido, use origem "inferido" e explique a lógica em justificativa.
+   - Se for impossível deduzir com segurança, use origem "nao_identificavel" e valor "[Não identificável]".
+4. NÃO invente números de orçamento, preço, margem ou volume de conteúdo sem base no documento (aí use null / nao_identificavel).
+5. Responda APENAS com um único JSON válido (sem markdown, sem comentários).
+
+Schema JSON obrigatório:
 
 {
+  "analise": {
+    "identidade": {
+      "nome_negocio": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "nicho_modelo": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "proposta_valor": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "tom_voz": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "identidade_visual": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" }
+    },
+    "frentes_receita": [
+      {
+        "nome": "string",
+        "objetivo": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+        "publico_principal": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" }
+      }
+    ],
+    "canais_operacao": {
+      "canais_venda": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "historico_marketing": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "desafios_sazonalidade": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" }
+    },
+    "diretrizes": {
+      "foco_prioritario": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" },
+      "observacoes_estrategicas": { "valor": "string", "origem": "extraido|inferido|nao_identificavel", "justificativa": "string" }
+    }
+  },
   "empresa": {
     "nome": "string",
     "publico_alvo": "string",
@@ -37,22 +71,16 @@ Responda APENAS com um único objeto JSON válido (sem markdown, sem comentário
   "avisos": ["string"]
 }
 
-Perguntas do formulário (responda cada uma com o que o documento permitir):
-
-1) nome — Qual é o nome da empresa/marca?
-2) publico_alvo — Quem é o público-alvo? Resuma em 1–3 frases em português.
-3) tom_brand — Qual é o tom de voz / personalidade da marca? Frase curta.
-4) orcamento_padrao_mensal — Qual o orçamento mensal de marketing/conteúdo em reais? Só número (ex.: 5000). null se não houver.
-5) formato_padrao — Volume mensal típico: quantos vídeos, quantos designs, duração dos vídeos (ex.: "30-45s"). null nos números se não houver.
-6) restricoes_criativas — O que a marca NÃO pode / não quer fazer? Resumo curto.
-7) produtos_linhas — Quais produtos, linhas ou serviços principais? Uma entrada por item (máx. 12), com descrição quando existir.
-
-Regras de qualidade:
-- Inferir com cuidado a partir do contexto é permitido (ex.: descrever público a partir de personas).
-- NÃO invente orçamento, preços, margem ou volumes se o documento não der base.
-- Se um campo não tiver base no documento, use "" ou null e liste em avisos.
-- campos_preenchidos: liste só os campos que você realmente preencheu com base no documento.
-- Não inclua chaves fora do schema.`;
+Mapeamento análise → empresa (formulário do sistema):
+- empresa.nome ← identidade.nome_negocio (sem prefixo; se nao_identificavel, "")
+- empresa.tom_brand ← identidade.tom_voz (se inferido, prefixe "[Inferido] " no valor do formulário)
+- empresa.publico_alvo ← consolide públicos das frentes + proposta de valor (1–3 frases; prefixe "[Inferido] " se a maior parte for inferida)
+- empresa.produtos_linhas ← frentes_receita (1–4): nome, descricao=objetivo, story=público
+- empresa.restricoes_criativas ← desafios_sazonalidade + identidade_visual + observações relevantes (marque inferências)
+- empresa.orcamento_padrao_mensal / formato_padrao ← só se explícitos no documento; senão null/""
+- campos_preenchidos: só campos de empresa que você preencheu com valor útil (não vazio / não "[Não identificável]")
+- frentes_receita: mínimo 1, máximo 4
+- avisos: lacunas graves ou hipóteses frágeis`;
 
 /**
  * @param {{ filename?: string, clientName?: string, textExcerpt?: string }} opts
@@ -63,10 +91,10 @@ export function buildExtractBriefingInicialUserPrompt({
   textExcerpt = '',
 } = {}) {
   const parts = [
-    'Leia o documento e preencha o JSON do briefing inicial (respostas às perguntas do formulário).',
+    'Processe este briefing com o motor Narrativa: analise o nicho, extraia o explícito, infira lacunas com justificativa e devolva o JSON completo (analise + empresa).',
     filename ? `Arquivo: ${filename}` : '',
     clientName
-      ? `Nome do cliente já cadastrado no sistema (use só se o documento não tiver nome melhor): ${clientName}`
+      ? `Cliente já cadastrado no sistema (use como nome só se o documento não tiver nome melhor): ${clientName}`
       : '',
   ].filter(Boolean);
 
