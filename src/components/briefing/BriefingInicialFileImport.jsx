@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileUp, Loader2, X } from 'lucide-react';
+import { FileUp, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   EXTRACT_BRIEFING_ACCEPT,
@@ -15,13 +14,19 @@ const FIELD_LABELS = {
   publico_alvo: 'Público-alvo',
   tom_brand: 'Tom de marca',
   orcamento_padrao_mensal: 'Orçamento',
-  formato_padrao: 'Formato (vídeos/designs)',
+  formato_padrao: 'Formato',
   restricoes_criativas: 'Restrições',
-  produtos_linhas: 'Produtos/linhas',
+  produtos_linhas: 'Produtos',
 };
 
+const LOADING_STEPS = [
+  'Lendo o documento…',
+  'Identificando o nicho…',
+  'Estruturando o DNA da marca…',
+];
+
 /**
- * Upload de PDF/DOCX/TXT → motor Narrativa → preenche formulário para revisão.
+ * Upload → motor Narrativa → preenche formulário para revisão.
  */
 export default function BriefingInicialFileImport({
   form,
@@ -35,10 +40,12 @@ export default function BriefingInicialFileImport({
   const formRef = useRef(form);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [hint, setHint] = useState(null);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [errorHint, setErrorHint] = useState(null);
-  const [analiseMarkdown, setAnaliseMarkdown] = useState('');
+  const [analise, setAnalise] = useState(null);
   const [avisos, setAvisos] = useState([]);
+  const [appliedLabels, setAppliedLabels] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
 
   formRef.current = form;
 
@@ -47,22 +54,24 @@ export default function BriefingInicialFileImport({
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [autoFocus]);
 
-  const clearFile = () => {
-    setFile(null);
-    setHint(null);
-    setErrorHint(null);
-    setAnaliseMarkdown('');
-    setAvisos([]);
-    if (inputRef.current) inputRef.current.value = '';
-  };
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return undefined;
+    }
+    const id = setInterval(() => {
+      setLoadingStep((s) => (s + 1) % LOADING_STEPS.length);
+    }, 2200);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const runExtract = async (selected) => {
     if (!selected || loading || disabled) return;
     setLoading(true);
-    setHint(null);
     setErrorHint(null);
-    setAnaliseMarkdown('');
+    setAnalise(null);
     setAvisos([]);
+    setAppliedLabels([]);
     try {
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
@@ -80,8 +89,12 @@ export default function BriefingInicialFileImport({
           { filledKeys }
         );
 
-      setAnaliseMarkdown(result.analise_markdown || '');
+      setAnalise(result.analise || null);
       setAvisos(result.avisos || []);
+      const labels = appliedKeys
+        .map((k) => FIELD_LABELS[k] || k)
+        .filter(Boolean);
+      setAppliedLabels(labels);
 
       onApply?.(merged, {
         filename: selected.name,
@@ -92,19 +105,10 @@ export default function BriefingInicialFileImport({
         analiseMarkdown: result.analise_markdown || '',
       });
 
-      const labels = appliedKeys
-        .map((k) => FIELD_LABELS[k] || k)
-        .filter(Boolean);
       toast.success(
         labels.length
-          ? `Análise Narrativa pronta. Preenchemos: ${labels.join(', ')}. Revise e salve.`
-          : 'Arquivo lido. Revise a análise e o formulário.'
-      );
-
-      setHint(
-        labels.length
-          ? `Campos atualizados: ${labels.join(', ')}. Valores com [Inferido] foram deduzidos — confira.`
-          : `Importado de “${selected.name}”. Confira a análise e o formulário.`
+          ? `Pronto. ${labels.length} campo(s) preenchido(s) — revise e salve.`
+          : 'Documento lido. Revise a análise e o formulário.'
       );
 
       requestAnimationFrame(() => {
@@ -118,120 +122,133 @@ export default function BriefingInicialFileImport({
         err?.message ||
         'Não foi possível ler o arquivo.';
       setErrorHint(msg);
-      if (err?.body?.analise_markdown) {
-        setAnaliseMarkdown(err.body.analise_markdown);
-      }
+      if (err?.body?.analise) setAnalise(err.body.analise);
       toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePick = async (e) => {
-    const next = e.target.files?.[0] || null;
+  const acceptFile = async (next) => {
     if (!next) return;
     setFile(next);
     await runExtract(next);
   };
 
+  const handlePick = async (e) => {
+    await acceptFile(e.target.files?.[0] || null);
+  };
+
+  const onDrop = async (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (disabled || loading) return;
+    await acceptFile(e.dataTransfer.files?.[0] || null);
+  };
+
+  const hasResult = Boolean(analise) || appliedLabels.length > 0;
+
   return (
-    <section
-      ref={rootRef}
-      id="briefing-file-import"
-      aria-labelledby="briefing-file-import-title"
-      className={`rounded-2xl border-2 border-dashed px-4 py-5 space-y-4 transition-colors ${
-        autoFocus
-          ? 'border-[#C02807]/40 bg-[#FFF7F4] ring-2 ring-[#C02807]/20'
-          : 'border-[#C02807]/35 bg-[#FFF9F7]'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 rounded-xl bg-white border border-[#F0D5CC] p-2.5 shadow-sm">
-          <FileUp className="w-5 h-5 text-[#C02807]" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p
-            id="briefing-file-import-title"
-            className="text-base font-semibold text-[#18162A]"
-          >
-            Importar briefing de arquivo
-          </p>
-          <p className="text-sm text-[#7A7595] mt-1">
-            Motor Narrativa: identifica o nicho, extrai o explícito, infere
-            lacunas com justificativa e preenche o DNA da marca para você
-            revisar.
-          </p>
-        </div>
-      </div>
+    <div className="space-y-4" ref={rootRef} id="briefing-file-import">
+      <section
+        aria-labelledby="briefing-file-import-title"
+        className={`rounded-2xl border px-4 py-5 transition-colors ${
+          dragOver
+            ? 'border-[#C02807] bg-[#FFF7F4]'
+            : hasResult
+              ? 'border-[#E8E4F4] bg-white'
+              : 'border-dashed border-[#D4CFE8] bg-[#FAFAFB]'
+        }`}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex items-start gap-3">
+            <div className="mt-0.5 rounded-xl border border-[#E8E4F4] bg-white p-2.5">
+              <Upload className="h-4 w-4 text-[#C02807]" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <h2
+                id="briefing-file-import-title"
+                className="text-sm font-semibold text-[#18162A]"
+              >
+                Importar de arquivo
+              </h2>
+              <p className="mt-0.5 text-sm text-[#7A7595]">
+                PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo — a leitura
+                preenche o formulário para você revisar.
+              </p>
+              {file && !loading ? (
+                <p className="mt-1 truncate text-xs text-[#5B5680]" title={file.name}>
+                  {file.name}
+                </p>
+              ) : null}
+            </div>
+          </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept={EXTRACT_BRIEFING_ACCEPT}
-          className="sr-only"
-          onChange={handlePick}
-          disabled={disabled || loading}
-        />
-        <Button
-          type="button"
-          className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
-          disabled={disabled || loading}
-          onClick={() => inputRef.current?.click()}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Lendo e preenchendo… (pode levar até 1 min)
-            </>
-          ) : (
-            <>
-              <FileUp className="w-4 h-4 mr-2" />
-              Escolher PDF, DOCX ou TXT
-            </>
-          )}
-        </Button>
-        {file && !loading ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-[#5B5680] max-w-[260px]">
-            <span className="truncate" title={file.name}>
-              {file.name}
-            </span>
-            <button
+          <div className="shrink-0">
+            <input
+              ref={inputRef}
+              type="file"
+              accept={EXTRACT_BRIEFING_ACCEPT}
+              className="sr-only"
+              onChange={handlePick}
+              disabled={disabled || loading}
+            />
+            <Button
               type="button"
-              className="shrink-0 rounded p-0.5 hover:bg-white"
-              onClick={clearFile}
-              aria-label="Remover arquivo"
-              disabled={loading}
+              className="w-full bg-[#C02807] hover:bg-[#8A1C05] text-white sm:w-auto"
+              disabled={disabled || loading}
+              onClick={() => inputRef.current?.click()}
             >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </span>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Lendo…
+                </>
+              ) : (
+                <>
+                  <FileUp className="mr-2 h-4 w-4" />
+                  {hasResult ? 'Trocar arquivo' : 'Escolher arquivo'}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#F8F6FC] px-3 py-2.5 text-sm text-[#5B5680]">
+            <Loader2 className="h-4 w-4 animate-spin text-[#C02807]" aria-hidden />
+            <span>{LOADING_STEPS[loadingStep]}</span>
+            <span className="text-xs text-[#9A94B0]">· até ~1 min</span>
+          </div>
         ) : null}
-      </div>
 
-      {errorHint ? (
-        <Alert className="border-red-200 bg-red-50 py-2">
-          <AlertDescription className="text-xs text-red-800">
+        {errorHint ? (
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             {errorHint}
-          </AlertDescription>
-        </Alert>
-      ) : hint ? (
-        <Alert className="border-emerald-200 bg-emerald-50/80 py-2">
-          <AlertDescription className="text-xs text-emerald-900">
-            {hint}
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <p className="text-xs text-[#9A94B0]">
-          Prefira TXT/DOCX com texto selecionável. PDF escaneado (só imagem)
-          pode falhar.
-        </p>
-      )}
+          </p>
+        ) : null}
 
-      <BriefingNarrativaAnaliseCard
-        markdown={analiseMarkdown}
-        avisos={avisos}
-      />
-    </section>
+        {appliedLabels.length > 0 && !loading ? (
+          <p className="mt-3 text-xs text-[#5B5680]">
+            Preenchido no formulário:{' '}
+            <span className="font-medium text-[#18162A]">
+              {appliedLabels.join(' · ')}
+            </span>
+          </p>
+        ) : null}
+      </section>
+
+      <BriefingNarrativaAnaliseCard analise={analise} avisos={avisos} />
+    </div>
   );
 }

@@ -49,13 +49,15 @@ export default function ClientBriefingStatusCard({
             <p className="text-xs text-slate-500">{label}</p>
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button asChild size="sm" variant="outline" className="gap-1.5">
-            <Link to={importHref}>
-              <FileUp className="h-3.5 w-3.5" />
-              Importar arquivo
-            </Link>
-          </Button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {!isReady ? (
+            <Button asChild size="sm" variant="outline" className="gap-1.5">
+              <Link to={importHref}>
+                <FileUp className="h-3.5 w-3.5" />
+                Importar
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild size="sm" variant={isReady ? 'outline' : 'default'} className="gap-1.5">
             <Link to={href}>
               {isReady ? <PenLine className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
@@ -87,17 +89,19 @@ export default function ClientBriefingStatusCard({
           </div>
           <p className="text-sm text-[#7A7595]">
             {isReady
-              ? 'Preenchido. Edite ou importe um arquivo quando mudar.'
-              : 'Preencha manualmente ou importe PDF, DOCX ou TXT.'}
+              ? 'Preenchido. Edite quando a marca mudar.'
+              : 'Importe um PDF/DOCX/TXT ou preencha o formulário.'}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link to={importHref} className="inline-flex items-center gap-1.5">
-              <FileUp className="h-4 w-4" />
-              Importar arquivo
-            </Link>
-          </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          {!isReady ? (
+            <Button asChild variant="outline" className="w-full sm:w-auto">
+              <Link to={importHref} className="inline-flex items-center gap-1.5">
+                <FileUp className="h-4 w-4" />
+                Importar arquivo
+              </Link>
+            </Button>
+          ) : null}
           <Button
             asChild
             className={

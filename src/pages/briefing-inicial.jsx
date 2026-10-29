@@ -40,6 +40,7 @@ export default function BriefingInicialPage() {
   const [form, setForm] = useState(() => emptyBriefingInicialForm());
   const [errors, setErrors] = useState({});
   const [done, setDone] = useState(false);
+  const [imported, setImported] = useState(false);
 
   const backToHub = () => {
     navigate(`${createPageUrl('client-detail')}?clientId=${clientId}`);
@@ -161,8 +162,8 @@ export default function BriefingInicialPage() {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-4">
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-        <h1 className="text-xl font-semibold text-[#18162A]">Briefing inicial salvo</h1>
-        <p className="text-sm text-[#7A7595]">
+        <h1 className="text-xl font-semibold text-[#1A1210]">Briefing inicial salvo</h1>
+        <p className="text-sm text-[#6B635C]">
           DNA de {client?.name} registrado. Analise o briefing e, depois, planeje
           mês a mês no Panorama.
         </p>
@@ -171,7 +172,7 @@ export default function BriefingInicialPage() {
             Voltar à visão geral
           </Button>
           <Button
-            className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
+            className="bg-[#B80015] hover:bg-[#8A0010] text-white"
             onClick={() => navigate(buildAnnualPlanHref(clientId))}
           >
             Abrir panorama
@@ -188,16 +189,16 @@ export default function BriefingInicialPage() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <div className="flex items-center gap-2 text-[#7A7595] text-sm mb-1">
+          <div className="flex items-center gap-2 text-[#6B635C] text-sm mb-1">
             <PenLine className="w-3.5 h-3.5" />
-            Preenchimento interno · Briefing inicial
+            Briefing inicial
           </div>
-          <h1 className="text-2xl font-semibold text-[#18162A]">
+          <h1 className="text-2xl font-semibold text-[#1A1210]">
             {client?.name || 'Cliente'}
           </h1>
-          <p className="text-[#7A7595] mt-1">
-            DNA da empresa (público, tom, produtos). Voc— pode importar de um
-            arquivo ou preencher manualmente. O plano do ano fica no Panorama.
+          <p className="text-[#6B635C] mt-1 text-sm leading-relaxed">
+            Monte o DNA da marca: importe um arquivo ou preencha manualmente.
+            Depois revise e salve — o planejamento fica no Panorama.
           </p>
         </div>
       </div>
@@ -211,10 +212,24 @@ export default function BriefingInicialPage() {
           setForm(next);
           setErrors({});
           setDone(false);
+          setImported(true);
         }}
       />
 
-      <BriefingInicialFormFields form={form} onChange={setForm} errors={errors} />
+      <div className="relative flex items-center gap-3 py-1" aria-hidden>
+        <div className="h-px flex-1 bg-[#E8E4F4]" />
+        <span className="text-[11px] font-medium uppercase tracking-wide text-[#9A94B0]">
+          {imported ? '2 · Revisar DNA' : 'ou preencha manualmente'}
+        </span>
+        <div className="h-px flex-1 bg-[#E8E4F4]" />
+      </div>
+
+      <BriefingInicialFormFields
+        form={form}
+        onChange={setForm}
+        errors={errors}
+        imported={imported}
+      />
 
       <div className="fixed inset-x-0 z-20 fixed-footer-above-nav border-t border-[#E8E4F4] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="max-w-3xl mx-auto px-4 py-3 flex flex-wrap justify-end gap-2">
@@ -229,7 +244,7 @@ export default function BriefingInicialPage() {
           </Button>
           <Button
             type="button"
-            className="bg-[#C02807] hover:bg-[#8A1C05] text-white"
+            className="bg-[#B80015] hover:bg-[#8A0010] text-white"
             onClick={() => handleSave(false)}
             disabled={!canSubmit}
           >
