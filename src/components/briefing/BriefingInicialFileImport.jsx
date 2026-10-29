@@ -11,12 +11,20 @@ import BriefingNarrativaAnaliseCard from '@/components/briefing/BriefingNarrativ
 
 const FIELD_LABELS = {
   nome: 'Nome',
+  nicho_modelo: 'Nicho / modelo',
+  proposta_valor: 'Proposta de valor',
+  tom_brand: 'Tom de voz',
+  identidade_visual: 'Identidade visual',
   publico_alvo: 'Público-alvo',
-  tom_brand: 'Tom de marca',
+  canais_venda: 'Canais de venda',
+  historico_marketing: 'Histórico de marketing',
+  desafios_sazonalidade: 'Desafios / sazonalidade',
+  foco_prioritario: 'Foco prioritário',
+  observacoes_estrategicas: 'Observações estratégicas',
+  restricoes_criativas: 'Restrições criativas',
   orcamento_padrao_mensal: 'Orçamento',
   formato_padrao: 'Formato',
-  restricoes_criativas: 'Restrições',
-  produtos_linhas: 'Produtos',
+  produtos_linhas: 'Produtos / frentes',
 };
 
 const LOADING_STEPS = [

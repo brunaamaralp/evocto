@@ -5,6 +5,7 @@
 import { Brief, Client } from '@/api/entities';
 import {
   EMPTY_EMPRESA_FORM,
+  NARRATIVA_DNA_TEXT_KEYS,
   empresaToForm,
   getEmpresaByClientId,
   normalizeFormato,
@@ -32,6 +33,9 @@ export function emptyBriefingInicialForm(clientName = '') {
 export function normalizeBriefingInicialForm(raw = {}, clientName = '') {
   const base = emptyBriefingInicialForm(clientName);
   const empresaRaw = raw.empresa || raw;
+  const narrativaRaw = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, empresaRaw[k]])
+  );
   const empresa = {
     ...base.empresa,
     ...empresaToForm(
@@ -43,6 +47,7 @@ export function normalizeBriefingInicialForm(raw = {}, clientName = '') {
           empresaRaw.orcamento_padrao_mensal ?? empresaRaw.orcamento,
         tom_brand: empresaRaw.tom_brand,
         restricoes_criativas: empresaRaw.restricoes_criativas,
+        ...narrativaRaw,
         produtos_linhas: empresaRaw.produtos_linhas,
         brand_guidelines: empresaRaw.brand_guidelines,
       },
@@ -171,6 +176,9 @@ export function buildBriefingInicialBriefPayload({
   const fromPublic = origem === 'publico';
   const nome =
     String(empresa?.nome || n.empresa?.nome || '').trim() || 'Cliente';
+  const narrativaSnap = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, n.empresa[k] || ''])
+  );
   const empSnap = {
     nome: n.empresa.nome,
     publico_alvo: n.empresa.publico_alvo,
@@ -178,6 +186,7 @@ export function buildBriefingInicialBriefPayload({
     orcamento_padrao_mensal: n.empresa.orcamento_padrao_mensal,
     formato_padrao: n.empresa.formato_padrao,
     restricoes_criativas: n.empresa.restricoes_criativas,
+    ...narrativaSnap,
     produtos_linhas: n.empresa.produtos_linhas,
     brand_guidelines: n.empresa.brand_guidelines || null,
   };

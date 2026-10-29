@@ -7,6 +7,21 @@ export const EMPTY_FORMATO = {
   duracao_videos: '30-45s',
 };
 
+/** Campos Narrativa (texto) — DNA expandido, segmento-agnóstico. */
+export const NARRATIVA_DNA_TEXT_KEYS = Object.freeze([
+  'nicho_modelo',
+  'proposta_valor',
+  'identidade_visual',
+  'canais_venda',
+  'historico_marketing',
+  'desafios_sazonalidade',
+  'foco_prioritario',
+  'observacoes_estrategicas',
+]);
+
+const emptyNarrativaDna = () =>
+  Object.fromEntries(NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, '']));
+
 export const EMPTY_EMPRESA_FORM = {
   nome: '',
   publico_alvo: '',
@@ -14,6 +29,7 @@ export const EMPTY_EMPRESA_FORM = {
   orcamento_padrao_mensal: '',
   tom_brand: '',
   restricoes_criativas: '',
+  ...emptyNarrativaDna(),
   produtos_linhas: [],
   brand_guidelines: null,
 };
@@ -35,6 +51,9 @@ export function empresaToForm(empresa, clientName = '') {
       produtos_linhas: [],
     };
   }
+  const narrativa = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, String(empresa[k] || '').trim()])
+  );
   return {
     nome: empresa.nome || clientName || '',
     publico_alvo: empresa.publico_alvo || '',
@@ -43,6 +62,7 @@ export function empresaToForm(empresa, clientName = '') {
       empresa.orcamento_padrao_mensal != null ? Number(empresa.orcamento_padrao_mensal) : '',
     tom_brand: empresa.tom_brand || '',
     restricoes_criativas: empresa.restricoes_criativas || '',
+    ...narrativa,
     produtos_linhas: normalizeProdutosLinhas(empresa.produtos_linhas),
     brand_guidelines: empresa.brand_guidelines || null,
   };
@@ -91,12 +111,16 @@ export async function getEmpresaByClientId(clientId, agencyId) {
 
 export function configFromEmpresa(empresa) {
   if (!empresa) return null;
+  const narrativa = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, String(empresa[k] || '').trim()])
+  );
   return {
     publico_alvo: empresa.publico_alvo || '',
     formato: normalizeFormato(empresa.formato_padrao || EMPTY_FORMATO),
     orcamento: Number(empresa.orcamento_padrao_mensal) || 0,
     tom_brand: empresa.tom_brand || '',
     restricoes_criativas: empresa.restricoes_criativas || '',
+    ...narrativa,
     produtos_linhas: normalizeProdutosLinhas(empresa.produtos_linhas),
   };
 }
@@ -149,6 +173,9 @@ export async function saveEmpresa({
     throw err;
   }
 
+  const narrativa = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, String(form[k] || '').trim()])
+  );
   const payload = {
     agencyId,
     clientId,
@@ -158,6 +185,7 @@ export async function saveEmpresa({
     orcamento_padrao_mensal: Number(form.orcamento_padrao_mensal),
     tom_brand: String(form.tom_brand).trim(),
     restricoes_criativas: String(form.restricoes_criativas || '').trim(),
+    ...narrativa,
     produtos_linhas: normalizeProdutosLinhas(form.produtos_linhas),
     brand_guidelines: form.brand_guidelines || null,
   };

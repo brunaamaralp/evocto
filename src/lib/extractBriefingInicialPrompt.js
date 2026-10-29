@@ -46,15 +46,23 @@ Schema JSON obrigatório:
   },
   "empresa": {
     "nome": "string",
-    "publico_alvo": "string",
+    "nicho_modelo": "string",
+    "proposta_valor": "string",
     "tom_brand": "string",
+    "identidade_visual": "string",
+    "publico_alvo": "string",
+    "canais_venda": "string",
+    "historico_marketing": "string",
+    "desafios_sazonalidade": "string",
+    "foco_prioritario": "string",
+    "observacoes_estrategicas": "string",
+    "restricoes_criativas": "string",
     "orcamento_padrao_mensal": number | null,
     "formato_padrao": {
       "num_videos": number | null,
       "num_designs": number | null,
       "duracao_videos": "string"
     },
-    "restricoes_criativas": "string",
     "produtos_linhas": [
       {
         "nome": "string",
@@ -67,18 +75,27 @@ Schema JSON obrigatório:
       }
     ]
   },
-  "campos_preenchidos": ["nome", "publico_alvo", "tom_brand", "orcamento_padrao_mensal", "formato_padrao", "restricoes_criativas", "produtos_linhas"],
+  "campos_preenchidos": ["nome", "nicho_modelo", "proposta_valor", "tom_brand", "identidade_visual", "publico_alvo", "canais_venda", "historico_marketing", "desafios_sazonalidade", "foco_prioritario", "observacoes_estrategicas", "restricoes_criativas", "orcamento_padrao_mensal", "formato_padrao", "produtos_linhas"],
   "avisos": ["string"]
 }
 
-Mapeamento análise → empresa (formulário do sistema):
+Mapeamento análise → empresa (formulário do sistema) — 1:1, SEM misturar campos:
 - empresa.nome ← identidade.nome_negocio (sem prefixo; se nao_identificavel, "")
+- empresa.nicho_modelo ← identidade.nicho_modelo
+- empresa.proposta_valor ← identidade.proposta_valor
 - empresa.tom_brand ← identidade.tom_voz (se inferido, prefixe "[Inferido] " no valor do formulário)
-- empresa.publico_alvo ← consolide públicos das frentes + proposta de valor (1–3 frases; prefixe "[Inferido] " se a maior parte for inferida)
+- empresa.identidade_visual ← identidade.identidade_visual
+- empresa.publico_alvo ← consolide só os públicos das frentes (1–3 frases; prefixe "[Inferido] " se a maior parte for inferida). NÃO coloque proposta/nicho aqui.
+- empresa.canais_venda ← canais_operacao.canais_venda
+- empresa.historico_marketing ← canais_operacao.historico_marketing
+- empresa.desafios_sazonalidade ← canais_operacao.desafios_sazonalidade
+- empresa.foco_prioritario ← diretrizes.foco_prioritario
+- empresa.observacoes_estrategicas ← diretrizes.observacoes_estrategicas
+- empresa.restricoes_criativas ← apenas "não fazer" criativo explícito no documento; senão ""
 - empresa.produtos_linhas ← frentes_receita (1–4): nome, descricao=objetivo, story=público
-- empresa.restricoes_criativas ← desafios_sazonalidade + identidade_visual + observações relevantes (marque inferências)
 - empresa.orcamento_padrao_mensal / formato_padrao ← só se explícitos no documento; senão null/""
-- campos_preenchidos: só campos de empresa que você preencheu com valor útil (não vazio / não "[Não identificável]")
+- Nos campos de texto do formulário com origem inferido, prefixe "[Inferido] " (exceto nome)
+- campos_preenchidos: só campos de empresa com valor útil (não vazio / não "[Não identificável]")
 - frentes_receita: mínimo 1, máximo 4
 - avisos: lacunas graves ou hipóteses frágeis`;
 

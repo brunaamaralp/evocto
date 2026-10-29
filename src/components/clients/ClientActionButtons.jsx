@@ -101,6 +101,9 @@ export default function ClientActionButtons({
         motivo: 'desligamento',
       });
       console.info('[CLIENT_OFFBOARDING_EXECUTED]', confirmation);
+      if (confirmation.realtimeSync) {
+        console.info('[REALTIME_CACHE_INVALIDATE]', confirmation.realtimeSync);
+      }
 
       toast.success(
         `Cliente arquivado. ${confirmation.tarefasOffboardingCriadas.length} tarefas de offboarding criadas.`

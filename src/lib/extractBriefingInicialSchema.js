@@ -4,10 +4,13 @@
  */
 
 import { normalizeBriefingInicialForm } from './briefingInicial.js';
-import { normalizeFormato } from './empresaConfig.js';
+import {
+  NARRATIVA_DNA_TEXT_KEYS,
+  normalizeFormato,
+} from './empresaConfig.js';
 import { normalizeProdutosLinhas } from './campanhaAnualSchema.js';
 
-export const EXTRACT_BRIEFING_SCHEMA_VERSION = 3;
+export const EXTRACT_BRIEFING_SCHEMA_VERSION = 4;
 
 const NAO_IDENTIFICAVEL = /^\[?\s*n[aã]o identific[aá]vel\s*\]?$/i;
 const INFERIDO_PREFIX = /^\[?\s*inferido\s*\]?\s*/i;
@@ -38,6 +41,7 @@ const TRACKED_KEYS = [
   'nome',
   'publico_alvo',
   'tom_brand',
+  ...NARRATIVA_DNA_TEXT_KEYS,
   'orcamento_padrao_mensal',
   'formato_padrao',
   'restricoes_criativas',
@@ -271,40 +275,41 @@ export function formatNarrativaAnaliseMarkdown(analiseInput) {
 }
 
 /**
- * Deriva campos do formulário a partir da análise Narrativa quando empresa vier incompleta.
+ * Deriva campos do formulário a partir da análise Narrativa (mapeamento 1:1).
+ * Não mistura proposta/nicho/visual/foco em publico_alvo ou restricoes_criativas.
  */
 export function empresaFromNarrativaAnalise(analiseInput, existingEmpresa = {}) {
   const a = normalizeNarrativaAnalise({ analise: analiseInput });
   const existing =
     existingEmpresa && typeof existingEmpresa === 'object' ? existingEmpresa : {};
 
+  const pickExistingOrAnalise = (existingVal, campoAnalise) =>
+    asString(existingVal) || usableValor(campoAnalise);
+
   const nome =
     asString(existing.nome) ||
     usableValor(a.identidade.nome_negocio).replace(INFERIDO_PREFIX, '').trim();
 
-  const tom =
-    asString(existing.tom_brand || existing.tom) || usableValor(a.identidade.tom_voz);
-
   const publicos = a.frentes_receita
     .map((f) => usableValor(f.publico_principal))
     .filter(Boolean);
-  const proposta = usableValor(a.identidade.proposta_valor);
-  const nicho = usableValor(a.identidade.nicho_modelo);
-  let publico = asString(existing.publico_alvo || existing.publico);
-  if (!publico) {
-    const parts = [];
-    if (publicos.length) parts.push(publicos.join('; '));
-    if (proposta) parts.push(proposta);
-    else if (nicho) parts.push(nicho);
-    publico = parts.join(' — ');
-  }
+  const publico =
+    asString(existing.publico_alvo || existing.publico) ||
+    publicos.join('; ');
 
   const produtosFromFrentes = a.frentes_receita
-    .filter((f) => asString(f.nome) && !/^frente\s*\d+$/i.test(f.nome) && f.nome !== 'Operação principal')
+    .filter(
+      (f) =>
+        asString(f.nome) &&
+        !/^frente\s*\d+$/i.test(f.nome) &&
+        f.nome !== 'Operação principal'
+    )
     .map((f) => ({
       nome: f.nome,
       descricao: usableValor(f.objetivo).replace(INFERIDO_PREFIX, '').trim(),
-      story: usableValor(f.publico_principal).replace(INFERIDO_PREFIX, '').trim(),
+      story: usableValor(f.publico_principal)
+        .replace(INFERIDO_PREFIX, '')
+        .trim(),
       sazonalidade: usableValor(a.canais_operacao.desafios_sazonalidade)
         .replace(INFERIDO_PREFIX, '')
         .trim(),
@@ -312,33 +317,64 @@ export function empresaFromNarrativaAnalise(analiseInput, existingEmpresa = {}) 
 
   const existingProdutos = existing.produtos_linhas || existing.produtos || [];
   const produtos =
-    Array.isArray(existingProdutos) && existingProdutos.some((p) => asString(p?.nome))
+    Array.isArray(existingProdutos) &&
+    existingProdutos.some((p) => asString(p?.nome))
       ? existingProdutos
       : produtosFromFrentes.length
         ? produtosFromFrentes
         : a.frentes_receita.map((f) => ({
             nome: f.nome,
-            descricao: usableValor(f.objetivo).replace(INFERIDO_PREFIX, '').trim(),
-            story: usableValor(f.publico_principal).replace(INFERIDO_PREFIX, '').trim(),
+            descricao: usableValor(f.objetivo)
+              .replace(INFERIDO_PREFIX, '')
+              .trim(),
+            story: usableValor(f.publico_principal)
+              .replace(INFERIDO_PREFIX, '')
+              .trim(),
           }));
-
-  const restricaoParts = [
-    usableValor(a.canais_operacao.desafios_sazonalidade),
-    usableValor(a.identidade.identidade_visual)
-      ? `Visual: ${usableValor(a.identidade.identidade_visual)}`
-      : '',
-    usableValor(a.diretrizes.foco_prioritario)
-      ? `Foco: ${usableValor(a.diretrizes.foco_prioritario)}`
-      : '',
-    usableValor(a.diretrizes.observacoes_estrategicas),
-  ].filter(Boolean);
 
   return {
     nome,
     publico_alvo: publico,
-    tom_brand: tom,
-    restricoes_criativas:
-      asString(existing.restricoes_criativas) || restricaoParts.join('\n'),
+    tom_brand: pickExistingOrAnalise(
+      existing.tom_brand || existing.tom,
+      a.identidade.tom_voz
+    ),
+    nicho_modelo: pickExistingOrAnalise(
+      existing.nicho_modelo,
+      a.identidade.nicho_modelo
+    ),
+    proposta_valor: pickExistingOrAnalise(
+      existing.proposta_valor,
+      a.identidade.proposta_valor
+    ),
+    identidade_visual: pickExistingOrAnalise(
+      existing.identidade_visual,
+      a.identidade.identidade_visual
+    ),
+    canais_venda: pickExistingOrAnalise(
+      existing.canais_venda,
+      a.canais_operacao.canais_venda
+    ),
+    historico_marketing: pickExistingOrAnalise(
+      existing.historico_marketing,
+      a.canais_operacao.historico_marketing
+    ),
+    desafios_sazonalidade: pickExistingOrAnalise(
+      existing.desafios_sazonalidade,
+      a.canais_operacao.desafios_sazonalidade
+    ),
+    foco_prioritario: pickExistingOrAnalise(
+      existing.foco_prioritario,
+      a.diretrizes.foco_prioritario
+    ),
+    observacoes_estrategicas: pickExistingOrAnalise(
+      existing.observacoes_estrategicas,
+      a.diretrizes.observacoes_estrategicas
+    ),
+    // Só restrições criativas reais — sem mashup de visual/foco/desafios
+    restricoes_criativas: asString(
+      existing.restricoes_criativas || existing.restricoes || existing.nao_fazer
+    ),
     orcamento_padrao_mensal:
       existing.orcamento_padrao_mensal ?? existing.orcamento ?? '',
     formato_padrao: existing.formato_padrao || existing.formato || {},
@@ -347,15 +383,12 @@ export function empresaFromNarrativaAnalise(analiseInput, existingEmpresa = {}) 
 }
 
 /**
- * Detecta quais campos a IA realmente preencheu (sem contar fallback de clientName).
+ * Detecta quais campos têm valor aplicável no formulário.
+ * NÃO confia só em `campos_preenchidos` da IA (pode listar chaves vazias ou incompletas
+ * e impedir o merge de público/tom/produtos mesmo com `analise` rica).
  */
 export function detectFilledKeysFromRaw(raw = {}) {
   const src = raw?.empresa && typeof raw.empresa === 'object' ? raw.empresa : raw;
-  const declared = Array.isArray(raw?.campos_preenchidos)
-    ? raw.campos_preenchidos.map((k) => String(k)).filter((k) => TRACKED_KEYS.includes(k))
-    : null;
-
-  if (declared && declared.length) return [...new Set(declared)];
 
   const usable = (v) => {
     const s = asString(v);
@@ -366,6 +399,9 @@ export function detectFilledKeysFromRaw(raw = {}) {
   if (usable(src.nome)) keys.push('nome');
   if (usable(src.publico_alvo || src.publico)) keys.push('publico_alvo');
   if (usable(src.tom_brand || src.tom || src.tom_de_marca)) keys.push('tom_brand');
+  for (const k of NARRATIVA_DNA_TEXT_KEYS) {
+    if (usable(src[k])) keys.push(k);
+  }
   if (
     asPositiveNumber(src.orcamento_padrao_mensal) != null ||
     asPositiveNumber(src.orcamento) != null
@@ -423,6 +459,9 @@ export function normalizeExtractedBriefingEmpresa(
     '';
 
   const nomeFromDoc = pick(srcRaw?.nome, fromAnalise?.nome);
+  const narrativaFields = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [k, pick(srcRaw?.[k], fromAnalise?.[k])])
+  );
   const empresa = {
     nome: nomeFromDoc || (allowClientNameFallback ? asString(clientName) : ''),
     publico_alvo: pick(
@@ -433,6 +472,7 @@ export function normalizeExtractedBriefingEmpresa(
       srcRaw?.tom_brand || srcRaw?.tom || srcRaw?.tom_de_marca,
       fromAnalise?.tom_brand
     ),
+    ...narrativaFields,
     restricoes_criativas: pick(
       srcRaw?.restricoes_criativas || srcRaw?.restricoes || srcRaw?.nao_fazer,
       fromAnalise?.restricoes_criativas
@@ -471,12 +511,6 @@ export function mergeBriefingInicialFromExtract(
   clientName = '',
   opts = {}
 ) {
-  const filledKeys = Array.isArray(opts.filledKeys)
-    ? opts.filledKeys
-    : detectFilledKeysFromRaw(
-        extracted?.empresa ? extracted : { empresa: extracted }
-      );
-
   const current = normalizeBriefingInicialForm(currentForm, clientName);
   const payload =
     extracted?.empresa || extracted?.analise
@@ -486,9 +520,13 @@ export function mergeBriefingInicialFromExtract(
     allowClientNameFallback: false,
   });
 
+  // Gate sempre pelos valores reais em empresa (pós-mapeamento de analise).
+  // opts.filledKeys / campos_preenchidos da IA não limitam mais o merge.
+  const fromContent = detectFilledKeysFromRaw({ empresa: incoming.empresa });
+
   const cur = current.empresa;
   const inc = incoming.empresa;
-  const filled = new Set(filledKeys);
+  const filled = new Set(fromContent);
 
   const pickIfFilled = (key, keep, next) => {
     if (!filled.has(key)) return keep;
@@ -519,6 +557,13 @@ export function mergeBriefingInicialFromExtract(
     return n ? n : keep;
   };
 
+  const narrativaMerged = Object.fromEntries(
+    NARRATIVA_DNA_TEXT_KEYS.map((k) => [
+      k,
+      pickIfFilled(k, cur[k], inc[k]),
+    ])
+  );
+
   const merged = {
     empresa: {
       ...cur,
@@ -529,6 +574,7 @@ export function mergeBriefingInicialFromExtract(
         inc.publico_alvo
       ),
       tom_brand: pickIfFilled('tom_brand', cur.tom_brand, inc.tom_brand),
+      ...narrativaMerged,
       restricoes_criativas: pickIfFilled(
         'restricoes_criativas',
         cur.restricoes_criativas,
@@ -572,6 +618,9 @@ export function countExtractedFields(form, filledKeys = null) {
   if (asString(e.nome)) keys.push('nome');
   if (asString(e.publico_alvo)) keys.push('publico_alvo');
   if (asString(e.tom_brand)) keys.push('tom_brand');
+  for (const k of NARRATIVA_DNA_TEXT_KEYS) {
+    if (asString(e[k])) keys.push(k);
+  }
   if (Number(e.orcamento_padrao_mensal) > 0) keys.push('orcamento_padrao_mensal');
   if (asString(e.restricoes_criativas)) keys.push('restricoes_criativas');
   if ((e.produtos_linhas || []).some((p) => asString(p.nome))) {

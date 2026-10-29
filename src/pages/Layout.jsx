@@ -6,6 +6,12 @@ import { ReactiveStateProvider } from '@/components/state/ReactiveStateManager';
 import { AuthenticatedLayout, PublicLayout } from '@/components/layout/AuthenticatedLayout';
 import { NavigationProvider } from '@/components/navigation/NavigationTracker';
 import TaskDrawer from '@/components/tasks/TaskDrawer';
+import { useClientArchivedRealtimeSync } from '@/hooks/useClientArchivedRealtimeSync';
+
+function ClientArchivedSyncBridge() {
+  useClientArchivedRealtimeSync();
+  return null;
+}
 
 const publicRoutes = [
   '/',
@@ -217,6 +223,7 @@ function Layout({ children }) {
             <LayoutContent isPublic={isPublic}>
               {children}
             </LayoutContent>
+            {!isPublic && <ClientArchivedSyncBridge />}
             {!isPublic && !hideTaskDrawer && <TaskDrawer />}
           </NavigationProvider>
         </SessionProvider>

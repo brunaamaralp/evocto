@@ -2,6 +2,11 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
 import { cacheUtils } from '@/components/performance/CacheManager';
+import {
+  applyRealtimeCacheInvalidate,
+  REALTIME_CACHE_INVALIDATE_EVENT,
+  CLIENT_ARCHIVED_EVENT,
+} from '@/lib/clientArchivedSync';
 
 /**
  * Sistema de comunicação real-time com WebSockets
@@ -44,7 +49,11 @@ export const REALTIME_EVENTS = {
   
   // Sistema
   SYSTEM_UPDATE: 'system:update',
-  MAINTENANCE_MODE: 'maintenance:mode'
+  MAINTENANCE_MODE: 'maintenance:mode',
+
+  // Offboarding / cache
+  CLIENT_ARCHIVED: 'CLIENT_ARCHIVED',
+  REALTIME_CACHE_INVALIDATE: 'REALTIME_CACHE_INVALIDATE',
 };
 
 class RealtimeManager {
@@ -174,10 +183,63 @@ class RealtimeManager {
       case REALTIME_EVENTS.USER_OFFLINE:
         this.handlePresenceEvent(type, payload);
         break;
+
+      case REALTIME_EVENTS.REALTIME_CACHE_INVALIDATE:
+      case REALTIME_CACHE_INVALIDATE_EVENT:
+        this.handleCacheInvalidateEvent(payload, message);
+        break;
+
+      case REALTIME_EVENTS.CLIENT_ARCHIVED:
+      case CLIENT_ARCHIVED_EVENT:
+        this.handleClientArchivedEvent(payload, message);
+        break;
     }
     
     // Notificar todos os listeners
     this.notifyListeners(type, payload);
+  }
+
+  handleCacheInvalidateEvent(payload, message) {
+    const syncEvent = {
+      event: REALTIME_CACHE_INVALIDATE_EVENT,
+      timestamp: message?.timestamp || new Date().toISOString(),
+      payload,
+    };
+    applyRealtimeCacheInvalidate(syncEvent);
+  }
+
+  handleClientArchivedEvent(payload, message) {
+    const sync =
+      payload?.sync ||
+      (payload?.clientId
+        ? {
+            event: REALTIME_CACHE_INVALIDATE_EVENT,
+            timestamp: message?.timestamp || new Date().toISOString(),
+            payload: {
+              action: 'PURGE_CLIENT_DATA',
+              clientId: payload.clientId,
+              targetQueriesToInvalidate: [
+                'clients.active',
+                'deliverables.board',
+                'tasks.my_daily_tasks',
+                'notifications.unread',
+              ],
+              uiDirectives: {
+                forceRemoveFromDOM: true,
+                mutePushChannels: true,
+                toastAlert: {
+                  show: true,
+                  type: 'info',
+                  message:
+                    'Operação do cliente arquivada. Interface e notificações atualizadas.',
+                },
+              },
+              notificationsEnabled: false,
+              sourceEvent: CLIENT_ARCHIVED_EVENT,
+            },
+          }
+        : null);
+    if (sync) applyRealtimeCacheInvalidate(sync);
   }
 
   handleEntityEvent(type, payload) {

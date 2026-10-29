@@ -4,6 +4,7 @@
  */
 
 import { Client, Task, Service, CyclePlan, PublicBriefingToken } from '@/api/entities';
+import { processClientArchivedEvent } from '@/lib/clientArchivedSync';
 
 export const CLIENT_STATUS_ARCHIVED = 'arquivado';
 export const CLIENT_OFFBOARDING_EVENT = 'CLIENT_OFFBOARDING_EXECUTED';
@@ -245,12 +246,14 @@ async function safeUpdate(entity, id, patch) {
  * @param {string} [opts.agencyId]
  * @param {Date|string} [opts.executedAt]
  * @param {'desligamento'|'trancamento'} [opts.motivo]
+ * @param {(msg: object) => void} [opts.broadcast] — WebSocket/SSE send opcional
  */
 export async function executeClientOffboarding({
   client,
   agencyId: agencyIdOpt,
   executedAt = new Date(),
   motivo = 'desligamento',
+  broadcast = null,
 } = {}) {
   if (!client?.id) {
     throw new Error('client_required');
@@ -379,8 +382,8 @@ export async function executeClientOffboarding({
     }
   }
 
-  // 3) JSON canônico
-  return buildOffboardingConfirmation({
+  // 3) JSON canônico + sync realtime (CLIENT_ARCHIVED → cache invalidate)
+  const confirmation = buildOffboardingConfirmation({
     clienteId: client.id,
     nomeCliente,
     dataExecucao,
@@ -389,4 +392,31 @@ export async function executeClientOffboarding({
     notificacoesDesativadas: true,
     tarefasOffboardingCriadas: createdSummaries,
   });
+
+  let realtimeSync = null;
+  try {
+    let broadcastFn = broadcast;
+    if (!broadcastFn) {
+      try {
+        const { realtimeManager } = await import(
+          '@/components/realtime/RealtimeProvider'
+        );
+        broadcastFn = (msg) => realtimeManager?.send?.(msg);
+      } catch {
+        broadcastFn = null;
+      }
+    }
+    realtimeSync = processClientArchivedEvent({
+      clientId: client.id,
+      timestamp: dataExecucao,
+      broadcast: broadcastFn || undefined,
+    });
+  } catch (err) {
+    console.warn('[clientOffboarding] realtime sync', err?.message || err);
+  }
+
+  return {
+    ...confirmation,
+    realtimeSync,
+  };
 }
