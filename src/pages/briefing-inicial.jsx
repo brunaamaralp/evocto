@@ -186,6 +186,26 @@ export default function BriefingInicialPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 pb-28 space-y-6">
+      <div className="rounded-xl bg-[#B80015] px-4 py-3 text-white shadow-md">
+        <p className="text-sm font-bold uppercase tracking-wide">
+          Briefing Import UI v7
+        </p>
+        <p className="mt-1 text-xs opacity-95 break-all">
+          Host: {typeof window !== 'undefined' ? window.location.href : '—'}
+        </p>
+        <p className="mt-1 text-xs opacity-90">
+          Se este bloco vermelho não aparecer, você está em cache/site antigo.
+          Abra{' '}
+          <a
+            className="underline font-semibold"
+            href="https://mktevocto.netlify.app/"
+          >
+            mktevocto.netlify.app
+          </a>{' '}
+          e limpe dados do site.
+        </p>
+      </div>
+
       <div className="flex items-start gap-3">
         <Button variant="ghost" size="icon" className="page-back-btn" onClick={backToHub} aria-label="Voltar">
           <ArrowLeft className="w-5 h-5" />

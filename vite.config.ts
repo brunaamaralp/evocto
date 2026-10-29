@@ -9,6 +9,9 @@ export default defineConfig({
     apiDevPlugin(),
     react(),
     VitePWA({
+      // Temporário: destrói SW antigo que segura JS sem a UI de importação.
+      // Remover selfDestroying depois que a importação estabilizar em produção.
+      selfDestroying: true,
       registerType: 'prompt',
       includeAssets: [
         'offline.html',

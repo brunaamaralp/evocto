@@ -135,7 +135,7 @@ export default function BriefingInicialFileImport({
   // PWA: se o SW estiver com bundle antigo, desregistra e recarrega 1x
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    const key = 'briefing_import_sw_bust_v6';
+    const key = 'briefing_import_sw_bust_v7';
     if (sessionStorage.getItem(key)) return;
     let cancelled = false;
     (async () => {
@@ -367,8 +367,8 @@ export default function BriefingInicialFileImport({
                 PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo — a leitura
                 preenche o formulário para você revisar.
               </p>
-              <p className="mt-1 text-[10px] uppercase tracking-wide text-[#9A94B0]">
-                Import UI v6
+              <p className="mt-2 rounded-md bg-[#B80015] px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                Import UI v7 — {typeof window !== 'undefined' ? window.location.host : ''}
               </p>
               {file ? (
                 <p

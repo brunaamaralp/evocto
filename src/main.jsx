@@ -19,26 +19,34 @@ try {
   console.warn('[Appwrite] ping falhou', err)
 }
 
+async function purgeStalePwa() {
+  if (typeof window === 'undefined') return
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map((r) => r.unregister()))
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((k) => caches.delete(k)))
+    }
+  } catch (err) {
+    console.warn('[PWA] purge falhou', err)
+  }
+}
+
 if (import.meta.env.PROD) {
-  const updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      notifyPWAUpdateAvailable(updateSW)
-    },
-    onOfflineReady() {
-      console.info('[PWA] pronto para uso offline (shell)')
-    },
-    onRegisteredSW(swUrl, registration) {
-      console.info('[PWA] service worker registrado', swUrl)
-      if (registration) {
-        setInterval(() => {
-          registration.update().catch(() => {})
-        }, 60 * 60 * 1000)
-      }
-    },
-    onRegisterError(error) {
-      console.warn('[PWA] falha ao registrar SW', error)
-    },
+  // Limpa SW/cache antigos antes de registrar o self-destroying SW
+  purgeStalePwa().finally(() => {
+    registerSW({
+      immediate: true,
+      onRegisteredSW(swUrl) {
+        console.info('[PWA] service worker (self-destroying) registrado', swUrl)
+      },
+      onRegisterError(error) {
+        console.warn('[PWA] falha ao registrar SW', error)
+      },
+    })
   })
 }
 
