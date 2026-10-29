@@ -132,18 +132,23 @@ export default function BriefingInicialFileImport({
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [autoFocus]);
 
-  // Força o SW a buscar a versão nova (PWA costuma servir JS antigo)
+  // PWA: se o SW estiver com bundle antigo, desregistra e recarrega 1x
   useEffect(() => {
-    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    const key = 'briefing_import_sw_bust_v6';
+    if (sessionStorage.getItem(key)) return;
     let cancelled = false;
     (async () => {
       try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (!reg || cancelled) return;
-        await reg.update();
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        const regs = await navigator.serviceWorker.getRegistrations();
+        if (cancelled || !regs.length) return;
+        sessionStorage.setItem(key, '1');
+        await Promise.all(regs.map((r) => r.unregister()));
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
         }
+        window.location.reload();
       } catch {
         /* ignore */
       }
@@ -188,6 +193,12 @@ export default function BriefingInicialFileImport({
       });
     } catch {
       /* toast opcional */
+    }
+    // Feedback impossível de ignorar (PWA/toast às vezes falham)
+    try {
+      window.alert(`Importação falhou:\n\n${msg}`);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -355,6 +366,9 @@ export default function BriefingInicialFileImport({
               <p className="mt-0.5 text-sm text-[#6B635C]">
                 PDF, DOCX ou TXT. Arraste aqui ou escolha o arquivo — a leitura
                 preenche o formulário para você revisar.
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-[#9A94B0]">
+                Import UI v6
               </p>
               {file ? (
                 <p

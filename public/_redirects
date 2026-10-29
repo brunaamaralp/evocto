@@ -1,4 +1,4 @@
-# APIs (antes do SPA) — necessário quando o host usa só _redirects do dist
+# APIs (ANTES do SPA). Use 200! (force) — o catch-all /* senão engole POST /api/*.
 /api/material-deliveries  /.netlify/functions/material-deliveries  200!
 /api/material-deliveries/  /.netlify/functions/material-deliveries  200!
 /api/schedule-push  /.netlify/functions/schedule-push  200!
@@ -6,6 +6,8 @@
 /api/team-members  /.netlify/functions/team-members  200!
 /api/team-members/  /.netlify/functions/team-members  200!
 /api/team-members/*  /.netlify/functions/team-members  200!
+/api/invite-client  /.netlify/functions/invite-client  200!
+/api/invite-client/  /.netlify/functions/invite-client  200!
 /api/campaigns-agent  /.netlify/functions/campaigns-agent  200!
 /api/campaigns-agent/  /.netlify/functions/campaigns-agent  200!
 /api/campaigns/agent/*  /.netlify/functions/campaigns-agent  200!
@@ -13,6 +15,22 @@
 /api/campanha-anual-temas/  /.netlify/functions/campanha-anual-temas  200!
 /api/campanha-anual  /.netlify/functions/campanha-anual  200!
 /api/campanha-anual/  /.netlify/functions/campanha-anual  200!
+/api/generate-material  /.netlify/functions/generate-material  200!
+/api/generate-material/  /.netlify/functions/generate-material  200!
+/api/client-portal  /.netlify/functions/client-portal  200!
+/api/client-portal/  /.netlify/functions/client-portal  200!
+/api/client-accesses  /.netlify/functions/client-accesses  200!
+/api/client-accesses/  /.netlify/functions/client-accesses  200!
+/api/agency-info  /.netlify/functions/agency-info  200!
+/api/agency-info/  /.netlify/functions/agency-info  200!
+/api/agency-accesses  /.netlify/functions/agency-accesses  200!
+/api/agency-accesses/  /.netlify/functions/agency-accesses  200!
+/api/approval-workflow  /.netlify/functions/approval-workflow  200!
+/api/approval-workflow/  /.netlify/functions/approval-workflow  200!
+/api/public-briefing  /.netlify/functions/public-briefing  200!
+/api/public-briefing/  /.netlify/functions/public-briefing  200!
+/api/extract-briefing-inicial  /.netlify/functions/extract-briefing-inicial  200!
+/api/extract-briefing-inicial/  /.netlify/functions/extract-briefing-inicial  200!
 
-# SPA
+# SPA por último
 /*    /index.html   200
