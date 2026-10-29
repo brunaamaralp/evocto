@@ -1,0 +1,896 @@
+{
+  "projeto": {
+    "id": "PROJ-001",
+    "titulo": "Parador da Figueira · Ciclo 15/11 a 15/12/2026",
+    "cliente": "Parador da Figueira",
+    "periodo": {
+      "inicio": "2026-11-15",
+      "fim": "2026-12-15"
+    },
+    "descricao": "Projeto-mãe do ciclo: agrupa entregáveis de conteúdo, blocos de gravação e campanhas de tráfego."
+  },
+  "cliente": "Parador da Figueira",
+  "periodo": "15/11/2026 a 15/12/2026",
+  "regrasOperacionais": {
+    "hierarquia": "Projeto → Entregável → Checklist",
+    "agendaENotificacoes": "Itens de checklist COM vencimentoInternal entram na agenda e geram notificação (comportamento tipo subtarefa com prazo). Itens SEM data (null) aparecem só no checklist do card.",
+    "conclusaoDoEntregavel": "O entregável PODE ser marcado como concluído mesmo com checklist incompleto. A UI deve pedir confirmação explícita listando os itens ainda abertos.",
+    "blocoDeGravacao": "Entregáveis com formato bloco_gravacao agrupam captações de vários posts no mesmo deslocamento. Posts vinculados referenciam blocoGravacaoId.",
+    "cadeiaTemporalConteudo": {
+      "redacao": "5 a 7 dias antes da publicação",
+      "captacaoOuArtes": "4 a 5 dias antes da publicação",
+      "edicao": "2 dias antes da publicação",
+      "publicacao": "data exata do calendário"
+    }
+  },
+  "resumoExecutivo": {
+    "totalEntregaveis": 20,
+    "totalItensChecklist": 82,
+    "itensComAgenda": 72,
+    "itensSoChecklist": 10,
+    "blocosGravacao": 4,
+    "conteudo": 14,
+    "trafego": 2
+  },
+  "alertasGestao": [
+    "Lacuna de Tráfego (cobertura parcial): Figueira Bistrô e Pousada têm conteúdo orgânico sem campanha paga dedicada — intencional se o combustível for só Vinhos + Réveillon."
+  ],
+  "entregaveis": [
+    {
+      "id": "ENT-001",
+      "projetoId": "PROJ-001",
+      "blocoId": "GRAV-ADEGA",
+      "titulo": "Bloco de gravação · Adega & Jardim das Conversas",
+      "frente": "Vinhos do Parador",
+      "formato": "bloco_gravacao",
+      "dataPublicacao": "2026-11-14",
+      "responsavelGeral": "videomaker",
+      "entregaveisCobertos": [
+        "Feed 01 · Lançamento Vinhos do Parador",
+        "Stories S1 · Por dentro da adega",
+        "Feed 06 · Jardim das Conversas",
+        "Stories S3 · Presentes sem erro"
+      ],
+      "checklist": [
+        {
+          "etapa": "Agendar dia de campo (adega + jardim)",
+          "vencimentoInternal": "2026-11-10",
+          "responsavel": "gestor_projeto",
+          "descricao": "Combinar acesso, luz natural e presença da Maísa (S3).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação agrupada no local",
+          "vencimentoInternal": "2026-11-14",
+          "responsavel": "videomaker",
+          "descricao": "Rodar takes de Feed 01, S1, Feed 06 e S3 no mesmo deslocamento quando possível.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Organizar takes por entregável no Drive",
+          "vencimentoInternal": null,
+          "responsavel": "videomaker",
+          "descricao": "Pastas nomeadas por código ENT-xxx.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-002",
+      "projetoId": "PROJ-001",
+      "blocoId": "GRAV-FIGUEIRA",
+      "titulo": "Bloco de gravação · Figueira (Manifesto)",
+      "frente": "Institucional",
+      "formato": "bloco_gravacao",
+      "dataPublicacao": "2026-11-12",
+      "responsavelGeral": "videomaker",
+      "entregaveisCobertos": [
+        "Feed 02 · Manifesto Sob a figueira"
+      ],
+      "checklist": [
+        {
+          "etapa": "Captação da figueira (raiz à copa)",
+          "vencimentoInternal": "2026-11-12",
+          "responsavel": "videomaker",
+          "descricao": "Manhã ao anoitecer; sem texto na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Backup e entrega de raw",
+          "vencimentoInternal": null,
+          "responsavel": "videomaker",
+          "descricao": "Drive do entregável Feed 02.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-003",
+      "projetoId": "PROJ-001",
+      "blocoId": "GRAV-BISTRO",
+      "titulo": "Bloco de gravação · Figueira Bistrô",
+      "frente": "Figueira Bistrô",
+      "formato": "bloco_gravacao",
+      "dataPublicacao": "2026-11-16",
+      "responsavelGeral": "videomaker",
+      "entregaveisCobertos": [
+        "Feed 03 · Prato em preparo: Atum terra e mar",
+        "Feed 07 · Chef: Polvo à lagareiro",
+        "Stories S4 · Para provar hoje"
+      ],
+      "checklist": [
+        {
+          "etapa": "Alinhar pratos e chef disponíveis",
+          "vencimentoInternal": "2026-11-14",
+          "responsavel": "gestor_projeto",
+          "descricao": "Atum (F03), Polvo (F07) e bank de pratos para S4.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação de cozinha / salão",
+          "vencimentoInternal": "2026-11-16",
+          "responsavel": "videomaker",
+          "descricao": "Priorizar F03 nesta data; marcar retorno para F07/S4 se necessário.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Organizar banco de takes do bistrô",
+          "vencimentoInternal": null,
+          "responsavel": "videomaker",
+          "descricao": "Reuso entre F07 e S4.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-004",
+      "projetoId": "PROJ-001",
+      "blocoId": "GRAV-POUSADA",
+      "titulo": "Bloco de gravação · Pousada",
+      "frente": "Pousada",
+      "formato": "bloco_gravacao",
+      "dataPublicacao": "2026-11-22",
+      "responsavelGeral": "videomaker",
+      "entregaveisCobertos": [
+        "Feed 05 · Por dentro dos quartos",
+        "Feed 08 · Café da manhã"
+      ],
+      "checklist": [
+        {
+          "etapa": "Liberar quarto / enxoval / café para filmagem",
+          "vencimentoInternal": "2026-11-20",
+          "responsavel": "gestor_projeto",
+          "descricao": "Alinhar com recepção e cozinha.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação quartos + café (mesmo deslocamento)",
+          "vencimentoInternal": "2026-11-22",
+          "responsavel": "videomaker",
+          "descricao": "F05 completo; se possível bank de café para F08.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Entrega de raw no Drive",
+          "vencimentoInternal": null,
+          "responsavel": "videomaker",
+          "descricao": "Pastas F05 e F08.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-005",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 01 · Lançamento Vinhos do Parador",
+      "frente": "Vinhos do Parador",
+      "formato": "reels",
+      "dataPublicacao": "2026-11-15",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-08",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar com o cliente a legenda: 'A nossa seleção de vinhos está de portas abertas.'",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-10",
+          "responsavel": "videomaker",
+          "descricao": "Plano-sequência: pessoa entra na loja, escolhe vinho e queijo, termina no Jardim das Conversas.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-13",
+          "responsavel": "videomaker",
+          "descricao": "Montar Reels de lançamento com logos Grand Cru e Vinhos do Parador na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-15",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels de lançamento; marcar Grand Cru se aplicável.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Subir raw e takes no Drive",
+          "vencimentoInternal": null,
+          "responsavel": "videomaker",
+          "descricao": "Pasta do entregável + nomeação padrão.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-ADEGA",
+      "blocoGravacaoEntregavelId": "ENT-001"
+    },
+    {
+      "id": "ENT-006",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 02 · Manifesto Sob a figueira",
+      "frente": "Institucional",
+      "formato": "reels",
+      "dataPublicacao": "2026-11-17",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-10",
+          "responsavel": "redator",
+          "descricao": "Revisar e validar locução de 8 linhas e legenda: 'Há quase dois séculos, uma figueira. À sua sombra, uma casa para dormir, comer e ficar.'",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-12",
+          "responsavel": "videomaker",
+          "descricao": "Captação da árvore da raiz à copa, manhã ao anoitecer, sem texto na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-15",
+          "responsavel": "videomaker",
+          "descricao": "Sincronizar trilha de piano minimalista com voz grave/acolhedora; corte ~40s.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-17",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels institucional Manifesto.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Gravar / aprovar locução em áudio",
+          "vencimentoInternal": null,
+          "responsavel": "redator",
+          "descricao": "Voz grave e acolhedora; entregar WAV limpo.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-FIGUEIRA",
+      "blocoGravacaoEntregavelId": "ENT-002"
+    },
+    {
+      "id": "ENT-007",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S1 · Por dentro da adega",
+      "frente": "Vinhos do Parador",
+      "formato": "stories",
+      "dataPublicacao": "2026-11-19",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-13",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos dos 5 frames: Abertura, Escala da Curadoria (105 rótulos), Acompanhamento, Experiência no Jardim e Fechamento.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-14",
+          "responsavel": "videomaker",
+          "descricao": "Gravar 5 stories na adega: chegada, prateleiras iluminadas, close nos queijos, taça no jardim.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-17",
+          "responsavel": "videomaker",
+          "descricao": "Montar e formatar sequência de 5 stories para publicação.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-19",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar sequência 'Por dentro da adega'.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-ADEGA",
+      "blocoGravacaoEntregavelId": "ENT-001"
+    },
+    {
+      "id": "ENT-008",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 03 · Prato em preparo: Atum terra e mar",
+      "frente": "Figueira Bistrô",
+      "formato": "reels",
+      "dataPublicacao": "2026-11-21",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-15",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar legenda sobre a união do mar e da terra (atum, coalhada fresca, Parma, figos e aspargos).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-16",
+          "responsavel": "videomaker",
+          "descricao": "Gravar atum selando, o corte, a montagem sobre coalhada e figo.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-19",
+          "responsavel": "videomaker",
+          "descricao": "Montar Reels de preparo com textos na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-21",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels de preparo do Atum terra e mar.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-BISTRO",
+      "blocoGravacaoEntregavelId": "ENT-003"
+    },
+    {
+      "id": "ENT-009",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 04 · A curadoria Grand Cru em Lagoa da Prata",
+      "frente": "Vinhos do Parador",
+      "formato": "carrossel",
+      "dataPublicacao": "2026-11-24",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-17",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos dos 5 cards e legenda de posicionamento da Grand Cru.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Criação de Artes / Layout",
+          "vencimentoInternal": "2026-11-19",
+          "responsavel": "videomaker",
+          "descricao": "Criar artes base dos 5 cards (layout, tipografia e fotos de apoio).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-22",
+          "responsavel": "videomaker",
+          "descricao": "Finalizar montagem visual dos 5 cards do carrossel.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-24",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar carrossel da curadoria Grand Cru.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-010",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S2 · Réveillon",
+      "frente": "Réveillon",
+      "formato": "stories",
+      "dataPublicacao": "2026-11-26",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-19",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos dos 4 stories (clima, proposta, menu e chamada para reserva).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Criação de Artes / Layout",
+          "vencimentoInternal": "2026-11-21",
+          "responsavel": "videomaker",
+          "descricao": "Criar design/layout base dos 4 stories, incluindo imagem do menu oficial.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-24",
+          "responsavel": "videomaker",
+          "descricao": "Montagem final dos 4 stories prontos para publicação.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-26",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar sequência de stories de Réveillon com CTA de reserva.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Anexar PDF/imagem do menu oficial",
+          "vencimentoInternal": null,
+          "responsavel": "gestor_projeto",
+          "descricao": "Garantir versão aprovada pelo cliente.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-011",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 05 · Por dentro dos quartos",
+      "frente": "Pousada",
+      "formato": "reels",
+      "dataPublicacao": "2026-11-27",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-21",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar legenda: 'Para chegar, respirar fundo e deixar o tempo passar um pouco mais devagar.'",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-22",
+          "responsavel": "videomaker",
+          "descricao": "Captar porta abrindo, enxoval, luz entrando, vista, banheiro e pessoa lendo.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-25",
+          "responsavel": "videomaker",
+          "descricao": "Montar Reels de atmosfera da pousada sem texto na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-11-27",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels da Pousada.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-POUSADA",
+      "blocoGravacaoEntregavelId": "ENT-004"
+    },
+    {
+      "id": "ENT-012",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 06 · Jardim das Conversas",
+      "frente": "Vinhos do Parador",
+      "formato": "reels",
+      "dataPublicacao": "2026-12-01",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-24",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar legenda: 'Escolha a sua garrafa no nosso espaço de vinhos, ocupe uma mesa no Jardim das Conversas...'",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-26",
+          "responsavel": "videomaker",
+          "descricao": "Captar takes de fim de tarde, mesas, garrafas, taças, vinho sendo servido e som ambiente.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-11-29",
+          "responsavel": "videomaker",
+          "descricao": "Editar Reels com inserção do logo no final.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-01",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels do Jardim das Conversas.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-ADEGA",
+      "blocoGravacaoEntregavelId": "ENT-001"
+    },
+    {
+      "id": "ENT-013",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S3 · Presentes sem erro",
+      "frente": "Vinhos do Parador",
+      "formato": "stories",
+      "dataPublicacao": "2026-12-03",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-27",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar roteiro para a Maísa apresentar combos de rótulos, queijos e caixas.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-28",
+          "responsavel": "videomaker",
+          "descricao": "Gravar sequência humanizada e elegante com a Maísa no espaço de vinhos.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-01",
+          "responsavel": "videomaker",
+          "descricao": "Cortar e finalizar stories de sugestão de presentes.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-03",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar sequência de stories de presentes.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Confirmar disponibilidade da Maísa",
+          "vencimentoInternal": null,
+          "responsavel": "gestor_projeto",
+          "descricao": "Alinhar horário no bloco de gravação da adega.",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-ADEGA",
+      "blocoGravacaoEntregavelId": "ENT-001"
+    },
+    {
+      "id": "ENT-014",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 07 · Chef: Polvo à lagareiro",
+      "frente": "Figueira Bistrô",
+      "formato": "reels",
+      "dataPublicacao": "2026-12-05",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-11-28",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar locução histórica (lagar/lagareiros) e legenda detalhada do prato.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-11-30",
+          "responsavel": "videomaker",
+          "descricao": "Gravar a chef regando o polvo com azeite quente e retrato.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-03",
+          "responsavel": "videomaker",
+          "descricao": "Montar Reels com locução e cenas do preparo.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-05",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels do Polvo à Lagareiro.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-BISTRO",
+      "blocoGravacaoEntregavelId": "ENT-003"
+    },
+    {
+      "id": "ENT-015",
+      "projetoId": "PROJ-001",
+      "titulo": "Feed 08 · Café da manhã",
+      "frente": "Pousada",
+      "formato": "reels",
+      "dataPublicacao": "2026-12-09",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-12-03",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar legenda: 'O cuidado mineiro não se explica, sente-se na essência do nosso café da manhã.'",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-12-04",
+          "responsavel": "videomaker",
+          "descricao": "Captar bandeja na cama, mesa na varanda e detalhes do café seguindo referência.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-07",
+          "responsavel": "videomaker",
+          "descricao": "Editar Reels do café da manhã sem texto na tela.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-09",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar Reels do Café da manhã.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-POUSADA",
+      "blocoGravacaoEntregavelId": "ENT-004"
+    },
+    {
+      "id": "ENT-016",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S4 · Para provar hoje",
+      "frente": "Figueira Bistrô",
+      "formato": "stories",
+      "dataPublicacao": "2026-12-11",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-12-05",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos dos 7 stories (Abertura, Polvo, Bacalhau, Pato, Risoto, Massa e Fechamento).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Captação / Gravação",
+          "vencimentoInternal": "2026-12-06",
+          "responsavel": "videomaker",
+          "descricao": "Captar fotos/vídeos curtos dos pratos (Polvo, Bacalhau, Magret, Risoto, Gnocchi) e do salão.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-09",
+          "responsavel": "videomaker",
+          "descricao": "Montar sequência de 7 stories com sticker de link para WhatsApp.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-11",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar sequência 'Para provar hoje'.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos.",
+      "blocoGravacaoId": "GRAV-BISTRO",
+      "blocoGravacaoEntregavelId": "ENT-003"
+    },
+    {
+      "id": "ENT-017",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S5 · Réveillon última chamada",
+      "frente": "Réveillon",
+      "formato": "stories",
+      "dataPublicacao": "2026-12-13",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-12-07",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos de urgência suave: clima da noite, vagas restantes e CTA WhatsApp.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Criação de Artes / Layout",
+          "vencimentoInternal": "2026-12-08",
+          "responsavel": "videomaker",
+          "descricao": "Criar artes de última chamada (menu + urgência + CTA).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-11",
+          "responsavel": "videomaker",
+          "descricao": "Finalizar sequência de stories de última chamada.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-13",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar stories de última chamada Réveillon.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-018",
+      "projetoId": "PROJ-001",
+      "titulo": "Stories S6 · Vinhos conversão de dezembro",
+      "frente": "Vinhos do Parador",
+      "formato": "stories",
+      "dataPublicacao": "2026-12-15",
+      "responsavelGeral": "gestor_projeto",
+      "checklist": [
+        {
+          "etapa": "Redação & Validação com Cliente",
+          "vencimentoInternal": "2026-12-09",
+          "responsavel": "redator",
+          "descricao": "Escrever e validar textos de conversão: combos, presentes e visita à adega.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Criação de Artes / Layout",
+          "vencimentoInternal": "2026-12-10",
+          "responsavel": "videomaker",
+          "descricao": "Criar artes de conversão (combos, caixas e CTA WhatsApp/Maps).",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Edição & Montagem Final",
+          "vencimentoInternal": "2026-12-13",
+          "responsavel": "videomaker",
+          "descricao": "Finalizar stories de conversão de Vinhos do Parador.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Publicação & Agendamento",
+          "vencimentoInternal": "2026-12-15",
+          "responsavel": "gestor_projeto",
+          "descricao": "Publicar stories finais de conversão dos Vinhos do Parador.",
+          "apareceNaAgenda": true
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-019",
+      "projetoId": "PROJ-001",
+      "titulo": "Tráfego · Campanha conversão Vinhos do Parador",
+      "frente": "Tráfego Pago",
+      "formato": "trafego_pago",
+      "dataPublicacao": "2026-11-15",
+      "responsavelGeral": "gestor_trafego",
+      "checklist": [
+        {
+          "etapa": "Configuração de Campanha & Tracking",
+          "vencimentoInternal": "2026-11-10",
+          "responsavel": "gestor_trafego",
+          "descricao": "Meta Ads (WhatsApp/visita), lookalike + interesses; validar pixel/eventos.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Ativação · Lançamento (Feed 01)",
+          "vencimentoInternal": "2026-11-15",
+          "responsavel": "gestor_trafego",
+          "descricao": "Disparar alinhado ao Reels de lançamento; orçamento de arrancada.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Otimização · Carrossel Grand Cru (Feed 04)",
+          "vencimentoInternal": "2026-11-24",
+          "responsavel": "gestor_trafego",
+          "descricao": "Impulsionar carrossel; raio Lagoa da Prata; pausar baixo CTR.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Escala · Presentes (Stories S3)",
+          "vencimentoInternal": "2026-12-03",
+          "responsavel": "gestor_trafego",
+          "descricao": "Amplificar S3; ajustar CPL de mensagem.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Disparo Final · Conversão (Stories S6)",
+          "vencimentoInternal": "2026-12-15",
+          "responsavel": "gestor_trafego",
+          "descricao": "Boost S6 + retargeting; fechar ciclo até 15/12.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Registrar aprendizados de CPL/CTR",
+          "vencimentoInternal": null,
+          "responsavel": "gestor_trafego",
+          "descricao": "Notas para o próximo ciclo (sem prazo de agenda).",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    },
+    {
+      "id": "ENT-020",
+      "projetoId": "PROJ-001",
+      "titulo": "Tráfego · Campanha Réveillon reservas",
+      "frente": "Tráfego Pago",
+      "formato": "trafego_pago",
+      "dataPublicacao": "2026-11-26",
+      "responsavelGeral": "gestor_trafego",
+      "checklist": [
+        {
+          "etapa": "Configuração de Campanha & Criativos",
+          "vencimentoInternal": "2026-11-21",
+          "responsavel": "gestor_trafego",
+          "descricao": "Conversão mensagens/WhatsApp; menu e prova social.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Ativação · Arrancada (Stories S2)",
+          "vencimentoInternal": "2026-11-26",
+          "responsavel": "gestor_trafego",
+          "descricao": "Ativar com S2; remarketing de engajamento.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Escala · Meados de dezembro",
+          "vencimentoInternal": "2026-12-08",
+          "responsavel": "gestor_trafego",
+          "descricao": "Aumentar verba; refrescar criativos; urgência de vagas.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Disparo Final · Última chamada (Stories S5)",
+          "vencimentoInternal": "2026-12-13",
+          "responsavel": "gestor_trafego",
+          "descricao": "Maximizar reservas até 15/12.",
+          "apareceNaAgenda": true
+        },
+        {
+          "etapa": "Registrar aprendizados de CPL/CTR",
+          "vencimentoInternal": null,
+          "responsavel": "gestor_trafego",
+          "descricao": "Notas para o próximo ciclo (sem prazo de agenda).",
+          "apareceNaAgenda": false
+        }
+      ],
+      "regraConclusao": "Pode concluir com checklist incompleto; UI deve pedir confirmação listando itens abertos."
+    }
+  ]
+}

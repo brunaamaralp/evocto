@@ -361,6 +361,7 @@ export default function ClientSettingsPage() {
                       <SelectContent>
                         <SelectItem value="ativo">Ativo</SelectItem>
                         <SelectItem value="inativo">Inativo</SelectItem>
+                        <SelectItem value="arquivado">Arquivado</SelectItem>
                         <SelectItem value="prospecto">Prospecto</SelectItem>
                       </SelectContent>
                     </Select>

@@ -34,6 +34,9 @@ export default function ClientHeader({
     switch (status) {
       case 'ativo': return 'bg-green-100 text-green-800';
       case 'inativo': return 'bg-gray-100 text-gray-800';
+      case 'arquivado':
+      case 'archived': return 'bg-slate-200 text-slate-700';
+      case 'suspenso': return 'bg-amber-100 text-amber-900';
       case 'prospecto': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }

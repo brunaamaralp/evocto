@@ -1,0 +1,612 @@
+{
+  "cliente": "Parador da Figueira",
+  "periodo": "15/11/2026 a 15/12/2026",
+  "regrasCadeia": {
+    "redacao": "5 a 7 dias antes da publicação (inclui validação com cliente)",
+    "captacaoOuArtes": "4 a 5 dias antes da publicação",
+    "edicao": "2 dias antes da publicação",
+    "publicacao": "data exata do calendário"
+  },
+  "resumo": {
+    "totalTarefas": 65,
+    "conteudo": 56,
+    "trafego": 9,
+    "entregas": 14
+  },
+  "tarefas": [
+    {
+      "titulo": "Redação · Feed 01 · Lançamento Vinhos do Parador",
+      "vencimento": "2026-11-08",
+      "descricao": "Escrever e validar com o cliente a legenda: 'A nossa seleção de vinhos está de portas abertas.'",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 01 · Lançamento Vinhos do Parador",
+      "vencimento": "2026-11-10",
+      "descricao": "Plano-sequência: pessoa entra na loja, escolhe vinho e queijo, termina no Jardim das Conversas.",
+      "frente": "Vinhos do Parador",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 01 · Lançamento Vinhos do Parador",
+      "vencimento": "2026-11-13",
+      "descricao": "Montar reels de lançamento inserindo logos da Grand Cru e Vinhos do Parador na tela.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 01 · Lançamento Vinhos do Parador",
+      "vencimento": "2026-11-15",
+      "descricao": "Publicar Reels de lançamento dos Vinhos do Parador.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 02 · Manifesto Sob a figueira",
+      "vencimento": "2026-11-10",
+      "descricao": "Revisar e validar locução de 8 linhas e legenda: 'Há quase dois séculos, uma figueira. À sua sombra, uma casa para dormir, comer e ficar.'",
+      "frente": "Institucional",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-17",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 02 · Manifesto Sob a figueira",
+      "vencimento": "2026-11-12",
+      "descricao": "Captação da árvore da raiz à copa, manhã ao anoitecer, sem texto na tela.",
+      "frente": "Institucional",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-11-17",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 02 · Manifesto Sob a figueira",
+      "vencimento": "2026-11-15",
+      "descricao": "Sincronizar trilha de piano minimalista com voz grave/acolhedora, corte de 40 segundos.",
+      "frente": "Institucional",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-17",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 02 · Manifesto Sob a figueira",
+      "vencimento": "2026-11-17",
+      "descricao": "Publicar Reels institucional Manifesto.",
+      "frente": "Institucional",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-17",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S1 · Por dentro da adega",
+      "vencimento": "2026-11-13",
+      "descricao": "Escrever e validar textos dos 5 frames: Abertura, Escala da Curadoria (105 rótulos), Acompanhamento, Experiência no Jardim e Fechamento.",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-19",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Stories S1 · Por dentro da adega",
+      "vencimento": "2026-11-14",
+      "descricao": "Gravar 5 stories na adega: chegada, prateleiras iluminadas, close nos queijos, taça no jardim.",
+      "frente": "Vinhos do Parador",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-11-19",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S1 · Por dentro da adega",
+      "vencimento": "2026-11-17",
+      "descricao": "Montar e formatar sequência de 5 stories para publicação.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-19",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S1 · Por dentro da adega",
+      "vencimento": "2026-11-19",
+      "descricao": "Publicar sequência de stories 'Por dentro da adega'.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-19",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 03 · Prato em preparo: Atum terra e mar",
+      "vencimento": "2026-11-15",
+      "descricao": "Escrever e validar legenda sobre a união do mar e da terra (atum, coalhada fresca, Parma, figos e aspargos).",
+      "frente": "Figueira Bistrô",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-21",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 03 · Prato em preparo: Atum terra e mar",
+      "vencimento": "2026-11-16",
+      "descricao": "Gravar atum selando, o corte, a montagem sobre coalhada e figo.",
+      "frente": "Figueira Bistrô",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-11-21",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 03 · Prato em preparo: Atum terra e mar",
+      "vencimento": "2026-11-19",
+      "descricao": "Montar Reels de preparo do prato do bistrô com textos na tela.",
+      "frente": "Figueira Bistrô",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-21",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 03 · Prato em preparo: Atum terra e mar",
+      "vencimento": "2026-11-21",
+      "descricao": "Publicar Reels de preparo do Atum terra e mar.",
+      "frente": "Figueira Bistrô",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-21",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 04 · A curadoria Grand Cru em Lagoa da Prata",
+      "vencimento": "2026-11-17",
+      "descricao": "Escrever e validar textos dos 5 cards do carrossel e a legenda de posicionamento da Grand Cru.",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-24",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Criar artes · Feed 04 · A curadoria Grand Cru em Lagoa da Prata",
+      "vencimento": "2026-11-19",
+      "descricao": "Criar artes visuais base dos 5 cards do carrossel de vinhos (layout, tipografia e fotos de apoio).",
+      "frente": "Vinhos do Parador",
+      "tipo": "criacao_artes",
+      "dataPublicacao": "2026-11-24",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 04 · A curadoria Grand Cru em Lagoa da Prata",
+      "vencimento": "2026-11-22",
+      "descricao": "Finalizar montagem visual dos 5 cards do carrossel de vinhos.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-24",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 04 · A curadoria Grand Cru em Lagoa da Prata",
+      "vencimento": "2026-11-24",
+      "descricao": "Publicar carrossel da curadoria Grand Cru.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-24",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S2 · Réveillon",
+      "vencimento": "2026-11-19",
+      "descricao": "Escrever e validar textos dos 4 stories de Réveillon (clima, proposta, menu e chamada para reserva).",
+      "frente": "Réveillon",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Criar artes · Stories S2 · Réveillon",
+      "vencimento": "2026-11-21",
+      "descricao": "Criar design e layout base dos 4 stories de Réveillon, incluindo imagem do menu oficial.",
+      "frente": "Réveillon",
+      "tipo": "criacao_artes",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S2 · Réveillon",
+      "vencimento": "2026-11-24",
+      "descricao": "Montagem final dos 4 stories de Réveillon prontos para publicação.",
+      "frente": "Réveillon",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S2 · Réveillon",
+      "vencimento": "2026-11-26",
+      "descricao": "Publicar sequência de stories de Réveillon.",
+      "frente": "Réveillon",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 05 · Por dentro dos quartos",
+      "vencimento": "2026-11-21",
+      "descricao": "Escrever e validar legenda: 'Para chegar, respirar fundo e deixar o tempo passar um pouco mais devagar.'",
+      "frente": "Pousada",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-11-27",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 05 · Por dentro dos quartos",
+      "vencimento": "2026-11-22",
+      "descricao": "Captar porta abrindo, enxoval, luz entrando, vista, banheiro e pessoa lendo.",
+      "frente": "Pousada",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-11-27",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 05 · Por dentro dos quartos",
+      "vencimento": "2026-11-25",
+      "descricao": "Montar Reels de atmosfera da pousada sem texto na tela.",
+      "frente": "Pousada",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-11-27",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 05 · Por dentro dos quartos",
+      "vencimento": "2026-11-27",
+      "descricao": "Publicar Reels da Pousada.",
+      "frente": "Pousada",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-11-27",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 06 · Jardim das Conversas",
+      "vencimento": "2026-11-24",
+      "descricao": "Escrever e validar legenda: 'Escolha a sua garrafa no nosso espaço de vinhos, ocupe uma mesa no Jardim das Conversas...'",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-01",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 06 · Jardim das Conversas",
+      "vencimento": "2026-11-26",
+      "descricao": "Captar takes do fim de tarde, mesas do jardim, garrafas, taças, vinho sendo servido e som ambiente.",
+      "frente": "Vinhos do Parador",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-12-01",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 06 · Jardim das Conversas",
+      "vencimento": "2026-11-29",
+      "descricao": "Editar Reels do Jardim das Conversas com inserção do logo no final.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-01",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 06 · Jardim das Conversas",
+      "vencimento": "2026-12-01",
+      "descricao": "Publicar Reels do Jardim das Conversas.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-01",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S3 · Presentes sem erro",
+      "vencimento": "2026-11-27",
+      "descricao": "Escrever e validar roteiro para a Maísa apresentar seleções de presentes (combos de rótulos, queijos e caixas) na adega.",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-03",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Stories S3 · Presentes sem erro",
+      "vencimento": "2026-11-28",
+      "descricao": "Gravar sequência em vídeo com a Maísa no espaço de vinhos de forma humanizada e elegante.",
+      "frente": "Vinhos do Parador",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-12-03",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S3 · Presentes sem erro",
+      "vencimento": "2026-12-01",
+      "descricao": "Cortar e finalizar os stories de sugestão de presentes.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-03",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S3 · Presentes sem erro",
+      "vencimento": "2026-12-03",
+      "descricao": "Publicar sequência de stories de presentes.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-03",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 07 · Chef: Polvo à lagareiro",
+      "vencimento": "2026-11-28",
+      "descricao": "Escrever e validar locução histórica (origem do termo lagar e dos lagareiros) e legenda detalhada do prato.",
+      "frente": "Figueira Bistrô",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-05",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 07 · Chef: Polvo à lagareiro",
+      "vencimento": "2026-11-30",
+      "descricao": "Gravar a chef regando o polvo com azeite quente e retrato.",
+      "frente": "Figueira Bistrô",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-12-05",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 07 · Chef: Polvo à lagareiro",
+      "vencimento": "2026-12-03",
+      "descricao": "Montar Reels com locução e cenas do preparo do polvo.",
+      "frente": "Figueira Bistrô",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-05",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 07 · Chef: Polvo à lagareiro",
+      "vencimento": "2026-12-05",
+      "descricao": "Publicar Reels do Polvo à Lagareiro.",
+      "frente": "Figueira Bistrô",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-05",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Feed 08 · Café da manhã",
+      "vencimento": "2026-12-03",
+      "descricao": "Escrever e validar legenda: 'O cuidado mineiro não se explica, sente-se na essência do nosso café da manhã.'",
+      "frente": "Pousada",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-09",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Feed 08 · Café da manhã",
+      "vencimento": "2026-12-04",
+      "descricao": "Captar bandeja na cama, mesa na varanda e detalhes do café da manhã seguindo referência.",
+      "frente": "Pousada",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-12-09",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Feed 08 · Café da manhã",
+      "vencimento": "2026-12-07",
+      "descricao": "Editar Reels do café da manhã sem texto na tela.",
+      "frente": "Pousada",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-09",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Feed 08 · Café da manhã",
+      "vencimento": "2026-12-09",
+      "descricao": "Publicar Reels do Café da manhã.",
+      "frente": "Pousada",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-09",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S4 · Para provar hoje",
+      "vencimento": "2026-12-05",
+      "descricao": "Escrever e validar textos dos 7 stories detalhando os pratos da casa (Abertura, Polvo, Bacalhau, Pato, Risoto, Massa e Fechamento).",
+      "frente": "Figueira Bistrô",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-11",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Gravar · Stories S4 · Para provar hoje",
+      "vencimento": "2026-12-06",
+      "descricao": "Captar fotos/vídeos curtos dos pratos do bistrô (Polvo, Bacalhau, Magret de canard, Risoto, Gnocchi) e do salão.",
+      "frente": "Figueira Bistrô",
+      "tipo": "captacao",
+      "dataPublicacao": "2026-12-11",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S4 · Para provar hoje",
+      "vencimento": "2026-12-09",
+      "descricao": "Montar a sequência de 7 stories com sticker de link para o WhatsApp.",
+      "frente": "Figueira Bistrô",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-11",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S4 · Para provar hoje",
+      "vencimento": "2026-12-11",
+      "descricao": "Publicar sequência de stories 'Para provar hoje'.",
+      "frente": "Figueira Bistrô",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-11",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S5 · Réveillon última chamada",
+      "vencimento": "2026-12-07",
+      "descricao": "Escrever e validar textos de urgência suave: clima da noite, vagas restantes e CTA de reserva WhatsApp.",
+      "frente": "Réveillon",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Criar artes · Stories S5 · Réveillon última chamada",
+      "vencimento": "2026-12-08",
+      "descricao": "Criar artes/stories de última chamada Réveillon (menu + urgência + CTA).",
+      "frente": "Réveillon",
+      "tipo": "criacao_artes",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S5 · Réveillon última chamada",
+      "vencimento": "2026-12-11",
+      "descricao": "Finalizar sequência de stories de última chamada Réveillon.",
+      "frente": "Réveillon",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S5 · Réveillon última chamada",
+      "vencimento": "2026-12-13",
+      "descricao": "Publicar stories de última chamada Réveillon.",
+      "frente": "Réveillon",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Redação · Stories S6 · Vinhos conversão de dezembro",
+      "vencimento": "2026-12-09",
+      "descricao": "Escrever e validar textos de conversão: combos, presentes e visita à adega até o fim do ciclo.",
+      "frente": "Vinhos do Parador",
+      "tipo": "redacao",
+      "dataPublicacao": "2026-12-15",
+      "responsavelSugerido": "redator"
+    },
+    {
+      "titulo": "Criar artes · Stories S6 · Vinhos conversão de dezembro",
+      "vencimento": "2026-12-10",
+      "descricao": "Criar artes de conversão (combos, caixas e CTA WhatsApp/Maps).",
+      "frente": "Vinhos do Parador",
+      "tipo": "criacao_artes",
+      "dataPublicacao": "2026-12-15",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Edição · Stories S6 · Vinhos conversão de dezembro",
+      "vencimento": "2026-12-13",
+      "descricao": "Finalizar stories de conversão de Vinhos do Parador.",
+      "frente": "Vinhos do Parador",
+      "tipo": "edicao",
+      "dataPublicacao": "2026-12-15",
+      "responsavelSugerido": "videomaker"
+    },
+    {
+      "titulo": "Publicar · Stories S6 · Vinhos conversão de dezembro",
+      "vencimento": "2026-12-15",
+      "descricao": "Publicar stories finais de conversão dos Vinhos do Parador.",
+      "frente": "Vinhos do Parador",
+      "tipo": "publicacao",
+      "dataPublicacao": "2026-12-15",
+      "responsavelSugerido": "gestor_projeto"
+    },
+    {
+      "titulo": "Configurar · Tráfego · Campanha conversão Vinhos do Parador",
+      "vencimento": "2026-11-10",
+      "descricao": "Estruturar campanha Meta Ads de conversão (WhatsApp/visita) com públicos lookalike + interesse em vinhos/gastronomia; pixels e eventos validados.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Vinhos do Parador"
+    },
+    {
+      "titulo": "Ativar · Tráfego · Lançamento Vinhos do Parador",
+      "vencimento": "2026-11-15",
+      "descricao": "Disparar campanha de conversão alinhada ao Feed 01 (Reels de lançamento). Orçamento inicial de arrancada e criativos do lançamento.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-11-15",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Vinhos do Parador"
+    },
+    {
+      "titulo": "Configurar · Tráfego · Campanha Réveillon reservas",
+      "vencimento": "2026-11-21",
+      "descricao": "Montar campanha de conversão para reservas de Réveillon (mensagens/WhatsApp), com criativos de menu e prova social.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Réveillon"
+    },
+    {
+      "titulo": "Otimizar · Tráfego · Amplificar carrossel Grand Cru",
+      "vencimento": "2026-11-24",
+      "descricao": "Impulsionar Feed 04 (carrossel Grand Cru) com segmentação local Lagoa da Prata + raio; pausar anúncios de baixo CTR.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-11-24",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Vinhos do Parador"
+    },
+    {
+      "titulo": "Ativar · Tráfego · Arrancada Réveillon",
+      "vencimento": "2026-11-26",
+      "descricao": "Ativar campanha Réveillon junto com Stories S2. Priorizar orçamento e remarketing de engajamento no perfil.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-11-26",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Réveillon"
+    },
+    {
+      "titulo": "Escalar · Tráfego · Vinhos presentes (Stories S3)",
+      "vencimento": "2026-12-03",
+      "descricao": "Amplificar Stories S3 (Presentes sem erro) com foco em combos e caixas; ajustar lances para CPL de mensagem.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-12-03",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Vinhos do Parador"
+    },
+    {
+      "titulo": "Escalar · Tráfego · Réveillon meados de dezembro",
+      "vencimento": "2026-12-08",
+      "descricao": "Aumentar verba da campanha Réveillon, refrescar criativos e reforçar urgência (vagas/mesas).",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Réveillon"
+    },
+    {
+      "titulo": "Disparo final · Tráfego · Conversão Réveillon",
+      "vencimento": "2026-12-13",
+      "descricao": "Disparo final alinhado à Stories S5 (última chamada): maximizar mensagens/reservas até 15/12.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-12-13",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Réveillon"
+    },
+    {
+      "titulo": "Disparo final · Tráfego · Conversão Vinhos do Parador",
+      "vencimento": "2026-12-15",
+      "descricao": "Fechar ciclo com boost dos stories S6 de conversão (presentes/adega) e retargeting de quem engajou no mês.",
+      "frente": "Tráfego Pago",
+      "tipo": "trafego",
+      "dataPublicacao": "2026-12-15",
+      "responsavelSugerido": "gestor_trafego",
+      "campanhaAlvo": "Vinhos do Parador"
+    }
+  ]
+}

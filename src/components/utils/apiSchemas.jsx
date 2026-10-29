@@ -121,7 +121,11 @@ export const ClientSchema = {
     email: validators.email(data?.email),
     phone: data?.phone ? validators.string(data.phone) : undefined,
     industry: data?.industry ? validators.string(data.industry) : undefined,
-    status: validators.enum(data?.status, ['ativo', 'inativo', 'prospecto'], 'prospecto')
+    status: validators.enum(
+      data?.status,
+      ['ativo', 'inativo', 'prospecto', 'suspenso', 'arquivado'],
+      'prospecto'
+    )
   }),
   safeParse: (data) => {
     try {

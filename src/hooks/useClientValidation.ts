@@ -74,8 +74,8 @@ const VALIDATION_RULES = {
   },
   status: {
     required: true,
-    enum: ['ativo', 'inativo', 'suspenso'],
-    message: 'Status deve ser: ativo, inativo ou suspenso'
+    enum: ['ativo', 'inativo', 'suspenso', 'arquivado', 'prospecto'],
+    message: 'Status deve ser: ativo, inativo, suspenso, arquivado ou prospecto'
   }
 };
 

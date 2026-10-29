@@ -230,6 +230,7 @@ const ClientForm = ({ client, onSave, onCancel, loading: externalLoading = false
                 <SelectContent>
                   <SelectItem value="ativo">Ativo</SelectItem>
                   <SelectItem value="inativo">Inativo</SelectItem>
+                  <SelectItem value="arquivado">Arquivado</SelectItem>
                   <SelectItem value="prospecto">Prospecto</SelectItem>
                 </SelectContent>
               </Select>

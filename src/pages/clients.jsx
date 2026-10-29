@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import ClientEditModal from '@/components/client/ClientEditModal';
 import ClientActionButtons from '@/components/clients/ClientActionButtons';
 import { getCardPastel } from '@/lib/modulePastels';
+import { isClientOnActiveRadar } from '@/lib/clientOffboarding';
 
 export default function ClientsPage() {
   const navigate = useNavigate();
@@ -72,7 +73,13 @@ export default function ClientsPage() {
     const matchesSearch = client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.legal_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+    // "all" = radar operacional (omite arquivados/inativos/suspensos)
+    const matchesStatus =
+      statusFilter === 'all'
+        ? isClientOnActiveRadar(client)
+        : statusFilter === 'arquivado'
+          ? !isClientOnActiveRadar(client)
+          : client.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -111,6 +118,11 @@ export default function ClientsPage() {
         return <Badge className="bg-[#E6F7F0] text-[#085041] hover:bg-[#E6F7F0] border-0">Ativo</Badge>;
       case 'inativo':
         return <Badge variant="secondary">Inativo</Badge>;
+      case 'arquivado':
+      case 'archived':
+        return <Badge variant="secondary">Arquivado</Badge>;
+      case 'suspenso':
+        return <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100 border-0">Suspenso</Badge>;
       case 'prospecto':
         return <Badge className="bg-[#EAF2FB] text-[#2E5A7A] hover:bg-[#EAF2FB] border-0">Prospecto</Badge>;
       default:
@@ -159,9 +171,10 @@ export default function ClientsPage() {
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="all">Radar ativo</SelectItem>
               <SelectItem value="ativo">Ativo</SelectItem>
               <SelectItem value="inativo">Inativo</SelectItem>
+              <SelectItem value="arquivado">Arquivados / fora do radar</SelectItem>
               <SelectItem value="prospecto">Prospecto</SelectItem>
             </SelectContent>
           </Select>
