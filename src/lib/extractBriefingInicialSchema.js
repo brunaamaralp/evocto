@@ -3,12 +3,15 @@
  * O resultado preenche o formulário para revisão — não grava sozinho.
  */
 
-import { normalizeBriefingInicialForm } from './briefingInicial.js';
 import {
   NARRATIVA_DNA_TEXT_KEYS,
+  normalizeBriefingInicialFormShape,
   normalizeFormato,
-} from './empresaConfig.js';
+} from './empresaFormShape.js';
 import { normalizeProdutosLinhas } from './campanhaAnualSchema.js';
+
+/** Alias local — evita puxar briefingInicial.js (entities/Appwrite) para a Function. */
+const normalizeBriefingInicialForm = normalizeBriefingInicialFormShape;
 
 export const EXTRACT_BRIEFING_SCHEMA_VERSION = 4;
 

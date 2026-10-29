@@ -73,9 +73,21 @@ async function parseRes(res) {
   }
 
   if (!res.ok) {
-    const code = body?.error || `error_${res.status}`;
+    const code = body?.error || body?.errorType || `error_${res.status}`;
     const message =
-      (typeof body?.message === 'string' && body.message.trim()) || code;
+      (typeof body?.message === 'string' && body.message.trim()) ||
+      (typeof body?.errorMessage === 'string' && body.errorMessage.trim()) ||
+      code;
+    // Crash de bootstrap da Function (ex.: import.meta.env) → mensagem clara
+    if (/import\.meta\.env|VITE_APPWRITE/i.test(String(message))) {
+      throwExtractError({
+        code: 'api_unavailable',
+        message:
+          'O serviço de importação está instável neste deploy. Aguarde o próximo deploy ou tente de novo em instantes.',
+        status: res.status,
+        body,
+      });
+    }
     throwExtractError({
       code,
       message,
@@ -168,19 +180,40 @@ export async function extractBriefingInicialFromFile(file, opts = {}) {
     }
   }
 
+  const payload = JSON.stringify({
+    filename: file.name,
+    mimeType: meta.mime,
+    contentBase64,
+    clientName: opts.clientName || '',
+  });
+  const headers = await authHeaders();
+
+  // Preferir rewrite /api; se o host devolver HTML/404, cair na Function direta.
+  const endpoints = [
+    '/api/extract-briefing-inicial',
+    '/.netlify/functions/extract-briefing-inicial',
+  ];
+
   try {
-    const res = await authedFetch('/api/extract-briefing-inicial', {
-      method: 'POST',
-      headers: await authHeaders(),
-      signal: controller.signal,
-      body: JSON.stringify({
-        filename: file.name,
-        mimeType: meta.mime,
-        contentBase64,
-        clientName: opts.clientName || '',
-      }),
-    });
-    return await parseRes(res);
+    let lastErr = null;
+    for (const url of endpoints) {
+      try {
+        const res = await authedFetch(url, {
+          method: 'POST',
+          headers,
+          signal: controller.signal,
+          body: payload,
+        });
+        return await parseRes(res);
+      } catch (err) {
+        lastErr = err;
+        if (err?.code === 'api_unavailable' || err?.status === 404) {
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr || new Error('api_unavailable');
   } catch (err) {
     if (err?.name === 'AbortError' || err?.code === 'AbortError') {
       throwExtractError({
