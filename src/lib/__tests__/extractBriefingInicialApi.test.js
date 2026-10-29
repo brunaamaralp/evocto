@@ -74,8 +74,11 @@ describe('extractBriefingInicialFromFile', () => {
 
     const result = await extractBriefingInicialFromFile(makeFile('a.txt'));
     expect(result.sucesso).toBe(true);
-    expect(authedFetch.mock.calls[1][0]).toContain(
+    expect(authedFetch.mock.calls[0][0]).toContain(
       '/.netlify/functions/extract-briefing-inicial'
+    );
+    expect(authedFetch.mock.calls[1][0]).toContain(
+      '/api/extract-briefing-inicial'
     );
   });
 

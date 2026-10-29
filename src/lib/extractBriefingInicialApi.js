@@ -10,7 +10,12 @@ import {
 const CLIENT_TIMEOUT_MS = 55_000;
 
 async function authHeaders(extra = {}) {
-  const jwt = await createSessionJwt();
+  const jwt = await Promise.race([
+    createSessionJwt(),
+    new Promise((resolve) => {
+      setTimeout(() => resolve(''), 8000);
+    }),
+  ]);
   if (!jwt) {
     const err = new Error('session_required');
     err.code = 'session_required';
@@ -188,10 +193,10 @@ export async function extractBriefingInicialFromFile(file, opts = {}) {
   });
   const headers = await authHeaders();
 
-  // Preferir rewrite /api; se o host devolver HTML/404, cair na Function direta.
+  // Neste host o rewrite /api/* costuma 404; Function direta primeiro.
   const endpoints = [
-    '/api/extract-briefing-inicial',
     '/.netlify/functions/extract-briefing-inicial',
+    '/api/extract-briefing-inicial',
   ];
 
   try {

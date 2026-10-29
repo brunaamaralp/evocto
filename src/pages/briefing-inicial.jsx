@@ -93,6 +93,40 @@ export default function BriefingInicialPage() {
     if (isAuthenticated) load();
   }, [isAuthenticated, load]);
 
+  // PWA: puxa SW novo para não ficar preso em JS antigo sem banners
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      return undefined;
+    }
+    let reloaded = false;
+    const onControllerChange = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      onControllerChange
+    );
+    navigator.serviceWorker.getRegistration().then(async (reg) => {
+      if (!reg) return;
+      try {
+        await reg.update();
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+    return () => {
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        onControllerChange
+      );
+    };
+  }, []);
+
   const canSubmit = isBriefingInicialFormComplete(form) && !saving && !done;
 
   const handleSave = async (draft) => {
