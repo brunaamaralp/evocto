@@ -86,6 +86,10 @@ const ERROR_MAP = {
   no_fields_extracted: 'Não encontramos dados de briefing neste arquivo.',
   ia_parse_failed: 'A IA não retornou dados válidos. Tente novamente.',
   ia_failed: 'Falha ao ler o briefing. Tente novamente em instantes.',
+  anthropic_model_unavailable:
+    'Modelo de IA indisponível no servidor. Aguarde o próximo deploy ou fale com o suporte.',
+  'model: claude-sonnet-4-20250514':
+    'Modelo de IA antigo no servidor. Aguarde o próximo deploy e tente de novo.',
   api_unavailable:
     'O serviço de importação não respondeu. Recarregue a página ou tente de novo em instantes.',
   file_read_failed: 'Não foi possível ler o arquivo selecionado.',
