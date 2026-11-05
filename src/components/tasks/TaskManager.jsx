@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from '@/components/auth/SessionManager';
-import { Task, Brief } from '@/api/entities';
+import { Task } from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,10 +26,7 @@ import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
 } from '@/lib/taskFilterPresets';
-import {
-  filterTasksByScope,
-  getTaskBriefIds,
-} from '@/lib/taskScope';
+import { filterTasksByScope } from '@/lib/taskScope';
 import { transitionTaskStatus } from '@/lib/taskStatusTransition';
 import { completeTask } from '@/lib/completeTask';
 
@@ -71,7 +68,7 @@ export default function TaskManager({
     }
   }
 
-  // Carregar tarefas (+ nomes de campanha no inbox do cliente)
+  // Carregar tarefas do cliente (todas, ou só de um serviço quando informado)
   const loadTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -81,32 +78,7 @@ export default function TaskManager({
       if (serviceId) taskFilters.serviceId = serviceId;
 
       const tasksData = await Task.filter(taskFilters, '-created_date');
-      const scoped = filterTasksByScope(tasksData, { cycleId, briefingId });
-      let nextTasks = scoped.tasks;
-
-      if (embedded && nextTasks.length > 0) {
-        const briefIds = [
-          ...new Set(nextTasks.flatMap((t) => getTaskBriefIds(t))),
-        ];
-        const nameById = {};
-        await Promise.all(
-          briefIds.map(async (id) => {
-            const brief = await Brief.get(id).catch(() => null);
-            if (brief?.id) {
-              nameById[String(brief.id)] =
-                brief.nome_campanha || brief.title || 'Campanha';
-            }
-          })
-        );
-        nextTasks = nextTasks.map((t) => {
-          const bid = getTaskBriefIds(t)[0] || null;
-          return {
-            ...t,
-            campaignId: bid,
-            campaignName: bid ? nameById[String(bid)] || null : null,
-          };
-        });
-      }
+      const nextTasks = filterTasksByScope(tasksData, { cycleId, briefingId }).tasks;
 
       setTasks(nextTasks);
     } catch (err) {
@@ -116,7 +88,7 @@ export default function TaskManager({
     } finally {
       setLoading(false);
     }
-  }, [clientId, serviceId, cycleId, briefingId, embedded]);
+  }, [clientId, serviceId, cycleId, briefingId]);
 
   useEffect(() => {
     loadTasks();
