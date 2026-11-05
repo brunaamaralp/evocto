@@ -3,8 +3,14 @@ import { authedFetch } from '@/lib/authInterceptor';
 import { friendlyError } from '@/lib/errorMessages';
 import {
   EXTRACT_BRIEFING_MAX_BYTES,
+  buildExtractBriefingResult,
   resolveExtractBriefingFileMeta,
 } from '@/lib/extractBriefingInicialSchema';
+
+const STREAM_ENDPOINT = '/api/extract-briefing-stream';
+/** O stream não tem limite de 10s da Netlify; damos folga para PDFs grandes. */
+const STREAM_TIMEOUT_MS = 180_000;
+const MIN_PDF_TEXT_CHARS = 80;
 
 /** Cliente aborta um pouco após o timeout da function Netlify (26s). */
 const CLIENT_TIMEOUT_MS = 55_000;
@@ -162,6 +168,126 @@ function readFileAsBase64(file) {
   });
 }
 
+async function extractTextInBrowser(file, kind) {
+  if (kind === 'txt') {
+    let text = await file.text();
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+    return { text: text.trim(), mode: 'text' };
+  }
+  if (kind === 'docx') {
+    const mod = await import('mammoth');
+    const mammoth = mod.default || mod;
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return { text: String(result?.value || '').trim(), mode: 'docx_text' };
+  }
+  // PDF: texto embutido primeiro; se não houver (PDF escaneado), envia o PDF.
+  try {
+    const { extractText } = await import('unpdf');
+    const result = await extractText(new Uint8Array(await file.arrayBuffer()), {
+      mergePages: true,
+    });
+    const text = Array.isArray(result?.text)
+      ? result.text.join('\n')
+      : String(result?.text ?? result ?? '');
+    if (text.trim().length >= MIN_PDF_TEXT_CHARS) {
+      return { text: text.trim(), mode: 'pdf_text' };
+    }
+  } catch (err) {
+    console.warn('[BriefingImport] leitura local do PDF falhou:', err?.message || err);
+  }
+  return { text: '', mode: 'pdf_document' };
+}
+
+/**
+ * Lê o NDJSON da Edge Function e devolve o texto completo da IA.
+ * Lança { code: 'api_unavailable' } se o endpoint não existir neste deploy.
+ */
+async function streamExtract({ url, headers, payload, signal, onProgress }) {
+  const res = await authedFetch(url, { method: 'POST', headers, body: payload, signal });
+  const ct = String(res.headers.get('content-type') || '').toLowerCase();
+
+  if (!ct.includes('ndjson')) {
+    // Erro JSON antes do stream, ou HTML/404 (Edge Function ausente neste deploy).
+    const rawText = await res.text().catch(() => '');
+    let body = {};
+    try {
+      body = JSON.parse(rawText);
+    } catch {
+      body = {};
+    }
+    if (
+      !ct.includes('application/json') ||
+      res.ok ||
+      res.status === 404 ||
+      res.status === 405
+    ) {
+      throwExtractError({
+        code: 'api_unavailable',
+        message: 'api_unavailable',
+        status: res.status || 502,
+        body: { error: 'api_unavailable', raw: rawText.slice(0, 200) },
+      });
+    }
+    throwExtractError({
+      code: body?.error || `error_${res.status}`,
+      message: body?.message || body?.error || `error_${res.status}`,
+      status: res.status,
+      body,
+    });
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let aiText = '';
+  let done = null;
+
+  const handleLine = (line) => {
+    if (!line.trim()) return;
+    let evt;
+    try {
+      evt = JSON.parse(line);
+    } catch {
+      return;
+    }
+    if (evt.t === 'delta') {
+      aiText += evt.v || '';
+      onProgress?.(aiText.length);
+    } else if (evt.t === 'done') {
+      done = evt;
+    } else if (evt.t === 'error') {
+      throwExtractError({
+        code: evt.error || 'ia_failed',
+        message: evt.message || evt.error || 'ia_failed',
+        status: 502,
+        body: evt,
+      });
+    }
+  };
+
+  for (;;) {
+    const { value, done: finished } = await reader.read();
+    if (finished) break;
+    buffer += decoder.decode(value, { stream: true });
+    let idx;
+    while ((idx = buffer.indexOf('\n')) >= 0) {
+      handleLine(buffer.slice(0, idx));
+      buffer = buffer.slice(idx + 1);
+    }
+  }
+  handleLine(buffer);
+
+  if (!done) {
+    throwExtractError({
+      code: 'ia_failed',
+      message: 'A resposta da IA foi interrompida. Tente novamente.',
+      status: 502,
+    });
+  }
+  return { aiText, done };
+}
+
 /**
  * Valida e envia o arquivo para extração no servidor.
  * @param {File} file
@@ -194,6 +320,101 @@ export async function extractBriefingInicialFromFile(file, opts = {}) {
     });
   }
 
+  // Caminho principal: Edge Function em streaming (sem o corte de 10s).
+  if (opts.stream !== false) {
+    try {
+      return await extractViaStream(file, meta, opts);
+    } catch (err) {
+      if (err?.code !== 'api_unavailable') throw err;
+      opts.onStage?.('Streaming indisponível neste deploy; usando endpoint antigo…');
+    }
+  }
+  return extractViaLegacyFunction(file, meta, opts);
+}
+
+async function extractViaStream(file, meta, opts) {
+  opts.onStage?.('Lendo o arquivo no navegador…');
+  let local;
+  try {
+    local = await extractTextInBrowser(file, meta.kind);
+  } catch (err) {
+    console.warn('[BriefingImport] leitura local falhou:', err?.message || err);
+    throwExtractError({
+      code: 'file_read_failed',
+      message:
+        meta.kind === 'docx'
+          ? 'Não foi possível ler este DOCX. Salve novamente ou envie em PDF/TXT.'
+          : 'Não foi possível ler o arquivo. Tente outro formato.',
+    });
+  }
+
+  if (local.mode !== 'pdf_document' && local.text.length < 40) {
+    throwExtractError({
+      code: 'empty_document',
+      message:
+        'O documento está vazio ou muito curto para extrair um briefing.',
+      status: 422,
+    });
+  }
+
+  const payload = JSON.stringify({
+    filename: file.name,
+    clientName: opts.clientName || '',
+    ...(local.mode === 'pdf_document'
+      ? { pdfBase64: await readFileAsBase64(file) }
+      : { text: local.text }),
+  });
+  const headers = await authHeaders();
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), STREAM_TIMEOUT_MS);
+  if (opts.signal) {
+    if (opts.signal.aborted) controller.abort();
+    else opts.signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+
+  try {
+    opts.onStage?.('Enviando para a IA…');
+    const { aiText, done } = await streamExtract({
+      url: STREAM_ENDPOINT,
+      headers,
+      payload,
+      signal: controller.signal,
+      onProgress: opts.onProgress,
+    });
+    const { status, body } = buildExtractBriefingResult(aiText, {
+      clientName: opts.clientName || '',
+      model: done.model || '',
+      usage: done.usage || {},
+      stopReason: done.stop_reason,
+      source: {
+        filename: file.name,
+        mimeType: meta.mime,
+        kind: meta.kind,
+        mode: local.mode,
+        text_chars: local.text.length || null,
+      },
+    });
+    if (status !== 200) {
+      throwExtractError({ code: body.error, message: body.message, status, body });
+    }
+    return body;
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      throwExtractError({ code: 'claude_timeout', message: 'claude_timeout' });
+    }
+    if (err?.code) throw err;
+    const raw = String(err?.message || err || '');
+    if (/Failed to fetch|NetworkError|fetch failed|network/i.test(raw)) {
+      throwExtractError({ code: 'Failed to fetch', message: 'Failed to fetch' });
+    }
+    throwExtractError({ code: 'ia_failed', message: raw || 'ia_failed' });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function extractViaLegacyFunction(file, meta, opts) {
   const contentBase64 = await readFileAsBase64(file);
 
   const controller = new AbortController();

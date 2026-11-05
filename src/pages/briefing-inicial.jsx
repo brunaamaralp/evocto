@@ -188,7 +188,7 @@ export default function BriefingInicialPage() {
     <div className="max-w-3xl mx-auto py-6 px-4 pb-28 space-y-6">
       <div className="rounded-xl bg-[#B80015] px-4 py-3 text-white shadow-md">
         <p className="text-sm font-bold uppercase tracking-wide">
-          Briefing Import UI v8
+          Briefing Import UI v9
         </p>
         <p className="mt-1 text-xs opacity-95 break-all">
           Host: {typeof window !== 'undefined' ? window.location.href : '—'}

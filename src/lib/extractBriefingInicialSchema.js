@@ -675,3 +675,88 @@ export function validateExtractBriefingRequest(body = {}) {
 }
 
 export { TRACKED_KEYS, hasOwn };
+
+/** Extrai o primeiro objeto JSON de uma resposta textual da IA. */
+export function extractJsonObjectFromAiText(text) {
+  const t = String(text || '').trim();
+  if (!t) return null;
+  const clean = t.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const firstBrace = clean.indexOf('{');
+  const lastBrace = clean.lastIndexOf('}');
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) return null;
+  try {
+    return JSON.parse(clean.slice(firstBrace, lastBrace + 1));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Converte o JSON da IA no payload de resposta da extração (compartilhado
+ * entre a Function Node e o fluxo em streaming via Edge Function).
+ * @returns {{ status: number, body: object }}
+ */
+export function buildExtractBriefingResult(
+  aiText,
+  { clientName = '', model = '', usage = {}, source = {}, stopReason = null } = {}
+) {
+  const parsed = extractJsonObjectFromAiText(aiText);
+  if (!parsed) {
+    return {
+      status: 502,
+      body: {
+        error: 'ia_parse_failed',
+        message:
+          stopReason === 'max_tokens'
+            ? 'A resposta da IA ficou longa demais e foi cortada. Tente um documento mais enxuto.'
+            : 'A IA leu o arquivo, mas não retornou dados estruturados. Tente novamente ou use outro formato.',
+      },
+    };
+  }
+
+  const analise = normalizeNarrativaAnalise(parsed);
+  const form = normalizeExtractedBriefingEmpresa(
+    { ...parsed, analise },
+    clientName,
+    { allowClientNameFallback: false }
+  );
+  // Gate do formulário = valores reais em empresa.* (já mapeados de analise).
+  const effectiveKeys = detectFilledKeysFromRaw({ empresa: form.empresa });
+  const avisos = Array.isArray(parsed.avisos) ? parsed.avisos.map(String) : [];
+
+  if (effectiveKeys.length === 0) {
+    return {
+      status: 422,
+      body: {
+        error: 'no_fields_extracted',
+        message:
+          'Lemos o arquivo, mas não encontramos base suficiente para montar o DNA da marca. Confira se o documento fala da empresa.',
+        avisos,
+        analise,
+        analise_markdown: formatNarrativaAnaliseMarkdown(analise),
+      },
+    };
+  }
+
+  const stats = countExtractedFields(form, effectiveKeys);
+  return {
+    status: 200,
+    body: {
+      sucesso: true,
+      schema_version: EXTRACT_BRIEFING_SCHEMA_VERSION,
+      model,
+      usage: {
+        input_tokens: Number(usage.input_tokens || 0),
+        output_tokens: Number(usage.output_tokens || 0),
+      },
+      source,
+      filled: stats.filled,
+      filled_keys: stats.keys,
+      avisos,
+      analise,
+      analise_markdown: formatNarrativaAnaliseMarkdown(analise),
+      form,
+      empresa: form.empresa,
+    },
+  };
+}

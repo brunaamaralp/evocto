@@ -36,7 +36,7 @@ const FIELD_LABELS = {
   produtos_linhas: 'Produtos / frentes',
 };
 
-const UI_VERSION = 'Import UI v8';
+const UI_VERSION = 'Import UI v9 (stream)';
 
 /**
  * Upload → motor Narrativa → preenche formulário para revisão.
@@ -149,8 +149,16 @@ export default function BriefingInicialFileImport({
 
     try {
       log('Chamando API de extração…');
+      let lastProgressLog = 0;
       const result = await extractBriefingInicialFromFile(selected, {
         clientName,
+        onStage: (msg) => log(msg),
+        onProgress: (chars) => {
+          if (chars - lastProgressLog >= 1500) {
+            lastProgressLog = chars;
+            log(`IA respondendo… ${chars} caracteres`);
+          }
+        },
       });
       log(
         `API ok · filled_keys=${(result.filled_keys || []).join(',') || '(nenhuma)'}`
@@ -253,7 +261,8 @@ export default function BriefingInicialFileImport({
         });
       }
 
-      const res = await fetch('/.netlify/functions/extract-briefing-inicial', {
+      // Texto curto de propósito: valida sessão + chave de IA e para antes de chamar o Claude.
+      const res = await fetch('/api/extract-briefing-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,21 +270,26 @@ export default function BriefingInicialFileImport({
         },
         body: JSON.stringify({
           filename: 'diag.txt',
-          mimeType: 'text/plain',
-          contentBase64: btoa('diagnostico de importacao de briefing inicial'),
+          text: 'diagnostico',
           clientName: clientName || 'Diagnostico',
         }),
       });
       const text = await res.text();
       log(`HTTP ${res.status}: ${text.slice(0, 180)}`);
-      if (!res.ok) {
-        let msg = `Endpoint respondeu ${res.status}`;
-        try {
-          const body = JSON.parse(text);
-          msg = body.message || body.error || msg;
-        } catch {
-          /* ignore */
-        }
+      let body = {};
+      try {
+        body = JSON.parse(text);
+      } catch {
+        /* ignore */
+      }
+      const reachedValidation = res.status === 422 && body.error === 'empty_document';
+      if (!reachedValidation) {
+        const msg =
+          body.message ||
+          body.error ||
+          (/^\s*</.test(text)
+            ? 'Endpoint de streaming não encontrado neste deploy (resposta HTML).'
+            : `Endpoint respondeu ${res.status}`);
         throw Object.assign(new Error(msg), { status: res.status });
       }
       flushSync(() => {
