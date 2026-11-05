@@ -164,7 +164,7 @@ export default function OverviewTab({ customer, services = [], cycles = [], onRe
     setLoading(true);
     try {
       const [briefingData, publicBriefingData] = await Promise.all([
-        Brief.filter({ agencyId: agencyId, projectId: customer.id }),
+        Brief.filter({ agencyId: agencyId, clientId: customer.id }),
         PublicBriefingResponse.filter({ agencyId: agencyId, clientId: customer.id })
       ]);
       setBriefings(briefingData);
@@ -308,7 +308,7 @@ export default function OverviewTab({ customer, services = [], cycles = [], onRe
                         } else {
                           await Brief.create({
                             agencyId: agencyId,
-                            projectId: customer.id,
+                            clientId: customer.id,
                             status: 'READY',
                             completion_score: Math.max(60, Math.round(localInfo.bestPercentage)),
                             business_context: '',

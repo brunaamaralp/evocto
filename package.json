@@ -19,6 +19,8 @@
     "appwrite:audit-public-briefing": "node scripts/audit-public-briefing-permissions.mjs",
     "appwrite:smoke-material-phase1": "node scripts/smoke-material-phase1.mjs",
     "appwrite:setup-client-visible": "node scripts/appwrite-setup-client-visible.mjs",
+    "appwrite:setup-projects": "node scripts/appwrite-setup-projects.mjs",
+    "appwrite:migrate-projects": "node scripts/migrate-projects.mjs",
     "appwrite:smoke-agency-finance": "node scripts/smoke-agency-finance.mjs",
     "appwrite:smoke-client-portal": "node scripts/smoke-client-portal-isolation.mjs",
     "appwrite:smoke-approval-workflow": "node scripts/smoke-approval-workflow.mjs",

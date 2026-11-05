@@ -910,7 +910,7 @@ export default function BriefingMasterPage({ client }) {
       // Buscar briefing existente
       const briefs = await Brief.filter({ 
         agencyId, 
-        projectId: client.id 
+        clientId: client.id 
       }, '-updated_date', 1);
 
       let briefingData = briefs[0];
@@ -919,7 +919,7 @@ export default function BriefingMasterPage({ client }) {
       if (!briefingData) {
         briefingData = await Brief.create({
           agencyId,
-          projectId: client.id,
+          clientId: client.id,
           status: 'DRAFT',
           completion_score: 0
         });

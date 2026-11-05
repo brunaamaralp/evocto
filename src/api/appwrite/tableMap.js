@@ -2,6 +2,8 @@
 export const TABLE_MAP = {
   Agency: 'agencies',
   Client: 'clients',
+  /** Projeto de trabalho do cliente (agrupa serviço, ciclos, campanhas e tarefas) */
+  Project: 'projects',
   Service: 'services',
   Task: 'tasks',
   TimeEntry: 'time_entries',
@@ -43,17 +45,29 @@ export const PHASE1_TABLES = Object.values(TABLE_MAP);
 /**
  * Indexed / typed columns per table. Everything else goes into `payload` JSON.
  *
- * LearningEntry: código legado filtra por `projectId` (= clientId).
+ * projectId em tasks / services / cycle_plans / briefs = id em `projects`.
+ * LearningEntry: código legado filtra por `projectId` (= clientId) — NÃO é projeto.
  * Mantemos `projectId` e `clientId` indexados para alinhar schema novo e queries antigas.
  */
 export const TABLE_COLUMNS = {
   profiles: ['agencyId', 'role', 'clientId', 'name', 'email', 'full_name', 'status'],
   agencies: ['agencyName', 'name', 'contactPhone', 'ownerEmail', 'status'],
   clients: ['agencyId', 'name', 'status', 'email', 'phone'],
-  services: ['agencyId', 'clientId', 'name', 'status', 'is_template', 'is_active', 'category'],
+  projects: ['agencyId', 'clientId', 'name', 'status', 'kind', 'serviceId', 'isDefault'],
+  services: [
+    'agencyId',
+    'clientId',
+    'projectId',
+    'name',
+    'status',
+    'is_template',
+    'is_active',
+    'category',
+  ],
   tasks: [
     'agencyId',
     'clientId',
+    'projectId',
     'serviceId',
     'title',
     'status',
@@ -71,7 +85,7 @@ export const TABLE_COLUMNS = {
     'status',
     'startedAt',
   ],
-  cycle_plans: ['agencyId', 'clientId', 'serviceId', 'status', 'title'],
+  cycle_plans: ['agencyId', 'clientId', 'projectId', 'serviceId', 'status', 'title'],
   briefs: [
     'agencyId',
     'clientId',
@@ -248,6 +262,7 @@ export const BOOLEAN_COLUMNS = new Set([
   'reviewed',
   'is_current',
   'clientVisible',
+  'isDefault',
   'pinned',
   'favorite',
 ]);

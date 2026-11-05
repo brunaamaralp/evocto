@@ -58,7 +58,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
     try {
       // 1. Verificar Brief interno
       // No need for dynamic import if Brief is already imported at the top
-      const internalBriefs = await Brief.filter({ projectId: clientId });
+      const internalBriefs = await Brief.filter({ clientId });
 
       if (internalBriefs && internalBriefs.length > 0) {
         console.log(`? Cliente ${clientId} tem ${internalBriefs.length} briefing(s) interno(s)`);
@@ -93,7 +93,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
     setLoading(true);
     try {
       const [briefingData, publicResponses, taskData, fetchedServices] = await Promise.all([
-        Brief.filter({ agencyId: agency.id, projectId: client.id }),
+        Brief.filter({ agencyId: agency.id, clientId: client.id }),
         PublicBriefingResponse.filter({ agencyId: agency.id, clientId: client.id }),
         Task.filter({ agencyId: agency.id, clientId: client.id }, '-created_date', 100),
         Service.filter({ clientId: client.id, is_template: false }) // Fetch services for status calculation
@@ -165,7 +165,7 @@ export default function OverviewTab({ client, services, onUpdate }) {
       } else {
         await Brief.create({
           agencyId: agency.id,
-          projectId: client.id,
+          clientId: client.id,
           status: 'READY',
           completion_score: Math.max(60, Math.round(info.bestPercentage)),
           business_context: '',

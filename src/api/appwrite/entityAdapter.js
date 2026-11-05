@@ -23,6 +23,50 @@ const SYSTEM_KEYS = new Set([
   'payload',
 ]);
 
+/**
+ * Hooks de escrita (ex.: atribuição de projeto). Registrados por src/api/entities.js
+ * para evitar import circular.
+ * @type {{ beforeCreate?: Function, beforeUpdate?: Function }}
+ */
+let writeHooks = {};
+export function registerWriteHooks(hooks = {}) {
+  writeHooks = { ...writeHooks, ...hooks };
+}
+
+/**
+ * Coluna tipada ainda não provisionada no Appwrite (ex.: projectId antes do
+ * script de setup) → move o campo para o payload JSON e tenta de novo.
+ */
+function unknownAttributeKey(error) {
+  const msg = String(error?.message || '');
+  const m = msg.match(/unknown attribute:?\s*"?([A-Za-z0-9_]+)"?/i);
+  return m ? m[1] : null;
+}
+
+async function writeWithColumnFallback(row, write) {
+  let current = { ...row };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await write(current);
+    } catch (error) {
+      const key = unknownAttributeKey(error);
+      if (!key || key === 'payload' || !(key in current)) throw error;
+      let extra = {};
+      try {
+        extra = JSON.parse(current.payload || '{}');
+      } catch {
+        extra = {};
+      }
+      extra[key] = current[key];
+      const next = { ...current, payload: JSON.stringify(extra) };
+      delete next[key];
+      console.warn(`[Appwrite] coluna ${key} ausente; gravando no payload`);
+      current = next;
+    }
+  }
+  return write(current);
+}
+
 function coerceValue(key, value) {
   if (value === undefined) return undefined;
   if (BOOLEAN_COLUMNS.has(key)) return Boolean(value);
@@ -121,6 +165,12 @@ function mergeRow(row) {
     updated_date: $updatedAt,
   };
 
+  // Compat telas legadas (Base44) de Project: title / client_id
+  if ($tableId === 'projects' || $collectionId === 'projects') {
+    if (merged.title == null && merged.name != null) merged.title = merged.name;
+    if (merged.client_id == null && merged.clientId != null) merged.client_id = merged.clientId;
+  }
+
   // Compat UI: garantir assignedTo a partir de assigneeId
   if (merged.assigneeId && !merged.assignedTo) {
     merged.assignedTo = merged.assigneeId;
@@ -190,8 +240,9 @@ function isMongoOp(value) {
     Object.keys(value).some((k) => k.startsWith('$'));
 }
 
-function toQueries(tableId, filters = {}, order, limit) {
+function toQueries(tableId, filters = {}, order, limit, missingColumns = []) {
   const known = new Set(TABLE_COLUMNS[tableId] || []);
+  for (const col of missingColumns) known.delete(col);
   const queries = [];
   const clientFilters = {};
 
@@ -240,9 +291,35 @@ function matchesClientFilters(row, clientFilters) {
   });
 }
 
-async function listAll(tableId, filters, order, limit) {
+function missingQueryColumn(error) {
+  const msg = String(error?.message || '');
+  const m = msg.match(/attribute not found in schema:?\s*"?([A-Za-z0-9_]+)"?/i);
+  return m ? m[1] : null;
+}
+
+async function listAll(tableId, filters, order, limit, missingColumns = []) {
+  try {
+    return await listAllOnce(tableId, filters, order, limit, missingColumns);
+  } catch (error) {
+    // Coluna tipada ainda não provisionada → filtra no cliente (lê do payload).
+    const col = missingQueryColumn(error);
+    if (col && !missingColumns.includes(col) && missingColumns.length < 3) {
+      console.warn(`[Appwrite] ${tableId}.${col} sem coluna; filtrando no cliente`);
+      return listAll(tableId, filters, order, limit, [...missingColumns, col]);
+    }
+    throw error;
+  }
+}
+
+async function listAllOnce(tableId, filters, order, limit, missingColumns) {
   const tables = getTablesDB();
-  const { queries, clientFilters, pageSize } = toQueries(tableId, filters, order, limit);
+  const { queries, clientFilters, pageSize } = toQueries(
+    tableId,
+    filters,
+    order,
+    limit,
+    missingColumns
+  );
   const max = Number(limit) || 500;
   const rows = [];
   let offset = 0;
@@ -294,10 +371,16 @@ export function createEntityAdapter(tableId, { allowEmpty = false } = {}) {
     async create(data = {}) {
       const tables = getTablesDB();
       const agencyId = await resolveAgencyId(data);
-      const payload = { ...data, agencyId: data.agencyId || agencyId };
+      let payload = { ...data, agencyId: data.agencyId || agencyId };
       // Portal: tarefas novas nunca são visíveis ao cliente por padrão (opt-in).
       if (tableId === 'tasks' && payload.clientVisible == null) {
         payload.clientVisible = false;
+      }
+      let afterCreate = null;
+      if (writeHooks.beforeCreate) {
+        const hooked = await writeHooks.beforeCreate(tableId, payload);
+        if (hooked?.payload) payload = hooked.payload;
+        afterCreate = hooked?.after || null;
       }
       const row = splitPayload(tableId, payload);
       // Só Role.user(target) quando target === sessão atual (SDK rejeita outro userId).
@@ -315,14 +398,20 @@ export function createEntityAdapter(tableId, { allowEmpty = false } = {}) {
           // ignore
         }
       }
-      const created = await tables.createRow({
-        databaseId: DATABASE_ID,
-        tableId,
-        rowId: data.id || ID.unique(),
-        data: row,
-        permissions: await rowPermissions(agencyId || data.agencyId, extraPerms),
-      });
-      return mergeRow(created);
+      const permissions = await rowPermissions(agencyId || data.agencyId, extraPerms);
+      const rowId = data.id || ID.unique();
+      const created = await writeWithColumnFallback(row, (rowData) =>
+        tables.createRow({
+          databaseId: DATABASE_ID,
+          tableId,
+          rowId,
+          data: rowData,
+          permissions,
+        })
+      );
+      const result = mergeRow(created);
+      if (afterCreate) await afterCreate(result);
+      return result;
     },
 
     async get(id) {
@@ -344,14 +433,19 @@ export function createEntityAdapter(tableId, { allowEmpty = false } = {}) {
       } catch {
         existing = {};
       }
-      const merged = { ...existing, ...data, id };
+      let merged = { ...existing, ...data, id };
+      if (writeHooks.beforeUpdate) {
+        merged = (await writeHooks.beforeUpdate(tableId, merged, existing)) || merged;
+      }
       const row = splitPayload(tableId, merged);
-      const updated = await tables.updateRow({
-        databaseId: DATABASE_ID,
-        tableId,
-        rowId: id,
-        data: row,
-      });
+      const updated = await writeWithColumnFallback(row, (rowData) =>
+        tables.updateRow({
+          databaseId: DATABASE_ID,
+          tableId,
+          rowId: id,
+          data: rowData,
+        })
+      );
       return mergeRow(updated);
     },
 

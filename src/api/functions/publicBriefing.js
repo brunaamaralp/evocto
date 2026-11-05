@@ -293,7 +293,6 @@ export async function generatePublicBriefingToken({
   const draftInicial = {
     agencyId,
     clientId,
-    projectId: clientId,
     empresaId: empresa?.id || null,
     brief_kind: BRIEF_KIND_INICIAL,
     title: `Briefing inicial — ${client.name || 'aguardando cliente'}`,

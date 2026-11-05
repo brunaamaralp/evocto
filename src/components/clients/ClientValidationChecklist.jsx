@@ -123,7 +123,7 @@ export default function ClientValidationChecklist() {
       const clientsWithData = await Promise.all(
         clients.map(async (client) => {
           const [brief, cycles, learnings] = await Promise.all([
-            Brief.filter({ agencyId: agency.id, projectId: client.id }).catch(() => []),
+            Brief.filter({ agencyId: agency.id, clientId: client.id }).catch(() => []),
             CyclePlan.filter({ agencyId: agency.id, clientId: client.id }).catch(() => []),
             LearningEntry.filter({ agencyId: agency.id, projectId: client.id }).catch(() => [])
           ]);
@@ -157,7 +157,7 @@ export default function ClientValidationChecklist() {
 
       // Buscar todos os dados do cliente
       const [briefing, cycles, learnings] = await Promise.all([
-        Brief.filter({ agencyId: agency.id, projectId: client.id }),
+        Brief.filter({ agencyId: agency.id, clientId: client.id }),
         CyclePlan.filter({ agencyId: agency.id, clientId: client.id }),
         LearningEntry.filter({ agencyId: agency.id, projectId: client.id })
       ]);

@@ -110,7 +110,7 @@ export async function fetchGlobalSearchEntities(agencyId) {
       group: 'Serviços',
     })),
     campaigns: briefs.map((b) => {
-      const clientId = b.clientId || b.projectId || null;
+      const clientId = b.clientId || null;
       const campaignId = b.id;
       const serviceId = b.serviceId || null;
       let href = createPageUrl(
@@ -136,7 +136,7 @@ export async function fetchGlobalSearchEntities(agencyId) {
     }),
     tasks: tasks.map((t) => ({
       id: t.id,
-      clientId: t.clientId || t.projectId || null,
+      clientId: t.clientId || null,
       title: t.title || 'Tarefa',
       subtitle: t.status || '',
       href: createPageUrl(`tasks-manager?taskId=${encodeURIComponent(t.id)}`),

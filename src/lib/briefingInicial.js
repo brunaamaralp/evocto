@@ -195,7 +195,6 @@ export function buildBriefingInicialBriefPayload({
     ...(existing || {}),
     agencyId,
     clientId,
-    projectId: clientId,
     empresaId: empresa?.id || existing?.empresaId || null,
     brief_kind: BRIEF_KIND_INICIAL,
     title: `Briefing inicial — ${nome}`,

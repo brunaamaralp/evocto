@@ -67,7 +67,7 @@ export default function InternalBriefingForm({
       // Mapear de volta para o formato Brief
       const briefData = {
         agencyId,
-        projectId,
+        clientId: clientId || projectId,
         business_context: updatedResponses.business_description || '',
         objectives: updatedResponses.main_objectives || '',
         success_metrics: updatedResponses.success_metrics || '',
@@ -95,7 +95,7 @@ export default function InternalBriefingForm({
     try {
       const briefData = {
         agencyId,
-        projectId,
+        clientId: clientId || projectId,
         business_context: briefingData.responses.business_description || '',
         objectives: briefingData.responses.main_objectives || '',
         success_metrics: briefingData.responses.success_metrics || '',

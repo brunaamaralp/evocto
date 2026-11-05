@@ -449,6 +449,7 @@ export default function useClientHubData(clientId, agencyId) {
         safeFilter(CyclePlan, { agencyId, clientId }),
         safeFilter(ApprovalRequest, { agencyId, clientId }),
         safeFilter(Brief, { agencyId, clientId }),
+        // Legado (pré-migração de projetos): briefs com projectId === clientId e sem clientId
         safeFilter(Brief, { agencyId, projectId: clientId }),
         safeFilter(Task, { agencyId, clientId }),
         safeFilter(ClientDocument, { agencyId, clientId }, '-created_date'),

@@ -107,11 +107,27 @@ const TABLES = [
     indexes: ['agencyId', 'status'],
   },
   {
+    id: 'projects',
+    name: 'Projects',
+    columns: [
+      { key: 'agencyId', type: 'varchar', size: 36 },
+      { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'name', type: 'varchar', size: 255 },
+      { key: 'status', type: 'varchar', size: 32 },
+      { key: 'kind', type: 'varchar', size: 32 },
+      { key: 'serviceId', type: 'varchar', size: 36 },
+      { key: 'isDefault', type: 'boolean' },
+      { key: 'payload', type: 'mediumtext' },
+    ],
+    indexes: ['agencyId', 'clientId', 'status', 'serviceId', 'isDefault'],
+  },
+  {
     id: 'services',
     name: 'Services',
     columns: [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'projectId', type: 'varchar', size: 36 },
       { key: 'name', type: 'varchar', size: 255 },
       { key: 'status', type: 'varchar', size: 64 },
       { key: 'is_template', type: 'boolean' },
@@ -119,7 +135,7 @@ const TABLES = [
       { key: 'category', type: 'varchar', size: 128 },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'is_template', 'is_active', 'status'],
+    indexes: ['agencyId', 'clientId', 'projectId', 'is_template', 'is_active', 'status'],
   },
   {
     id: 'tasks',
@@ -127,6 +143,7 @@ const TABLES = [
     columns: [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'projectId', type: 'varchar', size: 36 },
       { key: 'serviceId', type: 'varchar', size: 36 },
       { key: 'title', type: 'varchar', size: 255 },
       { key: 'status', type: 'varchar', size: 32 },
@@ -136,7 +153,15 @@ const TABLES = [
       { key: 'clientVisible', type: 'boolean' },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'serviceId', 'status', 'assigneeId', 'clientVisible'],
+    indexes: [
+      'agencyId',
+      'clientId',
+      'projectId',
+      'serviceId',
+      'status',
+      'assigneeId',
+      'clientVisible',
+    ],
   },
   {
     id: 'time_entries',
@@ -159,12 +184,13 @@ const TABLES = [
     columns: [
       { key: 'agencyId', type: 'varchar', size: 36 },
       { key: 'clientId', type: 'varchar', size: 36 },
+      { key: 'projectId', type: 'varchar', size: 36 },
       { key: 'serviceId', type: 'varchar', size: 36 },
       { key: 'status', type: 'varchar', size: 32 },
       { key: 'title', type: 'varchar', size: 255 },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'serviceId', 'status'],
+    indexes: ['agencyId', 'clientId', 'projectId', 'serviceId', 'status'],
   },
   {
     id: 'briefs',
@@ -178,7 +204,7 @@ const TABLES = [
       { key: 'title', type: 'varchar', size: 255 },
       { key: 'payload', type: 'mediumtext' },
     ],
-    indexes: ['agencyId', 'clientId', 'empresaId', 'status'],
+    indexes: ['agencyId', 'clientId', 'projectId', 'empresaId', 'status'],
   },
   {
     id: 'empresas',

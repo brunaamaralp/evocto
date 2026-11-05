@@ -25,7 +25,7 @@ export default function BriefingView({ clientId }) {
 
       // Buscar o briefing mestre do cliente
       const briefs = await Brief.filter({ 
-        projectId: clientId 
+        clientId 
       });
 
       if (briefs.length > 0) {

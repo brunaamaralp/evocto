@@ -128,7 +128,7 @@ export default function CampaignWorkspaceIdeia({
             {saving ? 'Salvando…' : 'Salvar ideia'}
           </Button>
           <Button type="button" variant="outline" asChild>
-            <Link to={`/client-detail?clientId=${brief.clientId || brief.projectId || ''}`}>
+            <Link to={`/client-detail?clientId=${brief.clientId || ''}`}>
               Voltar ao Hub
             </Link>
           </Button>

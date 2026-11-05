@@ -131,9 +131,9 @@ function BriefingEditorPage() {
         console.log('✅ Briefing carregado:', briefingData.id);
 
         // Carregar dados relacionados
-        if (briefingData.projectId) {
+        if (briefingData.clientId) {
           try {
-            const clientData = await Client.get(briefingData.projectId);
+            const clientData = await Client.get(briefingData.clientId);
             setClient(clientData);
             console.log('✅ Cliente carregado:', clientData.name);
           } catch (clientError) {

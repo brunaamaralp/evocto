@@ -134,9 +134,7 @@ function groupCampaignsByClient(clients, briefs, cycles, tasks, services) {
   for (const client of clients) {
     const clientId = client.id;
     const clientBriefs = briefs.filter(
-      (b) =>
-        String(b.clientId || '') === String(clientId) ||
-        String(b.projectId || '') === String(clientId)
+      (b) => String(b.clientId || '') === String(clientId)
     );
     const clientCycles = cycles.filter((c) => String(c.clientId || '') === String(clientId));
     const clientTasks = tasks.filter((t) => String(t.clientId || '') === String(clientId));

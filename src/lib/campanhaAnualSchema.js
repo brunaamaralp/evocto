@@ -1131,7 +1131,6 @@ export function buildCampanhaAnualBriefPayload({
   return {
     agencyId,
     clientId,
-    projectId: clientId,
     empresaId: payload.empresaId,
     title,
     status: payload.status_anual === 'aprovado' ? 'READY' : 'DRAFT',

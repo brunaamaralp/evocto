@@ -214,7 +214,7 @@ export function normalizeCampanhaUnit(brief) {
   return {
     id: brief.id || null,
     agencyId: brief.agencyId || null,
-    clientId: brief.clientId || brief.projectId || null,
+    clientId: brief.clientId || null,
     serviceId: brief.serviceId || null,
     cycleId: getCampanhaCycleId(brief),
     empresaId: brief.empresaId || null,

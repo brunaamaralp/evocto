@@ -271,7 +271,7 @@ export async function resolveServiceIdForCampaign({
     if (fromCycle) return fromCycle;
   }
 
-  const cid = String(clientId || brief?.clientId || brief?.projectId || '').trim();
+  const cid = String(clientId || brief?.clientId || '').trim();
   if (agencyId && cid && typeof listServices === 'function') {
     const list = await listServices({
       agencyId,

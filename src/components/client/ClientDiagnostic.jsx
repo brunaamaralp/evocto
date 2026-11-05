@@ -266,7 +266,7 @@ const ClientDiagnostic = ({ clientId }) => {
         Client.get(clientId),
         Service.filter({ clientId }),
         CyclePlan.filter({ clientId }),
-        Brief.filter({ projectId: clientId }), // Assumindo que projectId = clientId
+        Brief.filter({ clientId }),
         BriefingVersion.filter({ projectId: clientId }),
         UserEntity.filter({ agencyId, role: 'client' })
       ]);

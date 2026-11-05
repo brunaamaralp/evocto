@@ -39,7 +39,7 @@ export default function BriefingTab({ client }) {
       // Buscar briefings internos
       const clientBriefings = await Brief.filter({
         agencyId: client.agencyId,
-        projectId: client.id
+        clientId: client.id
       });
       setBriefings(clientBriefings);
 

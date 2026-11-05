@@ -1,5 +1,10 @@
 import { TABLE_MAP } from './appwrite/tableMap';
-import { createEntityAdapter, createStubEntity } from './appwrite/entityAdapter';
+import {
+  createEntityAdapter,
+  createStubEntity,
+  registerWriteHooks,
+} from './appwrite/entityAdapter';
+import { projectWriteHooks } from '@/lib/projects/projectAssignment';
 import { authAdapter } from './appwrite/authAdapter';
 
 function entity(name) {
@@ -7,6 +12,9 @@ function entity(name) {
   if (!tableId) return createStubEntity(name);
   return createEntityAdapter(tableId);
 }
+
+// Toda tarefa / serviço / ciclo / campanha passa a pertencer a um Projeto.
+registerWriteHooks(projectWriteHooks);
 
 export const Client = entity('Client');
 /** CRM leve — pipeline comercial da agência */

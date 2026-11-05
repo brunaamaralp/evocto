@@ -259,7 +259,7 @@ export default function EmptyStatesAudit() {
 
       // Teste 2: Briefing vazio
       const clientsWithoutBrief = clients.filter(c => 
-        !briefs.some(b => b.projectId === c.id)
+        !briefs.some(b => b.clientId === c.id)
       );
       
       results.briefing_vazio = {

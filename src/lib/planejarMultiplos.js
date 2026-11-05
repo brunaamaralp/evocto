@@ -125,7 +125,6 @@ export function buildPlanejadoBatchPayload({
   return {
     agencyId,
     clientId,
-    projectId: clientId,
     serviceId: serviceId || null,
     ...ideiaPatch,
     brief_kind: BRIEF_KIND_CAMPANHA_MENSAL,

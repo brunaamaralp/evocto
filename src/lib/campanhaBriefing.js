@@ -90,7 +90,6 @@ export function buildCampanhaBriefPayload({
   return attachIdeiaToCampanhaPayload({
     agencyId,
     clientId,
-    projectId: clientId,
     empresaId: empresa?.id || null,
     ciclo_id: cicloId,
     title: String(campanhaForm.nome_campanha || '').trim(),

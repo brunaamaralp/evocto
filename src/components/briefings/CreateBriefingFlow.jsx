@@ -170,11 +170,12 @@ export default function CreateBriefingFlow({ clientId, onComplete, onCancel }) {
       // 1. Criar projeto primeiro
       const projectData = {
         agencyId,
-        title: formData.projectTitle,
-        client_id: clientId,
+        clientId,
+        name: formData.projectTitle,
+        kind: 'campaign',
+        status: 'ativo',
         description: formData.projectDescription,
         priority: formData.priority,
-        status: 'briefing',
         start_date: new Date().toISOString().split('T')[0]
       };
 
@@ -183,6 +184,7 @@ export default function CreateBriefingFlow({ clientId, onComplete, onCancel }) {
       // 2. Criar briefing vinculado ao projeto
       const briefData = {
         agencyId,
+        clientId,
         projectId: newProject.id,
         business_context: formData.business_context,
         target_audience: formData.target_audience,
