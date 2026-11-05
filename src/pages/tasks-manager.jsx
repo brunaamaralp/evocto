@@ -43,8 +43,8 @@ import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
 import { getKanbanBoardColumns } from '@/lib/taskStatusCanonical';
 import useBoardColumns from '@/hooks/useBoardColumns';
 import BoardColumnsEditor from '@/components/tasks/BoardColumnsEditor';
-import { groupTasksByColumn } from '@/lib/boardColumns';
-import { moveTaskToColumn, optimisticColumnPatch } from '@/lib/moveTaskToColumn';
+import { groupTasksByColumn, planColumnDrop } from '@/lib/boardColumns';
+import { applyDropLocally, dropTaskInColumn } from '@/lib/moveTaskToColumn';
 import { getStagePastel } from '@/lib/modulePastels';
 import { createManualTask } from '@/lib/createManualTask';
 import { openTaskDrawer } from '@/lib/openTaskDrawer';
@@ -652,40 +652,46 @@ export default function TasksManagerPage() {
     const column = boardColumns.find((c) => c.id === destination.droppableId);
     const task = tasks.find((t) => t.id === taskId);
     if (!task || !column) return;
-    if (destination.droppableId === source.droppableId) return;
 
-    const previous = task;
+    const sameColumn = destination.droppableId === source.droppableId;
+    const columnTasks = tasksByStatus[column.id] || [];
+    const updates = planColumnDrop({ columnTasks, taskId, destIndex: destination.index });
+    const snapshot = tasks;
     try {
       // Optimistic UI
-      setTasks((prevTasks) =>
-        prevTasks.map((t) => (t.id === taskId ? { ...t, ...optimisticColumnPatch(column) } : t))
-      );
+      setTasks((prevTasks) => applyDropLocally(prevTasks, { taskId, column, updates }));
 
-      const result = await moveTaskToColumn(task, column, {
-        agencyId: task.agencyId || agencyId,
-        user,
+      const result = await dropTaskInColumn({
+        task,
+        column,
+        columnTasks,
+        destIndex: destination.index,
+        ctx: { agencyId: task.agencyId || agencyId, user },
       });
 
       if (!result.success) {
-        setTasks((prevTasks) => prevTasks.map((t) => (t.id === taskId ? previous : t)));
+        setTasks(snapshot);
         toast.error(result.message || 'Não é possível mover a tarefa');
         return;
       }
 
-      toast.success(`Tarefa movida para "${column.name}"`);
+      if (!sameColumn) toast.success(`Tarefa movida para "${column.name}"`);
       if (result.warning) {
         toast.warning(result.warning, { duration: 4500 });
       }
 
-      window.dispatchEvent(new CustomEvent('task:updated', {
-        detail: { taskId, status: column.status, boardColumnId: column.id },
-      }));
+      if (!sameColumn) {
+        window.dispatchEvent(new CustomEvent('task:updated', {
+          detail: { taskId, status: column.status, boardColumnId: column.id },
+        }));
+      }
     } catch (error) {
       console.error('Erro ao mover tarefa:', error);
+      setTasks(snapshot);
       toast.error('Erro ao mover tarefa');
       loadData({ silent: true });
     }
-  }, [tasks, agencyId, loadData, user, boardColumns]);
+  }, [tasks, agencyId, loadData, user, boardColumns, tasksByStatus]);
 
   // Limpar filtros
   const clearFilters = useCallback(() => {

@@ -64,14 +64,18 @@ export default function TaskKanbanView({
 
     const taskId = result.draggableId;
     const toColumnId = result.destination.droppableId;
-    if (toColumnId === result.source.droppableId) return;
+    const sameColumn = toColumnId === result.source.droppableId;
+    if (sameColumn && result.destination.index === result.source.index) return;
 
     const task = tasks.find((t) => String(t.id) === String(taskId));
     const column = columns.find((c) => c.id === toColumnId);
     if (!task || !column) return;
 
     try {
-      await onMoveTask?.(task, column);
+      await onMoveTask?.(task, column, {
+        destIndex: result.destination.index,
+        columnTasks: tasksByColumn[toColumnId] || [],
+      });
     } catch (error) {
       console.error('Erro ao atualizar status da tarefa:', error);
     }

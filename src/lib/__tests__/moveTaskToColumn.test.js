@@ -53,3 +53,36 @@ describe('moveTaskToColumn', () => {
     expect(update).not.toHaveBeenCalled();
   });
 });
+
+describe('dropTaskInColumn', () => {
+  it('grava coluna e posição do card e renumera vizinhos quando precisa', async () => {
+    const { dropTaskInColumn } = await import('../moveTaskToColumn.js');
+    const res = await dropTaskInColumn({
+      task: { id: 'n', status: 'todo' },
+      column: { id: 'todo', status: 'todo' },
+      columnTasks: [{ id: 'x', status: 'todo' }, { id: 'y', status: 'todo' }],
+      destIndex: 1,
+    });
+    expect(res.success).toBe(true);
+    expect(update).toHaveBeenCalledWith('n', { boardColumnId: 'todo', boardPosition: 2000 });
+    expect(update).toHaveBeenCalledWith('x', { boardPosition: 1000 });
+    expect(update).toHaveBeenCalledWith('y', { boardPosition: 3000 });
+  });
+
+  it('reordenar na mesma coluna com vizinhos posicionados atualiza só o card', async () => {
+    const { dropTaskInColumn } = await import('../moveTaskToColumn.js');
+    await dropTaskInColumn({
+      task: { id: 'a', status: 'todo', boardPosition: 1000 },
+      column: { id: 'todo', status: 'todo' },
+      columnTasks: [
+        { id: 'a', boardPosition: 1000 },
+        { id: 'b', boardPosition: 2000 },
+        { id: 'c', boardPosition: 3000 },
+      ],
+      destIndex: 1,
+    });
+    expect(update).toHaveBeenCalledTimes(1);
+    expect(update).toHaveBeenCalledWith('a', { boardColumnId: 'todo', boardPosition: 2500 });
+    expect(transitionTaskStatus).not.toHaveBeenCalled();
+  });
+});

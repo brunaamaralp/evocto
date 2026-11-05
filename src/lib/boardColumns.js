@@ -122,7 +122,32 @@ export function columnIdForTask(task, columns = []) {
   return status === 'completed' ? columns[columns.length - 1].id : columns[0].id;
 }
 
-/** Agrupa tarefas por coluna (todas as colunas presentes, mesmo vazias). */
+const POSITION_STEP = 1000;
+
+function hasPosition(task) {
+  return typeof task?.boardPosition === 'number' && Number.isFinite(task.boardPosition);
+}
+
+/**
+ * Ordem dentro da coluna: cards com posição (arrastados) primeiro, pela posição;
+ * depois os sem posição, na ordem em que chegaram (estável).
+ */
+export function sortColumnTasks(tasks = []) {
+  return tasks
+    .map((task, index) => ({ task, index }))
+    .sort((a, b) => {
+      const pa = hasPosition(a.task);
+      const pb = hasPosition(b.task);
+      if (pa && pb && a.task.boardPosition !== b.task.boardPosition) {
+        return a.task.boardPosition - b.task.boardPosition;
+      }
+      if (pa !== pb) return pa ? -1 : 1;
+      return a.index - b.index;
+    })
+    .map((x) => x.task);
+}
+
+/** Agrupa tarefas por coluna (todas as colunas presentes, mesmo vazias), já ordenadas. */
 export function groupTasksByColumn(tasks = [], columns = []) {
   const map = Object.fromEntries(columns.map((c) => [c.id, []]));
   for (const task of Array.isArray(tasks) ? tasks : []) {
@@ -130,7 +155,50 @@ export function groupTasksByColumn(tasks = [], columns = []) {
     const id = columnIdForTask(task, columns);
     if (id && map[id]) map[id].push(task);
   }
+  for (const id of Object.keys(map)) map[id] = sortColumnTasks(map[id]);
   return map;
+}
+
+/**
+ * Calcula as posições ao soltar um card numa coluna.
+ * Na maioria dos casos só o card movido muda (posição entre os vizinhos).
+ * Se os vizinhos ainda não têm posição, renumera a coluna inteira.
+ *
+ * @param {{ columnTasks: object[], taskId: string, destIndex: number }} input
+ *   columnTasks: tarefas da coluna de destino, na ordem exibida (pode incluir o card movido)
+ * @returns {{ id: string, boardPosition: number }[]} só o que muda
+ */
+export function planColumnDrop({ columnTasks = [], taskId, destIndex = 0 }) {
+  const others = columnTasks.filter((t) => String(t.id) !== String(taskId));
+  const index = Math.max(0, Math.min(destIndex, others.length));
+  const prev = others[index - 1] || null;
+  const next = others[index] || null;
+
+  const canSlot = !prev || hasPosition(prev);
+  if (canSlot) {
+    const nextPos = next && hasPosition(next) ? next.boardPosition : null;
+    let position;
+    if (!prev && nextPos == null) position = POSITION_STEP;
+    else if (!prev) position = nextPos - POSITION_STEP;
+    else if (nextPos == null) position = prev.boardPosition + POSITION_STEP;
+    else position = (prev.boardPosition + nextPos) / 2;
+
+    const tooTight =
+      prev && nextPos != null && (nextPos - prev.boardPosition < 1e-6 || position === prev.boardPosition);
+    if (!tooTight) return [{ id: taskId, boardPosition: position }];
+  }
+
+  // Renumera a coluna inteira na nova ordem
+  const ordered = [...others];
+  ordered.splice(index, 0, { id: taskId });
+  const updates = [];
+  ordered.forEach((t, i) => {
+    const boardPosition = (i + 1) * POSITION_STEP;
+    if (String(t.id) === String(taskId) || t.boardPosition !== boardPosition) {
+      updates.push({ id: t.id, boardPosition });
+    }
+  });
+  return updates;
 }
 
 export function columnStatusLabel(status) {

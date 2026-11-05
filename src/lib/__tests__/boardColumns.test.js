@@ -5,6 +5,8 @@ import {
   resolveBoardColumns,
   columnIdForTask,
   groupTasksByColumn,
+  sortColumnTasks,
+  planColumnDrop,
 } from '@/lib/boardColumns';
 
 const CUSTOM = [
@@ -90,5 +92,73 @@ describe('columnIdForTask', () => {
     expect(grouped.todo.map((t) => t.id)).toEqual([1]);
     expect(grouped.blocked.map((t) => t.id)).toEqual([2]);
     expect(grouped.completed.map((t) => t.id)).toEqual([3]);
+  });
+});
+
+
+describe('ordem dentro da coluna', () => {
+  it('ordena por posição e deixa os sem posição no fim, na ordem original', () => {
+    const sorted = sortColumnTasks([
+      { id: 'x' },
+      { id: 'b', boardPosition: 2000 },
+      { id: 'y' },
+      { id: 'a', boardPosition: 1000 },
+    ]);
+    expect(sorted.map((t) => t.id)).toEqual(['a', 'b', 'x', 'y']);
+  });
+
+  it('encaixa entre vizinhos com posição mudando só o card movido', () => {
+    const col = [
+      { id: 'a', boardPosition: 1000 },
+      { id: 'b', boardPosition: 2000 },
+    ];
+    expect(planColumnDrop({ columnTasks: col, taskId: 'n', destIndex: 1 })).toEqual([
+      { id: 'n', boardPosition: 1500 },
+    ]);
+    expect(planColumnDrop({ columnTasks: col, taskId: 'n', destIndex: 0 })).toEqual([
+      { id: 'n', boardPosition: 0 },
+    ]);
+    expect(planColumnDrop({ columnTasks: col, taskId: 'n', destIndex: 2 })).toEqual([
+      { id: 'n', boardPosition: 3000 },
+    ]);
+    expect(planColumnDrop({ columnTasks: [], taskId: 'n', destIndex: 0 })).toEqual([
+      { id: 'n', boardPosition: 1000 },
+    ]);
+  });
+
+  it('reordena dentro da mesma coluna', () => {
+    const col = [
+      { id: 'a', boardPosition: 1000 },
+      { id: 'b', boardPosition: 2000 },
+      { id: 'c', boardPosition: 3000 },
+    ];
+    // "a" vai para o fim (destIndex 2 na lista sem "a")
+    expect(planColumnDrop({ columnTasks: col, taskId: 'a', destIndex: 2 })).toEqual([
+      { id: 'a', boardPosition: 4000 },
+    ]);
+  });
+
+  it('renumera quando o vizinho de cima ainda não tem posição', () => {
+    const col = [{ id: 'x' }, { id: 'y' }];
+    const updates = planColumnDrop({ columnTasks: col, taskId: 'n', destIndex: 1 });
+    expect(updates).toEqual([
+      { id: 'x', boardPosition: 1000 },
+      { id: 'n', boardPosition: 2000 },
+      { id: 'y', boardPosition: 3000 },
+    ]);
+    // aplicado, a ordem fica x, n, y
+    const applied = sortColumnTasks(
+      [...col, { id: 'n' }].map((t) => ({ ...t, ...updates.find((u) => u.id === t.id) }))
+    );
+    expect(applied.map((t) => t.id)).toEqual(['x', 'n', 'y']);
+  });
+
+  it('renumera quando não há espaço entre os vizinhos', () => {
+    const col = [
+      { id: 'a', boardPosition: 1 },
+      { id: 'b', boardPosition: 1 + 1e-9 },
+    ];
+    const updates = planColumnDrop({ columnTasks: col, taskId: 'n', destIndex: 1 });
+    expect(updates.map((u) => u.id)).toEqual(['a', 'n', 'b']);
   });
 });

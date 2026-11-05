@@ -24,8 +24,8 @@ import TaskFilters from './TaskFilters';
 import TaskForm from './TaskForm';
 import BoardColumnsEditor from './BoardColumnsEditor';
 import useBoardColumns from '@/hooks/useBoardColumns';
-import { groupTasksByColumn } from '@/lib/boardColumns';
-import { moveTaskToColumn, optimisticColumnPatch } from '@/lib/moveTaskToColumn';
+import { groupTasksByColumn, planColumnDrop } from '@/lib/boardColumns';
+import { applyDropLocally, dropTaskInColumn } from '@/lib/moveTaskToColumn';
 import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
@@ -226,18 +226,20 @@ export default function TaskManager({
     }
   };
 
-  const handleMoveTask = async (task, column) => {
-    const previous = task;
-    setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, ...optimisticColumnPatch(column) } : t))
-    );
+  const handleMoveTask = async (task, column, { destIndex = 0, columnTasks = [] } = {}) => {
+    const snapshot = tasks;
+    const updates = planColumnDrop({ columnTasks, taskId: task.id, destIndex });
+    setTasks((prev) => applyDropLocally(prev, { taskId: task.id, column, updates }));
     try {
-      const result = await moveTaskToColumn(task, column, {
-        agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
-        user,
+      const result = await dropTaskInColumn({
+        task,
+        column,
+        columnTasks,
+        destIndex,
+        ctx: { agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId, user },
       });
       if (!result.success) {
-        setTasks((prev) => prev.map((t) => (t.id === previous.id ? previous : t)));
+        setTasks(snapshot);
         toast.error(result.message || 'Não foi possível mover a tarefa');
         return;
       }
@@ -247,7 +249,7 @@ export default function TaskManager({
       );
     } catch (err) {
       console.error('Erro ao mover tarefa:', err);
-      setTasks((prev) => prev.map((t) => (t.id === previous.id ? previous : t)));
+      setTasks(snapshot);
       toast.error('Erro ao mover tarefa');
     }
   };
