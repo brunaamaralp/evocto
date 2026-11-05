@@ -11,6 +11,8 @@ function entity(name) {
 export const Client = entity('Client');
 /** CRM leve — pipeline comercial da agência */
 export const AgencyLead = entity('AgencyLead');
+/** Timeline, notas e anexos vinculados ao lead */
+export const AgencyLeadActivity = entity('AgencyLeadActivity');
 export const Project = entity('Project');
 export const Brief = entity('Brief');
 export const Insights = entity('Insights');

@@ -4,6 +4,7 @@
  */
 import { Client, AgencyLead } from '@/api/entities';
 import { formatLeadValue, normalizeLeadStage } from './constants.js';
+import { relinkLeadTasksToClient } from './leadCrmApi.js';
 
 const GENERATABLE_STAGES = new Set(['qualificacao', 'proposta', 'fechado']);
 
@@ -25,12 +26,13 @@ export function overridesFromLead(lead = {}) {
   const company = String(lead.companyName || lead.name || '').trim();
   const contact = String(lead.name || '').trim();
   const notes = String(lead.notes || '').trim();
-  const valueLabel = formatLeadValue(lead.estimatedValue);
+  const service = String(lead.serviceInterest || '').trim();
+  const valueLabel = formatLeadValue(lead.quotedValue) || formatLeadValue(lead.estimatedValue);
 
   return {
     titulo: company ? `Proposta — ${company}` : '',
     objetivo: notes || '',
-    escopo: notes || '',
+    escopo: [service, notes].filter(Boolean).join(' — '),
     investimento: valueLabel || '',
     tom: '',
     prazo: '',
@@ -64,7 +66,7 @@ export async function ensureClientFromLead({ lead, agencyId } = {}) {
     agencyId,
     name,
     email: String(lead.email || '').trim() || undefined,
-    phone: String(lead.phone || '').trim() || undefined,
+    phone: String(lead.phone || lead.whatsapp || '').trim() || undefined,
     status: 'ativo',
     contactName: String(lead.name || '').trim() || undefined,
     source: 'comercial',
@@ -78,6 +80,8 @@ export async function ensureClientFromLead({ lead, agencyId } = {}) {
     status: nextStatus,
     convertedClientId: client.id,
   });
+
+  await relinkLeadTasksToClient({ agencyId, leadId: lead.id, clientId: client.id });
 
   return {
     clientId: client.id,

@@ -205,6 +205,8 @@ function toQueries(tableId, filters = {}, order, limit) {
         clientFilters[key] = value;
       } else if (value.$ne !== undefined && known.has(key)) {
         queries.push(Query.notEqual(key, value.$ne));
+      } else if (value.$notNull === true && known.has(key)) {
+        queries.push(Query.isNotNull(key));
       } else {
         clientFilters[key] = value;
       }
@@ -235,6 +237,9 @@ function matchesClientFilters(row, clientFilters) {
     }
     if (isMongoOp(expected) && expected.$ne !== undefined) {
       return actual !== expected.$ne;
+    }
+    if (isMongoOp(expected) && expected.$notNull === true) {
+      return actual !== null && actual !== undefined && actual !== '';
     }
     return actual === expected;
   });

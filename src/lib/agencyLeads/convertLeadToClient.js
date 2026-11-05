@@ -3,6 +3,7 @@
  */
 import { Client, Task, AgencyLead } from '@/api/entities';
 import { normalizeLeadStage } from './constants.js';
+import { relinkLeadTasksToClient } from './leadCrmApi.js';
 
 /**
  * @param {object} opts
@@ -35,7 +36,7 @@ export async function convertLeadToClient({
     agencyId,
     name,
     email: String(lead.email || '').trim() || undefined,
-    phone: String(lead.phone || '').trim() || undefined,
+    phone: String(lead.phone || lead.whatsapp || '').trim() || undefined,
     status: 'ativo',
     contactName: String(lead.name || '').trim() || undefined,
     source: 'comercial',
@@ -46,6 +47,9 @@ export async function convertLeadToClient({
     status: 'fechado',
     convertedClientId: client.id,
   });
+
+  // Follow-ups/tarefas abertas no Comercial passam a aparecer no hub do cliente.
+  await relinkLeadTasksToClient({ agencyId, leadId: lead.id, clientId: client.id });
 
   let onboardingTask = null;
   if (createOnboardingTask) {

@@ -28,6 +28,8 @@ export const TABLE_MAP = {
   AgencyDriveConnection: 'agency_drive_connections',
   /** CRM leve da agência (P2.1) */
   AgencyLead: 'agency_leads',
+  /** Timeline, notas internas e anexos do lead (kind = interaction | note | attachment) */
+  AgencyLeadActivity: 'agency_lead_activities',
   /** Jobs de proposta/apresentação (Claude Skills) */
   GenerateMaterialJob: 'generate_material_jobs',
   /** Credenciais/acessos por cliente (server-only API) */
@@ -61,6 +63,8 @@ export const TABLE_COLUMNS = {
     'dueDate',
     'assigneeId',
     'clientVisible',
+    /** Vínculo opcional com lead do Comercial (follow-ups / tarefas comerciais) */
+    'leadId',
   ],
   time_entries: [
     'agencyId',
@@ -222,6 +226,18 @@ export const TABLE_COLUMNS = {
     'status',
     'convertedClientId',
   ],
+  /**
+   * Itens do perfil do lead. Demais campos (channel, description, nextStep,
+   * body, fileName, mimeType, authorName…) vão no payload.
+   */
+  agency_lead_activities: [
+    'agencyId',
+    'leadId',
+    'kind',
+    'occurredAt',
+    'createdBy',
+    'fileId',
+  ],
   agency_info_items: [
     'agencyId',
     'type',
@@ -272,6 +288,7 @@ export const DATETIME_COLUMNS = new Set([
   'connectedAt',
   'lastRefreshAt',
   'revokedAt',
+  'occurredAt',
 ]);
 
 /** Integer columns — pass through as numbers in entityAdapter. */
