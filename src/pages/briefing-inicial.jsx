@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useSession } from '@/components/auth/SessionManager';
 import { Brief, Client } from '@/api/entities';
 import { createPageUrl } from '@/utils';
-import { buildAnnualPlanHref } from '@/lib/planoAnualHub';
 import { getEmpresaByClientId, empresaToForm } from '@/lib/empresaConfig';
 import {
   emptyBriefingInicialForm,
@@ -166,8 +165,8 @@ export default function BriefingInicialPage() {
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
         <h1 className="text-xl font-semibold text-[#1A1210]">Briefing inicial salvo</h1>
         <p className="text-sm text-[#6B635C]">
-          DNA de {client?.name} registrado. Analise o briefing e, depois, planeje
-          mês a mês no Panorama.
+          DNA de {client?.name} registrado. Agora é só organizar o trabalho em
+          tarefas.
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Button variant="outline" onClick={backToHub}>
@@ -175,9 +174,9 @@ export default function BriefingInicialPage() {
           </Button>
           <Button
             className="bg-[#B80015] hover:bg-[#8A0010] text-white"
-            onClick={() => navigate(buildAnnualPlanHref(clientId))}
+            onClick={() => navigate(createPageUrl(`client-tasks?clientId=${clientId}`))}
           >
-            Abrir panorama
+            Ver tarefas
           </Button>
         </div>
       </div>

@@ -12,7 +12,7 @@ const SIDEBAR_COLLAPSED_KEY = 'evocto:sidebar-collapsed';
 
 /** Rótulos curtos para breadcrumb do header (página atual). */
 export const SHELL_PAGE_LABELS = {
-  dashboard: 'Dashboard',
+  dashboard: 'Início',
   clients: 'Clientes',
   'tasks-manager': 'Tarefas',
   'approval-dashboard': 'Aprovações',
@@ -138,12 +138,10 @@ export function getMobileBottomNavItems({
         isActive: currentPage === 'client-tasks',
       },
       {
-        id: 'plan',
-        label: 'Plano',
-        href: buildClientPanoramaHref(clientId),
-        isActive:
-          currentPage === 'planejamento' ||
-          currentPage === 'briefing-campanha-anual',
+        id: 'docs',
+        label: 'Documentos',
+        href: createPageUrl(`client-documents?clientId=${clientId}`),
+        isActive: currentPage === 'client-documents',
       },
       {
         id: 'more',

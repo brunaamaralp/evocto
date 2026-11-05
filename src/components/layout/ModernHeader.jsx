@@ -19,8 +19,6 @@ import {
   Building2,
   Plus,
   CheckSquare,
-  Megaphone,
-  CalendarDays,
   Settings,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
@@ -38,7 +36,6 @@ import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 import {
   buildQuickCreateTaskHref,
   buildQuickCreateClientHref,
-  buildQuickCreateCampaignHref,
   buildShellClientBreadcrumbs,
 } from '@/lib/shellNavigation';
 
@@ -80,11 +77,6 @@ export default function ModernHeader({
     serviceId: isClientContext ? context.serviceId || null : null,
   });
   const quickCreateClientHref = buildQuickCreateClientHref();
-  const quickCreateCampaignHref = isClientContext
-    ? buildQuickCreateCampaignHref(context.clientId, {
-        serviceId: context.serviceId || null,
-      })
-    : null;
 
   const mobileTitle = isClientContext
     ? contextClient?.name || 'Cliente'
@@ -189,25 +181,6 @@ export default function ModernHeader({
                     <Link to={quickCreateClientHref} className="flex items-center cursor-pointer">
                       <Users className="h-4 w-4 mr-2" />
                       Novo cliente
-                    </Link>
-                  </DropdownMenuItem>
-                ) : null}
-                {quickCreateCampaignHref ? (
-                  <DropdownMenuItem asChild>
-                    <Link to={quickCreateCampaignHref} className="flex items-center cursor-pointer">
-                      <Megaphone className="h-4 w-4 mr-2" />
-                      Nova campanha
-                    </Link>
-                  </DropdownMenuItem>
-                ) : null}
-                {isClientContext ? (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to={createPageUrl(`planejamento?clientId=${context.clientId}`)}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <CalendarDays className="h-4 w-4 mr-2" />
-                      Abrir panorama
                     </Link>
                   </DropdownMenuItem>
                 ) : null}

@@ -1,86 +1,41 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  CheckCircle,
-  Circle,
-  AlertCircle,
-  Briefcase,
-} from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
+import { Task } from '@/api/entities';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorState from '@/components/shared/ErrorState';
 import EmptyState from '@/components/shared/EmptyState';
 import useClientHubData from '@/hooks/useClientHubData';
-import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
-import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
-import ClientBriefingStatusCard from '@/components/client/ClientBriefingStatusCard';
 import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
 import ClientInfoCenterSummary from '@/components/client/hub/ClientInfoCenterSummary';
-import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
-import ServiceOperationHeader from '@/components/client/hub/ServiceOperationHeader';
-import ServiceUnitsPanel from '@/components/client/hub/ServiceUnitsPanel';
-import CreateServiceUnitModal from '@/components/client/hub/CreateServiceUnitModal';
-import { toast } from 'sonner';
-import {
-  buildAnnualPlanHref,
-  buildNovaCampanhaHref,
-} from '@/lib/planoAnualHub';
-import { buildPlanningCreateCampaignPath } from '@/lib/campaignWorkspaceHref';
-import {
-  buildBriefingInicialHref,
-  resolveBriefingInicialStatus,
-} from '@/lib/briefingInicial';
-import {
-  deriveServiceLensUnits,
-  filterAttentionForService,
-  getActiveContractedServices,
-  resolveSelectedServiceId,
-} from '@/lib/deriveServiceLens';
-import {
-  getServiceDisplayName,
-  getServiceOperationProfile,
-  isKnownServiceProfile,
-  OPERATION_PATTERNS,
-  PERIOD_MODES,
-  UNIT_KINDS,
-} from '@/lib/serviceOperationProfile';
-import { buildClientTasksHref } from '@/lib/taskScope';
-import {
-  createServiceUnitTask,
-  startSingleProjectOperation,
-  UNIT_CREATION_MODES,
-} from '@/lib/createServiceUnitTask';
-import { appendFilesToTaskAttachments } from '@/lib/taskAttachmentsUpload';
-import { shareCycleMonth } from '@/lib/shareCycleMonth';
+import TaskDueList from '@/components/tasks/TaskDueList';
+import TaskCreateModal from '@/components/tasks/TaskCreateModal';
+import { summarizeTasks } from '@/lib/taskDueGroups';
 
-function setServiceIdInUrl(serviceId) {
-  const url = new URL(window.location.href);
-  if (serviceId) url.searchParams.set('serviceId', String(serviceId));
-  else url.searchParams.delete('serviceId');
-  window.history.replaceState({}, '', url.toString());
+function Stat({ label, value, tone = 'default' }) {
+  const color = tone === 'danger' && value > 0 ? 'text-[#c0392b]' : 'text-[#1A1210]';
+  return (
+    <div className="rounded-xl border border-[#E4DDD4] px-4 py-3">
+      <p className="text-xs text-[#6B635C]">{label}</p>
+      <p className={`mt-0.5 text-xl font-semibold tabular-nums ${color}`}>{value}</p>
+    </div>
+  );
 }
 
-function clearOpenParam() {
-  const url = new URL(window.location.href);
-  url.searchParams.delete('open');
-  window.history.replaceState({}, '', url.toString());
-}
-
+/**
+ * Visão geral do cliente — tratado como um projeto: tarefas por prazo,
+ * progresso e informações do cliente. Sem panorama nem ciclo de campanhas.
+ */
 export default function ClientDetailPage() {
-  const { agencyId, isAuthenticated, userId, user } = useSession();
+  const { agencyId, isAuthenticated } = useSession();
   const navigate = useNavigate();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [serviceSetupOpen, setServiceSetupOpen] = useState(false);
-  const [unitModalOpen, setUnitModalOpen] = useState(false);
-  const [unitSaving, setUnitSaving] = useState(false);
-  const [unitError, setUnitError] = useState('');
-  const [unitUploadProgress, setUnitUploadProgress] = useState(0);
-  const [sharingCycleId, setSharingCycleId] = useState(null);
-  const [startingProject, setStartingProject] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [liveTasks, setLiveTasks] = useState(null);
 
   const clientId = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -89,21 +44,11 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('open') === 'invite') {
-      setInviteModalOpen(true);
-    }
-    if (params.get('setup') === 'service') {
-      setServiceSetupOpen(true);
-    }
-    const fromUrl = params.get('serviceId');
-    if (fromUrl) setSelectedServiceId(fromUrl);
+    if (params.get('open') === 'invite') setInviteModalOpen(true);
   }, []);
 
   const {
     client,
-    services,
-    cycles,
-    briefs,
     tasks,
     documents,
     learnings,
@@ -112,309 +57,36 @@ export default function ClientDetailPage() {
     loading,
     error,
     reload,
-    attentionItems,
-    attentionCountsByService,
     counts,
   } = useClientHubData(clientId, agencyId);
 
-  const now = new Date();
-  const currentMes = now.getMonth() + 1;
-  const currentAno = now.getFullYear();
-  const mesLabels = [
-    '',
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Julho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro',
-  ];
-
-  const activeServices = useMemo(
-    () => getActiveContractedServices(services),
-    [services]
-  );
-  const hasService = activeServices.length > 0;
-
-  useEffect(() => {
-    if (loading) return;
-    const resolved = resolveSelectedServiceId(activeServices, selectedServiceId);
-    if (resolved !== selectedServiceId) {
-      setSelectedServiceId(resolved);
-    }
-    if (resolved) setServiceIdInUrl(resolved);
-  }, [loading, activeServices, selectedServiceId]);
-
-  const selectedService = useMemo(
-    () =>
-      activeServices.find((s) => String(s.id) === String(selectedServiceId)) ||
-      null,
-    [activeServices, selectedServiceId]
-  );
-
-  const selectedProfile = useMemo(
-    () => (selectedService ? getServiceOperationProfile(selectedService) : null),
-    [selectedService]
-  );
-
-  const lens = useMemo(() => {
-    if (!selectedService) return null;
-    return deriveServiceLensUnits({
-      service: selectedService,
-      cycles,
-      briefs,
-      tasks,
-      clientId,
-      now: new Date(),
-    });
-  }, [selectedService, cycles, briefs, tasks, clientId]);
-
-  const primaryPeriodLabel = useMemo(() => {
-    if (!lens || lens.periodMode !== PERIOD_MODES.MONTHLY) return null;
-    const withPeriod = (lens.groups || []).find((g) => g.periodLabel);
-    return withPeriod?.periodLabel || null;
-  }, [lens]);
-
-  const lensForPanel = useMemo(() => {
-    if (!lens || !primaryPeriodLabel) return lens;
-    if ((lens.groups || []).length <= 1) {
-      return {
-        ...lens,
-        groups: (lens.groups || []).map((g) => ({
-          ...g,
-          periodLabel: null,
-        })),
-      };
-    }
-    // Vários meses: o mais recente já está no header; ocultar só o primeiro rótulo
-    const [first, ...rest] = lens.groups;
-    return {
-      ...lens,
-      groups: [{ ...first, periodLabel: null }, ...rest],
-    };
-  }, [lens, primaryPeriodLabel]);
-
-  const lensAttention = useMemo(
-    () => filterAttentionForService(attentionItems, selectedServiceId),
-    [attentionItems, selectedServiceId]
-  );
-
-  const isCampaignLens =
-    selectedProfile?.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF;
-
-  useEffect(() => {
-    if (loading) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('open') !== 'nova-campanha') return;
-    if (!hasService) {
-      toast.info('Defina o serviço contratado antes de criar no Planejamento.');
-      setServiceSetupOpen(true);
-      clearOpenParam();
-      return;
-    }
-    // A2 / Fase 3: Hub não cria — deep link vai ao Planejamento
-    clearOpenParam();
-    navigate(
-      buildPlanningCreateCampaignPath(clientId, {
-        serviceId: selectedServiceId,
-      })
-    );
-  }, [loading, hasService, clientId, selectedServiceId, navigate]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (window.location.hash !== '#campanhas' && window.location.hash !== '#operacao') {
-      return;
-    }
-    const el = document.getElementById('operacao');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [loading, selectedServiceId]);
-
-  const clearSetupParam = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('setup');
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const selectService = useCallback((serviceId) => {
-    setSelectedServiceId(serviceId);
-    setServiceIdInUrl(serviceId);
-  }, []);
-
-  const goToPlanningCreate = useCallback(() => {
-    if (!clientId) return;
-    navigate(
-      buildPlanningCreateCampaignPath(clientId, {
-        serviceId: selectedServiceId,
-      })
-    );
-  }, [navigate, clientId, selectedServiceId]);
-
-  const handleStartSingleProject = useCallback(async () => {
-    if (!selectedService || !agencyId || !clientId) return;
-    setStartingProject(true);
+  const refreshTasks = useCallback(async () => {
+    if (!agencyId || !clientId) return;
     try {
-      const result = await startSingleProjectOperation({
-        agencyId,
-        clientId,
-        service: selectedService,
-        ownerId: userId || user?.id || user?.$id || null,
-      });
-      if (result.alreadyStarted) {
-        toast.message('Operação já iniciada');
-      } else {
-        toast.success('Operação iniciada');
-      }
-      await reload?.();
+      const rows = await Task.filter({ agencyId, clientId });
+      setLiveTasks(Array.isArray(rows) ? rows : []);
     } catch (err) {
-      console.error('[client-detail] startSingleProject', err);
-      toast.error(err?.message || 'Não foi possível iniciar a operação');
-    } finally {
-      setStartingProject(false);
+      console.warn('[client-detail] refresh tasks', err?.message || err);
     }
-  }, [selectedService, agencyId, clientId, userId, user, reload]);
+  }, [agencyId, clientId]);
 
-  const handleCreateUnit = useCallback(() => {
-    if (!selectedService || !selectedProfile) {
-      toast.info('Defina o serviço contratado antes de operar.');
-      setServiceSetupOpen(true);
-      return;
-    }
+  useEffect(() => {
+    const onChange = () => refreshTasks();
+    window.addEventListener('task:updated', onChange);
+    window.addEventListener('task:refresh', onChange);
+    return () => {
+      window.removeEventListener('task:updated', onChange);
+      window.removeEventListener('task:refresh', onChange);
+    };
+  }, [refreshTasks]);
 
-    if (!isKnownServiceProfile(selectedProfile)) {
-      toast.info('Configure o template do serviço no Backstage antes de operar.');
-      return;
-    }
-
-    if (selectedProfile.unitKind === UNIT_KINDS.CAMPAIGN_BRIEF) {
-      goToPlanningCreate();
-      return;
-    }
-
-    if (selectedProfile.unitKind === UNIT_KINDS.TASK) {
-      setUnitError('');
-      setUnitModalOpen(true);
-      return;
-    }
-
-    if (selectedProfile.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT) {
-      handleStartSingleProject();
-    }
-  }, [
-    selectedService,
-    selectedProfile,
-    handleStartSingleProject,
-    goToPlanningCreate,
-  ]);
-
-  const cyclesById = useMemo(() => {
-    const map = {};
-    for (const c of Array.isArray(cycles) ? cycles : []) {
-      if (c?.id) map[String(c.id)] = c;
-    }
-    return map;
-  }, [cycles]);
-
-  const handleShareMonth = useCallback(
-    async (cycleId) => {
-      if (!cycleId || !agencyId || !clientId) return;
-      setSharingCycleId(cycleId);
-      try {
-        const result = await shareCycleMonth({
-          cyclePlanId: cycleId,
-          agencyId,
-          clientId,
-          sharedBy: userId || user?.id || user?.$id || null,
-        });
-        toast.success(
-          result.tasksShared > 0
-            ? `Mês compartilhado · ${result.tasksTotal} conteúdo(s) no portal`
-            : 'Mês compartilhado com o cliente'
-        );
-        await reload?.();
-      } catch (err) {
-        console.error('[client-detail] shareMonth', err);
-        toast.error(err?.message || 'Não foi possível compartilhar o mês');
-      } finally {
-        setSharingCycleId(null);
-      }
-    },
-    [agencyId, clientId, userId, user, reload]
+  const clientTasks = useMemo(
+    () => liveTasks ?? (Array.isArray(tasks) ? tasks : []),
+    [liveTasks, tasks]
   );
-
-  const handleSubmitUnit = useCallback(
-    async (title, { mode, keepOpen = false, files = [] } = {}) => {
-      if (!selectedService || !agencyId || !clientId) return;
-      setUnitSaving(true);
-      setUnitError('');
-      setUnitUploadProgress(0);
-      const ownerId = userId || user?.id || user?.$id || null;
-      const isReady = mode === UNIT_CREATION_MODES.READY_FOR_APPROVAL;
-      try {
-        const { task } = await createServiceUnitTask({
-          agencyId,
-          clientId,
-          service: selectedService,
-          title,
-          ownerId,
-          mode,
-        });
-
-        if (isReady && files?.length) {
-          const { failures } = await appendFilesToTaskAttachments(task, files, {
-            uploadedBy: ownerId,
-            uploadedByName: user?.full_name || user?.name || user?.email || null,
-            prepend: false,
-            onProgress: setUnitUploadProgress,
-          });
-          if (failures.length && failures.length === files.length) {
-            setUnitError(
-              'Tarefa criada, mas nenhum anexo foi enviado. Abra a tarefa e anexe de novo.'
-            );
-            toast.error('Falha ao enviar anexos');
-            if (task?.id) {
-              window.dispatchEvent(
-                new CustomEvent('task:open', { detail: { taskId: task.id } })
-              );
-            }
-            await reload?.();
-            return;
-          }
-          if (failures.length) {
-            toast.warning(
-              `Enviado com ${files.length - failures.length} de ${files.length} anexos`
-            );
-          }
-        }
-
-        toast.success(unitCreatedToast(selectedProfile, title, mode));
-        if (!keepOpen) {
-          setUnitModalOpen(false);
-        }
-        await reload?.();
-
-        // Fluxo completo: abre a tarefa para anexar conteúdo quando estiver pronto
-        if (!isReady && task?.id && !keepOpen) {
-          window.dispatchEvent(
-            new CustomEvent('task:open', { detail: { taskId: task.id } })
-          );
-        }
-      } catch (err) {
-        console.error('[client-detail] createUnit', err);
-        setUnitError(err?.message || 'Erro ao criar');
-      } finally {
-        setUnitSaving(false);
-        setUnitUploadProgress(0);
-      }
-    },
-    [selectedService, selectedProfile, agencyId, clientId, userId, user, reload]
-  );
+  const summary = useMemo(() => summarizeTasks(clientTasks), [clientTasks]);
+  const totalTracked = summary.open + summary.done;
+  const pct = totalTracked > 0 ? Math.round((summary.done / totalTracked) * 100) : 0;
 
   if (!isAuthenticated) {
     return <LoadingState message="Verificando autenticação…" className="min-h-[60vh]" />;
@@ -427,22 +99,14 @@ export default function ClientDetailPage() {
         icon={AlertCircle}
         title="ID do cliente não encontrado"
         description="Abra o perfil a partir da lista de clientes."
-        primaryAction={{
-          label: 'Voltar aos clientes',
-          href: createPageUrl('clients'),
-        }}
+        primaryAction={{ label: 'Voltar aos clientes', href: createPageUrl('clients') }}
       />
     );
   }
 
   if (loading) {
     return (
-      <LoadingState
-        variant="skeleton"
-        size="page"
-        message="Carregando cliente…"
-        className="min-h-[60vh]"
-      />
+      <LoadingState variant="skeleton" size="page" message="Carregando cliente…" className="min-h-[60vh]" />
     );
   }
 
@@ -458,116 +122,91 @@ export default function ClientDetailPage() {
     );
   }
 
-  const hasOperation = Boolean(lens?.unitsCount > 0 || lens?.singleProject?.ready);
   const hasInvite = Boolean(client.portal_enabled || client.has_portal_access);
-  const briefingStatus = resolveBriefingInicialStatus(briefs);
-  const hasBriefing = briefingStatus.status === 'ready';
-  const briefingHref = createPageUrl(
-    buildBriefingInicialHref(clientId, { briefingId: briefingStatus.brief?.id })
-  );
-
-  const setupChecklist = [
-    {
-      id: 'service',
-      title: 'Definir serviço contratado',
-      description: hasService
-        ? selectedService
-          ? getServiceDisplayName(selectedService)
-          : 'Serviço ativo neste cliente'
-        : 'Escolha o template e o nome do contrato com o cliente',
-      completed: hasService,
-      action: 'Definir serviço',
-      onClick: () => setServiceSetupOpen(true),
-    },
-    {
-      id: 'briefing',
-      title: 'Preencher briefing inicial',
-      description: hasBriefing
-        ? 'Briefing preenchido'
-        : briefingStatus.status === 'draft'
-          ? 'Há um rascunho — continue o preenchimento'
-          : 'Público, tom e oferta',
-      completed: hasBriefing,
-      action: hasBriefing ? 'Editar briefing' : 'Preencher briefing',
-      onClick: () => navigate(briefingHref),
-    },
-    {
-      id: 'operate',
-      title: hasService
-        ? selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
-          ? 'Iniciar operação do serviço'
-          : isCampaignLens
-            ? 'Criar primeira campanha no Planejamento'
-            : `Criar primeiro ${selectedProfile?.itemLabel || 'item'}`
-        : 'Iniciar operação',
-      description: hasService
-        ? isCampaignLens
-          ? 'A criação fica no Planejamento; o Hub só opera'
-          : 'Comece o trabalho neste serviço'
-        : 'Disponível depois de definir o serviço',
-      completed: hasOperation,
-      action:
-        selectedProfile?.operationPattern === OPERATION_PATTERNS.SINGLE_PROJECT
-          ? 'Iniciar operação'
-          : isCampaignLens
-            ? 'Ir ao Planejamento'
-            : selectedProfile
-              ? String(getCreateCtaLabelSafe(selectedProfile)).replace(/^\+\s*/, '') ||
-                'Criar'
-              : 'Criar',
-      onClick: hasService ? handleCreateUnit : () => setServiceSetupOpen(true),
-    },
-    {
-      id: 'invite',
-      title: 'Convidar cliente para o portal',
-      description: 'Permita que o cliente acesse seu portal exclusivo',
-      completed: hasInvite,
-      action: 'Enviar convite',
-      onClick: () => setInviteModalOpen(true),
-    },
-  ];
-
-  const completedSteps = setupChecklist.filter((step) => step.completed).length;
-  const needsOnboarding = !hasService || !hasOperation;
-  const onlyInvitePending = hasService && hasOperation && !hasInvite;
-
   const statusLabel = client.status
     ? String(client.status).charAt(0).toUpperCase() + String(client.status).slice(1)
     : null;
+  const tasksHref = createPageUrl(`client-tasks?clientId=${clientId}`);
 
-  const showPlanBanner = isCampaignLens;
+  const moreLinks = [
+    { label: 'Quadro de tarefas', href: tasksHref },
+    {
+      label: `Documentos${counts?.documents > 0 ? ` (${counts.documents})` : ''}`,
+      href: createPageUrl(`client-documents?clientId=${clientId}`),
+    },
+    {
+      label: `Acessos${Array.isArray(accesses) && accesses.length > 0 ? ` (${accesses.length})` : ''}`,
+      href: createPageUrl(`client-acessos?clientId=${clientId}`),
+    },
+    {
+      label: `Aprendizados${counts?.learnings > 0 ? ` (${counts.learnings})` : ''}`,
+      href: createPageUrl(`client-learnings?clientId=${clientId}`),
+    },
+    { label: 'Financeiro', href: createPageUrl(`client-financeiro?clientId=${clientId}`) },
+    { label: 'Serviços', href: createPageUrl(`client-services?clientId=${clientId}`) },
+  ];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-1 pb-8 sm:px-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <ClientHubHeader
-          clientName={client.name}
-          statusLabel={statusLabel}
-          serviceCount={activeServices.length}
-        />
-        {!hasService ? (
-          <Button
-            className="w-full shrink-0 bg-primary hover:bg-[var(--color-primary-dark)] sm:w-auto"
-            onClick={() => setServiceSetupOpen(true)}
-          >
-            <Briefcase className="mr-1.5 h-4 w-4" />
-            Definir serviço
-          </Button>
-        ) : null}
+        <ClientHubHeader clientName={client.name} statusLabel={statusLabel} />
+        <Button
+          className="w-full shrink-0 bg-primary hover:bg-[var(--color-primary-dark)] sm:w-auto"
+          onClick={() => setCreateOpen(true)}
+        >
+          <Plus className="mr-1.5 h-4 w-4" />
+          Nova tarefa
+        </Button>
       </div>
 
-      {!hasService ? (
-        <section className="rounded-2xl border border-[#E4DDD4] bg-[#F1EDE7] px-4 py-4">
-          <p className="text-sm font-medium text-[#111]">
-            Qual serviço foi contratado?
-          </p>
-          <p className="mt-0.5 text-sm text-[#666]">
-            Sem serviço, não há operação para executar.
-          </p>
-        </section>
-      ) : null}
+      <section aria-labelledby="client-tasks-heading" className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <Stat label="Abertas" value={summary.open} />
+          <Stat label="Atrasadas" value={summary.overdue} tone="danger" />
+          <Stat label="Concluídas" value={summary.done} />
+        </div>
 
-      <ClientBriefingStatusCard clientId={clientId} briefs={briefs} />
+        {totalTracked > 0 ? (
+          <div className="flex items-center gap-3">
+            <div
+              className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#F0EEF7]"
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Progresso: ${pct}%`}
+            >
+              <div className="h-full rounded-full bg-[#2e7d32]" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="shrink-0 text-xs tabular-nums text-[#6B635C]">{pct}% concluído</span>
+          </div>
+        ) : null}
+
+        <div className="flex items-baseline justify-between">
+          <h2 id="client-tasks-heading" className="text-base font-semibold text-[#1A1210]">
+            Tarefas
+          </h2>
+          <Link
+            to={tasksHref}
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            Ver quadro
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        <TaskDueList
+          tasks={clientTasks}
+          clientId={clientId}
+          onTaskCompleted={(id) =>
+            setLiveTasks((prev) =>
+              (prev ?? clientTasks).map((t) => (t.id === id ? { ...t, status: 'completed' } : t))
+            )
+          }
+          onTaskCreated={refreshTasks}
+          emptyMessage="Nenhuma tarefa aberta para este cliente. Adicione a primeira acima."
+        />
+      </section>
 
       <ClientInfoCenterSummary
         clientId={clientId}
@@ -578,131 +217,9 @@ export default function ClientDetailPage() {
         learnings={learnings}
       />
 
-      {hasService ? (
-        <ServiceLensSwitcher
-          services={activeServices}
-          selectedServiceId={selectedServiceId}
-          attentionCounts={attentionCountsByService || {}}
-          onSelect={selectService}
-          onAddService={() => setServiceSetupOpen(true)}
-        />
-      ) : null}
-
-      {hasService && selectedService ? (
-        <section id="operacao" className="space-y-4">
-          <ServiceOperationHeader
-            service={selectedService}
-            profile={selectedProfile}
-            periodLabel={primaryPeriodLabel}
-            onCreate={handleCreateUnit}
-            hasUnits={Boolean(lens?.unitsCount > 0)}
-          />
-
-          {selectedService && !isKnownServiceProfile(selectedProfile) ? (
-            <div className="rounded-2xl border border-[#E4DDD4] px-3 py-3 text-sm text-[#6B635C]">
-              <p className="font-medium text-[#111]">Configuração do serviço incompleta</p>
-              <p className="mt-0.5">
-                Template operacional não reconhecido.{' '}
-                <Link
-                  to={createPageUrl(`client-services?clientId=${clientId}`)}
-                  className="font-medium text-primary hover:underline"
-                >
-                  Abrir Backstage
-                </Link>
-              </p>
-            </div>
-          ) : null}
-
-          {showPlanBanner ? (
-            <div className="flex flex-col gap-2 border-l-2 border-[#d0d7e2] pl-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-sm text-[#666]">
-                  Planejamento · {mesLabels[currentMes]}
-                </p>
-                <p className="truncate text-sm text-[#333]">
-                  Planeje o mês no Panorama ou abra uma nova campanha
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                <Link
-                  to={buildNovaCampanhaHref(clientId, {
-                    mes: currentMes,
-                    ano: currentAno,
-                  })}
-                  className="font-medium text-primary hover:underline"
-                >
-                  Nova Campanha
-                </Link>
-                <Link
-                  to={buildAnnualPlanHref(clientId)}
-                  className="font-medium text-[#666] hover:text-[#111] hover:underline"
-                >
-                  Panorama
-                </Link>
-              </div>
-            </div>
-          ) : null}
-
-          <ServiceUnitsPanel
-            lens={lensForPanel}
-            cyclesById={cyclesById}
-            onCreate={handleCreateUnit}
-            onStartSingleProject={handleStartSingleProject}
-            onShareMonth={handleShareMonth}
-            sharingCycleId={sharingCycleId}
-            startingSingleProject={startingProject}
-          />
-        </section>
-      ) : null}
-
-      {needsOnboarding ? (
-        <section
-          aria-labelledby="setup-heading"
-          className="rounded-2xl border border-[#E4DDD4] bg-[#F1EDE7]/50 p-4 sm:p-5"
-        >
-          <h2 id="setup-heading" className="text-sm font-medium text-[#111]">
-            Configuração inicial ({completedSteps}/{setupChecklist.length})
-          </h2>
-          <ul className="mt-3 space-y-2">
-            {setupChecklist.map((step) => (
-              <li
-                key={step.id}
-                className="flex flex-col gap-2 rounded-lg border border-[#E4DDD4] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-start gap-2.5">
-                  {step.completed ? (
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#27ae60]" aria-hidden />
-                  ) : (
-                    <Circle className="mt-0.5 h-4 w-4 shrink-0 text-[#bbb]" aria-hidden />
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#111]">{step.title}</p>
-                    <p className="text-xs text-[#666]">{step.description}</p>
-                  </div>
-                </div>
-                {!step.completed ? (
-                  <Button
-                    size="sm"
-                    variant={step.id === 'invite' ? 'outline' : 'default'}
-                    className={
-                      step.id === 'invite'
-                        ? 'w-full shrink-0 sm:w-auto'
-                        : 'w-full shrink-0 bg-primary hover:bg-[var(--color-primary-dark)] sm:w-auto'
-                    }
-                    onClick={step.onClick}
-                  >
-                    {step.action}
-                  </Button>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : onlyInvitePending ? (
+      {!hasInvite ? (
         <div className="flex flex-col gap-2 border-t border-[#E4DDD4] pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#666]">
-            Portal ainda não convidado
-          </p>
+          <p className="text-sm text-[#666]">Portal ainda não convidado</p>
           <button
             type="button"
             onClick={() => setInviteModalOpen(true)}
@@ -713,82 +230,20 @@ export default function ClientDetailPage() {
         </div>
       ) : null}
 
-      {lensAttention.length > 0 ? (
-        <ClientAttentionPanel items={lensAttention} />
-      ) : null}
-
-      <section
-        aria-labelledby="more-heading"
-        className="border-t border-[#E4DDD4] pt-6"
-      >
+      <section aria-labelledby="more-heading" className="border-t border-[#E4DDD4] pt-6">
         <h2 id="more-heading" className="mb-2 text-sm text-[#666]">
           Mais neste cliente
         </h2>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
-          {hasService ? (
-            <button
-              type="button"
-              onClick={() => setServiceSetupOpen(true)}
+          {moreLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
               className="text-sm text-[#6B635C] hover:text-primary hover:underline"
             >
-              Adicionar serviço
-            </button>
-          ) : null}
-          <Link
-            to={buildAnnualPlanHref(clientId)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Panorama
-          </Link>
-          <Link
-            to={createPageUrl(`client-brainstorm?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Brainstorm
-          </Link>
-          <Link
-            to={createPageUrl(
-              selectedServiceId
-                ? buildClientTasksHref({
-                    clientId,
-                    serviceId: selectedServiceId,
-                  })
-                : `client-tasks?clientId=${clientId}`
-            )}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Tarefas
-          </Link>
-          <Link
-            to={createPageUrl(`client-documents?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Documentos{counts.documents > 0 ? ` (${counts.documents})` : ''}
-          </Link>
-          <Link
-            to={createPageUrl(`client-acessos?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Acessos{Array.isArray(accesses) && accesses.length > 0 ? ` (${accesses.length})` : ''}
-          </Link>
-          <Link
-            to={createPageUrl(`client-learnings?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Aprendizados{counts.learnings > 0 ? ` (${counts.learnings})` : ''}
-          </Link>
-          <Link
-            to={createPageUrl(`client-financeiro?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            Financeiro
-          </Link>
-          <Link
-            to={createPageUrl(`performance-kpis?clientId=${clientId}`)}
-            className="text-sm text-[#6B635C] hover:text-primary hover:underline"
-          >
-            KPIs{counts.kpis > 0 ? ` (${counts.kpis})` : ''}
-          </Link>
+              {link.label}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -801,69 +256,19 @@ export default function ClientDetailPage() {
           window.history.replaceState({}, '', url.toString());
         }}
         client={client}
+        onSuccess={() => reload?.()}
+      />
+
+      <TaskCreateModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        defaultKind="task"
+        defaultClientId={clientId}
         onSuccess={() => {
-          reload?.();
+          setCreateOpen(false);
+          refreshTasks();
         }}
-      />
-
-      <ContractedServiceSetup
-        open={serviceSetupOpen}
-        onClose={() => {
-          setServiceSetupOpen(false);
-          clearSetupParam();
-        }}
-        agencyId={agencyId}
-        clientId={clientId}
-        clientName={client.name || 'Cliente'}
-        onCreated={async (instance) => {
-          clearSetupParam();
-          if (instance?.id) {
-            selectService(instance.id);
-          }
-          await reload?.();
-        }}
-      />
-
-      <CreateServiceUnitModal
-        open={unitModalOpen}
-        onClose={() => {
-          if (!unitSaving) {
-            setUnitModalOpen(false);
-            setUnitError('');
-            setUnitUploadProgress(0);
-          }
-        }}
-        service={selectedService}
-        profile={selectedProfile}
-        saving={unitSaving}
-        error={unitError}
-        uploadProgress={unitUploadProgress}
-        onSubmit={handleSubmitUnit}
       />
     </div>
   );
-}
-
-function getCreateCtaLabelSafe(profile) {
-  if (!profile?.showCreateCta) return 'Criar';
-  if (!isKnownServiceProfile(profile)) return 'Criar';
-  return profile.createCta || 'Criar';
-}
-
-const FEMININE_ITEM_LABELS = new Set([
-  'sessão',
-  'campanha',
-  'cobertura',
-  'ação',
-]);
-
-function unitCreatedToast(profile, title, mode) {
-  if (mode === 'ready_for_approval') {
-    return `${title} enviado para aprovação`;
-  }
-  const noun = String(profile?.itemLabel || '').trim();
-  if (!noun) return `${title} criado`;
-  const cap = noun.charAt(0).toUpperCase() + noun.slice(1);
-  const feminine = FEMININE_ITEM_LABELS.has(noun.toLowerCase());
-  return feminine ? `${cap} criada` : `${cap} criado`;
 }

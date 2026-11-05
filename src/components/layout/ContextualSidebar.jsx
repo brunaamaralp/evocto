@@ -1,6 +1,6 @@
 /**
  * Soft UI rail: Narrativa dark brand — Jeans (cliente) vs Cereja (global).
- * Hierarquia cliente: Operação (hub/lente) → Planejamento → Cliente.
+ * Hierarquia cliente: Projeto (visão geral + tarefas) → Cliente.
  * serviceId no hub é lente, não troca para shell de serviço.
  */
 
@@ -23,8 +23,6 @@ import {
   Target,
   Menu,
   Megaphone,
-  Sparkles,
-  CalendarDays,
   Clock,
   Handshake,
   ClipboardCheck,
@@ -36,7 +34,6 @@ import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientTasksHref } from '@/lib/taskScope';
-import { buildAnnualPlanHref, buildBrainstormHref } from '@/lib/planoAnualHub';
 import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 import { useSession } from '@/components/auth/SessionManager';
@@ -144,7 +141,7 @@ export default function ContextualSidebar({
           href: createPageUrl('clients'),
           isBack: true,
         },
-        { type: 'section', label: 'Operação' },
+        { type: 'section', label: 'Projeto' },
         {
           type: 'link',
           label: 'Visão Geral',
@@ -180,26 +177,6 @@ export default function ContextualSidebar({
       }
 
       items.push(
-        { type: 'section', label: 'Planejamento' },
-        {
-          type: 'link',
-          label: 'Panorama',
-          icon: CalendarDays,
-          href: buildAnnualPlanHref(clientId),
-          isActive:
-            currentPage === 'planejamento' ||
-            currentPage === 'briefing-campanha-anual',
-        },
-        {
-          type: 'link',
-          label: 'Brainstorm',
-          icon: Sparkles,
-          href: buildBrainstormHref(clientId, {
-            serviceId: serviceId || null,
-          }),
-          isActive:
-            currentPage === 'client-brainstorm' || currentPage === 'brainstorm',
-        },
         { type: 'section', label: 'Cliente' },
         {
           type: 'link',
@@ -294,10 +271,10 @@ export default function ContextualSidebar({
     }
 
     return [
-      { type: 'section', label: 'Operação' },
+      { type: 'section', label: 'Trabalho' },
       {
         type: 'link',
-        label: 'Dashboard',
+        label: 'Início',
         icon: LayoutDashboard,
         href: createPageUrl('dashboard'),
         isActive: currentPage === 'dashboard',

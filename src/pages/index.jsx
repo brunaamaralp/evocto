@@ -218,9 +218,7 @@ import clientbriefing from "./client-briefing";
 
 import briefingCampanha from "./briefing-campanha";
 
-import briefingCampanhaAnual from "./briefing-campanha-anual";
 
-import planejamento from "./planejamento";
 
 import briefingInicial from "./briefing-inicial";
 
@@ -252,6 +250,20 @@ import serviceTemplatesViewer from "./service-templates-viewer";
 
 import { createElement } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+
+/**
+ * Panorama / plano anual foram removidos: o sistema funciona como gestor de
+ * tarefas. Links antigos levam às tarefas do cliente (ou ao quadro geral).
+ */
+function LegacyPlanningRedirect() {
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const clientId = params.get('clientId') || params.get('clientid');
+    const to = clientId
+        ? `/client-tasks?clientId=${encodeURIComponent(clientId)}`
+        : '/tasks-manager';
+    return <Navigate to={to} replace />;
+}
 
 const PAGES = {
     
@@ -480,9 +492,7 @@ const PAGES = {
 
     "briefing-campanha": briefingCampanha,
 
-    "briefing-campanha-anual": briefingCampanhaAnual,
 
-    "planejamento": planejamento,
 
     "briefing-inicial": briefingInicial,
 
@@ -774,11 +784,11 @@ function PagesContent() {
                 
                 <Route path="/client-briefing" element={createElement(clientbriefing)} />
 
-                <Route path="/planejamento" element={createElement(planejamento)} />
+                <Route path="/planejamento" element={<LegacyPlanningRedirect />} />
 
                 <Route path="/briefing-campanha" element={createElement(briefingCampanha)} />
 
-                <Route path="/briefing-campanha-anual" element={createElement(briefingCampanhaAnual)} />
+                <Route path="/briefing-campanha-anual" element={<LegacyPlanningRedirect />} />
 
                 <Route path="/briefing-inicial" element={createElement(briefingInicial)} />
 

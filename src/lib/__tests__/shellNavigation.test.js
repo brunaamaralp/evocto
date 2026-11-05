@@ -94,7 +94,7 @@ describe('shellNavigation', () => {
       clientId: 'c1',
       currentPage: 'client-tasks',
     });
-    expect(client.map((i) => i.id)).toEqual(['hub', 'tasks', 'plan', 'more']);
+    expect(client.map((i) => i.id)).toEqual(['hub', 'tasks', 'docs', 'more']);
     expect(client.find((i) => i.id === 'tasks').isActive).toBe(true);
     expect(client.find((i) => i.id === 'tasks').href).toContain('clientId=c1');
   });
