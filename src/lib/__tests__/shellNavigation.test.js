@@ -22,7 +22,8 @@ describe('shellNavigation', () => {
 
   it('labels known pages', () => {
     expect(getShellPageLabel('client-tasks')).toBe('Tarefas');
-    expect(getShellPageLabel('planejamento')).toBe('Panorama');
+    expect(getShellPageLabel('dashboard')).toBe('Início');
+    expect(getShellPageLabel('planejamento')).toBeNull();
     expect(getShellPageLabel('central')).toBe('Central');
     expect(getShellPageLabel('unknown-page')).toBeNull();
   });
@@ -36,7 +37,7 @@ describe('shellNavigation', () => {
     expect(buildQuickCreateTaskHref({ clientId: 'c1' })).toContain('create=1');
   });
 
-  it('builds client breadcrumbs with page or campaign', () => {
+  it('builds client breadcrumbs with page', () => {
     const pageTrail = buildShellClientBreadcrumbs({
       clientId: 'c1',
       clientName: 'Acme',
@@ -44,18 +45,6 @@ describe('shellNavigation', () => {
     });
     expect(pageTrail.map((c) => c.label)).toEqual(['Clientes', 'Acme', 'Tarefas']);
 
-    const campaignTrail = buildShellClientBreadcrumbs({
-      clientId: 'c1',
-      clientName: 'Acme',
-      campaignName: 'Lançamento',
-      campaignHref: '/client-campaign?clientId=c1',
-      pageKey: 'delivery-workspace',
-    });
-    expect(campaignTrail.map((c) => c.label)).toEqual([
-      'Clientes',
-      'Acme',
-      'Lançamento',
-    ]);
   });
 
   it('persists sidebar collapsed flag', () => {
@@ -126,13 +115,13 @@ describe('shellNavigation', () => {
     expect(
       resolveContextualBackUrl({
         pathname: '/delivery-workspace',
-        search: '?clientId=c1&briefingId=b1',
+        search: '?clientId=c1&serviceId=s1',
       })
     ).toBe('/client-detail?clientId=c1');
 
     expect(
       resolveContextualBackUrl({
-        pathname: '/planejamento',
+        pathname: '/client-documents',
         search: '?clientId=c1',
       })
     ).toBe('/client-detail?clientId=c1');

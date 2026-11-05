@@ -91,9 +91,7 @@ export default function GlobalSearch({ preferredClientId = null } = {}) {
   const [entities, setEntities] = useState({
     clients: [],
     services: [],
-    campaigns: [],
     tasks: [],
-    cycles: [],
   });
   const { agencyId, user } = useSession();
   const navigate = useNavigate();
@@ -140,10 +138,8 @@ export default function GlobalSearch({ preferredClientId = null } = {}) {
     setEntities({
       clients: [],
       services: [],
-      campaigns: [],
-      tasks: [],
-      cycles: [],
-    });
+        tasks: [],
+      });
 
     fetchGlobalSearchEntities(agencyId)
       .then((data) => {
@@ -171,9 +167,7 @@ export default function GlobalSearch({ preferredClientId = null } = {}) {
   const entityGroups = [
     { key: 'clients', label: 'Clientes', items: preferClient(entities.clients) },
     { key: 'tasks', label: 'Tarefas', items: preferClient(entities.tasks) },
-    { key: 'campaigns', label: 'Campanhas', items: preferClient(entities.campaigns) },
     { key: 'services', label: 'Serviços', items: preferClient(entities.services) },
-    { key: 'cycles', label: 'Ciclos', items: preferClient(entities.cycles) },
   ].filter((g) => g.items.length > 0);
 
   return (

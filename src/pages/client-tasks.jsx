@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useSession } from '@/components/auth/SessionManager';
 import { Client } from '@/api/entities';
 import { Service } from '@/api/entities';
 import { Task } from '@/api/entities';
-import { CyclePlan } from '@/api/entities';
-import { Brief } from '@/api/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,34 +20,20 @@ import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { useTaskGeneration } from '@/hooks/useTaskGeneration';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { createPageUrl, getUrlSearchParam } from '@/utils';
-import {
-  buildClientTasksHref,
-  filterTasksByScope,
-} from '@/lib/taskScope';
-import { buildClientCampaignHref } from '@/lib/campaignHref';
-import {
-  buildCampaignWorkspaceTasksPath,
-  resolveServiceIdForCampaign,
-} from '@/lib/campaignWorkspaceHref';
+import { buildClientTasksHref } from '@/lib/taskScope';
 
 function readTasksUrlContext() {
   const urlParams = new URLSearchParams(window.location.search);
   return {
     clientId: getUrlSearchParam(urlParams, 'clientId', 'id'),
     serviceId: urlParams.get('serviceId') || null,
-    cycleId: urlParams.get('cycleId') || urlParams.get('cyclePlanId') || null,
-    briefingId:
-      urlParams.get('briefingId') ||
-      urlParams.get('campanhaId') ||
-      urlParams.get('campaignId') ||
-      null,
   };
 }
 
-function syncTasksUrl({ clientId, serviceId, cycleId, briefingId }) {
+function syncTasksUrl({ clientId, serviceId }) {
   if (!clientId || typeof window === 'undefined') return;
   const next = createPageUrl(
-    buildClientTasksHref({ clientId, serviceId, cycleId, briefingId })
+    buildClientTasksHref({ clientId, serviceId })
   );
   const current = `${window.location.pathname}${window.location.search}`;
   if (current !== next) {
@@ -59,24 +43,14 @@ function syncTasksUrl({ clientId, serviceId, cycleId, briefingId }) {
 
 export default function ClientTasksPage() {
   const { user, agencyId } = useSession();
-  const navigate = useNavigate();
   const initialUrl = useMemo(() => readTasksUrlContext(), []);
   const [clientId, setClientId] = useState(initialUrl.clientId);
   const [urlServiceId] = useState(initialUrl.serviceId);
-  const [cycleId] = useState(initialUrl.cycleId);
-  const [briefingId, setBriefingId] = useState(initialUrl.briefingId);
-  const [client, setClient] = useState(null);
+  const [, setClient] = useState(null);
   const [services, setServices] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
-  const [cycle, setCycle] = useState(null);
-  const [campaign, setCampaign] = useState(null);
-  const [scopeMeta, setScopeMeta] = useState({
-    scope: 'none',
-    sharedCycleFallback: false,
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [campaignRedirectError, setCampaignRedirectError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('create') === '1';
@@ -98,55 +72,6 @@ export default function ClientTasksPage() {
   const { handleError } = useErrorHandling();
 
   const overviewHref = createPageUrl(`client-detail?clientId=${clientId || ''}`);
-  const isCampaignScope = Boolean(briefingId);
-
-  // Fase 5: tarefas com briefingId → Workspace da campanha (inbox T2 fica sem briefingId)
-  useEffect(() => {
-    if (!briefingId || !agencyId) return;
-    let cancelled = false;
-    setCampaignRedirectError(null);
-    (async () => {
-      try {
-        const brief = await Brief.get(briefingId).catch(() => null);
-        if (cancelled) return;
-        const serviceId = await resolveServiceIdForCampaign({
-          brief,
-          agencyId,
-          clientId: clientId || brief?.clientId,
-          fallbackServiceId: urlServiceId,
-          loadCycle: (id) => CyclePlan.get(id),
-          listServices: (filter) => Service.filter(filter),
-        });
-        if (cancelled) return;
-        if (serviceId) {
-          navigate(
-            buildCampaignWorkspaceTasksPath({
-              serviceId,
-              clientId: clientId || brief?.clientId,
-              campaignId: briefingId,
-            }),
-            { replace: true }
-          );
-          return;
-        }
-        setCampaignRedirectError(
-          'Não foi possível abrir o workspace desta campanha. O serviço vinculado não foi encontrado.'
-        );
-        setLoading(false);
-      } catch (err) {
-        console.error('[ClientTasks] campaign redirect', err);
-        if (!cancelled) {
-          setCampaignRedirectError(
-            err?.message || 'Erro ao abrir o workspace da campanha.'
-          );
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [briefingId, agencyId, clientId, urlServiceId, navigate]);
 
   useEffect(() => {
     if (!initialUrl.clientId) {
@@ -167,29 +92,22 @@ export default function ClientTasksPage() {
         },
         '-created_date'
       );
-      const scoped = filterTasksByScope(tasksData, { cycleId, briefingId });
-      setScopeMeta({
-        scope: scoped.scope,
-        sharedCycleFallback: scoped.sharedCycleFallback,
-      });
-      return scoped.tasks;
+      return Array.isArray(tasksData) ? tasksData : [];
     },
-    [clientId, agencyId, cycleId, briefingId]
+    [clientId, agencyId]
   );
 
   useEffect(() => {
     const loadData = async () => {
-      if (!clientId || !agencyId || briefingId) return;
+      if (!clientId || !agencyId) return;
 
       try {
         setLoading(true);
         setError(null);
 
-        const [clientData, servicesData, cycleData, briefData] = await Promise.all([
+        const [clientData, servicesData] = await Promise.all([
           Client.get(clientId),
           Service.filter({ clientId, agencyId, is_active: true }),
-          cycleId ? CyclePlan.get(cycleId).catch(() => null) : Promise.resolve(null),
-          briefingId ? Brief.get(briefingId).catch(() => null) : Promise.resolve(null),
         ]);
 
         if (!clientData || clientData.agencyId !== agencyId) {
@@ -200,11 +118,8 @@ export default function ClientTasksPage() {
 
         setClient(clientData);
         setServices(servicesData);
-        setCycle(cycleData);
-        setCampaign(briefData);
 
-        const preferredServiceId =
-          urlServiceId || cycleData?.serviceId || briefData?.serviceId || null;
+        const preferredServiceId = urlServiceId || null;
 
         const matched =
           (preferredServiceId &&
@@ -217,8 +132,6 @@ export default function ClientTasksPage() {
         syncTasksUrl({
           clientId,
           serviceId: matched?.id || preferredServiceId,
-          cycleId,
-          briefingId,
         });
       } catch (err) {
         console.error('[ClientTasks] Error loading data:', err);
@@ -232,7 +145,7 @@ export default function ClientTasksPage() {
     if (clientId && agencyId) {
       loadData();
     }
-  }, [clientId, agencyId, cycleId, briefingId, urlServiceId]);
+  }, [clientId, agencyId, urlServiceId]);
 
   useEffect(() => {
     if (selectedServiceId) {
@@ -245,7 +158,7 @@ export default function ClientTasksPage() {
 
   const handleSelectService = (serviceId) => {
     setSelectedServiceId(serviceId);
-    syncTasksUrl({ clientId, serviceId, cycleId, briefingId });
+    syncTasksUrl({ clientId, serviceId });
   };
 
   const handleGenerateTasks = async () => {
@@ -295,51 +208,6 @@ export default function ClientTasksPage() {
     }
   };
 
-  const campaignName = campaign?.nome_campanha || campaign?.title || 'Campanha';
-  const campaignHref = briefingId
-    ? createPageUrl(buildClientCampaignHref({ clientId, briefingId }))
-    : overviewHref;
-
-  // Fase 5 — escopo de campanha redireciona; esta página fica só como inbox T2
-  if (briefingId && !campaignRedirectError) {
-    return <LoadingState message="Abrindo workspace da campanha…" />;
-  }
-
-  if (briefingId && campaignRedirectError) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <EmptyState
-          icon="alert-circle"
-          title="Não foi possível abrir a campanha"
-          description={campaignRedirectError}
-          primaryAction={{
-            label: 'Voltar ao hub do cliente',
-            onClick: () => {
-              window.location.href = overviewHref;
-            },
-          }}
-          secondaryAction={
-            clientId
-              ? {
-                  label: 'Ver inbox de tarefas',
-                  onClick: () => {
-                    setCampaignRedirectError(null);
-                    setBriefingId(null);
-                    navigate(
-                      createPageUrl(
-                        buildClientTasksHref({ clientId, serviceId: urlServiceId })
-                      ),
-                      { replace: true }
-                    );
-                  },
-                }
-              : undefined
-          }
-        />
-      </div>
-    );
-  }
-
   if (loading) {
     return <LoadingState message="Carregando tarefas..." />;
   }
@@ -354,7 +222,7 @@ export default function ClientTasksPage() {
           primaryAction={{
             label: 'Voltar',
             onClick: () => {
-              window.location.href = isCampaignScope ? campaignHref : overviewHref;
+              window.location.href = overviewHref;
             },
           }}
         />
@@ -362,49 +230,8 @@ export default function ClientTasksPage() {
     );
   }
 
-  const cycleLabel = cycle?.cyclePeriod || cycle?.title || null;
-  const showCycleLabel =
-    cycleLabel &&
-    String(cycleLabel).trim().toLowerCase() !==
-      String(campaignName).trim().toLowerCase();
-
   return (
-    <div className={isCampaignScope ? 'space-y-4' : 'space-y-6'}>
-      {isCampaignScope ? (
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Button asChild variant="ghost" size="icon" className="page-back-btn h-8 w-8 shrink-0 -ml-1.5">
-                <Link to={campaignHref} aria-label="Voltar à campanha">
-                  <ArrowLeft className="w-4 h-4 text-[#6B635C]" />
-                </Link>
-              </Button>
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-[#1A1210] leading-tight">
-                  Tarefas
-                </h1>
-                {(campaignName || showCycleLabel) && (
-                  <p className="text-xs text-[#6B635C] truncate">
-                    <Link
-                      to={campaignHref}
-                      className="hover:text-[#B80015] hover:underline"
-                    >
-                      {campaignName}
-                    </Link>
-                    {showCycleLabel ? ` · ${cycleLabel}` : ''}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button size="sm" onClick={handleCreateTask}>
-                <Plus className="w-4 h-4 mr-1" />
-                Nova tarefa
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : (
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1210] flex items-center gap-2 sm:gap-3">
@@ -440,9 +267,8 @@ export default function ClientTasksPage() {
             </Button>
           </div>
         </div>
-      )}
 
-      {!isCampaignScope && services.length > 1 && (
+      {services.length > 1 && (
         <Card className="rounded-2xl border-transparent shadow-none bg-[#FAFAFC]">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-[#6B635C] mb-3">Serviço</p>
@@ -468,8 +294,6 @@ export default function ClientTasksPage() {
         <TaskManager
           clientId={clientId}
           serviceId={selectedServiceId}
-          cycleId={cycleId}
-          briefingId={briefingId}
           userRole={user?.role || 'consultor'}
           embedded
           hideCreate
@@ -481,9 +305,9 @@ export default function ClientTasksPage() {
           title="Nenhum serviço ativo"
           description="Este cliente não possui serviços ativos para gerenciar tarefas."
           primaryAction={{
-            label: isCampaignScope ? 'Voltar à campanha' : 'Ver cliente',
+            label: 'Ver cliente',
             onClick: () => {
-              window.location.href = isCampaignScope ? campaignHref : overviewHref;
+              window.location.href = overviewHref;
             },
           }}
         />
@@ -495,8 +319,6 @@ export default function ClientTasksPage() {
         onSuccess={handleTaskCreated}
         defaultClientId={clientId}
         defaultServiceId={selectedServiceId}
-        defaultBriefingId={briefingId}
-        defaultCycleId={cycleId}
       />
     </div>
   );

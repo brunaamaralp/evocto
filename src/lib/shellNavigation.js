@@ -6,7 +6,6 @@
 import { createPageUrl } from '@/utils';
 import { buildTasksManagerHref } from '@/lib/taskFilterPresets';
 import { buildClientTasksHref } from '@/lib/taskScope';
-import { buildNovaCampanhaHref, buildAnnualPlanHref } from '@/lib/planoAnualHub';
 
 const SIDEBAR_COLLAPSED_KEY = 'evocto:sidebar-collapsed';
 
@@ -36,15 +35,8 @@ export const SHELL_PAGE_LABELS = {
   'client-evolution': 'Aprendizados',
   'client-services': 'Serviços',
   'client-settings': 'Configurações',
-  planejamento: 'Panorama',
-  'briefing-campanha-anual': 'Panorama',
-  brainstorm: 'Brainstorm',
-  'client-brainstorm': 'Brainstorm',
-  'client-campaign': 'Campanha',
   'delivery-workspace': 'Workspace',
   'briefing-inicial': 'Briefing inicial',
-  'briefing-campanha': 'Campanha',
-  'client-unit': 'Unidade',
 };
 
 export function getShellPageLabel(pageKey) {
@@ -85,19 +77,9 @@ export function buildQuickCreateClientHref() {
   return createPageUrl('clients?create=1');
 }
 
-export function buildQuickCreateCampaignHref(clientId, opts = {}) {
-  if (!clientId) return null;
-  return buildNovaCampanhaHref(clientId, opts);
-}
-
 /** Deep-link do filtro “Minhas tarefas” no quadro único `/tasks-manager`. */
 export function buildMyTasksHref() {
   return buildTasksManagerHref({ preset: 'my_tasks' });
-}
-
-export function buildClientPanoramaHref(clientId) {
-  if (!clientId) return null;
-  return buildAnnualPlanHref(clientId);
 }
 
 export function buildClientHubHref(clientId, serviceId = null) {
@@ -176,9 +158,7 @@ export function getMobileBottomNavItems({
       label: 'Aprovações',
       href: createPageUrl('approval-dashboard'),
       isActive:
-        currentPage === 'approval-dashboard' ||
-        currentPage === 'cycle-approval' ||
-        currentPage === 'cycle-approval-manager',
+        currentPage === 'approval-dashboard',
     },
     {
       id: 'more',
@@ -191,13 +171,11 @@ export function getMobileBottomNavItems({
 
 /**
  * Trail do header no shell de cliente.
- * Clientes › {Cliente} › [{Campanha}|{página}]
+ * Clientes › {Cliente} › {página}
  */
 export function buildShellClientBreadcrumbs({
   clientId,
   clientName,
-  campaignName = null,
-  campaignHref = null,
   pageKey = null,
   pageLabel = null,
 } = {}) {
@@ -210,14 +188,6 @@ export function buildShellClientBreadcrumbs({
       href: createPageUrl(`client-detail?clientId=${clientId}`),
     },
   ];
-
-  if (campaignName) {
-    crumbs.push({
-      label: campaignName,
-      href: campaignHref || null,
-    });
-    return crumbs;
-  }
 
   const label = pageLabel || getShellPageLabel(pageKey);
   if (label && pageKey !== 'client-detail' && pageKey !== 'client') {
@@ -239,12 +209,10 @@ const HUB_PAGE_KEYS = new Set(['client-detail', 'client']);
 
 /**
  * Páginas profundas no contexto do cliente → voltam ao Hub.
- * Inclui workspace, planejamento, tarefas do cliente, etc.
+ * Inclui workspace, tarefas do cliente, documentos, etc.
  */
 const CLIENT_CHILD_PAGE_KEYS = new Set([
   'delivery-workspace',
-  'client-campaign',
-  'client-unit',
   'client-tasks',
   'client-documents',
   'client-acessos',
@@ -253,12 +221,7 @@ const CLIENT_CHILD_PAGE_KEYS = new Set([
   'client-evolution',
   'client-services',
   'client-settings',
-  'planejamento',
-  'briefing-campanha-anual',
-  'brainstorm',
-  'client-brainstorm',
   'briefing-inicial',
-  'briefing-campanha',
   'briefing-editor',
   'client-briefing',
   'insights-editor',

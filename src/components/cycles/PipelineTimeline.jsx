@@ -13,10 +13,8 @@ import {
 import { isNarrativaPipeline } from '@/lib/pipelineNarrativa';
 import { buildPipelineActionsView } from '@/lib/pipelinePhaseActions';
 import { transitionPipelinePhase } from '@/api/functions/transitionPipelinePhase';
-import { createCampaignShareLink } from '@/lib/campaignShare';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useSession } from '@/components/auth/SessionManager';
 
 const STATUS_LABEL = {
   concluida: 'Concluída',
@@ -77,14 +75,9 @@ function FaseCard({
   onTransition,
   onApproveGate,
   onSkip,
-  onShare,
 }) {
   const hasSubs = (fase.subtarefas || []).length > 0;
   const busy = busyKey === fase.id;
-  const canShare =
-    (fase.gatekeeper === 'cliente' || fase.gatekeeper === 'influencer') &&
-    !['aprovado', 'approved', 'skipped'].includes(String(fase.gate_status || '').toLowerCase());
-
   return (
     <div className="rounded-md border border-slate-200 bg-white">
       <button
@@ -146,21 +139,8 @@ function FaseCard({
         </div>
       </button>
 
-      {(fase.can_transition || fase.can_approve_gate || fase.can_skip || canShare) && (
+      {(fase.can_transition || fase.can_approve_gate || fase.can_skip) && (
         <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-3 py-2">
-          {canShare ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs"
-              disabled={busy}
-              onClick={() => onShare?.(fase)}
-            >
-              {busy ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
-              Enviar link ({fase.gatekeeper})
-            </Button>
-          ) : null}
           {fase.can_approve_gate ? (
             <Button
               type="button"
@@ -223,7 +203,6 @@ export default function PipelineTimeline({
   onServiceUpdated,
   onTasksNeedReload,
 }) {
-  const { user } = useSession();
   const phases = useMemo(
     () => buildPipelineActionsView(service?.deliverables || [], tasks),
     [service?.deliverables, tasks]
@@ -242,21 +221,6 @@ export default function PipelineTimeline({
     if (!service?.id || !fase?.id) return;
     setBusyKey(fase.id);
     try {
-      if (action === 'share') {
-        const result = await createCampaignShareLink({
-          serviceId: service.id,
-          deliverableId: fase.id,
-          gatekeeper: fase.gatekeeper || 'cliente',
-          actorId: user?.id || user?.data?.id,
-        });
-        if (result.service) onServiceUpdated?.(result.service);
-        await navigator.clipboard?.writeText?.(result.url).catch(() => {});
-        toast.success('Link copiado — envie ao cliente/WhatsApp', {
-          description: result.url,
-        });
-        return;
-      }
-
       const result = await transitionPipelinePhase({
         serviceId: service.id,
         deliverableId: fase.id,
@@ -331,7 +295,6 @@ export default function PipelineTimeline({
             onTransition={(f) => runAction(f, 'transition')}
             onApproveGate={(f) => runAction(f, 'approve_gate')}
             onSkip={(f) => runAction(f, 'skip')}
-            onShare={(f) => runAction(f, 'share')}
           />
         ))}
       </div>

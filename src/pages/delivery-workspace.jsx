@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
-import { Service, Client, Task, Brief } from '@/api/entities';
+import { Service, Client, Task } from '@/api/entities';
 import { useSession } from '@/components/auth/SessionManager';
 import LoadingState from '@/components/shared/LoadingState';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -8,13 +8,6 @@ import {
   resolveDeliverySection,
   DELIVERY_WORKSPACE_DEFAULT_SECTION,
 } from '@/lib/deliveryWorkspaceTabs';
-import {
-  CAMPAIGN_WORKSPACE_DEFAULT_TAB,
-  getCampaignIdFromSearchParams,
-  resolveCampaignWorkspaceTab,
-} from '@/lib/campaignWorkspaceHref';
-import { normalizeCampanhaUnit } from '@/lib/campanhaIdeia';
-import { filterTasksByScope } from '@/lib/taskScope';
 import DeliveryWorkspaceNav from '@/components/deliveryWorkspace/DeliveryWorkspaceNav';
 import DeliveryWorkspaceHeader from '@/components/deliveryWorkspace/DeliveryWorkspaceHeader';
 import DeliveryWorkspaceOverview from '@/components/deliveryWorkspace/DeliveryWorkspaceOverview';
@@ -25,10 +18,6 @@ import DeliveryWorkspaceFiles from '@/components/deliveryWorkspace/DeliveryWorks
 import DeliveryWorkspaceFinance from '@/components/deliveryWorkspace/DeliveryWorkspaceFinance';
 import DeliveryWorkspaceNotes from '@/components/deliveryWorkspace/DeliveryWorkspaceNotes';
 import DeliveryWorkspaceDeliveries from '@/components/deliveryWorkspace/DeliveryWorkspaceDeliveries';
-import CampaignWorkspaceIdeia from '@/components/deliveryWorkspace/CampaignWorkspaceIdeia';
-import CampaignWorkspaceContexto from '@/components/deliveryWorkspace/CampaignWorkspaceContexto';
-import CampaignWorkspaceHistorico from '@/components/deliveryWorkspace/CampaignWorkspaceHistorico';
-import CampaignWorkspaceTasks from '@/components/deliveryWorkspace/CampaignWorkspaceTasks';
 import '@/components/deliveryWorkspace/delivery-workspace.css';
 
 export default function DeliveryWorkspacePage() {
@@ -42,11 +31,7 @@ export default function DeliveryWorkspacePage() {
     searchParams.get('serviceId') ||
     searchParams.get('id') ||
     '';
-  const campaignId = getCampaignIdFromSearchParams(searchParams);
-  const campaignMode = Boolean(campaignId);
-  const activeSection = campaignMode
-    ? resolveCampaignWorkspaceTab(searchParams) || CAMPAIGN_WORKSPACE_DEFAULT_TAB
-    : resolveDeliverySection(searchParams);
+  const activeSection = resolveDeliverySection(searchParams);
   const activeStageId = searchParams.get('stage') || '';
 
   const [loading, setLoading] = useState(true);
@@ -54,23 +39,7 @@ export default function DeliveryWorkspacePage() {
   const [service, setService] = useState(null);
   const [client, setClient] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [brief, setBrief] = useState(null);
   const [navOpen, setNavOpen] = useState(false);
-
-  const campaignUnit = useMemo(
-    () => (brief ? normalizeCampanhaUnit(brief) : null),
-    [brief]
-  );
-
-  const scopedTasks = useMemo(() => {
-    if (!campaignMode || !campaignUnit) {
-      return { tasks, scope: 'none', sharedCycleFallback: false };
-    }
-    return filterTasksByScope(tasks, {
-      briefingId: campaignUnit.id,
-      cycleId: campaignUnit.cycleId,
-    });
-  }, [campaignMode, campaignUnit, tasks]);
 
   const load = useCallback(async () => {
     if (!serviceId) {
@@ -104,61 +73,30 @@ export default function DeliveryWorkspacePage() {
         serviceId,
       }).catch(() => []);
       setTasks(Array.isArray(taskList) ? taskList : []);
-
-      if (campaignId) {
-        const briefData = await Brief.get(campaignId);
-        if (!briefData || (briefData.agencyId && briefData.agencyId !== agencyId)) {
-          throw new Error('Campanha não encontrada ou sem permissão');
-        }
-        setBrief(briefData);
-      } else {
-        setBrief(null);
-      }
     } catch (err) {
       console.error('[DeliveryWorkspace]', err);
       setError(err?.message || 'Falha ao carregar workspace');
       setService(null);
-      setBrief(null);
     } finally {
       setLoading(false);
     }
-  }, [serviceId, agencyId, campaignId]);
+  }, [serviceId, agencyId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Garante section canônica em modo campanha (ex. aliases / default)
-  useEffect(() => {
-    if (!campaignMode) return;
-    const resolved = resolveCampaignWorkspaceTab(searchParams);
-    const current = String(searchParams.get('section') || searchParams.get('tab') || '');
-    if (resolved && current !== resolved) {
-      const next = new URLSearchParams(searchParams);
-      next.set('section', resolved);
-      next.delete('tab');
-      if (!next.get('campaignId') && campaignId) next.set('campaignId', campaignId);
-      if (!next.get('briefingId') && campaignId) next.set('briefingId', campaignId);
-      setSearchParams(next, { replace: true });
-    }
-  }, [campaignMode, campaignId, searchParams, setSearchParams]);
-
   const setSection = useCallback(
     (sectionId) => {
       const next = new URLSearchParams(searchParams);
-      const fallback = campaignMode
-        ? CAMPAIGN_WORKSPACE_DEFAULT_TAB
-        : DELIVERY_WORKSPACE_DEFAULT_SECTION;
-      next.set('section', sectionId || fallback);
+      next.set('section', sectionId || DELIVERY_WORKSPACE_DEFAULT_SECTION);
       if (sectionId !== 'tasks') next.delete('stage');
-      if (campaignMode && campaignId) {
-        next.set('campaignId', campaignId);
-        next.set('briefingId', campaignId);
-      }
+      next.delete('campaignId');
+      next.delete('briefingId');
       setSearchParams(next, { replace: true });
       setNavOpen(false);
     },
-    [searchParams, setSearchParams, campaignMode, campaignId]
+    [searchParams, setSearchParams]
   );
 
   const setStageFocus = useCallback(
@@ -186,10 +124,6 @@ export default function DeliveryWorkspacePage() {
     },
     [load, refreshTasks]
   );
-
-  const handleBriefSaved = useCallback((updated) => {
-    if (updated) setBrief(updated);
-  }, []);
 
   useEffect(() => {
     const onPipeline = (ev) => {
@@ -251,21 +185,15 @@ export default function DeliveryWorkspacePage() {
 
   if (loading) {
     return (
-      <LoadingState
-        message={
-          campaignMode
-            ? 'Carregando workspace da campanha...'
-            : 'Carregando workspace de entrega...'
-        }
-      />
+      <LoadingState message="Carregando workspace de entrega..." />
     );
   }
 
-  if (error || !service || (campaignMode && !brief)) {
+  if (error || !service) {
     return (
       <div className="p-6 max-w-lg mx-auto">
         <p className="text-red-700 text-sm mb-3">
-          {error || (campaignMode ? 'Campanha não encontrada' : 'Serviço não encontrado')}
+          {error || 'Serviço não encontrado'}
         </p>
         <button
           type="button"
@@ -280,105 +208,60 @@ export default function DeliveryWorkspacePage() {
 
   let sectionNode = null;
 
-  if (campaignMode) {
-    switch (activeSection) {
-      case 'contexto':
-        sectionNode = (
-          <CampaignWorkspaceContexto
-            clientId={client?.id || service.clientId || campaignUnit?.clientId}
-            clientName={client?.name || client?.legal_name || service.clientName}
-            serviceName={service.name}
-          />
-        );
-        break;
-      case 'ideia':
-        sectionNode = (
-          <CampaignWorkspaceIdeia brief={brief} onSaved={handleBriefSaved} />
-        );
-        break;
-      case 'historico':
-        sectionNode = (
-          <CampaignWorkspaceHistorico historico={campaignUnit?.historico || []} />
-        );
-        break;
-      case 'tasks':
-      default:
-        sectionNode = (
-          <CampaignWorkspaceTasks
-            tasks={scopedTasks.tasks}
-            scopeLabel={
-              scopedTasks.scope === 'campaign'
-                ? 'desta campanha'
-                : scopedTasks.scope === 'cycle'
-                  ? 'deste ciclo'
-                  : null
-            }
-            sharedCycleFallback={scopedTasks.sharedCycleFallback}
-            onTasksNeedReload={refreshTasks}
-            clientId={client?.id || service.clientId || campaignUnit?.clientId}
-            serviceId={service.id}
-            briefingId={campaignUnit?.id || campaignId}
-            cycleId={campaignUnit?.cycleId || null}
-          />
-        );
-        break;
-    }
-  } else {
-    switch (activeSection) {
-      case 'overview':
-        sectionNode = (
-          <DeliveryWorkspaceOverview
-            service={service}
-            client={client}
-            tasks={tasks}
-            onGoSection={setSection}
-            onCycleCreated={handleServiceUpdated}
-            onServiceUpdated={handleServiceUpdated}
-            onTasksNeedReload={refreshTasks}
-          />
-        );
-        break;
-      case 'atividade':
-        sectionNode = <DeliveryWorkspaceActivity service={service} tasks={tasks} />;
-        break;
-      case 'cronograma':
-        sectionNode = (
-          <DeliveryWorkspaceSchedule
-            service={service}
-            tasks={tasks}
-            onServiceUpdated={handleServiceUpdated}
-          />
-        );
-        break;
-      case 'entregas':
-        sectionNode = <DeliveryWorkspaceDeliveries service={service} tasks={tasks} />;
-        break;
-      case 'files':
-        sectionNode = (
-          <DeliveryWorkspaceFiles clientId={service.clientId} serviceId={service.id} />
-        );
-        break;
-      case 'finance':
-        sectionNode = <DeliveryWorkspaceFinance service={service} />;
-        break;
-      case 'notes':
-        sectionNode = (
-          <DeliveryWorkspaceNotes service={service} onServiceUpdated={handleServiceUpdated} />
-        );
-        break;
-      case 'tasks':
-      default:
-        sectionNode = (
-          <DeliveryWorkspaceTasks
-            service={service}
-            tasks={tasks}
-            activeStageId={activeStageId}
-            onStageFocus={setStageFocus}
-            onServiceUpdated={handleServiceUpdated}
-          />
-        );
-        break;
-    }
+  switch (activeSection) {
+    case 'overview':
+      sectionNode = (
+        <DeliveryWorkspaceOverview
+          service={service}
+          client={client}
+          tasks={tasks}
+          onGoSection={setSection}
+          onCycleCreated={handleServiceUpdated}
+          onServiceUpdated={handleServiceUpdated}
+          onTasksNeedReload={refreshTasks}
+        />
+      );
+      break;
+    case 'atividade':
+      sectionNode = <DeliveryWorkspaceActivity service={service} tasks={tasks} />;
+      break;
+    case 'cronograma':
+      sectionNode = (
+        <DeliveryWorkspaceSchedule
+          service={service}
+          tasks={tasks}
+          onServiceUpdated={handleServiceUpdated}
+        />
+      );
+      break;
+    case 'entregas':
+      sectionNode = <DeliveryWorkspaceDeliveries service={service} tasks={tasks} />;
+      break;
+    case 'files':
+      sectionNode = (
+        <DeliveryWorkspaceFiles clientId={service.clientId} serviceId={service.id} />
+      );
+      break;
+    case 'finance':
+      sectionNode = <DeliveryWorkspaceFinance service={service} />;
+      break;
+    case 'notes':
+      sectionNode = (
+        <DeliveryWorkspaceNotes service={service} onServiceUpdated={handleServiceUpdated} />
+      );
+      break;
+    case 'tasks':
+    default:
+      sectionNode = (
+        <DeliveryWorkspaceTasks
+          service={service}
+          tasks={tasks}
+          activeStageId={activeStageId}
+          onStageFocus={setStageFocus}
+          onServiceUpdated={handleServiceUpdated}
+        />
+      );
+      break;
   }
 
   return (
@@ -395,7 +278,6 @@ export default function DeliveryWorkspacePage() {
             className={`delivery-workspace__aside${navOpen ? ' is-open' : ''}`}
           >
             <DeliveryWorkspaceNav
-              mode={campaignMode ? 'campaign' : 'service'}
               activeSection={activeSection}
               onSectionChange={setSection}
             />
@@ -404,7 +286,6 @@ export default function DeliveryWorkspacePage() {
             <DeliveryWorkspaceHeader
               service={service}
               client={client}
-              campaignUnit={campaignMode ? campaignUnit : null}
               onOpenNav={() => setNavOpen(true)}
               navOpen={navOpen}
             />

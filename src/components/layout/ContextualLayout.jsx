@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import ContextualSidebar from './ContextualSidebar';
 import ModernHeader from './ModernHeader';
 import MobileBottomNav from './MobileBottomNav';
-import { Brief, Client } from '@/api/entities';
+import { Client } from '@/api/entities';
 import { CLIENT_CONTEXT } from '@/lib/clientContextTheme';
 import { useSession } from '@/components/auth/SessionManager';
 import { recordRecentClient } from '@/lib/recentClients';
@@ -18,7 +18,6 @@ export default function ContextualLayout({ user, children }) {
   const { agencyId } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [contextClient, setContextClient] = useState(null);
-  const [contextCampaign, setContextCampaign] = useState(null);
 
   useEffect(() => {
     if (!sidebarOpen) return undefined;
@@ -35,11 +34,6 @@ export default function ContextualLayout({ user, children }) {
   const urlParams = new URLSearchParams(location.search);
   const clientId = urlParams.get('clientId');
   const serviceId = urlParams.get('serviceId');
-  const briefingId =
-    urlParams.get('briefingId') ||
-    urlParams.get('campanhaId') ||
-    urlParams.get('campaignId') ||
-    null;
 
   const getCurrentContext = () => {
     const pathname = location.pathname;
@@ -49,7 +43,6 @@ export default function ContextualLayout({ user, children }) {
         type: 'client',
         clientId,
         serviceId: serviceId || null,
-        briefingId,
       };
     }
 
@@ -58,7 +51,6 @@ export default function ContextualLayout({ user, children }) {
         type: 'service',
         serviceId,
         clientId: null,
-        briefingId: null,
       };
     }
 
@@ -66,10 +58,6 @@ export default function ContextualLayout({ user, children }) {
       'briefing-editor',
       'briefing-inicial',
       'client-briefing',
-      'client-brainstorm',
-      'brainstorm',
-      'client-campaign',
-      'client-unit',
       'client-services',
       'client-tasks',
       'client-documents',
@@ -80,9 +68,6 @@ export default function ContextualLayout({ user, children }) {
       'client-settings',
       'insights-editor',
       'scope-editor',
-      'briefing-campanha',
-      'briefing-campanha-anual',
-      'planejamento',
     ];
 
     const currentPage = pathname.split('/').pop() || pathname.substring(1);
@@ -92,7 +77,6 @@ export default function ContextualLayout({ user, children }) {
         type: 'client',
         clientId,
         serviceId: serviceId || null,
-        briefingId,
       };
     }
 
@@ -100,18 +84,14 @@ export default function ContextualLayout({ user, children }) {
       type: 'global',
       clientId: null,
       serviceId: null,
-      briefingId: null,
     };
   };
 
   const context = getCurrentContext();
   const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
   const isClientShell = context.type === 'client' && Boolean(context.clientId);
-  const hasCampaignContext = Boolean(context.briefingId);
-  const isBrainstormPage =
-    currentPage === 'client-brainstorm' || currentPage === 'brainstorm';
   /** Workspace tem nav própria — evita dual chrome com bottom nav */
-  const isImmersivePage = isBrainstormPage || currentPage === 'delivery-workspace';
+  const isImmersivePage = currentPage === 'delivery-workspace';
 
   useEffect(() => {
     let cancelled = false;
@@ -139,29 +119,6 @@ export default function ContextualLayout({ user, children }) {
     };
   }, [isClientShell, context.clientId, agencyId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!hasCampaignContext || !context.briefingId) {
-      setContextCampaign(null);
-      return undefined;
-    }
-    Brief.get(context.briefingId)
-      .then((data) => {
-        if (!cancelled) {
-          setContextCampaign({
-            id: data?.id,
-            name: data?.nome_campanha || data?.title || 'Campanha',
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setContextCampaign(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [hasCampaignContext, context.briefingId]);
-
   return (
     <div className={`evocto-shell ${isClientShell ? CLIENT_CONTEXT.shellBg : ''}`}>
       <ContextualSidebar
@@ -169,7 +126,6 @@ export default function ContextualLayout({ user, children }) {
         currentPage={currentPage}
         clientId={context.clientId}
         serviceId={context.serviceId}
-        briefingId={context.briefingId}
         context={context}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -187,15 +143,12 @@ export default function ContextualLayout({ user, children }) {
           showMenuButton={isImmersivePage}
           context={context}
           contextClient={contextClient}
-          contextCampaign={contextCampaign}
         />
 
         <main
-          className={`flex-1 min-h-0 ${
-            isBrainstormPage
-              ? 'overflow-hidden p-0 pb-0 flex flex-col h-full'
-              : 'overflow-auto p-4 sm:p-6 lg:p-8 pb-8'
-          } ${isClientShell ? CLIENT_CONTEXT.contentAccent : ''}`}
+          className={`flex-1 min-h-0 overflow-auto p-4 sm:p-6 lg:p-8 pb-8 ${
+            isClientShell ? CLIENT_CONTEXT.contentAccent : ''
+          }`}
         >
           {children}
         </main>

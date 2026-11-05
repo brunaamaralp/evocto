@@ -50,7 +50,7 @@ import {
   buildAttachmentRecord,
   isImageAttachment,
 } from '../taskAttachmentsUpload.js';
-import { buildCampaignWorkspaceTasksPath } from '../campaignWorkspaceHref.js';
+import { buildDeliveryWorkspacePath } from '../deliveryWorkspaceTabs.js';
 
 const USER = 'user-qa-1';
 const NOW = new Date('2026-10-19T12:00:00');
@@ -341,26 +341,18 @@ describe('Cenário 8 — Alternar visualizações', () => {
 describe('Cenário 9 — Localizar cliente e acessar projetos', () => {
   it('breadcrumb e rotas de cliente têm labels amigáveis', () => {
     expect(getShellPageLabel('client-tasks')).toBe('Tarefas');
-    expect(getShellPageLabel('planejamento')).toBe('Panorama');
+    expect(getShellPageLabel('dashboard')).toBe('Início');
     expect(getShellPageLabel('delivery-workspace')).toBe('Workspace');
   });
 
-  it('inbox e workspace de campanha carregam clientId', () => {
-    const inbox = buildClientTasksHref({
-      clientId: 'c1',
-      serviceId: 's1',
-      briefingId: 'b1',
-    });
+  it('tarefas do cliente e workspace do serviço carregam clientId', () => {
+    const inbox = buildClientTasksHref({ clientId: 'c1', serviceId: 's1' });
     expect(inbox).toContain('clientId=c1');
-    expect(inbox).toContain('briefingId=b1');
+    expect(inbox).toContain('serviceId=s1');
 
-    const workspace = buildCampaignWorkspaceTasksPath({
-      serviceId: 's1',
-      clientId: 'c1',
-      campaignId: 'b1',
-    });
+    const workspace = buildDeliveryWorkspacePath('s1', 'tasks', { clientId: 'c1' });
     expect(workspace).toContain('clientId=c1');
-    expect(String(workspace)).toMatch(/campaignId|briefingId|unitId/i);
+    expect(workspace).toContain('serviceId=s1');
   });
 });
 

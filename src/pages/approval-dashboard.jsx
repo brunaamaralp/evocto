@@ -151,7 +151,6 @@ const ApprovalFilters = ({ filters, onFiltersChange }) => {
         <SelectContent>
           <SelectItem value="all">Todos</SelectItem>
           <SelectItem value="briefing">Briefing</SelectItem>
-          <SelectItem value="cycle_plan">Plano de Ciclo</SelectItem>
           <SelectItem value="creative">Criativo</SelectItem>
         </SelectContent>
       </Select>
@@ -479,11 +478,7 @@ export default function ApprovalDashboard() {
     setActionBusyId(approval.id);
     try {
       await revokePendingApproval(approval);
-      toast.success(
-        approval.source === 'cycle'
-          ? 'Ciclo voltou para rascunho'
-          : 'Aprovação revogada'
-      );
+      toast.success('Aprovação revogada');
       await loadApprovals();
     } catch (error) {
       toast.error(error?.message || 'Erro ao revogar');
@@ -499,19 +494,14 @@ export default function ApprovalDashboard() {
         if (approval?.href) {
           navigate(approval.href);
         } else {
-          toast.info('Abra o ciclo ou o conteúdo vinculado para revisar');
+          toast.info('Abra o conteúdo vinculado para revisar');
         }
         break;
       case 'resend':
         setActionBusyId(approval.id);
         try {
-          const result = await resendPendingApproval(approval);
-          if (result.mode === 'open_cycle' && result.href) {
-            toast.info('Abra o ciclo para reenviar o link ao aprovador');
-            navigate(result.href);
-          } else {
-            toast.success('Lembrete de aprovação enviado');
-          }
+          await resendPendingApproval(approval);
+          toast.success('Lembrete de aprovação enviado');
         } catch (error) {
           toast.error(error?.message || 'Erro ao reenviar');
         } finally {
@@ -616,9 +606,7 @@ export default function ApprovalDashboard() {
             <AlertDialogHeader>
               <AlertDialogTitle>Revogar esta aprovação?</AlertDialogTitle>
               <AlertDialogDescription>
-                {revokeTarget?.source === 'cycle'
-                  ? 'O ciclo voltará para rascunho e o link de aprovação deixará de valer.'
-                  : 'A solicitação será marcada como revogada e o aprovador não poderá mais responder.'}
+                A solicitação será marcada como revogada e o aprovador não poderá mais responder.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -12,24 +12,21 @@ describe('taskDrawerContextLinks', () => {
     expect(links.documents?.href).toContain('client-documents');
     expect(links.documents?.href).toContain('clientId=c1');
     expect(links.service).toBeNull();
-    expect(links.campaign).toBeNull();
   });
 
-  it('includes service and campaign when ids are present', () => {
+  it('includes service workspace when serviceId is present', () => {
     const links = buildTaskDrawerContextLinks({
       clientId: 'c1',
       serviceId: 's1',
       briefingId: 'b1',
-      cycleId: 'cy1',
     });
+    expect(links.service?.href).toContain('delivery-workspace');
     expect(links.service?.href).toContain('serviceId=s1');
-    expect(links.campaign?.href).toMatch(/delivery-workspace|section=tasks/);
-    expect(links.campaign?.href).toContain('b1');
+    expect(links.campaign).toBeUndefined();
     expect(listTaskDrawerContextLinks({
       clientId: 'c1',
       serviceId: 's1',
-      briefingId: 'b1',
-    }).length).toBeGreaterThanOrEqual(3);
+    })).toHaveLength(3);
   });
 
   it('returns empty list without client', () => {

@@ -34,7 +34,6 @@ import NarrativaBrandLockup from '@/components/NarrativaBrandLockup';
 import { BRAND } from '@/lib/brandAssets';
 import { createPageUrl } from '@/utils';
 import { buildClientTasksHref } from '@/lib/taskScope';
-import { buildCampaignWorkspaceTasksPath } from '@/lib/campaignWorkspaceHref';
 import { buildDeliveryWorkspacePath } from '@/lib/deliveryWorkspaceTabs';
 import { useSession } from '@/components/auth/SessionManager';
 import { fetchPendingApprovals } from '@/lib/pendingApprovals';
@@ -63,7 +62,6 @@ export default function ContextualSidebar({
   currentPage,
   clientId,
   serviceId,
-  briefingId = null,
   isOpen,
   onClose,
 }) {
@@ -160,21 +158,9 @@ export default function ContextualSidebar({
               serviceId: serviceId || null,
             })
           ),
-          isActive: currentPage === 'client-tasks' && !briefingId,
+          isActive: currentPage === 'client-tasks',
         },
       ];
-
-      // S1: sem Ficha / Tarefas da unidade — campanha opera no Workspace
-      if (currentPage === 'client-unit') {
-        items.push({
-          type: 'link',
-          label: 'Unidade atual',
-          icon: Target,
-          href: `${createPageUrl('client-unit')}${typeof window !== 'undefined' ? window.location.search : ''}`,
-          nested: true,
-          isActive: true,
-        });
-      }
 
       items.push(
         { type: 'section', label: 'Cliente' },
@@ -227,15 +213,9 @@ export default function ContextualSidebar({
     }
 
     if (useServiceShell && serviceId) {
-      const workspaceHref = briefingId
-        ? buildCampaignWorkspaceTasksPath({
-            serviceId,
-            clientId,
-            campaignId: briefingId,
-          })
-        : buildDeliveryWorkspacePath(serviceId, 'tasks', {
-            clientId: clientId || undefined,
-          });
+      const workspaceHref = buildDeliveryWorkspacePath(serviceId, 'tasks', {
+        clientId: clientId || undefined,
+      });
 
       return [
         {
@@ -249,7 +229,7 @@ export default function ContextualSidebar({
         },
         {
           type: 'link',
-          label: briefingId ? 'Campanha' : 'Entrega',
+          label: 'Entrega',
           icon: Megaphone,
           href: workspaceHref,
           isActive: currentPage === 'delivery-workspace',
@@ -265,7 +245,7 @@ export default function ContextualSidebar({
                 })
               )
             : createPageUrl('tasks-manager'),
-          isActive: currentPage === 'client-tasks' && !briefingId,
+          isActive: currentPage === 'client-tasks',
         },
       ];
     }
@@ -299,9 +279,7 @@ export default function ContextualSidebar({
         icon: ClipboardCheck,
         href: createPageUrl('approval-dashboard'),
         isActive:
-          currentPage === 'approval-dashboard' ||
-          currentPage === 'cycle-approval' ||
-          currentPage === 'cycle-approval-manager',
+          currentPage === 'approval-dashboard',
         badge:
           typeof pendingApprovalsCount === 'number' && pendingApprovalsCount > 0
             ? pendingApprovalsCount

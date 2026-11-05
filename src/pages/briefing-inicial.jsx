@@ -21,7 +21,7 @@ import BriefingInicialFileImport from '@/components/briefing/BriefingInicialFile
 
 /**
  * Preenchimento interno do briefing inicial (equipe).
- * Planejamento fica no Panorama, após análise.
+ * Depois do briefing, o trabalho segue em tarefas.
  */
 export default function BriefingInicialPage() {
   const { user, agencyId, isAuthenticated } = useSession();
@@ -212,7 +212,7 @@ export default function BriefingInicialPage() {
           </h1>
           <p className="text-[#6B635C] mt-1 text-sm leading-relaxed">
             Monte o DNA da marca: importe um arquivo ou preencha manualmente.
-            Depois revise e salve — o planejamento fica no Panorama.
+            Depois revise e salve.
           </p>
         </div>
       </div>

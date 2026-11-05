@@ -7,16 +7,8 @@ import {
 } from '../globalSearchSources.js';
 
 describe('mapPendingApprovalsForDashboard', () => {
-  it('maps cycles and requests into dashboard rows', () => {
+  it('maps requests into dashboard rows', () => {
     const rows = mapPendingApprovalsForDashboard({
-      cycles: [
-        {
-          id: 'c1',
-          cyclePeriod: 'Jan/2026',
-          clientName: 'Acme',
-          created_date: '2026-01-02T00:00:00.000Z',
-        },
-      ],
       requests: [
         {
           id: 'r1',
@@ -27,9 +19,9 @@ describe('mapPendingApprovalsForDashboard', () => {
         },
       ],
     });
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(1);
     expect(rows[0].id).toBe('r1');
-    expect(rows.find((r) => r.id === 'c1').href).toContain('cycle-approval');
+    expect(rows[0].source).toBe('request');
     expect(rows.every((r) => r.status === 'pending')).toBe(true);
   });
 });
@@ -47,7 +39,7 @@ describe('fetchGlobalSearchEntities', () => {
     const data = await fetchGlobalSearchEntities(null);
     expect(data.clients).toEqual([]);
     expect(data.tasks).toEqual([]);
-    expect(data.campaigns).toEqual([]);
+    expect(data.services).toEqual([]);
     expect(data.partialFailure).toBe(false);
     expect(data.failedSources).toEqual([]);
   });

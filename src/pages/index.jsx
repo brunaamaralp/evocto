@@ -52,13 +52,11 @@ import today from "./today";
 
 import servicesOverview from "./services-overview";
 
-import cycleapproval from "./cycle-approval";
 
 import WorkOrders from "./WorkOrders";
 
 import servicepolicies from "./service-policies";
 
-import cycleclosing from "./cycle-closing";
 
 import notificationpreferences from "./notification-preferences";
 
@@ -70,7 +68,6 @@ import Unauthorized from "./Unauthorized";
 
 import ClientDemo from "./ClientDemo";
 
-import cycleplan from "./cycle-plan";
 
 import jobsmonitor from "./jobs-monitor";
 
@@ -94,7 +91,6 @@ import aicentral from "./ai-central";
 
 import aiconfiguration from "./ai-configuration";
 
-import cyclereport from "./cycle-report";
 
 import aprendizados from "./aprendizados";
 
@@ -103,7 +99,6 @@ import publicbriefing from "./public-briefing";
 import createaccount from "./create-account";
 import createagency from "./create-agency";
 
-import clientplanning from "./client-planning";
 
 import approvaldashboard from "./approval-dashboard";
 
@@ -123,7 +118,6 @@ import teammembers from "./team-members";
 
 import servicedeliverables from "./service-deliverables";
 
-import cycleApprovalManager from "./cycle-approval-manager";
 
 import tasksboard from "./tasks-board";
 
@@ -154,11 +148,6 @@ import clientsettings from "./client-settings";
 import document from "./document";
 
 import materialReview from "./material-review";
-import personaDashboard from "./persona-dashboard";
-import campaignShare from "./campaign-share";
-import campaignsPerformance from "./campaigns-performance";
-import campaignInsights from "./campaign-insights";
-import brainstorm from "./brainstorm";
 
 import customreports from "./custom-reports";
 
@@ -216,7 +205,6 @@ import spaTestDashboard from "./spa-test-dashboard";
 
 import clientbriefing from "./client-briefing";
 
-import briefingCampanha from "./briefing-campanha";
 
 
 
@@ -224,9 +212,7 @@ import briefingInicial from "./briefing-inicial";
 
 import gerarMaterial from "./gerar-material";
 
-import clientCampaign from "./client-campaign";
 
-import clientUnit from "./client-unit";
 
 import clientservices from "./client-services";
 
@@ -252,8 +238,8 @@ import { createElement } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 
 /**
- * Panorama / plano anual foram removidos: o sistema funciona como gestor de
- * tarefas. Links antigos levam às tarefas do cliente (ou ao quadro geral).
+ * Panorama, campanhas e ciclos foram removidos: o sistema funciona como gestor
+ * de tarefas. Links antigos levam às tarefas do cliente (ou ao quadro geral).
  */
 function LegacyPlanningRedirect() {
     const location = useLocation();
@@ -320,13 +306,9 @@ const PAGES = {
     
     "services-overview": servicesOverview,
     
-    "cycle-approval": cycleapproval,
-    
     WorkOrders: WorkOrders,
     
     "service-policies": servicepolicies,
-    
-    "cycle-closing": cycleclosing,
     
     "notification-preferences": notificationpreferences,
     
@@ -338,8 +320,6 @@ const PAGES = {
     Unauthorized: Unauthorized,
     
     ClientDemo: ClientDemo,
-    
-    "cycle-plan": cycleplan,
     
     "jobs-monitor": jobsmonitor,
     
@@ -363,15 +343,11 @@ const PAGES = {
     
     "ai-configuration": aiconfiguration,
     
-    "cycle-report": cyclereport,
-    
     aprendizados: aprendizados,
     
     "public-briefing": publicbriefing,
     
     "create-account": createaccount,
-    
-    "client-planning": clientplanning,
     
     "approval-dashboard": approvaldashboard,
     
@@ -390,8 +366,6 @@ const PAGES = {
     "team-members": teammembers,
     
     "service-deliverables": servicedeliverables,
-    
-    "cycle-approval-manager": cycleApprovalManager,
     
     "tasks-board": tasksboard,
     
@@ -426,12 +400,6 @@ const PAGES = {
     document: document,
 
     "material-review": materialReview,
-    "persona-dashboard": personaDashboard,
-    "campaign-share": campaignShare,
-    "campaigns-performance": campaignsPerformance,
-    "campaign-insights": campaignInsights,
-    brainstorm: brainstorm,
-    "client-brainstorm": brainstorm,
     
     "custom-reports": customreports,
     
@@ -490,18 +458,12 @@ const PAGES = {
     
     "client-briefing": clientbriefing,
 
-    "briefing-campanha": briefingCampanha,
-
 
 
     "briefing-inicial": briefingInicial,
 
     "gerar-material": gerarMaterial,
 
-    "client-campaign": clientCampaign,
-    "campaign": clientCampaign,
-
-    "client-unit": clientUnit,
     
     "client-services": clientservices,
 
@@ -607,13 +569,13 @@ function PagesContent() {
                 
                 <Route path="/services-overview" element={createElement(servicesOverview)} />
                 
-                <Route path="/cycle-approval" element={createElement(cycleapproval)} />
+                <Route path="/cycle-approval" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/WorkOrders" element={<WorkOrders />} />
                 
                 <Route path="/service-policies" element={createElement(servicepolicies)} />
                 
-                <Route path="/cycle-closing" element={createElement(cycleclosing)} />
+                <Route path="/cycle-closing" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/notification-preferences" element={createElement(notificationpreferences)} />
                 
@@ -626,7 +588,7 @@ function PagesContent() {
                 
                 <Route path="/ClientDemo" element={<ClientDemo />} />
                 
-                <Route path="/cycle-plan" element={createElement(cycleplan)} />
+                <Route path="/cycle-plan" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/jobs-monitor" element={createElement(jobsmonitor)} />
                 
@@ -650,7 +612,7 @@ function PagesContent() {
                 
                 <Route path="/ai-configuration" element={createElement(aiconfiguration)} />
                 
-                <Route path="/cycle-report" element={createElement(cyclereport)} />
+                <Route path="/cycle-report" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/aprendizados" element={createElement(aprendizados)} />
                 
@@ -660,7 +622,7 @@ function PagesContent() {
 
                 <Route path="/create-agency" element={createElement(createagency)} />
                 
-                <Route path="/client-planning" element={createElement(clientplanning)} />
+                <Route path="/client-planning" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/approval-dashboard" element={createElement(approvaldashboard)} />
                 
@@ -680,7 +642,7 @@ function PagesContent() {
                 
                 <Route path="/service-deliverables" element={createElement(servicedeliverables)} />
                 
-                <Route path="/cycle-approval-manager" element={createElement(cycleApprovalManager)} />
+                <Route path="/cycle-approval-manager" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/tasks-board" element={createElement(tasksboard)} />
                 
@@ -717,15 +679,15 @@ function PagesContent() {
 
                 <Route path="/review/:token" element={createElement(materialReview)} />
                 <Route path="/review" element={createElement(materialReview)} />
-                <Route path="/campaigns/:shareToken" element={createElement(campaignShare)} />
-                <Route path="/campaigns" element={createElement(campaignShare)} />
-                <Route path="/dashboard/:persona" element={createElement(personaDashboard)} />
-                <Route path="/campaigns-performance" element={createElement(campaignsPerformance)} />
-                <Route path="/campaign-insights" element={createElement(campaignInsights)} />
-                <Route path="/client-brainstorm" element={createElement(brainstorm)} />
-                <Route path="/brainstorm" element={createElement(brainstorm)} />
-                <Route path="/campaigns/cycles/:planId" element={createElement(cycleplan)} />
-                <Route path="/cycle-plan/:planId" element={createElement(cycleplan)} />
+                <Route path="/campaigns/:shareToken" element={<Navigate to="/NotFound" replace />} />
+                <Route path="/campaigns" element={<Navigate to="/NotFound" replace />} />
+                <Route path="/dashboard/:persona" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/campaigns-performance" element={<LegacyPlanningRedirect />} />
+                <Route path="/campaign-insights" element={<LegacyPlanningRedirect />} />
+                <Route path="/client-brainstorm" element={<LegacyPlanningRedirect />} />
+                <Route path="/brainstorm" element={<LegacyPlanningRedirect />} />
+                <Route path="/campaigns/cycles/:planId" element={<LegacyPlanningRedirect />} />
+                <Route path="/cycle-plan/:planId" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/custom-reports" element={createElement(customreports)} />
                 
@@ -786,7 +748,7 @@ function PagesContent() {
 
                 <Route path="/planejamento" element={<LegacyPlanningRedirect />} />
 
-                <Route path="/briefing-campanha" element={createElement(briefingCampanha)} />
+                <Route path="/briefing-campanha" element={<LegacyPlanningRedirect />} />
 
                 <Route path="/briefing-campanha-anual" element={<LegacyPlanningRedirect />} />
 
@@ -794,10 +756,10 @@ function PagesContent() {
 
                 <Route path="/gerar-material" element={createElement(gerarMaterial)} />
 
-                <Route path="/client-campaign" element={createElement(clientCampaign)} />
-                <Route path="/campaign" element={createElement(clientCampaign)} />
+                <Route path="/client-campaign" element={<LegacyPlanningRedirect />} />
+                <Route path="/campaign" element={<LegacyPlanningRedirect />} />
 
-                <Route path="/client-unit" element={createElement(clientUnit)} />
+                <Route path="/client-unit" element={<LegacyPlanningRedirect />} />
                 
                 <Route path="/client-services" element={createElement(clientservices)} />
 

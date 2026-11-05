@@ -1,6 +1,6 @@
 /**
  * Briefing inicial: Empresa + insumos do plano anual (ciclos/seeds).
- * Planejamento mês a mês fica no Panorama — não faz parte deste formulário.
+ * Não inclui planejamento — o trabalho segue em tarefas.
  */
 import { Brief, Client } from '@/api/entities';
 import {

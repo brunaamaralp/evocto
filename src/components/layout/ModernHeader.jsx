@@ -31,7 +31,6 @@ import ShellBackButton from '@/components/navigation/ShellBackButton';
 import { scanTaskDeadlineNotifications } from '@/lib/scanTaskDeadlineNotifications';
 import { scanPipelineSlaEscalations } from '@/lib/scanPipelineSlaEscalations';
 import { createPageUrl } from '@/utils';
-import { buildClientCampaignHref } from '@/lib/campaignHref';
 import { CLIENT_CONTEXT, GLOBAL_SHELL } from '@/lib/clientContextTheme';
 import {
   buildQuickCreateTaskHref,
@@ -42,7 +41,6 @@ import {
 export default function ModernHeader({
   context,
   contextClient,
-  contextCampaign,
   onMenuClick,
   showMenuButton = false,
 }) {
@@ -52,22 +50,10 @@ export default function ModernHeader({
   const canManageTeam = Boolean(isAdmin?.() || isOwner?.() || ['owner', 'admin'].includes(user?.role || ''));
   const currentPage = location.pathname.split('/').pop() || location.pathname.substring(1);
 
-  const campaignHref =
-    isClientContext && context?.briefingId
-      ? createPageUrl(
-          buildClientCampaignHref({
-            clientId: context.clientId,
-            briefingId: context.briefingId,
-          })
-        )
-      : null;
-
   const clientCrumbs = isClientContext
     ? buildShellClientBreadcrumbs({
         clientId: context.clientId,
         clientName: contextClient?.name,
-        campaignName: contextCampaign?.name || null,
-        campaignHref,
         pageKey: currentPage,
       })
     : [];

@@ -23,7 +23,7 @@ import BriefingInicialFormFields from '@/components/briefing/BriefingInicialForm
 
 /**
  * Formulário público do briefing inicial (Empresa + insumos do plano anual).
- * Planejamento mês a mês é feito depois pela equipe no Panorama.
+ * Depois a equipe organiza o trabalho em tarefas.
  */
 export default function PublicBriefingPage() {
   const token = useMemo(() => {

@@ -2,9 +2,8 @@
  * Fontes e atalhos da busca global / QuickSwitcher (Fase C).
  */
 
-import { Client, Service, Brief, Task, CyclePlan } from '@/api/entities';
+import { Client, Service, Task } from '@/api/entities';
 import { createPageUrl } from '@/utils';
-import { buildCampaignWorkspaceIdeiaPath } from '@/lib/campaignWorkspaceHref';
 import { openTaskDrawer } from '@/lib/openTaskDrawer';
 
 function agencyFilter(agencyId) {
@@ -56,9 +55,7 @@ export async function fetchGlobalSearchEntities(agencyId) {
     return {
       clients: [],
       services: [],
-      campaigns: [],
       tasks: [],
-      cycles: [],
       partialFailure: false,
       failedSources: [],
     };
@@ -78,14 +75,12 @@ export async function fetchGlobalSearchEntities(agencyId) {
     }
   };
 
-  const [clients, services, briefs, tasks, cycles] = await Promise.all([
+  const [clients, services, tasks] = await Promise.all([
     safe('clients', () => Client.filter(base, '-updated_date', 40)),
     safe('services', () =>
       Service.filter({ ...base, is_template: false }, '-updated_date', 30)
     ),
-    safe('briefs', () => Brief.filter(base, '-updated_date', 30)),
     safe('tasks', () => Task.filter(base, '-updated_date', 40)),
-    safe('cycles', () => CyclePlan.filter(base, '-updated_date', 20)),
   ]);
 
   return {
@@ -109,31 +104,6 @@ export async function fetchGlobalSearchEntities(agencyId) {
       ),
       group: 'Serviços',
     })),
-    campaigns: briefs.map((b) => {
-      const clientId = b.clientId || b.projectId || null;
-      const campaignId = b.id;
-      const serviceId = b.serviceId || null;
-      let href = createPageUrl(
-        clientId
-          ? `client-detail?clientId=${clientId}`
-          : 'clients'
-      );
-      if (serviceId && campaignId) {
-        href = buildCampaignWorkspaceIdeiaPath({
-          serviceId,
-          clientId,
-          campaignId,
-        });
-      }
-      return {
-        id: b.id,
-        clientId,
-        title: b.title || b.name || 'Campanha',
-        subtitle: b.clientName || (clientId ? `Cliente ${String(clientId).slice(0, 6)}` : ''),
-        href,
-        group: 'Campanhas',
-      };
-    }),
     tasks: tasks.map((t) => ({
       id: t.id,
       clientId: t.clientId || t.projectId || null,
@@ -142,14 +112,6 @@ export async function fetchGlobalSearchEntities(agencyId) {
       href: createPageUrl(`tasks-manager?taskId=${encodeURIComponent(t.id)}`),
       openTaskId: t.id,
       group: 'Tarefas',
-    })),
-    cycles: cycles.map((c) => ({
-      id: c.id,
-      clientId: c.clientId || null,
-      title: c.cyclePeriod || c.title || 'Ciclo',
-      subtitle: c.status || '',
-      href: createPageUrl(`cycle-approval?id=${encodeURIComponent(c.id)}`),
-      group: 'Ciclos',
     })),
     partialFailure: failedSources.length > 0,
     failedSources,
