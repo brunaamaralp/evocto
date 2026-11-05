@@ -10,23 +10,25 @@ import {
   Target,
   Lightbulb,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Columns3,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { getTaskAssigneeId } from '@/lib/taskFilterPresets';
 import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
-import { CLIENT_INBOX_KANBAN_IDS, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
+import { groupTasksByColumn, DEFAULT_BOARD_COLUMNS } from '@/lib/boardColumns';
 
-const KANBAN_COLUMNS = [
-  { id: 'backlog', title: 'Fila', status: 'backlog', color: 'bg-gray-100', textColor: 'text-gray-700' },
-  { id: 'todo', title: 'A fazer', status: 'todo', color: 'bg-blue-100', textColor: 'text-blue-700' },
-  { id: 'in_progress', title: 'Em andamento', status: 'in_progress', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
-  { id: 'in_review', title: 'Em revisão', status: 'in_review', color: 'bg-purple-100', textColor: 'text-purple-700' },
-  { id: 'blocked', title: 'Bloqueado', status: 'blocked', color: 'bg-red-100', textColor: 'text-red-700' },
-  { id: 'completed', title: 'Concluído', status: 'completed', color: 'bg-green-100', textColor: 'text-green-700' },
-];
+/** Cor do cabeçalho pelo tipo da coluna. */
+const STATUS_COLORS = {
+  backlog: { color: 'bg-gray-100', textColor: 'text-gray-700' },
+  todo: { color: 'bg-blue-100', textColor: 'text-blue-700' },
+  in_progress: { color: 'bg-yellow-100', textColor: 'text-yellow-700' },
+  in_review: { color: 'bg-purple-100', textColor: 'text-purple-700' },
+  blocked: { color: 'bg-red-100', textColor: 'text-red-700' },
+  completed: { color: 'bg-green-100', textColor: 'text-green-700' },
+};
 
 const PRIORITY_COLORS = {
   low: 'bg-blue-500',
@@ -38,16 +40,17 @@ const PRIORITY_COLORS = {
 /**
  * Visualização Kanban com drag & drop
  */
-export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loading }) {
+export default function TaskKanbanView({
+  tasks,
+  columns = DEFAULT_BOARD_COLUMNS,
+  onMoveTask,
+  onEditTask,
+  onEditColumns,
+  loading,
+}) {
   const [_draggedTask, setDraggedTask] = useState(null);
 
-  // Agrupar tarefas por status (inclui aliases de campanha)
-  const tasksByStatus = tasks.reduce((acc, task) => {
-    const status = opsKanbanColumnForTask(task, { columns: CLIENT_INBOX_KANBAN_IDS });
-    if (!acc[status]) acc[status] = [];
-    acc[status].push(task);
-    return acc;
-  }, {});
+  const tasksByColumn = groupTasksByColumn(tasks, columns);
 
   // Drag & Drop handlers
   const handleDragStart = (result) => {
@@ -60,13 +63,15 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
     if (!result.destination) return;
 
     const taskId = result.draggableId;
-    const newStatus = result.destination.droppableId;
-    const oldStatus = result.source.droppableId;
+    const toColumnId = result.destination.droppableId;
+    if (toColumnId === result.source.droppableId) return;
 
-    if (newStatus === oldStatus) return;
+    const task = tasks.find((t) => String(t.id) === String(taskId));
+    const column = columns.find((c) => c.id === toColumnId);
+    if (!task || !column) return;
 
     try {
-      await onTaskUpdate(taskId, { status: newStatus });
+      await onMoveTask?.(task, column);
     } catch (error) {
       console.error('Erro ao atualizar status da tarefa:', error);
     }
@@ -74,7 +79,8 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
 
   // Renderizar tarefa (um único Draggable por card — index da coluna mapeada)
   const renderTask = (task, index) => {
-    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+    const isOverdue =
+      task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
     const hasSpecialFlags = task.impactsKPI || task.generatesLearning || task.requiresApproval;
     const assigneeStyle = assigneeColorStyle(getTaskAssigneeId(task));
 
@@ -216,7 +222,8 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
 
   // Renderizar coluna
   const renderColumn = (column) => {
-    const columnTasks = tasksByStatus[column.status] || [];
+    const columnTasks = tasksByColumn[column.id] || [];
+    const tone = STATUS_COLORS[column.status] || STATUS_COLORS.todo;
     const isOverdue = column.status !== 'completed' && columnTasks.some(t => 
       t.dueDate && new Date(t.dueDate) < new Date()
     );
@@ -224,9 +231,9 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
     return (
       <div key={column.id} className="flex-1 min-w-[240px] sm:min-w-[280px]">
         <Card className="h-full">
-          <CardHeader className={`${column.color} ${column.textColor} pb-2 sm:pb-3`}>
+          <CardHeader className={`${tone.color} ${tone.textColor} pb-2 sm:pb-3`}>
             <CardTitle className="flex items-center justify-between text-xs sm:text-sm font-medium">
-              <span className="truncate">{column.title}</span>
+              <span className="truncate">{column.name}</span>
               <Badge variant="secondary" className="bg-white/50 text-gray-700 text-xs">
                 {columnTasks.length}
               </Badge>
@@ -274,22 +281,31 @@ export default function TaskKanbanView({ tasks, onTaskUpdate, onEditTask, loadin
 
   return (
     <div className="space-y-4">
+      {onEditColumns ? (
+        <div className="flex justify-end">
+          <Button type="button" variant="outline" size="sm" onClick={onEditColumns}>
+            <Columns3 className="mr-1.5 h-4 w-4" />
+            Editar colunas
+          </Button>
+        </div>
+      ) : null}
       {/* Kanban Board - Mobile Optimized */}
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {KANBAN_COLUMNS.map(renderColumn)}
+          {columns.map(renderColumn)}
         </div>
       </DragDropContext>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {KANBAN_COLUMNS.map(column => {
-          const count = tasksByStatus[column.status]?.length || 0;
+        {columns.map(column => {
+          const count = tasksByColumn[column.id]?.length || 0;
+          const tone = STATUS_COLORS[column.status] || STATUS_COLORS.todo;
           return (
             <Card key={column.id} className="text-center">
               <CardContent className="p-3">
-                <div className={`text-2xl font-bold ${column.textColor}`}>{count}</div>
-                <div className="text-sm text-gray-600">{column.title}</div>
+                <div className={`text-2xl font-bold ${tone.textColor}`}>{count}</div>
+                <div className="text-sm text-gray-600 truncate">{column.name}</div>
               </CardContent>
             </Card>
           );

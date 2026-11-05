@@ -21,6 +21,7 @@ import {
   Kanban,
   CalendarDays,
   Rows3,
+  Columns3,
   CheckSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -36,11 +37,14 @@ import {
   isTaskOverdue,
   resolvePresetFromQuery,
 } from '@/lib/taskFilterPresets';
-import { transitionTaskStatus, completedKanbanColumnForTask, opsKanbanColumnForTask } from '@/lib/taskStatusTransition';
-import { completeTask } from '@/lib/completeTask';
+import { completedKanbanColumnForTask } from '@/lib/taskStatusTransition';
 import { assigneeColorStyle } from '@/lib/assigneeColors';
 import { priorityLabelPt, shouldShowPriorityBadge } from '@/lib/taskPriority';
 import { getKanbanBoardColumns } from '@/lib/taskStatusCanonical';
+import useBoardColumns from '@/hooks/useBoardColumns';
+import BoardColumnsEditor from '@/components/tasks/BoardColumnsEditor';
+import { groupTasksByColumn } from '@/lib/boardColumns';
+import { moveTaskToColumn, optimisticColumnPatch } from '@/lib/moveTaskToColumn';
 import { getStagePastel } from '@/lib/modulePastels';
 import { createManualTask } from '@/lib/createManualTask';
 import { openTaskDrawer } from '@/lib/openTaskDrawer';
@@ -54,11 +58,12 @@ import { TASK_SCOPE_LABELS } from '@/lib/taskScopeLabels';
 
 const DENSITY_STORAGE_KEY = 'evocto:tasks-manager-density';
 
-// Soft pastel kanban columns (mapa canônico)
+// Status canônicos (filtro de status + cor/descrição por tipo de coluna)
 const KANBAN_COLUMNS = getKanbanBoardColumns();
+const STATUS_STYLE = Object.fromEntries(KANBAN_COLUMNS.map((c) => [c.id, c]));
 
 function QuickAddTask({
-  columnId,
+  column,
   agencyId,
   userId,
   users = [],
@@ -75,10 +80,7 @@ function QuickAddTask({
     if (!trimmed || saving || !agencyId || disabled) return;
     setSaving(true);
     try {
-      const status =
-        columnId && !['completed', 'blocked', 'cancelled'].includes(columnId)
-          ? columnId
-          : 'todo';
+      const status = column?.status && column.status !== 'completed' ? column.status : 'todo';
       let assignedTo = null;
       if (showMore) {
         if (assignee === 'me') assignedTo = userId || null;
@@ -89,6 +91,7 @@ function QuickAddTask({
         agencyId,
         userId: userId || null,
         status,
+        boardColumnId: column?.id || null,
         quickAdd: true,
         assignedTo,
         dueDate: showMore && dueDate ? dueDate : null,
@@ -299,20 +302,21 @@ function TaskColumn({
   density = 'comfortable',
 }) {
   const compact = density === 'compact';
+  const style = STATUS_STYLE[column.status] || STATUS_STYLE.todo || {};
   return (
     <div className={`flex-shrink-0 ${compact ? 'w-64 min-w-64' : 'w-80 min-w-80'}`}>
-      <div className={`h-full rounded-2xl ${compact ? 'p-2.5' : 'p-4'} ${column.color}`}>
+      <div className={`h-full rounded-2xl ${compact ? 'p-2.5' : 'p-4'} ${style.color || ''}`}>
         <div className={compact ? 'pb-2' : 'pb-3'}>
           <div className="flex items-center justify-between mb-1">
             <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold text-[#1A1210]`}>
-              {column.title}
+              {column.name}
             </span>
             <Badge variant="secondary" className="text-xs rounded-full bg-white/70">
               {tasks.length}
             </Badge>
           </div>
           {!compact ? (
-            <p className="text-xs text-[#6B635C]">{column.description}</p>
+            <p className="text-xs text-[#6B635C]">{style.title || ''}</p>
           ) : null}
         </div>
         
@@ -362,12 +366,14 @@ function TaskColumn({
                     ) : null}
                   </div>
                 )}
-                <QuickAddTask
-                  columnId={column.id}
-                  agencyId={agencyId}
-                  userId={userId}
-                  users={users}
-                />
+                {column.status !== 'completed' ? (
+                  <QuickAddTask
+                    column={column}
+                    agencyId={agencyId}
+                    userId={userId}
+                    users={users}
+                  />
+                ) : null}
               </div>
             )}
           </Droppable>
@@ -413,9 +419,10 @@ export default function TasksManagerPage() {
   const [createKind, setCreateKind] = useState('task');
   const viewFromUrl = urlStateInit.view;
   const [viewMode, setViewMode] = useState(viewFromUrl); // 'kanban' | 'week'
-  const [mobileKanbanColumn, setMobileKanbanColumn] = useState(
-    () => KANBAN_COLUMNS[0]?.id || 'todo'
-  );
+  const board = useBoardColumns();
+  const boardColumns = board.columns;
+  const [columnsEditorOpen, setColumnsEditorOpen] = useState(false);
+  const [mobileKanbanColumn, setMobileKanbanColumn] = useState(null);
   const activePresetId = presetFilters.preset || null;
 
   const writeFilterParams = useCallback(
@@ -546,7 +553,7 @@ export default function TasksManagerPage() {
   // Drawer / dashboard / outras telas: refletir conclusão sem reload completo
   useEffect(() => {
     const onUpdated = (event) => {
-      const { taskId, status, deleted, kanbanColumn } = event?.detail || {};
+      const { taskId, status, deleted, kanbanColumn, boardColumnId } = event?.detail || {};
       if (!taskId) {
         loadData({ silent: true });
         return;
@@ -568,6 +575,7 @@ export default function TasksManagerPage() {
               ...t,
               status: isDone ? 'completed' : status,
               kanbanColumn: nextColumn,
+              ...(boardColumnId ? { boardColumnId } : {}),
             };
           })
         );
@@ -620,16 +628,15 @@ export default function TasksManagerPage() {
     currentUserId,
   ]);
 
-  // Organizar tarefas por coluna (status canônico + aliases de campanha)
-  const tasksByStatus = React.useMemo(() => {
-    const organized = {};
-    KANBAN_COLUMNS.forEach((column) => {
-      organized[column.id] = filteredTasks.filter(
-        (task) => opsKanbanColumnForTask(task) === column.id
-      );
-    });
-    return organized;
-  }, [filteredTasks]);
+  // Organizar tarefas pelas colunas do quadro (personalizáveis)
+  const tasksByStatus = React.useMemo(
+    () => groupTasksByColumn(filteredTasks, boardColumns),
+    [filteredTasks, boardColumns]
+  );
+  const activeMobileColumnId =
+    boardColumns.some((c) => c.id === mobileKanbanColumn)
+      ? mobileKanbanColumn
+      : boardColumns[0]?.id || null;
 
   // Drag and drop handler
   const handleDragEnd = useCallback(async (result) => {
@@ -642,73 +649,43 @@ export default function TasksManagerPage() {
     }
 
     const taskId = draggableId;
-    const newStatus = destination.droppableId;
+    const column = boardColumns.find((c) => c.id === destination.droppableId);
     const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
+    if (!task || !column) return;
+    if (destination.droppableId === source.droppableId) return;
 
-    const previousStatus = task.status;
-    
+    const previous = task;
     try {
       // Optimistic UI
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === taskId
-            ? {
-                ...t,
-                status: newStatus,
-                kanbanColumn:
-                  newStatus === 'completed'
-                    ? completedKanbanColumnForTask({ ...t, status: newStatus })
-                    : newStatus,
-              }
-            : t
-        )
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === taskId ? { ...t, ...optimisticColumnPatch(column) } : t))
       );
 
-      const transition =
-        newStatus === 'completed'
-          ? await completeTask(task, {
-              agencyId: task.agencyId || agencyId,
-              user,
-            })
-          : await transitionTaskStatus(task, newStatus, {
-              agencyId: task.agencyId || agencyId,
-              user,
-            });
+      const result = await moveTaskToColumn(task, column, {
+        agencyId: task.agencyId || agencyId,
+        user,
+      });
 
-      if (!transition.success) {
-        setTasks(prevTasks =>
-          prevTasks.map((t) =>
-            t.id === taskId ? { ...t, status: previousStatus } : t
-          )
-        );
-        toast.error(transition.message || 'Não é possível mover a tarefa');
+      if (!result.success) {
+        setTasks((prevTasks) => prevTasks.map((t) => (t.id === taskId ? previous : t)));
+        toast.error(result.message || 'Não é possível mover a tarefa');
         return;
       }
 
-      const statusLabel = KANBAN_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
-      toast.success(`Tarefa movida para "${statusLabel}"`);
-      if (transition.warning) {
-        toast.warning(transition.warning, { duration: 4500 });
+      toast.success(`Tarefa movida para "${column.name}"`);
+      if (result.warning) {
+        toast.warning(result.warning, { duration: 4500 });
       }
-      
-      window.dispatchEvent(new CustomEvent('task:updated', { 
-        detail: {
-          taskId,
-          status: newStatus === 'completed' ? 'completed' : newStatus,
-          kanbanColumn:
-            newStatus === 'completed'
-              ? completedKanbanColumnForTask(task)
-              : newStatus,
-        },
-      }));
 
+      window.dispatchEvent(new CustomEvent('task:updated', {
+        detail: { taskId, status: column.status, boardColumnId: column.id },
+      }));
     } catch (error) {
       console.error('Erro ao mover tarefa:', error);
       toast.error('Erro ao mover tarefa');
       loadData({ silent: true });
     }
-  }, [tasks, agencyId, loadData, user]);
+  }, [tasks, agencyId, loadData, user, boardColumns]);
 
   // Limpar filtros
   const clearFilters = useCallback(() => {
@@ -812,6 +789,18 @@ export default function TasksManagerPage() {
             >
               <Rows3 className="w-4 h-4" />
               {density === 'compact' ? 'Compacto' : 'Confortável'}
+            </Button>
+          ) : null}
+          {viewMode === 'kanban' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2 w-full sm:w-auto"
+              onClick={() => setColumnsEditorOpen(true)}
+            >
+              <Columns3 className="w-4 h-4" />
+              Editar colunas
             </Button>
           ) : null}
           <Button
@@ -1079,9 +1068,9 @@ export default function TasksManagerPage() {
           {/* Mobile: uma coluna por vez (evita só scroll horizontal) */}
           <div className="lg:hidden space-y-3">
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-              {KANBAN_COLUMNS.map((column) => {
+              {boardColumns.map((column) => {
                 const count = tasksByStatus[column.id]?.length || 0;
-                const active = mobileKanbanColumn === column.id;
+                const active = activeMobileColumnId === column.id;
                 return (
                   <Button
                     key={column.id}
@@ -1091,12 +1080,12 @@ export default function TasksManagerPage() {
                     className="shrink-0 touch-target h-11 text-xs"
                     onClick={() => setMobileKanbanColumn(column.id)}
                   >
-                    {column.title} ({count})
+                    {column.name} ({count})
                   </Button>
                 );
               })}
             </div>
-            {KANBAN_COLUMNS.filter((c) => c.id === mobileKanbanColumn).map((column) => (
+            {boardColumns.filter((c) => c.id === activeMobileColumnId).map((column) => (
               <div key={column.id} className="w-full min-w-0 [&_.flex-shrink-0]:w-full [&_.flex-shrink-0]:min-w-0">
                 <TaskColumn
                   column={column}
@@ -1117,11 +1106,11 @@ export default function TasksManagerPage() {
             <div
               className="flex gap-4 pb-4"
               style={{
-                width: `${KANBAN_COLUMNS.length * (density === 'compact' ? 256 : 320) + (KANBAN_COLUMNS.length - 1) * 16}px`,
+                width: `${boardColumns.length * (density === 'compact' ? 256 : 320) + (boardColumns.length - 1) * 16}px`,
                 minHeight: '600px',
               }}
             >
-              {KANBAN_COLUMNS.map((column) => (
+              {boardColumns.map((column) => (
                 <TaskColumn
                   key={column.id}
                   column={column}
@@ -1145,14 +1134,14 @@ export default function TasksManagerPage() {
         <Card className="mt-6">
           <CardContent className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
-              {KANBAN_COLUMNS.map(column => {
+              {boardColumns.map(column => {
                 const count = tasksByStatus[column.id]?.length || 0;
                 const percentage = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
                 
                 return (
                   <div key={column.id}>
                     <div className="text-2xl font-bold text-gray-900">{count}</div>
-                    <div className="text-sm text-gray-600">{column.title}</div>
+                    <div className="text-sm text-gray-600 truncate">{column.name}</div>
                     <div className="text-xs text-gray-500">{percentage}%</div>
                   </div>
                 );
@@ -1161,6 +1150,15 @@ export default function TasksManagerPage() {
           </CardContent>
         </Card>
       )}
+
+      <BoardColumnsEditor
+        open={columnsEditorOpen}
+        onOpenChange={setColumnsEditorOpen}
+        board={board}
+        taskCounts={Object.fromEntries(
+          Object.entries(groupTasksByColumn(tasks, boardColumns)).map(([id, list]) => [id, list.length])
+        )}
+      />
 
       <TaskCreateModal
         open={createOpen}

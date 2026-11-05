@@ -22,6 +22,10 @@ import TaskPhaseView from './TaskPhaseView';
 import TaskCalendarView from './TaskCalendarView';
 import TaskFilters from './TaskFilters';
 import TaskForm from './TaskForm';
+import BoardColumnsEditor from './BoardColumnsEditor';
+import useBoardColumns from '@/hooks/useBoardColumns';
+import { groupTasksByColumn } from '@/lib/boardColumns';
+import { moveTaskToColumn, optimisticColumnPatch } from '@/lib/moveTaskToColumn';
 import {
   EMPTY_TASK_FILTERS,
   applyTaskFilters,
@@ -56,6 +60,8 @@ export default function TaskManager({
   const [filters, setFilters] = useState({ ...EMPTY_TASK_FILTERS });
 
   const currentUserId = user?.id || user?.data?.id;
+  const board = useBoardColumns({ clientId: clientId || null });
+  const [columnsEditorOpen, setColumnsEditorOpen] = useState(false);
 
   // Definir visão padrão por perfil
   function getDefaultView(role) {
@@ -217,6 +223,32 @@ export default function TaskManager({
     } catch (err) {
       console.error('Erro ao atualizar tarefa:', err);
       toast.error('Erro ao atualizar tarefa');
+    }
+  };
+
+  const handleMoveTask = async (task, column) => {
+    const previous = task;
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, ...optimisticColumnPatch(column) } : t))
+    );
+    try {
+      const result = await moveTaskToColumn(task, column, {
+        agencyId: task.agencyId || user?.agencyId || user?.data?.agencyId,
+        user,
+      });
+      if (!result.success) {
+        setTasks((prev) => prev.map((t) => (t.id === previous.id ? previous : t)));
+        toast.error(result.message || 'Não foi possível mover a tarefa');
+        return;
+      }
+      if (result.warning) toast.warning(result.warning, { duration: 4500 });
+      window.dispatchEvent(
+        new CustomEvent('task:updated', { detail: { taskId: task.id, status: column.status } })
+      );
+    } catch (err) {
+      console.error('Erro ao mover tarefa:', err);
+      setTasks((prev) => prev.map((t) => (t.id === previous.id ? previous : t)));
+      toast.error('Erro ao mover tarefa');
     }
   };
 
@@ -434,9 +466,22 @@ export default function TaskManager({
         <TabsContent value="kanban">
           <TaskKanbanView
             tasks={filteredTasks}
-            onTaskUpdate={handleTaskUpdate}
+            columns={board.columns}
+            onMoveTask={handleMoveTask}
             onEditTask={handleEditTask}
-            loading={loading}
+            onEditColumns={() => setColumnsEditorOpen(true)}
+            loading={loading || board.loading}
+          />
+          <BoardColumnsEditor
+            open={columnsEditorOpen}
+            onOpenChange={setColumnsEditorOpen}
+            board={board}
+            taskCounts={Object.fromEntries(
+              Object.entries(groupTasksByColumn(tasks, board.columns)).map(([id, list]) => [
+                id,
+                list.length,
+              ])
+            )}
           />
         </TabsContent>
 

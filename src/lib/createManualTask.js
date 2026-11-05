@@ -28,6 +28,7 @@ import { buildTaskScopeFields } from '@/lib/taskScope';
  * @param {string|null} [input.cycleId]
  * @param {string|null} [input.briefingId]
  * @param {string|null} [input.kanbanColumn]
+ * @param {string|null} [input.boardColumnId] coluna personalizada do quadro
  */
 export function buildManualTaskPayload(input = {}) {
   const title = String(input.title || '').trim();
@@ -104,6 +105,7 @@ export function buildManualTaskPayload(input = {}) {
     progress: 0,
     kanbanColumn,
     kanbanPosition: 0,
+    ...(input.boardColumnId ? { boardColumnId: String(input.boardColumnId) } : {}),
     ...scope,
     clientVisible: false,
     dependencies: [],
