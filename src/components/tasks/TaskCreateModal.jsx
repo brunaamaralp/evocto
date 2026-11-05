@@ -1,28 +1,19 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Client } from "@/api/entities";
-import { Service } from "@/api/entities";
 import { User } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";
 import { createManualTask } from "@/lib/createManualTask";
-import { Loader2, X, Calendar, User as UserIcon, Flag } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
-/** Valor sentinela no Select — tarefa/reunião interna sem cliente */
-const INTERNAL_CLIENT_VALUE = "__internal__";
+/** Valor sentinela no Select — tarefa sem cliente */
+const NO_CLIENT_VALUE = "__internal__";
 /** Valor sentinela no Select — sem responsável (Radix não aceita value={null}) */
 const UNASSIGNED_VALUE = "unassigned";
-
-const MEETING_TYPES = new Set(["reuniao", "reuniao_alinhamento"]);
-
-function isMeetingType(type) {
-  return MEETING_TYPES.has(type);
-}
 
 /** datetime-local → ISO UTC */
 function fromDatetimeLocalValue(local) {
@@ -32,12 +23,30 @@ function fromDatetimeLocalValue(local) {
   return d.toISOString();
 }
 
+function emptyForm({ clientId, assignedTo }) {
+  return {
+    title: "",
+    description: "",
+    priority: "medium",
+    clientId: clientId || NO_CLIENT_VALUE,
+    assignedTo: assignedTo || UNASSIGNED_VALUE,
+    dueDate: "",
+  };
+}
+
 /**
+ * Formulário simples de tarefa (estilo gestor de tarefas):
+ * título, responsável, prazo, prioridade, cliente opcional e descrição.
+ *
+ * Serviço / campanha / ciclo não aparecem no formulário. Se a tela que abriu
+ * o modal já estiver nesse contexto (props default*), o vínculo é mantido
+ * em segundo plano enquanto o cliente não for trocado.
+ *
  * @param {object} props
  * @param {boolean} props.open
  * @param {(open: boolean) => void} props.onOpenChange
  * @param {(task: object) => void} [props.onSuccess]
- * @param {'task' | 'meeting'} [props.defaultKind]
+ * @param {'task' | 'meeting'} [props.defaultKind] reunião exige data e horário
  * @param {string|null} [props.defaultClientId]
  * @param {string|null} [props.defaultServiceId]
  * @param {string|null} [props.defaultBriefingId]
@@ -54,145 +63,79 @@ export default function TaskCreateModal({
   defaultCycleId = null,
 }) {
   const { user, agencyId } = useSession();
+  const currentUserId = user?.id || user?.data?.id || null;
+  const isMeeting = defaultKind === "meeting";
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [kind, setKind] = React.useState(defaultKind === "meeting" ? "meeting" : "task");
-  const [showMoreOptions, setShowMoreOptions] = React.useState(false);
-
-  // Form data
-  const [taskData, setTaskData] = React.useState({
-    title: "",
-    description: "",
-    status: "todo",
-    priority: "medium",
-    type: "analise_documentos",
-    clientId: INTERNAL_CLIENT_VALUE,
-    serviceId: "",
-    assignedTo: UNASSIGNED_VALUE,
-    dueDate: "",
-    estimatedHours: 4,
-  });
-
-  // Dropdown data
   const [clients, setClients] = React.useState([]);
-  const [services, setServices] = React.useState([]);
   const [users, setUsers] = React.useState([]);
-
-  const loadFormData = React.useCallback(async () => {
-    try {
-      const clientFilters = agencyId ? { agencyId } : {};
-      const [clientsData, usersData] = await Promise.all([
-        Client.filter(clientFilters, "-updated_date", 50),
-        User.filter(
-          {
-            ...(agencyId ? { agencyId } : {}),
-            role: { $in: ["owner", "admin", "team"] },
-          },
-          "-updated_date",
-          50
-        ),
-      ]);
-
-      setClients(clientsData || []);
-      setUsers(usersData || []);
-    } catch (err) {
-      console.error("Erro ao carregar dados:", err);
-      setError("Erro ao carregar dados do formulário");
-    }
-  }, [agencyId]);
-
-  const loadServices = React.useCallback(async (clientId) => {
-    if (!clientId || clientId === INTERNAL_CLIENT_VALUE) {
-      setServices([]);
-      return;
-    }
-
-    try {
-      const servicesData = await Service.filter({
-        clientId,
-        is_template: false,
-        is_active: true,
-      });
-      setServices(servicesData || []);
-    } catch (err) {
-      console.error("Erro ao carregar serviços:", err);
-    }
-  }, []);
-
-  const resetForm = React.useCallback(
-    async (nextKind = defaultKind) => {
-      const meeting = nextKind === "meeting";
-      const clientId = defaultClientId
-        ? String(defaultClientId)
-        : INTERNAL_CLIENT_VALUE;
-      const serviceId = defaultServiceId ? String(defaultServiceId) : "";
-      setKind(meeting ? "meeting" : "task");
-      setTaskData({
-        title: "",
-        description: "",
-        status: "todo",
-        priority: "medium",
-        type: meeting ? "reuniao" : "analise_documentos",
-        clientId,
-        serviceId,
-        assignedTo: UNASSIGNED_VALUE,
-        dueDate: "",
-        estimatedHours: meeting ? 1 : 4,
-      });
-      setError("");
-      setServices([]);
-      setShowMoreOptions(false);
-      if (clientId !== INTERNAL_CLIENT_VALUE) {
-        await loadServices(clientId);
-        if (serviceId) {
-          setTaskData((prev) => ({ ...prev, serviceId }));
-        }
-      }
-    },
-    [defaultKind, defaultClientId, defaultServiceId, loadServices]
+  const [taskData, setTaskData] = React.useState(() =>
+    emptyForm({ clientId: defaultClientId, assignedTo: currentUserId })
   );
 
+  const set = (patch) => setTaskData((prev) => ({ ...prev, ...patch }));
+
   React.useEffect(() => {
-    if (open) {
-      loadFormData();
-      void resetForm(defaultKind);
+    if (!open) return;
+    setTaskData(
+      emptyForm({
+        clientId: defaultClientId ? String(defaultClientId) : null,
+        assignedTo: currentUserId,
+      })
+    );
+    setError("");
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [clientsData, usersData] = await Promise.all([
+          Client.filter(agencyId ? { agencyId } : {}, "-updated_date", 100),
+          User.filter(
+            {
+              ...(agencyId ? { agencyId } : {}),
+              role: { $in: ["owner", "admin", "team"] },
+            },
+            "-updated_date",
+            50
+          ),
+        ]);
+        if (cancelled) return;
+        setClients(clientsData || []);
+        setUsers(usersData || []);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        if (!cancelled) setError("Erro ao carregar dados do formulário");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, agencyId, defaultClientId, currentUserId]);
+
+  // Garante que o usuário atual aparece na lista mesmo se a consulta não o trouxer
+  const assigneeOptions = React.useMemo(() => {
+    const list = Array.isArray(users) ? [...users] : [];
+    if (currentUserId && !list.some((u) => String(u.id) === String(currentUserId))) {
+      list.unshift({
+        id: currentUserId,
+        full_name: user?.full_name || user?.name || user?.email || "Eu",
+      });
     }
-  }, [open, loadFormData, resetForm, defaultKind]);
+    return list;
+  }, [users, currentUserId, user]);
 
-  const handleClientChange = (clientId) => {
-    setTaskData((prev) => ({
-      ...prev,
-      clientId,
-      serviceId: "",
-    }));
-    loadServices(clientId);
-  };
-
-  const handleKindChange = (nextKind) => {
-    setKind(nextKind);
-    setTaskData((prev) => ({
-      ...prev,
-      type: nextKind === "meeting" ? "reuniao" : "analise_documentos",
-      estimatedHours: nextKind === "meeting" ? 1 : prev.estimatedHours || 4,
-      // Reunião precisa de horário: se só tinha data, limpa para o usuário preencher datetime
-      dueDate:
-        nextKind === "meeting" && prev.dueDate && !prev.dueDate.includes("T")
-          ? `${prev.dueDate}T09:00`
-          : prev.dueDate,
-    }));
-  };
-
-  const isInternalTask = !taskData.clientId || taskData.clientId === INTERNAL_CLIENT_VALUE;
-  const isMeeting = kind === "meeting" || isMeetingType(taskData.type);
+  const hasClient = taskData.clientId && taskData.clientId !== NO_CLIENT_VALUE;
+  // Mantém vínculos de contexto só se o cliente continuar o mesmo do default
+  const keepContext =
+    hasClient && defaultClientId && String(taskData.clientId) === String(defaultClientId);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!taskData.title.trim()) {
-      setError(isMeeting ? "Título da reunião é obrigatório" : "Título é obrigatório");
+    const title = taskData.title.trim();
+    if (!title) {
+      setError("Título é obrigatório");
       return;
     }
-
     if (isMeeting && !taskData.dueDate) {
       setError("Escolha data e horário da reunião");
       return;
@@ -200,7 +143,6 @@ export default function TaskCreateModal({
 
     setLoading(true);
     setError("");
-
     try {
       const dueDateIso = isMeeting
         ? fromDatetimeLocalValue(taskData.dueDate)
@@ -208,54 +150,31 @@ export default function TaskCreateModal({
           ? new Date(`${taskData.dueDate}T12:00:00`).toISOString()
           : null;
 
-      const resolvedType = isMeeting
-        ? isMeetingType(taskData.type)
-          ? taskData.type
-          : "reuniao"
-        : taskData.type || "analise_documentos";
-
       const createdTask = await createManualTask({
-        title: taskData.title.trim(),
+        title,
         agencyId,
-        userId: user?.id || null,
-        clientId: isInternalTask ? null : taskData.clientId,
-        serviceId: isInternalTask ? null : taskData.serviceId || null,
-        assignedTo:
-          !taskData.assignedTo || taskData.assignedTo === UNASSIGNED_VALUE
-            ? null
-            : taskData.assignedTo,
-        status: taskData.status || "todo",
+        userId: currentUserId,
+        clientId: hasClient ? taskData.clientId : null,
+        serviceId: keepContext ? defaultServiceId || null : null,
+        briefingId: keepContext ? defaultBriefingId || null : null,
+        cycleId: keepContext ? defaultCycleId || null : null,
+        kanbanColumn: keepContext && defaultBriefingId ? "planejamento" : undefined,
+        assignedTo: taskData.assignedTo === UNASSIGNED_VALUE ? null : taskData.assignedTo,
+        status: "todo",
         priority: taskData.priority || "medium",
-        type: resolvedType,
         description: taskData.description || "",
         dueDate: dueDateIso,
-        estimatedHours: Number(taskData.estimatedHours) || (isMeeting ? 1 : 4),
         isMeeting,
         activityKind: isMeeting ? "meeting" : null,
         startDate: isMeeting && dueDateIso ? dueDateIso : undefined,
-        briefingId: isInternalTask ? null : defaultBriefingId || null,
-        cycleId: isInternalTask ? null : defaultCycleId || null,
-        kanbanColumn:
-          !isInternalTask && defaultBriefingId ? "planejamento" : undefined,
       });
 
-      if (onSuccess) {
-        onSuccess(createdTask);
-      }
-
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("task:refresh"));
-      }
-
+      onSuccess?.(createdTask);
+      window.dispatchEvent(new Event("task:refresh"));
       onOpenChange(false);
     } catch (err) {
       console.error("Erro ao criar tarefa:", err);
-      setError(
-        err.message ||
-          (isMeeting
-            ? "Erro ao agendar reunião. Verifique os dados e tente novamente."
-            : "Erro ao criar tarefa. Verifique os dados e tente novamente.")
-      );
+      setError(err.message || "Erro ao salvar. Verifique os dados e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -264,209 +183,89 @@ export default function TaskCreateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{isMeeting ? "Agendar reunião" : "Nova tarefa"}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-              <X className="w-4 h-4" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !loading) onOpenChange(false);
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-create-title"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl"
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center justify-between border-b border-[#F0EEF7] px-5 py-3">
+            <h2 id="task-create-title" className="text-sm font-semibold text-[#1A1210]">
+              {isMeeting ? "Agendar reunião" : "Nova tarefa"}
+            </h2>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onOpenChange(false)}
+              aria-label="Fechar"
+            >
+              <X className="h-4 w-4" />
             </Button>
           </div>
-        </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 text-red-700 rounded border border-red-200">
+          <div className="space-y-4 px-5 py-4">
+            {error ? (
+              <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {error}
               </div>
-            )}
+            ) : null}
 
-            {/* Tarefa vs Reunião */}
-            <div
-              className="flex rounded-xl border border-[#E4DDD4] bg-[#F8F7FB] p-0.5"
-              role="group"
-              aria-label="Tipo de item"
-            >
-              <button
-                type="button"
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  !isMeeting
-                    ? "bg-white text-[#1A1210] shadow-sm"
-                    : "text-[#6B635C] hover:text-[#1A1210]"
-                }`}
-                onClick={() => handleKindChange("task")}
-              >
-                Tarefa
-              </button>
-              <button
-                type="button"
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isMeeting
-                    ? "bg-white text-[#1A1210] shadow-sm"
-                    : "text-[#6B635C] hover:text-[#1A1210]"
-                }`}
-                onClick={() => handleKindChange("meeting")}
-              >
-                Reunião
-              </button>
-            </div>
+            <input
+              id="title"
+              autoFocus
+              value={taskData.title}
+              onChange={(e) => set({ title: e.target.value })}
+              placeholder={isMeeting ? "Nome da reunião" : "Nome da tarefa"}
+              aria-label="Título"
+              required
+              className="w-full border-0 bg-transparent p-0 text-lg font-semibold text-[#1A1210] placeholder:text-[#B5ADA6] focus:outline-none focus:ring-0"
+            />
 
-            <div>
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={taskData.title}
-                onChange={(e) => setTaskData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder={
-                  isMeeting ? "Ex.: Alinhamento semanal da equipe" : "Digite o título da tarefa"
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">{isMeeting ? "Pauta / notas" : "Descrição"}</Label>
-              <Textarea
-                id="description"
-                value={taskData.description}
-                onChange={(e) =>
-                  setTaskData((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder={
-                  isMeeting ? "Assuntos, link da call, participantes..." : "Descreva a tarefa..."
-                }
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label>Cliente</Label>
-              <Select
-                value={taskData.clientId || INTERNAL_CLIENT_VALUE}
-                onValueChange={handleClientChange}
-              >
+            <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-x-3 gap-y-3 text-sm">
+              <Label className="text-[#6B635C]">Responsável</Label>
+              <Select value={taskData.assignedTo} onValueChange={(value) => set({ assignedTo: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Interno ou cliente" />
+                  <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={INTERNAL_CLIENT_VALUE}>Interno (sem cliente)</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
+                  <SelectItem value={UNASSIGNED_VALUE}>Ninguém</SelectItem>
+                  {assigneeOptions.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {String(u.id) === String(currentUserId)
+                        ? `${u.full_name || u.email} (eu)`
+                        : u.full_name || u.email}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Use &quot;Interno&quot; para reuniões e tarefas da equipe, sem vincular a um cliente.
-              </p>
-            </div>
 
-            {!isMeeting && (
-              <div>
-                <Label>Serviço (opcional)</Label>
-                <Select
-                  value={taskData.serviceId || undefined}
-                  onValueChange={(value) =>
-                    setTaskData((prev) => ({
-                      ...prev,
-                      serviceId: value === "__none__" ? "" : value,
-                    }))
-                  }
-                  disabled={isInternalTask}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        isInternalTask ? "Disponível com cliente" : "Selecione o serviço (opcional)"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Nenhum serviço</SelectItem>
-                    {services.map((service) => (
-                      <SelectItem key={service.id} value={service.id}>
-                        {service.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+              <Label className="text-[#6B635C]">{isMeeting ? "Data e hora *" : "Prazo"}</Label>
+              {isMeeting ? (
+                <Input
+                  type="datetime-local"
+                  value={taskData.dueDate}
+                  onChange={(e) => set({ dueDate: e.target.value })}
+                  required
+                />
+              ) : (
+                <Input
+                  type="date"
+                  value={taskData.dueDate}
+                  onChange={(e) => set({ dueDate: e.target.value })}
+                />
+              )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label className="flex items-center gap-1">
-                  <UserIcon className="w-4 h-4" />
-                  {isMeeting ? "Organizador / responsável" : "Responsável"}
-                </Label>
-                <Select
-                  value={taskData.assignedTo || UNASSIGNED_VALUE}
-                  onValueChange={(value) =>
-                    setTaskData((prev) => ({ ...prev, assignedTo: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={UNASSIGNED_VALUE}>Não atribuído</SelectItem>
-                    {users.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.full_name || u.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {isMeeting ? "Data e horário *" : "Prazo"}
-                </Label>
-                {isMeeting ? (
-                  <Input
-                    type="datetime-local"
-                    value={
-                      taskData.dueDate?.includes("T")
-                        ? taskData.dueDate
-                        : taskData.dueDate
-                          ? `${taskData.dueDate}T09:00`
-                          : ""
-                    }
-                    onChange={(e) =>
-                      setTaskData((prev) => ({ ...prev, dueDate: e.target.value }))
-                    }
-                    required
-                  />
-                ) : (
-                  <Input
-                    type="date"
-                    value={
-                      taskData.dueDate?.includes("T")
-                        ? taskData.dueDate.slice(0, 10)
-                        : taskData.dueDate || ""
-                    }
-                    onChange={(e) =>
-                      setTaskData((prev) => ({ ...prev, dueDate: e.target.value }))
-                    }
-                  />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label className="flex items-center gap-1">
-                <Flag className="w-4 h-4" />
-                Prioridade
-              </Label>
-              <Select
-                value={taskData.priority}
-                onValueChange={(value) => setTaskData((prev) => ({ ...prev, priority: value }))}
-              >
+              <Label className="text-[#6B635C]">Prioridade</Label>
+              <Select value={taskData.priority} onValueChange={(value) => set({ priority: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -477,120 +276,58 @@ export default function TaskCreateModal({
                   <SelectItem value="urgent">Urgente</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Label className="text-[#6B635C]">Cliente</Label>
+              <Select value={taskData.clientId} onValueChange={(value) => set({ clientId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CLIENT_VALUE}>Sem cliente</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="border rounded-lg p-3 space-y-3">
-              <button
-                type="button"
-                className="text-sm font-medium text-[#B80015] hover:underline"
-                onClick={() => setShowMoreOptions((v) => !v)}
-                aria-expanded={showMoreOptions}
-              >
-                {showMoreOptions ? "Ocultar opções extras" : "Mais opções"}
-              </button>
-              {showMoreOptions || isMeeting ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {isMeeting ? (
-                    <div>
-                      <Label>Tipo de reunião</Label>
-                      <Select
-                        value={isMeetingType(taskData.type) ? taskData.type : "reuniao"}
-                        onValueChange={(value) =>
-                          setTaskData((prev) => ({ ...prev, type: value }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="reuniao">Reunião</SelectItem>
-                          <SelectItem value="reuniao_alinhamento">
-                            Reunião de alinhamento
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ) : (
-                    <div>
-                      <Label>Tipo</Label>
-                      <Select
-                        value={taskData.type}
-                        onValueChange={(value) => {
-                          setTaskData((prev) => ({ ...prev, type: value }));
-                          if (isMeetingType(value)) setKind("meeting");
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="analise_documentos">Análise Documentos</SelectItem>
-                          <SelectItem value="coleta_dados">Coleta Dados</SelectItem>
-                          <SelectItem value="analise_dados">Análise Dados</SelectItem>
-                          <SelectItem value="analise_financeira">Análise Financeira</SelectItem>
-                          <SelectItem value="relatorio_financeiro">Relatório Financeiro</SelectItem>
-                          <SelectItem value="planejamento_estrategico">
-                            Planejamento Estratégico
-                          </SelectItem>
-                          <SelectItem value="implementacao">Implementação</SelectItem>
-                          <SelectItem value="treinamento">Treinamento</SelectItem>
-                          <SelectItem value="administrativo">Administrativo</SelectItem>
-                          <SelectItem value="auditoria">Auditoria</SelectItem>
-                          <SelectItem value="consultoria">Consultoria</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  <div>
-                    <Label>{isMeeting ? "Duração (horas)" : "Horas estimadas"}</Label>
-                    <Input
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={taskData.estimatedHours}
-                      onChange={(e) =>
-                        setTaskData((prev) => ({
-                          ...prev,
-                          estimatedHours:
-                            Number(e.target.value) || (isMeeting ? 1 : 4),
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
+            <Textarea
+              id="description"
+              value={taskData.description}
+              onChange={(e) => set({ description: e.target.value })}
+              placeholder={isMeeting ? "Pauta, link da call…" : "Descrição (opcional)"}
+              aria-label="Descrição"
+              rows={3}
+            />
+          </div>
 
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="w-full sm:w-auto"
-                disabled={loading || !taskData.title.trim()}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isMeeting ? "Agendando..." : "Criando..."}
-                  </>
-                ) : isMeeting ? (
-                  "Agendar reunião"
-                ) : (
-                  "Criar tarefa"
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="flex flex-col-reverse gap-2 border-t border-[#F0EEF7] px-5 py-3 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" className="w-full sm:w-auto" disabled={loading || !taskData.title.trim()}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando…
+                </>
+              ) : isMeeting ? (
+                "Agendar reunião"
+              ) : (
+                "Criar tarefa"
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
