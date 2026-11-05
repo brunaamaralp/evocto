@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   ClipboardList,
+  History,
 } from 'lucide-react';
 import { useSession } from '@/components/auth/SessionManager';
 import { Link } from 'react-router-dom';
@@ -36,6 +37,10 @@ import AgencyOperationalPhaseIndicator from '@/components/dashboard/AgencyOperat
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import { completeTask, notifyTaskCompleted, toastTaskCompleted, toastTaskCompleteError } from '@/lib/completeTask';
 import { buildAgencyPortfolioRows } from '@/lib/buildAgencyPortfolioRows';
+import {
+  buildRecentTeamProjects,
+  formatRelativeActivity,
+} from '@/lib/buildRecentTeamProjects';
 import { listCharges } from '@/lib/agencyFinance/api';
 import { ymNow } from '@/lib/agencyFinance/constants';
 import { getTaskStatusConfig } from '@/lib/taskStatusCanonical';
@@ -581,6 +586,62 @@ function PortfolioSection({ portfolio }) {
   );
 }
 
+function RecentProjectsSection({ projects }) {
+  if (!projects?.length) return null;
+  return (
+    <section aria-labelledby="recent-projects-heading">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2
+          id="recent-projects-heading"
+          className="flex items-center gap-2 text-sm font-semibold tracking-tight text-[#1A1210]"
+        >
+          <History className="h-4 w-4 text-[#B80015]" aria-hidden />
+          Projetos recentes
+          <span className="font-normal text-[#6B635C]">· equipe</span>
+        </h2>
+        <Link
+          to={createPageUrl('clients')}
+          className="shrink-0 text-sm font-medium text-[#B80015] hover:underline"
+        >
+          Todos os clientes
+        </Link>
+      </div>
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {projects.map((project) => {
+          const when = formatRelativeActivity(project.lastActivityAt);
+          const meta = [project.lastActorName, when].filter(Boolean).join(' · ');
+          return (
+            <li key={project.id}>
+              <Link
+                to={project.href}
+                className="flex h-full items-center gap-3 rounded-xl border border-[#E4DDD4] px-3.5 py-3 transition-colors hover:border-[#c9c0e8] hover:bg-[#FAFAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B80015]/35"
+                title={`${project.lastActivityVerb}: ${project.lastActivityLabel}`}
+              >
+                <span
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FAFAFB] text-xs font-semibold text-[#B80015] ring-1 ring-[#E4DDD4]"
+                  aria-hidden
+                >
+                  {String(project.name || '?').trim().charAt(0).toUpperCase() || '?'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[#1A1210]">{project.name}</p>
+                  <p className="truncate text-xs text-[#6B635C]">
+                    {project.lastActivityVerb}: {project.lastActivityLabel}
+                  </p>
+                  {meta ? (
+                    <p className="truncate text-[11px] text-[#9A918A]">{meta}</p>
+                  ) : null}
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#C9C0E8]" aria-hidden />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 /**
  * Home operacional — campanhas + agenda + fila de atenção.
  */
@@ -641,6 +702,19 @@ export default function DashboardPage() {
         charges,
         todayStart,
         maxRows: 12,
+        createClientHref: (clientId) =>
+          createPageUrl(`client-detail?clientId=${clientId}`),
+      });
+
+      const recentProjects = buildRecentTeamProjects({
+        clients: clients.filter(
+          (c) => !['arquivado', 'archived'].includes(String(c.status || '').toLowerCase())
+        ),
+        tasks,
+        briefs,
+        cycles,
+        max: 6,
+        windowDays: 30,
         createClientHref: (clientId) =>
           createPageUrl(`client-detail?clientId=${clientId}`),
       });
@@ -711,6 +785,7 @@ export default function DashboardPage() {
         clientsWithoutCampaigns,
         clientsWithoutService,
         portfolio,
+        recentProjects,
         tasks,
         pendingApprovalsReliable: Boolean(pendingApprovals?.reliable),
       });
@@ -844,6 +919,7 @@ export default function DashboardPage() {
     clientsWithoutCampaigns,
     clientsWithoutService = [],
     portfolio = { rows: [], totalClients: 0, truncated: false },
+    recentProjects = [],
   } = dashboardData;
   const hasCampaigns = campaignGroups.length > 0;
   const portfolioRows = portfolio.rows || [];
@@ -937,6 +1013,8 @@ export default function DashboardPage() {
           </Button>
         )}
       </header>
+
+      <RecentProjectsSection projects={recentProjects} />
 
       {hasWorkColumns ? (
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-6">
