@@ -21,12 +21,12 @@ describe('buildRecentTeamProjects', () => {
         { id: 't1', clientId: 'c1', title: 'Post', updated_date: hoursAgo(10), assigneeName: 'Ana' },
         { id: 't2', clientId: 'c2', title: 'Reels', updated_date: hoursAgo(2), status: 'done' },
       ],
-      briefs: [{ id: 'b1', projectId: 'c3', title: 'Briefing Q4', updated_date: hoursAgo(1) }],
+      briefs: [{ id: 'b1', clientId: 'c3', projectId: 'c3', title: 'Briefing Q4', updated_date: hoursAgo(1) }],
       now,
       createClientHref: (id) => `/client-detail?clientId=${id}`,
     });
 
-    expect(rows.map((r) => r.id)).toEqual(['c3', 'c2', 'c1']);
+    expect(rows.map((r) => r.id)).toEqual(['client:c3', 'client:c2', 'client:c1']);
     expect(rows[0]).toMatchObject({ lastActivityLabel: 'Briefing Q4', lastActivityVerb: 'Briefing' });
     expect(rows[1].lastActivityVerb).toBe('Concluída');
     expect(rows[2]).toMatchObject({ lastActorName: 'Ana', href: '/client-detail?clientId=c1' });
@@ -51,8 +51,35 @@ describe('buildRecentTeamProjects', () => {
     });
 
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ id: 'c1', lastActorName: 'Bruno' });
+    expect(rows[0]).toMatchObject({ id: 'client:c1', lastActorName: 'Bruno' });
     expect(rows[0].actors).toEqual(['Bruno']);
+  });
+
+  it('groups by real project and links to the project page', () => {
+    const rows = buildRecentTeamProjects({
+      clients,
+      projects: [
+        { id: 'p1', clientId: 'c1', name: 'Social Media' },
+        { id: 'p2', clientId: 'c1', name: 'Site' },
+        { id: 'pi', clientId: null, name: 'Interno da agência' },
+        { id: 'px', clientId: 'c2', name: 'Velho', status: 'arquivado' },
+      ],
+      tasks: [
+        { clientId: 'c1', projectId: 'p1', title: 'A', updated_date: hoursAgo(5) },
+        { clientId: 'c1', projectId: 'p2', title: 'B', updated_date: hoursAgo(1) },
+        { clientId: 'c1', projectId: 'p1', title: 'C', updated_date: hoursAgo(2) },
+        { clientId: null, projectId: 'pi', title: 'Interna', updated_date: hoursAgo(3) },
+        { clientId: 'c2', projectId: 'px', title: 'Arq', updated_date: hoursAgo(1) },
+      ],
+      now,
+      createProjectHref: (id) => `/project-detail?projectId=${id}`,
+    });
+    expect(rows.map((r) => [r.name, r.clientName, r.activityCount])).toEqual([
+      ['Site', 'Alpha', 1],
+      ['Social Media', 'Alpha', 2],
+      ['Interno da agência', 'Interno', 1],
+    ]);
+    expect(rows[0].href).toBe('/project-detail?projectId=p2');
   });
 
   it('respects max', () => {

@@ -85,9 +85,11 @@ export function buildManualTaskPayload(input = {}) {
   return {
     agencyId: input.agencyId,
     clientId,
+    // Obrigatório no banco; se vazio, o hook de projetos resolve (serviço → Geral).
+    projectId: input.projectId || null,
     serviceId: isInternal ? null : input.serviceId || null,
     deliverableId: null,
-    parentTaskId: null,
+    parentTaskId: input.parentTaskId || null,
     title,
     description: input.description || '',
     status: safeStatus,

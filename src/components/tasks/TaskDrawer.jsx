@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Task } from "@/api/entities";
 import { User } from "@/api/entities";
 import { Client } from "@/api/entities";
+import { Project } from "@/api/entities";
+import { buildProjectHref } from "@/lib/projects/projectsApi";
 import { Notification } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";
 import {
@@ -145,6 +147,7 @@ export default function TaskDrawer() {
   const [taskId, setTaskId] = React.useState(null);
   const [task, setTask] = React.useState(null);
   const [client, setClient] = React.useState(null);
+  const [project, setProject] = React.useState(null);
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [savingField, setSavingField] = React.useState("");
@@ -244,6 +247,13 @@ export default function TaskDrawer() {
         }
       } else {
         setClient(null);
+      }
+      if (t.projectId) {
+        Project.get(t.projectId)
+          .then((p) => setProject(p))
+          .catch(() => setProject(null));
+      } else {
+        setProject(null);
       }
     } catch (e) {
       setError("Não foi possível carregar a tarefa. Tente novamente.");
@@ -999,6 +1009,18 @@ export default function TaskDrawer() {
                     <span className="truncate max-w-[160px]">
                       {client?.name || 'Interno'}
                     </span>
+                  )}
+                  {project?.id && (
+                    <>
+                      <span>·</span>
+                      <Link
+                        to={buildProjectHref(project.id)}
+                        className="truncate max-w-[180px] hover:text-primary hover:underline"
+                        title="Abrir projeto"
+                      >
+                        {project.name}
+                      </Link>
+                    </>
                   )}
                   {task?.deliverableName && (
                     <>

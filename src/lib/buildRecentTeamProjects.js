@@ -1,7 +1,10 @@
 /**
- * Projetos recentes da equipe — clientes ordenados pela última atividade
+ * Projetos recentes da equipe — projetos ordenados pela última atividade
  * registrada (tarefas, briefings, ciclos). Usado como acesso rápido na home.
+ *
+ * Registros ainda sem projectId (antes da migração) caem no card do cliente.
  */
+import { isLegacyClientProjectId } from './projects/projectModel.js';
 
 function toTime(value) {
   if (!value) return 0;
@@ -66,6 +69,7 @@ export function formatRelativeActivity(at, now = Date.now()) {
 /**
  * @param {object} params
  * @param {Array} params.clients
+ * @param {Array} [params.projects]
  * @param {Array} [params.tasks]
  * @param {Array} [params.briefs]
  * @param {Array} [params.cycles]
@@ -73,9 +77,11 @@ export function formatRelativeActivity(at, now = Date.now()) {
  * @param {number} [params.windowDays] ignora atividade mais antiga que isso
  * @param {Date|number} [params.now]
  * @param {(clientId: string) => string} params.createClientHref
+ * @param {(projectId: string) => string} [params.createProjectHref]
  */
 export function buildRecentTeamProjects({
   clients = [],
+  projects = [],
   tasks = [],
   briefs = [],
   cycles = [],
@@ -83,6 +89,7 @@ export function buildRecentTeamProjects({
   windowDays = 30,
   now = Date.now(),
   createClientHref,
+  createProjectHref,
 }) {
   const nowMs = now instanceof Date ? now.getTime() : Number(now) || Date.now();
   const minAt = windowDays > 0 ? nowMs - windowDays * 86400000 : 0;
@@ -91,16 +98,40 @@ export function buildRecentTeamProjects({
     if (c?.id) byClient.set(String(c.id), c);
   }
 
-  /** @type {Map<string, { at: number, label: string, verb: string, actorName: string|null, actors: Set<string>, count: number }>} */
+  const byProject = new Map();
+  for (const p of projects) {
+    if (p?.id) byProject.set(String(p.id), p);
+  }
+
+  /** @type {Map<string, { projectId: string|null, clientId: string|null, at: number, label: string, verb: string, actorName: string|null, actors: Set<string>, count: number }>} */
   const acc = new Map();
 
-  const push = (clientId, activity) => {
-    if (!clientId || !activity.at || activity.at < minAt) return;
-    const key = String(clientId);
-    if (!byClient.has(key)) return;
+  const push = (record, activity) => {
+    if (!activity.at || activity.at < minAt) return;
+    const rawProjectId =
+      record?.projectId && !isLegacyClientProjectId(record) ? String(record.projectId) : null;
+    const project = rawProjectId ? byProject.get(rawProjectId) : null;
+    if (project && project.status === 'arquivado') return;
+    const clientId = record?.clientId
+      ? String(record.clientId)
+      : project?.clientId
+        ? String(project.clientId)
+        : null;
+    if (!project && (!clientId || !byClient.has(clientId))) return;
+    if (project && clientId && !byClient.has(clientId)) return; // cliente arquivado
+    const key = project ? `project:${project.id}` : `client:${clientId}`;
     let row = acc.get(key);
     if (!row) {
-      row = { at: 0, label: '', verb: '', actorName: null, actors: new Set(), count: 0 };
+      row = {
+        projectId: project ? String(project.id) : null,
+        clientId,
+        at: 0,
+        label: '',
+        verb: '',
+        actorName: null,
+        actors: new Set(),
+        count: 0,
+      };
       acc.set(key, row);
     }
     row.count += 1;
@@ -115,11 +146,11 @@ export function buildRecentTeamProjects({
 
   for (const task of tasks) {
     if (!task) continue;
-    push(task.clientId, taskActivity(task));
+    push(task, taskActivity(task));
   }
   for (const brief of briefs) {
     if (!brief) continue;
-    push(brief.clientId || brief.projectId, {
+    push(brief, {
       at: toTime(brief.updated_date),
       label: brief.title || brief.name || 'Briefing',
       verb: 'Briefing',
@@ -128,7 +159,7 @@ export function buildRecentTeamProjects({
   }
   for (const cycle of cycles) {
     if (!cycle) continue;
-    push(cycle.clientId, {
+    push(cycle, {
       at: toTime(cycle.updated_date),
       label: cycle.title || cycle.period || 'Planejamento',
       verb: 'Planejamento',
@@ -139,12 +170,23 @@ export function buildRecentTeamProjects({
   return [...acc.entries()]
     .sort((a, b) => b[1].at - a[1].at)
     .slice(0, max)
-    .map(([clientId, row]) => {
-      const client = byClient.get(clientId);
+    .map(([key, row]) => {
+      const client = row.clientId ? byClient.get(row.clientId) : null;
+      const project = row.projectId ? byProject.get(row.projectId) : null;
+      const clientName = client?.name || (project && !project.clientId ? 'Interno' : 'Cliente');
       return {
-        id: clientId,
-        name: client?.name || 'Cliente',
-        href: createClientHref ? createClientHref(clientId) : null,
+        id: key,
+        projectId: row.projectId,
+        clientId: row.clientId,
+        name: project?.name || clientName,
+        clientName: project ? clientName : null,
+        href: project
+          ? createProjectHref
+            ? createProjectHref(project.id)
+            : null
+          : createClientHref && row.clientId
+            ? createClientHref(row.clientId)
+            : null,
         lastActivityAt: row.at,
         lastActivityLabel: row.label,
         lastActivityVerb: row.verb,

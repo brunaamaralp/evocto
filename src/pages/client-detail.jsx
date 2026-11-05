@@ -17,6 +17,7 @@ import ClientAttentionPanel from '@/components/client/ClientAttentionPanel';
 import InviteClientModal from '@/components/client/InviteClientModal';
 import ContractedServiceSetup from '@/components/client/ContractedServiceSetup';
 import ClientBriefingStatusCard from '@/components/client/ClientBriefingStatusCard';
+import ClientProjectsSection from '@/components/projects/ClientProjectsSection';
 import ClientHubHeader from '@/components/client/hub/ClientHubHeader';
 import ClientInfoCenterSummary from '@/components/client/hub/ClientInfoCenterSummary';
 import ServiceLensSwitcher from '@/components/client/hub/ServiceLensSwitcher';
@@ -568,6 +569,8 @@ export default function ClientDetailPage() {
       ) : null}
 
       <ClientBriefingStatusCard clientId={clientId} briefs={briefs} />
+
+      <ClientProjectsSection agencyId={agencyId} clientId={clientId} tasks={tasks || []} />
 
       <ClientInfoCenterSummary
         clientId={clientId}

@@ -87,6 +87,7 @@ import servicedetail from "./service-detail";
 import agentsdashboard from "./agents-dashboard";
 
 import clientdetail from "./client-detail";
+import projectdetail from "./project-detail";
 
 import clientdashboard from "./client-dashboard";
 
@@ -344,6 +345,8 @@ const PAGES = {
     "agents-dashboard": agentsdashboard,
     
     "client-detail": clientdetail,
+    
+    "project-detail": projectdetail,
     
     "client-dashboard": clientdashboard,
     
@@ -633,6 +636,7 @@ function PagesContent() {
                 <Route path="/agents-dashboard" element={createElement(agentsdashboard)} />
                 
                 <Route path="/client-detail" element={createElement(clientdetail)} />
+                <Route path="/project-detail" element={createElement(projectdetail)} />
                 
                 <Route path="/cliente/:clienteId/servicos/:servicoId/dashboard" element={createElement(clientdashboard)} />
                 

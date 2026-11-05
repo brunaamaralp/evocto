@@ -11,12 +11,16 @@ import { Service } from "@/api/entities";
 import { User } from "@/api/entities";
 import { useSession } from "@/components/auth/SessionManager";
 import { createManualTask } from "@/lib/createManualTask";
+import { listClientProjects } from "@/lib/projects/projectsApi";
+import { PROJECT_STATUS_LABELS } from "@/lib/projects/projectModel";
 import { Loader2, X, Calendar, User as UserIcon, Flag } from "lucide-react";
 
 /** Valor sentinela no Select — tarefa/reunião interna sem cliente */
 const INTERNAL_CLIENT_VALUE = "__internal__";
 /** Valor sentinela no Select — sem responsável (Radix não aceita value={null}) */
 const UNASSIGNED_VALUE = "unassigned";
+/** Valor sentinela — deixa o sistema escolher o projeto (serviço → Geral do cliente) */
+const AUTO_PROJECT_VALUE = "__auto__";
 
 const MEETING_TYPES = new Set(["reuniao", "reuniao_alinhamento"]);
 
@@ -42,6 +46,8 @@ function fromDatetimeLocalValue(local) {
  * @param {string|null} [props.defaultServiceId]
  * @param {string|null} [props.defaultBriefingId]
  * @param {string|null} [props.defaultCycleId]
+ * @param {string|null} [props.defaultProjectId]
+ * @param {string|null} [props.parentTaskId] cria como subtarefa
  */
 export default function TaskCreateModal({
   open,
@@ -52,6 +58,8 @@ export default function TaskCreateModal({
   defaultServiceId = null,
   defaultBriefingId = null,
   defaultCycleId = null,
+  defaultProjectId = null,
+  parentTaskId = null,
 }) {
   const { user, agencyId } = useSession();
   const [loading, setLoading] = React.useState(false);
@@ -68,10 +76,12 @@ export default function TaskCreateModal({
     type: "analise_documentos",
     clientId: INTERNAL_CLIENT_VALUE,
     serviceId: "",
+    projectId: AUTO_PROJECT_VALUE,
     assignedTo: UNASSIGNED_VALUE,
     dueDate: "",
     estimatedHours: 4,
   });
+  const [projects, setProjects] = React.useState([]);
 
   // Dropdown data
   const [clients, setClients] = React.useState([]);
@@ -119,6 +129,18 @@ export default function TaskCreateModal({
     }
   }, []);
 
+  const loadProjects = React.useCallback(
+    async (clientId) => {
+      if (!agencyId) return;
+      const list = await listClientProjects({
+        agencyId,
+        clientId: !clientId || clientId === INTERNAL_CLIENT_VALUE ? null : clientId,
+      });
+      setProjects(list.filter((p) => p.status !== "arquivado"));
+    },
+    [agencyId]
+  );
+
   const resetForm = React.useCallback(
     async (nextKind = defaultKind) => {
       const meeting = nextKind === "meeting";
@@ -135,6 +157,7 @@ export default function TaskCreateModal({
         type: meeting ? "reuniao" : "analise_documentos",
         clientId,
         serviceId,
+        projectId: defaultProjectId ? String(defaultProjectId) : AUTO_PROJECT_VALUE,
         assignedTo: UNASSIGNED_VALUE,
         dueDate: "",
         estimatedHours: meeting ? 1 : 4,
@@ -142,6 +165,7 @@ export default function TaskCreateModal({
       setError("");
       setServices([]);
       setShowMoreOptions(false);
+      void loadProjects(clientId);
       if (clientId !== INTERNAL_CLIENT_VALUE) {
         await loadServices(clientId);
         if (serviceId) {
@@ -149,7 +173,7 @@ export default function TaskCreateModal({
         }
       }
     },
-    [defaultKind, defaultClientId, defaultServiceId, loadServices]
+    [defaultKind, defaultClientId, defaultServiceId, defaultProjectId, loadServices, loadProjects]
   );
 
   React.useEffect(() => {
@@ -164,8 +188,20 @@ export default function TaskCreateModal({
       ...prev,
       clientId,
       serviceId: "",
+      projectId: AUTO_PROJECT_VALUE,
     }));
     loadServices(clientId);
+    loadProjects(clientId);
+  };
+
+  const handleProjectChange = (projectId) => {
+    const project = projects.find((p) => String(p.id) === String(projectId));
+    setTaskData((prev) => ({
+      ...prev,
+      projectId,
+      // Projeto nascido de um serviço já define o serviço da tarefa
+      serviceId: project?.serviceId ? String(project.serviceId) : prev.serviceId,
+    }));
   };
 
   const handleKindChange = (nextKind) => {
@@ -220,6 +256,11 @@ export default function TaskCreateModal({
         userId: user?.id || null,
         clientId: isInternalTask ? null : taskData.clientId,
         serviceId: isInternalTask ? null : taskData.serviceId || null,
+        projectId:
+          taskData.projectId && taskData.projectId !== AUTO_PROJECT_VALUE
+            ? taskData.projectId
+            : null,
+        parentTaskId: parentTaskId || null,
         assignedTo:
           !taskData.assignedTo || taskData.assignedTo === UNASSIGNED_VALUE
             ? null
@@ -268,7 +309,7 @@ export default function TaskCreateModal({
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{isMeeting ? "Agendar reunião" : "Nova tarefa"}</CardTitle>
+            <CardTitle>{isMeeting ? "Agendar reunião" : parentTaskId ? "Nova subtarefa" : "Nova tarefa"}</CardTitle>
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-4 h-4" />
             </Button>
@@ -361,6 +402,37 @@ export default function TaskCreateModal({
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 Use &quot;Interno&quot; para reuniões e tarefas da equipe, sem vincular a um cliente.
+              </p>
+            </div>
+
+            <div>
+              <Label>Projeto</Label>
+              <Select
+                value={taskData.projectId || AUTO_PROJECT_VALUE}
+                onValueChange={handleProjectChange}
+                disabled={Boolean(parentTaskId)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o projeto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={AUTO_PROJECT_VALUE}>
+                    {isInternalTask ? "Automático (Interno da agência)" : "Automático (pelo serviço ou Geral)"}
+                  </SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={String(project.id)}>
+                      {project.name}
+                      {project.status && project.status !== "ativo"
+                        ? ` · ${PROJECT_STATUS_LABELS[project.status] || project.status}`
+                        : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {parentTaskId
+                  ? "Subtarefa fica no mesmo projeto da tarefa-mãe."
+                  : "Toda tarefa pertence a um projeto."}
               </p>
             </div>
 

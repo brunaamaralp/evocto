@@ -137,6 +137,7 @@ const KNOWN_APP_SEGMENTS = new Set([
   'performance-kpis',
   'planejamento',
   'privacy-policy',
+  'project-detail',
   'projectsettings',
   'public-approval',
   'public-briefing',

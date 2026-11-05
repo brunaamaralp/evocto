@@ -22,6 +22,8 @@ import { Service } from '@/api/entities';
 import { Task } from '@/api/entities';
 import { Brief } from '@/api/entities';
 import { CyclePlan } from '@/api/entities';
+import { Project } from '@/api/entities';
+import { buildProjectHref } from '@/lib/projects/projectsApi';
 import { deriveActiveCampaigns } from '@/hooks/useClientHubData';
 import { buildGreetingLine, formatTodayHeroDate } from '@/lib/dashboardDayBriefing';
 import {
@@ -607,7 +609,9 @@ function RecentProjectsSection({ projects }) {
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => {
           const when = formatRelativeActivity(project.lastActivityAt);
-          const meta = [project.lastActorName, when].filter(Boolean).join(' · ');
+          const meta = [project.clientName, project.lastActorName, when]
+            .filter(Boolean)
+            .join(' · ');
           return (
             <li key={project.id}>
               <Link
@@ -665,7 +669,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const [clients, services, tasks, briefs, cycles, chargesResult, pendingApprovals] =
+      const [clients, services, tasks, briefs, cycles, chargesResult, pendingApprovals, projects] =
         await Promise.all([
           safeFilter(Client, { agencyId }),
           safeFilter(Service, { agencyId, is_template: false }),
@@ -677,6 +681,7 @@ export default function DashboardPage() {
             return [];
           }),
           fetchPendingApprovals(agencyId),
+          safeFilter(Project, { agencyId }),
         ]);
 
       const charges = Array.isArray(chargesResult) ? chargesResult : [];
@@ -708,6 +713,7 @@ export default function DashboardPage() {
         clients: clients.filter(
           (c) => !['arquivado', 'archived'].includes(String(c.status || '').toLowerCase())
         ),
+        projects,
         tasks,
         briefs,
         cycles,
@@ -715,6 +721,7 @@ export default function DashboardPage() {
         windowDays: 30,
         createClientHref: (clientId) =>
           createPageUrl(`client-detail?clientId=${clientId}`),
+        createProjectHref: buildProjectHref,
       });
 
       const cycleConfig = getOperationalCycleConfigFromAgency(agency);
